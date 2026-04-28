@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Calendar, Brain, FileText, Trophy, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, Brain, FileText, Trophy, Settings, LogOut, FileClock } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ const items = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/roadmap", icon: Calendar, label: "Roadmap" },
   { to: "/questions", icon: Brain, label: "AI Questions" },
+  { to: "/mock-papers", icon: FileClock, label: "Mock Papers" },
   { to: "/notes", icon: FileText, label: "Notes" },
   { to: "/papers", icon: Trophy, label: "Past Papers" },
   { to: "/settings", icon: Settings, label: "Settings" },
@@ -17,11 +18,11 @@ export const AppSidebar = () => {
   const { signOut } = useAuth();
   const { pathname } = useLocation();
   return (
-    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4">
+    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-4 sticky top-9 self-start" style={{ height: "calc(100vh - 36px)" }}>
       <div className="px-2 py-3 mb-6"><ApexLogo /></div>
       <nav className="flex-1 space-y-1">
         {items.map(it => {
-          const active = pathname === it.to;
+          const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
           return (
             <NavLink key={it.to} to={it.to}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${active

@@ -7,15 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ApexLogo } from "@/components/ApexLogo";
-import { SUBJECT_LIST, SubjectCode, GRADES, Grade } from "@/lib/subjects";
+import { SUBJECT_LIST, SubjectCode, GRADES, Grade, SUBJECTS, formatDuration } from "@/lib/subjects";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 
-interface SubjectInput {
+interface UnitInput {
   selected: boolean;
   exam_date: string;
+}
+interface SubjectInput {
+  selected: boolean;
   target_grade: Grade;
   current_grade: Grade;
+  units: Record<number, UnitInput>;
 }
 
 const STATS = [
@@ -26,6 +30,8 @@ const STATS = [
   "Active recall is 3x more effective than re-reading notes.",
 ];
 
+const defaultDate = "2026-06-01";
+
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -33,35 +39,67 @@ const Onboarding = () => {
   const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() =>
     SUBJECT_LIST.reduce((a, s) => ({
       ...a,
-      [s.code]: { selected: false, exam_date: "2026-06-01", target_grade: "A", current_grade: "C" }
+      [s.code]: {
+        selected: false,
+        target_grade: "A" as Grade,
+        current_grade: "C" as Grade,
+        units: s.units.reduce((u, unit) => ({
+          ...u,
+          [unit.number]: { selected: !unit.aLevelOnly, exam_date: defaultDate }
+        }), {} as Record<number, UnitInput>),
+      }
     }), {} as Record<SubjectCode, SubjectInput>)
   );
   const [statIdx, setStatIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const selectedCount = Object.values(subjects).filter(s => s.selected).length;
+  const selectedSubjects = SUBJECT_LIST.filter(s => subjects[s.code].selected);
+  const selectedCount = selectedSubjects.length;
+
+  const updateSubject = (code: SubjectCode, patch: Partial<SubjectInput>) =>
+    setSubjects(p => ({ ...p, [code]: { ...p[code], ...patch } }));
+  const updateUnit = (code: SubjectCode, unitNum: number, patch: Partial<UnitInput>) =>
+    setSubjects(p => ({
+      ...p,
+      [code]: {
+        ...p[code],
+        units: { ...p[code].units, [unitNum]: { ...p[code].units[unitNum], ...patch } }
+      }
+    }));
 
   const handleSubmit = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const rows = SUBJECT_LIST
-        .filter(s => subjects[s.code].selected)
-        .map(s => ({
-          user_id: user.id,
-          subject: s.code,
-          exam_date: subjects[s.code].exam_date,
-          target_grade: subjects[s.code].target_grade,
-          current_grade: subjects[s.code].current_grade,
-        }));
-      const { error: e1 } = await supabase.from("user_subjects").upsert(rows, { onConflict: "user_id,subject" });
+      const rows: any[] = [];
+      for (const s of SUBJECT_LIST) {
+        if (!subjects[s.code].selected) continue;
+        for (const unit of s.units) {
+          const u = subjects[s.code].units[unit.number];
+          if (!u?.selected) continue;
+          rows.push({
+            user_id: user.id,
+            subject: s.code,
+            unit_number: unit.number,
+            unit_name: unit.name,
+            paper_duration_minutes: unit.durationMinutes,
+            exam_date: u.exam_date,
+            target_grade: subjects[s.code].target_grade,
+            current_grade: subjects[s.code].current_grade,
+          });
+        }
+      }
+      if (rows.length === 0) throw new Error("Pick at least one unit and a date.");
+
+      // Wipe any prior rows for this user, then insert fresh
+      await supabase.from("user_subjects").delete().eq("user_id", user.id);
+      const { error: e1 } = await supabase.from("user_subjects").insert(rows);
       if (e1) throw e1;
       const { error: e2 } = await supabase.from("profiles").update({ onboarded: true }).eq("id", user.id);
       if (e2) throw e2;
 
-      // Animated roadmap loader
-      setStep(3);
+      setStep(4);
       const interval = setInterval(() => {
         setProgress(p => {
           if (p >= 100) { clearInterval(interval); return 100; }
@@ -76,7 +114,7 @@ const Onboarding = () => {
     }
   };
 
-  if (step === 3) {
+  if (step === 4) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "var(--gradient-hero)" }}>
         <div className="text-center max-w-xl animate-fade-in">
@@ -94,23 +132,23 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen p-6 md:p-12" style={{ background: "var(--gradient-hero)" }}>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-12">
           <ApexLogo />
-          <div className="font-mono text-xs text-muted-foreground">STEP {step} / 2</div>
+          <div className="font-mono text-xs text-muted-foreground">STEP {step} / 3</div>
         </div>
 
         {step === 1 && (
           <div className="animate-in-up">
             <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which subjects are you taking?</h1>
-            <p className="text-muted-foreground mb-10">Pick all that apply. You can change these later.</p>
+            <p className="text-muted-foreground mb-10">Pick all that apply. You'll choose units next.</p>
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
               {SUBJECT_LIST.map(s => {
                 const sel = subjects[s.code].selected;
                 return (
                   <button
                     key={s.code}
-                    onClick={() => setSubjects(prev => ({ ...prev, [s.code]: { ...prev[s.code], selected: !sel } }))}
+                    onClick={() => updateSubject(s.code, { selected: !sel })}
                     className={`glass-card rounded-2xl p-6 text-left transition-all duration-300 hover:-translate-y-0.5 ${sel ? "border-primary glow-primary" : "hover:border-primary/30"}`}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -118,17 +156,12 @@ const Onboarding = () => {
                       <Checkbox checked={sel} className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
                     </div>
                     <div className="font-bold text-lg">{s.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Edexcel A-Level</div>
+                    <div className="text-xs text-muted-foreground mt-1 font-mono">Edexcel A-Level · {s.spec}</div>
                   </button>
                 );
               })}
             </div>
-            <Button
-              size="lg"
-              disabled={selectedCount === 0}
-              onClick={() => setStep(2)}
-              className="bg-primary hover:bg-primary/90 h-12 px-8"
-            >
+            <Button size="lg" disabled={selectedCount === 0} onClick={() => setStep(2)} className="bg-primary hover:bg-primary/90 h-12 px-8">
               Continue with {selectedCount} {selectedCount === 1 ? "subject" : "subjects"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -137,26 +170,83 @@ const Onboarding = () => {
 
         {step === 2 && (
           <div className="animate-in-up">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which units, and when?</h1>
+            <p className="text-muted-foreground mb-10">Tick each unit you're sitting and lock in the exam date. Paper durations come from the spec.</p>
+            <div className="space-y-6 mb-10">
+              {selectedSubjects.map(s => (
+                <div key={s.code} className="glass-card rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-5 pb-4 border-b border-border">
+                    <div className="text-2xl">{s.emoji}</div>
+                    <div>
+                      <div className="font-bold text-lg">{s.name}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">{s.spec}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {s.units.map(unit => {
+                      const u = subjects[s.code].units[unit.number];
+                      return (
+                        <div key={unit.number} className={`rounded-xl border p-4 transition-all ${u.selected ? "border-primary/50 bg-primary/5" : "border-border"}`}>
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={u.selected}
+                              onCheckedChange={(v) => updateUnit(s.code, unit.number, { selected: !!v })}
+                              className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                                <div>
+                                  <span className="font-mono text-xs text-primary mr-2">UNIT {unit.number}</span>
+                                  <span className="font-semibold">{unit.name}</span>
+                                  {unit.aLevelOnly && <span className="ml-2 text-[10px] uppercase font-mono text-accent">A-Level only</span>}
+                                </div>
+                                <div className="text-xs text-muted-foreground font-mono">{unit.paperLabel} · {formatDuration(unit.durationMinutes)}</div>
+                              </div>
+                              {u.selected && (
+                                <div className="mt-3">
+                                  <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Exam date</Label>
+                                  <Input
+                                    type="date"
+                                    value={u.exam_date}
+                                    onChange={e => updateUnit(s.code, unit.number, { exam_date: e.target.value })}
+                                    className="mt-1 max-w-xs"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" size="lg" onClick={() => setStep(1)}>Back</Button>
+              <Button size="lg" onClick={() => setStep(3)} className="bg-primary hover:bg-primary/90 h-12 px-8">
+                Set targets <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="animate-in-up">
             <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Set your targets.</h1>
-            <p className="text-muted-foreground mb-10">When are your exams and what grades are you fighting for?</p>
+            <p className="text-muted-foreground mb-10">What grades are you fighting for in each subject?</p>
             <div className="space-y-4 mb-10">
-              {SUBJECT_LIST.filter(s => subjects[s.code].selected).map(s => (
+              {selectedSubjects.map(s => (
                 <div key={s.code} className="glass-card rounded-2xl p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="text-2xl">{s.emoji}</div>
                     <div className="font-bold text-lg">{s.name}</div>
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    <div>
-                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Exam date</Label>
-                      <Input type="date" value={subjects[s.code].exam_date}
-                        onChange={e => setSubjects(p => ({ ...p, [s.code]: { ...p[s.code], exam_date: e.target.value } }))}
-                        className="mt-1.5" />
-                    </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground">Target grade</Label>
                       <select value={subjects[s.code].target_grade}
-                        onChange={e => setSubjects(p => ({ ...p, [s.code]: { ...p[s.code], target_grade: e.target.value as Grade } }))}
+                        onChange={e => updateSubject(s.code, { target_grade: e.target.value as Grade })}
                         className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm">
                         {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
@@ -164,7 +254,7 @@ const Onboarding = () => {
                     <div>
                       <Label className="text-xs uppercase tracking-wider text-muted-foreground">Currently predicted</Label>
                       <select value={subjects[s.code].current_grade}
-                        onChange={e => setSubjects(p => ({ ...p, [s.code]: { ...p[s.code], current_grade: e.target.value as Grade } }))}
+                        onChange={e => updateSubject(s.code, { current_grade: e.target.value as Grade })}
                         className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm">
                         {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
@@ -174,7 +264,7 @@ const Onboarding = () => {
               ))}
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" size="lg" onClick={() => setStep(1)}>Back</Button>
+              <Button variant="outline" size="lg" onClick={() => setStep(2)}>Back</Button>
               <Button size="lg" onClick={handleSubmit} disabled={loading} className="bg-primary hover:bg-primary/90 h-12 px-8">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Build my roadmap <ArrowRight className="ml-2 h-4 w-4" /></>}
               </Button>
