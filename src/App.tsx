@@ -9,6 +9,10 @@ import AuthPage from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Questions from "./pages/Questions";
+import MockPapers from "./pages/MockPapers";
+import NewMockPaper from "./pages/NewMockPaper";
+import MockExam from "./pages/MockExam";
+import MockResults from "./pages/MockResults";
 import { StubPage } from "./components/StubPage";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +31,10 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<Questions />} />
+            <Route path="/mock-papers" element={<MockPapers />} />
+            <Route path="/mock-papers/new" element={<NewMockPaper />} />
+            <Route path="/mock-papers/exam/:id" element={<MockExam />} />
+            <Route path="/mock-papers/:id/results" element={<MockResults />} />
             <Route path="/roadmap" element={<StubPage title="Study Roadmap" subtitle="Your week-by-week plan to your target grade." />} />
             <Route path="/notes" element={<StubPage title="AI Notes" subtitle="Concise, exam-focused revision notes — generated on demand." />} />
             <Route path="/papers" element={<StubPage title="Past Papers" subtitle="Edexcel papers, mark schemes, and grade boundaries." />} />
