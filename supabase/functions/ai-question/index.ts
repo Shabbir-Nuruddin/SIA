@@ -63,8 +63,10 @@ serve(async (req) => {
     let toolName = "";
 
     if (action === "generate") {
-      const { subject, topic, difficulty, questionType } = body;
-      const system = `You are a senior Edexcel A-Level examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel A-Level past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand and question structure precisely. Use UK English. Use Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.`;
+      const { subject, topic, difficulty, questionType, syllabus_context } = body;
+      const system = `You are a senior Edexcel A-Level examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel A-Level past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand and question structure precisely. Use UK English. Use Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.
+
+FORMATTING: Output plain text only. No LaTeX, no dollar signs, no backslash math. Use Unicode for symbols (Δ, →, ⇌, ×, ², ³, ⁻¹). Write x squared or use ² superscript — never "x^2". Write fractions as a/b.${syllabus_context ? `\n\nSCOPE — your question MUST stay strictly within these official Edexcel specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
       const user = `Generate ONE ${difficulty} difficulty ${questionType} question on the topic "${topic}" for Edexcel A-Level ${subject}. Mark allocation should be realistic for the type:
 - Multiple Choice: 1 mark
 - Short Answer: 2-4 marks
