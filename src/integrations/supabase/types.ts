@@ -187,12 +187,49 @@ export type Database = {
         }
         Relationships: []
       }
+      note_annotations: {
+        Row: {
+          created_at: string
+          highlighted_text: string
+          id: string
+          note: string
+          topic_notes_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          highlighted_text: string
+          id?: string
+          note?: string
+          topic_notes_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          highlighted_text?: string
+          id?: string
+          note?: string
+          topic_notes_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_annotations_topic_notes_id_fkey"
+            columns: ["topic_notes_id"]
+            isOneToOne: false
+            referencedRelation: "topic_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
           current_streak: number
           display_name: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           last_session_date: string | null
           onboarded: boolean
           xp: number
@@ -201,7 +238,9 @@ export type Database = {
           created_at?: string
           current_streak?: number
           display_name?: string | null
+          first_name?: string | null
           id: string
+          last_name?: string | null
           last_session_date?: string | null
           onboarded?: boolean
           xp?: number
@@ -210,7 +249,9 @@ export type Database = {
           created_at?: string
           current_streak?: number
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           last_session_date?: string | null
           onboarded?: boolean
           xp?: number
@@ -243,6 +284,39 @@ export type Database = {
           subject?: Database["public"]["Enums"]["subject_code"] | null
           topic?: string | null
           unit_number?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      topic_notes: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          subject?: string
+          topic?: string
+          unit_number?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
