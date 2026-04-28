@@ -28,6 +28,7 @@ export type Database = {
           student_answer: string | null
           subject: Database["public"]["Enums"]["subject_code"]
           topic: string
+          unit_number: number | null
           user_id: string
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           student_answer?: string | null
           subject: Database["public"]["Enums"]["subject_code"]
           topic: string
+          unit_number?: number | null
           user_id: string
         }
         Update: {
@@ -58,6 +60,129 @@ export type Database = {
           student_answer?: string | null
           subject?: Database["public"]["Enums"]["subject_code"]
           topic?: string
+          unit_number?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mock_paper_questions: {
+        Row: {
+          awarded_marks: number | null
+          command_word: string | null
+          created_at: string
+          feedback: string | null
+          flagged: boolean
+          id: string
+          mark_scheme: string | null
+          marks: number
+          mock_paper_id: string
+          model_answer: string | null
+          options: Json | null
+          question_index: number
+          question_text: string
+          question_type: string
+          student_answer: string | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          awarded_marks?: number | null
+          command_word?: string | null
+          created_at?: string
+          feedback?: string | null
+          flagged?: boolean
+          id?: string
+          mark_scheme?: string | null
+          marks: number
+          mock_paper_id: string
+          model_answer?: string | null
+          options?: Json | null
+          question_index: number
+          question_text: string
+          question_type: string
+          student_answer?: string | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          awarded_marks?: number | null
+          command_word?: string | null
+          created_at?: string
+          feedback?: string | null
+          flagged?: boolean
+          id?: string
+          mark_scheme?: string | null
+          marks?: number
+          mock_paper_id?: string
+          model_answer?: string | null
+          options?: Json | null
+          question_index?: number
+          question_text?: string
+          question_type?: string
+          student_answer?: string | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mock_paper_questions_mock_paper_id_fkey"
+            columns: ["mock_paper_id"]
+            isOneToOne: false
+            referencedRelation: "mock_papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_papers: {
+        Row: {
+          awarded_marks: number | null
+          created_at: string
+          difficulty_mix: string
+          estimated_grade: string | null
+          id: string
+          question_types: string[]
+          started_at: string
+          status: string
+          subject: Database["public"]["Enums"]["subject_code"]
+          submitted_at: string | null
+          time_limit_minutes: number
+          topics: string[]
+          total_marks: number
+          units: number[]
+          user_id: string
+        }
+        Insert: {
+          awarded_marks?: number | null
+          created_at?: string
+          difficulty_mix?: string
+          estimated_grade?: string | null
+          id?: string
+          question_types?: string[]
+          started_at?: string
+          status?: string
+          subject: Database["public"]["Enums"]["subject_code"]
+          submitted_at?: string | null
+          time_limit_minutes: number
+          topics?: string[]
+          total_marks: number
+          units: number[]
+          user_id: string
+        }
+        Update: {
+          awarded_marks?: number | null
+          created_at?: string
+          difficulty_mix?: string
+          estimated_grade?: string | null
+          id?: string
+          question_types?: string[]
+          started_at?: string
+          status?: string
+          subject?: Database["public"]["Enums"]["subject_code"]
+          submitted_at?: string | null
+          time_limit_minutes?: number
+          topics?: string[]
+          total_marks?: number
+          units?: number[]
           user_id?: string
         }
         Relationships: []
@@ -99,6 +224,7 @@ export type Database = {
           id: string
           subject: Database["public"]["Enums"]["subject_code"] | null
           topic: string | null
+          unit_number: number | null
           user_id: string
         }
         Insert: {
@@ -107,6 +233,7 @@ export type Database = {
           id?: string
           subject?: Database["public"]["Enums"]["subject_code"] | null
           topic?: string | null
+          unit_number?: number | null
           user_id: string
         }
         Update: {
@@ -115,6 +242,7 @@ export type Database = {
           id?: string
           subject?: Database["public"]["Enums"]["subject_code"] | null
           topic?: string | null
+          unit_number?: number | null
           user_id?: string
         }
         Relationships: []
@@ -125,8 +253,11 @@ export type Database = {
           current_grade: Database["public"]["Enums"]["grade_level"]
           exam_date: string
           id: string
+          paper_duration_minutes: number
           subject: Database["public"]["Enums"]["subject_code"]
           target_grade: Database["public"]["Enums"]["grade_level"]
+          unit_name: string
+          unit_number: number
           user_id: string
         }
         Insert: {
@@ -134,8 +265,11 @@ export type Database = {
           current_grade: Database["public"]["Enums"]["grade_level"]
           exam_date: string
           id?: string
+          paper_duration_minutes: number
           subject: Database["public"]["Enums"]["subject_code"]
           target_grade: Database["public"]["Enums"]["grade_level"]
+          unit_name: string
+          unit_number: number
           user_id: string
         }
         Update: {
@@ -143,8 +277,11 @@ export type Database = {
           current_grade?: Database["public"]["Enums"]["grade_level"]
           exam_date?: string
           id?: string
+          paper_duration_minutes?: number
           subject?: Database["public"]["Enums"]["subject_code"]
           target_grade?: Database["public"]["Enums"]["grade_level"]
+          unit_name?: string
+          unit_number?: number
           user_id?: string
         }
         Relationships: []
