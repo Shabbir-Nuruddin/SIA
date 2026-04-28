@@ -14,7 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_questions: {
+        Row: {
+          awarded_marks: number | null
+          created_at: string
+          difficulty: string
+          feedback: string | null
+          id: string
+          mark_scheme: string | null
+          marks: number
+          question_text: string
+          question_type: string
+          student_answer: string | null
+          subject: Database["public"]["Enums"]["subject_code"]
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          awarded_marks?: number | null
+          created_at?: string
+          difficulty: string
+          feedback?: string | null
+          id?: string
+          mark_scheme?: string | null
+          marks?: number
+          question_text: string
+          question_type: string
+          student_answer?: string | null
+          subject: Database["public"]["Enums"]["subject_code"]
+          topic: string
+          user_id: string
+        }
+        Update: {
+          awarded_marks?: number | null
+          created_at?: string
+          difficulty?: string
+          feedback?: string | null
+          id?: string
+          mark_scheme?: string | null
+          marks?: number
+          question_text?: string
+          question_type?: string
+          student_answer?: string | null
+          subject?: Database["public"]["Enums"]["subject_code"]
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          current_streak: number
+          display_name: string | null
+          id: string
+          last_session_date: string | null
+          onboarded: boolean
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          display_name?: string | null
+          id: string
+          last_session_date?: string | null
+          onboarded?: boolean
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          display_name?: string | null
+          id?: string
+          last_session_date?: string | null
+          onboarded?: boolean
+          xp?: number
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          completed_at: string
+          duration_minutes: number
+          id: string
+          subject: Database["public"]["Enums"]["subject_code"] | null
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          duration_minutes?: number
+          id?: string
+          subject?: Database["public"]["Enums"]["subject_code"] | null
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          duration_minutes?: number
+          id?: string
+          subject?: Database["public"]["Enums"]["subject_code"] | null
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subjects: {
+        Row: {
+          created_at: string
+          current_grade: Database["public"]["Enums"]["grade_level"]
+          exam_date: string
+          id: string
+          subject: Database["public"]["Enums"]["subject_code"]
+          target_grade: Database["public"]["Enums"]["grade_level"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_grade: Database["public"]["Enums"]["grade_level"]
+          exam_date: string
+          id?: string
+          subject: Database["public"]["Enums"]["subject_code"]
+          target_grade: Database["public"]["Enums"]["grade_level"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_grade?: Database["public"]["Enums"]["grade_level"]
+          exam_date?: string
+          id?: string
+          subject?: Database["public"]["Enums"]["subject_code"]
+          target_grade?: Database["public"]["Enums"]["grade_level"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +157,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      grade_level: "A*" | "A" | "B" | "C" | "D" | "E" | "U"
+      subject_code: "mathematics" | "biology" | "chemistry" | "physics"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +285,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      grade_level: ["A*", "A", "B", "C", "D", "E", "U"],
+      subject_code: ["mathematics", "biology", "chemistry", "physics"],
+    },
   },
 } as const
