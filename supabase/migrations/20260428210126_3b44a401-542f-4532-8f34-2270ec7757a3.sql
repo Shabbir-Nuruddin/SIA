@@ -1,0 +1,1 @@
+ALTER TABLE public.user_subjects DROP CONSTRAINT IF EXISTS user_subjects_user_id_subject_key;
