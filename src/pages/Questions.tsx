@@ -33,7 +33,7 @@ const QuestionsPage = () => {
   const initialTopic = params.get("topic") || "";
 
   const [subject, setSubject] = useState<SubjectCode>(initialSubject);
-  const [topic, setTopic] = useState(initialTopic || SUBJECTS[initialSubject].papers[0].topics[0]);
+  const [topic, setTopic] = useState(initialTopic || SUBJECTS[initialSubject].units[0].topics[0]);
   const [difficulty, setDifficulty] = useState<Difficulty>("Standard");
   const [qType, setQType] = useState<QType>("Short Answer");
   const [question, setQuestion] = useState<Generated | null>(null);
@@ -44,7 +44,7 @@ const QuestionsPage = () => {
   const [questionId, setQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
-    setTopic(SUBJECTS[subject].papers[0].topics[0]);
+    setTopic(SUBJECTS[subject].units[0].topics[0]);
   }, [subject]);
 
   const generate = async () => {
@@ -120,7 +120,7 @@ const QuestionsPage = () => {
   };
 
   const subjectMeta = SUBJECTS[subject];
-  const allTopics = subjectMeta.papers.flatMap(p => p.topics);
+  const allTopics = Array.from(new Set(subjectMeta.units.flatMap(u => u.topics)));
 
   return (
     <AppLayout>
