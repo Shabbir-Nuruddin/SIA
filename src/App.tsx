@@ -13,6 +13,7 @@ import MockPapers from "./pages/MockPapers";
 import NewMockPaper from "./pages/NewMockPaper";
 import MockExam from "./pages/MockExam";
 import MockResults from "./pages/MockResults";
+import Roadmap from "./pages/Roadmap";
 import { StubPage } from "./components/StubPage";
 import NotFound from "./pages/NotFound";
 
@@ -35,7 +36,7 @@ const App = () => (
             <Route path="/mock-papers/new" element={<NewMockPaper />} />
             <Route path="/mock-papers/exam/:id" element={<MockExam />} />
             <Route path="/mock-papers/:id/results" element={<MockResults />} />
-            <Route path="/roadmap" element={<StubPage title="Study Roadmap" subtitle="Your week-by-week plan to your target grade." />} />
+            <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/notes" element={<StubPage title="AI Notes" subtitle="Concise, exam-focused revision notes — generated on demand." />} />
             <Route path="/papers" element={<StubPage title="Past Papers" subtitle="Edexcel papers, mark schemes, and grade boundaries." />} />
             <Route path="/settings" element={<StubPage title="Settings" subtitle="Exams · target grades · notifications." />} />
