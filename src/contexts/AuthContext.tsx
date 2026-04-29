@@ -19,6 +19,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setLoading(false);
+      if (s?.user) {
+        setTimeout(() => {
+          supabase.from("profiles").select("theme").eq("id", s.user.id).single()
+            .then(({ data }) => {
+              if (data?.theme) document.documentElement.classList.toggle("light", data.theme === "light");
+            });
+        }, 0);
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
