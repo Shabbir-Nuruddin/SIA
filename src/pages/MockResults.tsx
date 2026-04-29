@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode, GRADE_BOUNDARIES, gradeColor } from "@/lib/subjects";
 import { Check, X, Info, ArrowRight, Loader2, RotateCcw, Brain, LayoutDashboard, Flag } from "lucide-react";
+import { formattedHtmlProps } from "@/lib/formatText";
 
 interface Q {
   id: string;
@@ -177,7 +178,7 @@ const MockResults = () => {
                   <div className="px-4 pb-5 pt-1 space-y-4 border-t border-border">
                     <div>
                       <div className="text-[10px] uppercase font-mono text-muted-foreground tracking-wider mb-1">Question</div>
-                      <div className="text-sm whitespace-pre-wrap">{q.question_text}</div>
+                      <div className="text-sm" {...formattedHtmlProps(q.question_text)} />
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -186,13 +187,13 @@ const MockResults = () => {
                       </div>
                       <div>
                         <div className="text-[10px] uppercase font-mono text-success tracking-wider mb-1">Model answer</div>
-                        <div className="text-sm p-3 rounded bg-success/5 border border-success/20 whitespace-pre-wrap min-h-[60px]">{q.model_answer}</div>
+                        <div className="text-sm p-3 rounded bg-success/5 border border-success/20 min-h-[60px]" {...formattedHtmlProps(q.model_answer || "")} />
                       </div>
                     </div>
                     {q.feedback && (
                       <div>
                         <div className="text-[10px] uppercase font-mono text-accent tracking-wider mb-1">Examiner feedback</div>
-                        <div className="text-sm">{q.feedback}</div>
+                        <div className="text-sm" {...formattedHtmlProps(q.feedback)} />
                       </div>
                     )}
                   </div>

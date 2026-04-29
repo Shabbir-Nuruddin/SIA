@@ -6,6 +6,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { formattedHtmlProps } from "@/lib/formatText";
 import { Brain, Loader2, RefreshCw, TrendingUp, TrendingDown, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,8 +55,15 @@ const QuestionsPage = () => {
     setAnswer("");
     setMarking(null);
     try {
+      let syllabus_context: string | undefined;
+      if (subject === "chemistry") {
+        const t = findChemistryTopic(topic);
+        if (t) {
+          syllabus_context = `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\nOfficial assessment statements (your scope is LIMITED to these — do not include content outside this list):\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
+        }
+      }
       const { data, error } = await supabase.functions.invoke("ai-question", {
-        body: { action: "generate", subject, topic, difficulty, questionType: qType },
+        body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -181,7 +190,7 @@ const QuestionsPage = () => {
               <div className="font-mono text-sm bg-secondary px-3 py-1.5 rounded-md">[{question.marks} marks]</div>
             </div>
             <div className="prose prose-invert max-w-none mb-8">
-              <p className="text-lg leading-relaxed whitespace-pre-wrap">{question.question_text}</p>
+              <div className="text-lg leading-relaxed" {...formattedHtmlProps(question.question_text)} />
             </div>
 
             {!marking && (
@@ -222,11 +231,11 @@ const QuestionsPage = () => {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-accent font-mono mb-2">Examiner feedback</div>
-                  <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap">{marking.feedback}</div>
+                  <div className="prose prose-invert max-w-none text-sm" {...formattedHtmlProps(marking.feedback)} />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-success font-mono mb-2">Model answer</div>
-                  <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap p-4 rounded-lg bg-success/5 border border-success/20">{marking.model_answer}</div>
+                  <div className="prose prose-invert max-w-none text-sm p-4 rounded-lg bg-success/5 border border-success/20" {...formattedHtmlProps(marking.model_answer)} />
                 </div>
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
                   <Button onClick={generate} className="bg-primary hover:bg-primary/90"><RefreshCw className="h-4 w-4 mr-2" />Generate another like this</Button>

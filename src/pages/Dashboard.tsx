@@ -33,13 +33,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [mocks, setMocks] = useState<MockRow[]>([]);
-  const [profile, setProfile] = useState<{ display_name: string; xp: number; current_streak: number; onboarded: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ display_name: string; first_name: string | null; xp: number; current_streak: number; onboarded: boolean } | null>(null);
 
   useEffect(() => {
     if (!user) return;
     Promise.all([
       supabase.from("user_subjects").select("subject,unit_number,unit_name,paper_duration_minutes,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("display_name,xp,current_streak,onboarded").eq("id", user.id).single(),
+      supabase.from("profiles").select("display_name,first_name,xp,current_streak,onboarded").eq("id", user.id).single(),
       supabase.from("mock_papers").select("subject,awarded_marks,total_marks,estimated_grade,submitted_at").eq("user_id", user.id).eq("status", "marked").order("submitted_at", { ascending: false }),
     ]).then(([s, p, m]) => {
       if (s.data) setUnits(s.data as UnitRow[]);
@@ -88,7 +88,12 @@ const Dashboard = () => {
           <div>
             <div className="text-sm text-muted-foreground font-mono">// {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
             <h1 className="text-3xl md:text-4xl font-extrabold mt-1">
-              {profile?.display_name ? `Back to it, ${profile.display_name}.` : "Back to it."}
+              {(() => {
+                const name = profile?.first_name || profile?.display_name;
+                const hr = new Date().getHours();
+                const greet = hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+                return name ? `${greet}, ${name}.` : `${greet}.`;
+              })()}
             </h1>
             <p className="text-muted-foreground mt-1">
               Your {nearestMeta.name} Unit {nearest.unit_number} exam is in <span className="text-urgent font-mono font-bold">{days} days</span>. Don't break the streak.
