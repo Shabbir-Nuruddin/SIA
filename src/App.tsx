@@ -39,9 +39,9 @@ const App = () => (
             <Route path="/mock-papers/exam/:id" element={<MockExam />} />
             <Route path="/mock-papers/:id/results" element={<MockResults />} />
             <Route path="/roadmap" element={<Roadmap />} />
-            <Route path="/notes" element={<StubPage title="AI Notes" subtitle="Concise, exam-focused revision notes — generated on demand." />} />
+            <Route path="/notes" element={<Notes />} />
             <Route path="/papers" element={<StubPage title="Past Papers" subtitle="Edexcel papers, mark schemes, and grade boundaries." />} />
-            <Route path="/settings" element={<StubPage title="Settings" subtitle="Exams · target grades · notifications." />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
