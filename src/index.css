@@ -73,6 +73,33 @@
     --sidebar-border: 240 18% 16%;
     --sidebar-ring: 244 100% 70%;
   }
+
+  /* Light mode override (toggled via Settings) */
+  html.light {
+    --background: 230 30% 98%;
+    --background-elevated: 0 0% 100%;
+    --foreground: 240 24% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 24% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 24% 12%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 20% 94%;
+    --secondary-foreground: 240 24% 12%;
+    --muted: 230 20% 95%;
+    --muted-foreground: 240 8% 40%;
+    --accent-foreground: 0 0% 100%;
+    --border: 230 18% 88%;
+    --input: 230 18% 92%;
+    --gradient-hero: radial-gradient(ellipse at top, hsl(244 100% 70% / 0.10), transparent 60%), hsl(230 30% 98%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(230 20% 97%));
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 24% 25%;
+    --sidebar-accent: 230 20% 94%;
+    --sidebar-accent-foreground: 240 24% 12%;
+    --sidebar-border: 230 18% 88%;
+  }
+  html.light { color-scheme: light !important; }
 }
 
 @layer base {
