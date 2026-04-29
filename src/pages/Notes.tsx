@@ -87,7 +87,7 @@ const NotesPage = () => {
         .maybeSingle();
 
       if (cached) {
-        setNotes(cached.content as NoteContent);
+        setNotes(cached.content as unknown as NoteContent);
         setNoteRowId(cached.id);
         await loadAnnotations(cached.id);
       } else {
