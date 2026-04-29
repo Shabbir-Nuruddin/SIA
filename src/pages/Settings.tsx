@@ -107,7 +107,7 @@ const SettingsPage = () => {
   const updatePref = async <K extends keyof ProfileRow>(key: K, value: ProfileRow[K]) => {
     if (!user || !profile) return;
     setProfile({ ...profile, [key]: value });
-    const { error } = await supabase.from("profiles").update({ [key]: value }).eq("id", user.id);
+    const { error } = await supabase.from("profiles").update({ [key]: value } as any).eq("id", user.id);
     if (error) toast.error("Couldn't save preference");
   };
 
