@@ -33,7 +33,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [mocks, setMocks] = useState<MockRow[]>([]);
-  const [profile, setProfile] = useState<{ display_name: string; xp: number; current_streak: number; onboarded: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ display_name: string; first_name: string | null; xp: number; current_streak: number; onboarded: boolean } | null>(null);
 
   useEffect(() => {
     if (!user) return;
