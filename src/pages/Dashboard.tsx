@@ -39,7 +39,7 @@ const Dashboard = () => {
     if (!user) return;
     Promise.all([
       supabase.from("user_subjects").select("subject,unit_number,unit_name,paper_duration_minutes,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("display_name,xp,current_streak,onboarded").eq("id", user.id).single(),
+      supabase.from("profiles").select("display_name,first_name,xp,current_streak,onboarded").eq("id", user.id).single(),
       supabase.from("mock_papers").select("subject,awarded_marks,total_marks,estimated_grade,submitted_at").eq("user_id", user.id).eq("status", "marked").order("submitted_at", { ascending: false }),
     ]).then(([s, p, m]) => {
       if (s.data) setUnits(s.data as UnitRow[]);
