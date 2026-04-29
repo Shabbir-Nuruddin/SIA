@@ -6,6 +6,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { formattedHtmlProps } from "@/lib/formatText";
 import { Brain, Loader2, RefreshCw, TrendingUp, TrendingDown, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
