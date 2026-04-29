@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode, GRADE_BOUNDARIES, gradeColor } from "@/lib/subjects";
 import { Check, X, Info, ArrowRight, Loader2, RotateCcw, Brain, LayoutDashboard, Flag } from "lucide-react";
+import { formattedHtmlProps } from "@/lib/formatText";
 
 interface Q {
   id: string;
