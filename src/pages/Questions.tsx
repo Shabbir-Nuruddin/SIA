@@ -55,8 +55,15 @@ const QuestionsPage = () => {
     setAnswer("");
     setMarking(null);
     try {
+      let syllabus_context: string | undefined;
+      if (subject === "chemistry") {
+        const t = findChemistryTopic(topic);
+        if (t) {
+          syllabus_context = `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\nOfficial assessment statements (your scope is LIMITED to these — do not include content outside this list):\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
+        }
+      }
       const { data, error } = await supabase.functions.invoke("ai-question", {
-        body: { action: "generate", subject, topic, difficulty, questionType: qType },
+        body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
