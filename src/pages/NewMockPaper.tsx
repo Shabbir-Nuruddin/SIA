@@ -77,6 +77,17 @@ const NewMockPaper = () => {
     setPhase("loading");
     setGenerating(true);
     try {
+      // Build chemistry syllabus context for grounding
+      let syllabus_context: string | undefined;
+      if (subject === "chemistry") {
+        const { chemistrySyllabusContext, findChemistryTopic } = await import("@/lib/chemistrySyllabus");
+        const ctx = selectedTopics
+          .map(t => findChemistryTopic(t))
+          .filter(Boolean)
+          .map(t => `Unit ${t!.unit} · Topic ${t!.number}: ${t!.name}\n${t!.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`)
+          .join("\n\n");
+        syllabus_context = ctx || chemistrySyllabusContext();
+      }
       const { data: aiData, error: aiErr } = await supabase.functions.invoke("ai-mock-paper", {
         body: {
           action: "generate",
@@ -86,6 +97,7 @@ const NewMockPaper = () => {
           questionTypes: selectedTypes,
           totalMarks,
           difficultyMix: difficulty,
+          syllabus_context,
         },
       });
       if (aiErr) throw aiErr;
