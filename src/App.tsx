@@ -15,6 +15,8 @@ import MockExam from "./pages/MockExam";
 import MockResults from "./pages/MockResults";
 import Roadmap from "./pages/Roadmap";
 import { StubPage } from "./components/StubPage";
+import Notes from "./pages/Notes";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
