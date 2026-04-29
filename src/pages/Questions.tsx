@@ -190,7 +190,7 @@ const QuestionsPage = () => {
               <div className="font-mono text-sm bg-secondary px-3 py-1.5 rounded-md">[{question.marks} marks]</div>
             </div>
             <div className="prose prose-invert max-w-none mb-8">
-              <p className="text-lg leading-relaxed whitespace-pre-wrap">{question.question_text}</p>
+              <div className="text-lg leading-relaxed" {...formattedHtmlProps(question.question_text)} />
             </div>
 
             {!marking && (
