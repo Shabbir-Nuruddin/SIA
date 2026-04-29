@@ -219,9 +219,8 @@ const MockExam = () => {
                   <div className="font-mono text-xs bg-secondary px-2 py-1 rounded">[{q.marks}]</div>
                 </div>
               </div>
-              <div className="prose prose-invert max-w-none text-base leading-relaxed mb-5 whitespace-pre-wrap">
-                {q.question_text}
-              </div>
+              <div className="prose prose-invert max-w-none text-base leading-relaxed mb-5" {...formattedHtmlProps(q.question_text)} />
+
               {q.options && q.options.length > 0 ? (
                 <div className="space-y-2">
                   {q.options.map((opt, i) => (
