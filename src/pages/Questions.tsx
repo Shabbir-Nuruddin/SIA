@@ -231,11 +231,11 @@ const QuestionsPage = () => {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-accent font-mono mb-2">Examiner feedback</div>
-                  <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap">{marking.feedback}</div>
+                  <div className="prose prose-invert max-w-none text-sm" {...formattedHtmlProps(marking.feedback)} />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-success font-mono mb-2">Model answer</div>
-                  <div className="prose prose-invert max-w-none text-sm whitespace-pre-wrap p-4 rounded-lg bg-success/5 border border-success/20">{marking.model_answer}</div>
+                  <div className="prose prose-invert max-w-none text-sm p-4 rounded-lg bg-success/5 border border-success/20" {...formattedHtmlProps(marking.model_answer)} />
                 </div>
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
                   <Button onClick={generate} className="bg-primary hover:bg-primary/90"><RefreshCw className="h-4 w-4 mr-2" />Generate another like this</Button>
