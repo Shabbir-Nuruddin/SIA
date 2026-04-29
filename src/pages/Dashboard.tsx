@@ -88,7 +88,12 @@ const Dashboard = () => {
           <div>
             <div className="text-sm text-muted-foreground font-mono">// {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
             <h1 className="text-3xl md:text-4xl font-extrabold mt-1">
-              {profile?.display_name ? `Back to it, ${profile.display_name}.` : "Back to it."}
+              {(() => {
+                const name = profile?.first_name || profile?.display_name;
+                const hr = new Date().getHours();
+                const greet = hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+                return name ? `${greet}, ${name}.` : `${greet}.`;
+              })()}
             </h1>
             <p className="text-muted-foreground mt-1">
               Your {nearestMeta.name} Unit {nearest.unit_number} exam is in <span className="text-urgent font-mono font-bold">{days} days</span>. Don't break the streak.
