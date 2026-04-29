@@ -96,8 +96,13 @@ serve(async (req) => {
     const { action } = body;
 
     if (action === "generate") {
-      const { subject, units, topics, questionTypes, totalMarks, difficultyMix } = body;
-      const system = `You are a senior Edexcel A-Level ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that. For sciences use real scientific contexts (named reactions, real organisms, real experimental setups) with altered specifics.`;
+      const { subject, units, topics, questionTypes, totalMarks, difficultyMix, syllabus_context } = body;
+      const system = `You are a senior Edexcel A-Level ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that. For sciences use real scientific contexts (named reactions, real organisms, real experimental setups) with altered specifics.
+
+ABSOLUTE FORMATTING RULES:
+- Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math. NO markdown headings (#) or bold asterisks (**).
+- Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½. Write "x squared" or "x²" — never "x^2". Fractions as a/b.
+- Structure with clear paragraph breaks. Numbered/bulleted lists as plain text only.${syllabus_context ? `\n\nSCOPE — every question MUST stay strictly within the official Edexcel specification statements below. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
       const user = `Build a mock paper for Edexcel A-Level ${subject}, covering Units ${units.join(", ")}.
 Topics to draw from: ${topics.join("; ")}.
 Allowed question types: ${questionTypes.join(", ")}.
