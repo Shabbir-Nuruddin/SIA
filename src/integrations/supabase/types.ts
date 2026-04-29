@@ -226,34 +226,52 @@ export type Database = {
         Row: {
           created_at: string
           current_streak: number
+          daily_reminder_enabled: boolean
+          daily_reminder_time: string
           display_name: string | null
           first_name: string | null
           id: string
           last_name: string | null
           last_session_date: string | null
           onboarded: boolean
+          pomodoro_break_minutes: number
+          pomodoro_work_minutes: number
+          rest_days: number[]
+          theme: string
           xp: number
         }
         Insert: {
           created_at?: string
           current_streak?: number
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
           display_name?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
           last_session_date?: string | null
           onboarded?: boolean
+          pomodoro_break_minutes?: number
+          pomodoro_work_minutes?: number
+          rest_days?: number[]
+          theme?: string
           xp?: number
         }
         Update: {
           created_at?: string
           current_streak?: number
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
           display_name?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
           last_session_date?: string | null
           onboarded?: boolean
+          pomodoro_break_minutes?: number
+          pomodoro_work_minutes?: number
+          rest_days?: number[]
+          theme?: string
           xp?: number
         }
         Relationships: []
