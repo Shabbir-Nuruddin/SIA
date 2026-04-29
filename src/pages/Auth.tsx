@@ -9,27 +9,47 @@ import { ApexLogo } from "@/components/ApexLogo";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
+const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
+
 const AuthPage = () => {
   const [params] = useSearchParams();
   const initialMode = params.get("mode") === "signup" ? "signup" : "login";
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup") {
+      const fn = firstName.trim();
+      const ln = lastName.trim();
+      if (!fn || !NAME_RE.test(fn)) {
+        toast.error("First name: letters only.");
+        return;
+      }
+      if (!ln || !NAME_RE.test(ln)) {
+        toast.error("Last name: letters only.");
+        return;
+      }
+    }
     setLoading(true);
     try {
       if (mode === "signup") {
+        const fn = firstName.trim();
+        const ln = lastName.trim();
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin, data: { display_name: name } },
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { first_name: fn, last_name: ln, display_name: fn },
+          },
         });
         if (error) throw error;
-        toast.success("Welcome to Apex. Let's set up your revision plan.");
+        toast.success(`Welcome to Apex, ${fn}. Let's set up your revision plan.`);
         navigate("/onboarding");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -81,9 +101,21 @@ const AuthPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="Your first name" required className="mt-1.5 h-11" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="first_name">First name</Label>
+                  <Input id="first_name" value={firstName} onChange={e => setFirstName(e.target.value)}
+                    placeholder="Alex" required pattern="^[A-Za-z][A-Za-z'\- ]*$"
+                    title="Letters only" maxLength={40}
+                    className="mt-1.5 h-11" />
+                </div>
+                <div>
+                  <Label htmlFor="last_name">Last name</Label>
+                  <Input id="last_name" value={lastName} onChange={e => setLastName(e.target.value)}
+                    placeholder="Patel" required pattern="^[A-Za-z][A-Za-z'\- ]*$"
+                    title="Letters only" maxLength={40}
+                    className="mt-1.5 h-11" />
+                </div>
               </div>
             )}
             <div>
