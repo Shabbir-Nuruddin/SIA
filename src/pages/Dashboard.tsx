@@ -75,7 +75,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
-  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
 
   const todayISO = getLocalDateString();
 
