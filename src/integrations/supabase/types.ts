@@ -245,6 +245,7 @@ export type Database = {
           rest_days: number[]
           study_start_time: string
           theme: string
+          tutor_message_count: number
           xp: number
         }
         Insert: {
@@ -269,6 +270,7 @@ export type Database = {
           rest_days?: number[]
           study_start_time?: string
           theme?: string
+          tutor_message_count?: number
           xp?: number
         }
         Update: {
@@ -293,6 +295,7 @@ export type Database = {
           rest_days?: number[]
           study_start_time?: string
           theme?: string
+          tutor_message_count?: number
           xp?: number
         }
         Relationships: []
