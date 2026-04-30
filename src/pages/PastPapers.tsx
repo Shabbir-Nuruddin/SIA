@@ -210,6 +210,10 @@ const PastPapers = () => {
           </div>
         )}
 
+        <p className="text-[10px] text-muted-foreground/60 mb-4 italic">
+          We do not host any PDFs. All papers are accessed from external educational sources.
+        </p>
+
         <a href={gb.url} target="_blank" rel="noopener noreferrer"
           className="surface surface-hover p-5 inline-flex items-center gap-3 w-full md:w-auto">
           <div className="flex-1">
