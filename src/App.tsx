@@ -18,6 +18,8 @@ import Roadmap from "./pages/Roadmap";
 import RoadmapTopicNotes from "./pages/RoadmapTopicNotes";
 import { StubPage } from "./components/StubPage";
 import Notes from "./pages/Notes";
+import PastPapers from "./pages/PastPapers";
+import FAQ from "./pages/FAQ";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -44,7 +46,8 @@ const App = () => (
             <Route path="/roadmap" element={<Roadmap />} />
             <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
             <Route path="/notes" element={<Notes />} />
-            <Route path="/papers" element={<StubPage title="Past Papers" subtitle="Edexcel papers, mark schemes, and grade boundaries." />} />
+            <Route path="/papers" element={<PastPapers />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

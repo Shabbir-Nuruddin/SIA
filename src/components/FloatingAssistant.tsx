@@ -121,7 +121,7 @@ export const FloatingAssistant = () => {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 left-5 z-40 h-12 w-12 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-105"
+          className="fixed bottom-5 right-5 z-40 h-12 w-12 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-105"
           style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
           aria-label="Open AI tutor"
         >
@@ -131,7 +131,7 @@ export const FloatingAssistant = () => {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-5 left-5 z-40 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)] surface flex flex-col shadow-2xl animate-fade-in">
+        <div className="fixed bottom-5 right-5 z-40 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)] surface flex flex-col shadow-2xl animate-fade-in">
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-border">
             <div className="flex items-center gap-2">

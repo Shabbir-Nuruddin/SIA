@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { formattedHtmlProps } from "@/lib/formatText";
-import { Brain, Loader2, RefreshCw, TrendingUp, TrendingDown, Sparkles, CheckCircle2 } from "lucide-react";
+import { Brain, Loader2, RefreshCw, Sparkles, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
@@ -28,59 +28,68 @@ interface MarkResult {
   model_answer: string;
 }
 
+const BATCH_SIZE = 10;
+
 const QuestionsPage = () => {
   const { user } = useAuth();
   const [params] = useSearchParams();
   const initialSubject = (params.get("subject") as SubjectCode) || "mathematics";
   const initialTopic = params.get("topic") || "";
 
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [subject, setSubject] = useState<SubjectCode>(initialSubject);
   const [topic, setTopic] = useState(initialTopic || SUBJECTS[initialSubject].units[0].topics[0]);
   const [difficulty, setDifficulty] = useState<Difficulty>("Standard");
   const [qType, setQType] = useState<QType>("Short Answer");
-  const [question, setQuestion] = useState<Generated | null>(null);
-  const [answer, setAnswer] = useState("");
-  const [marking, setMarking] = useState<MarkResult | null>(null);
+
+  const [batch, setBatch] = useState<Generated[]>([]);
+  const [idx, setIdx] = useState(0);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [marks, setMarks] = useState<(MarkResult | null)[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
   const [loadingMark, setLoadingMark] = useState(false);
-  const [questionId, setQuestionId] = useState<string | null>(null);
 
   useEffect(() => {
-    setTopic(SUBJECTS[subject].units[0].topics[0]);
-  }, [subject]);
+    if (!user) return;
+    supabase.from("profiles").select("exam_board").eq("id", user.id).single().then(({ data }) => {
+      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+    });
+  }, [user]);
 
-  const generate = async () => {
+  useEffect(() => { setTopic(SUBJECTS[subject].units[0].topics[0]); }, [subject]);
+
+  const current = batch[idx];
+  const currentAnswer = answers[idx] || "";
+  const currentMark = marks[idx] || null;
+
+  const setCurrentAnswer = (v: string) => setAnswers(a => { const c = [...a]; c[idx] = v; return c; });
+
+  const generateBatch = async () => {
     setLoadingGen(true);
-    setQuestion(null);
-    setAnswer("");
-    setMarking(null);
+    setBatch([]); setAnswers([]); setMarks([]); setIdx(0);
     try {
       let syllabus_context: string | undefined;
       if (subject === "chemistry") {
         const t = findChemistryTopic(topic);
-        if (t) {
-          syllabus_context = `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\nOfficial assessment statements (your scope is LIMITED to these — do not include content outside this list):\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
-        }
+        if (t) syllabus_context = `${board === "cie" ? "Cambridge (CIE)" : "Edexcel IAL"} Chemistry — Topic: ${t.name}\nSpec statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
       }
       const { data, error } = await supabase.functions.invoke("ai-question", {
-        body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context },
+        body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context, count: BATCH_SIZE, board },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setQuestion(data);
-      // Save to db
+      const qs: Generated[] = data?.questions || [];
+      if (!qs.length) throw new Error("No questions returned. Try again.");
+      setBatch(qs);
+      setAnswers(new Array(qs.length).fill(""));
+      setMarks(new Array(qs.length).fill(null));
+
       if (user) {
-        const { data: row } = await supabase.from("ai_questions").insert({
-          user_id: user.id,
-          subject,
-          topic,
-          difficulty,
-          question_type: qType,
-          question_text: data.question_text,
-          marks: data.marks,
-          mark_scheme: data.mark_scheme,
-        }).select("id").single();
-        if (row) setQuestionId(row.id);
+        const rows = qs.map(q => ({
+          user_id: user.id, subject, topic, difficulty, question_type: qType,
+          question_text: q.question_text, marks: q.marks, mark_scheme: q.mark_scheme,
+        }));
+        await supabase.from("ai_questions").insert(rows);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't generate. Try again.");
@@ -90,29 +99,19 @@ const QuestionsPage = () => {
   };
 
   const submit = async () => {
-    if (!question || !answer.trim()) return;
+    if (!current || !currentAnswer.trim()) return;
     setLoadingMark(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: {
-          action: "mark",
-          subject, topic,
-          questionText: question.question_text,
-          markScheme: question.mark_scheme,
-          totalMarks: question.marks,
-          studentAnswer: answer,
+          action: "mark", subject, topic,
+          questionText: current.question_text, markScheme: current.mark_scheme,
+          totalMarks: current.marks, studentAnswer: currentAnswer,
         },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setMarking(data);
-      if (questionId && user) {
-        await supabase.from("ai_questions").update({
-          student_answer: answer,
-          feedback: data.feedback,
-          awarded_marks: data.awarded_marks,
-        }).eq("id", questionId);
-      }
+      setMarks(m => { const c = [...m]; c[idx] = data; return c; });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Marking failed");
     } finally {
@@ -120,30 +119,28 @@ const QuestionsPage = () => {
     }
   };
 
-  const adjustDifficulty = (dir: "up" | "down") => {
-    const order: Difficulty[] = ["Foundation", "Standard", "Challenge"];
-    const idx = order.indexOf(difficulty);
-    const next = dir === "up" ? Math.min(idx + 1, 2) : Math.max(idx - 1, 0);
-    setDifficulty(order[next]);
-    setTimeout(generate, 0);
-  };
+  const goNext = () => setIdx(i => Math.min(batch.length - 1, i + 1));
+  const goPrev = () => setIdx(i => Math.max(0, i - 1));
 
   const subjectMeta = SUBJECTS[subject];
   const allTopics = Array.from(new Set(subjectMeta.units.flatMap(u => u.topics)));
+  const completed = marks.filter(Boolean).length;
+  const totalAwarded = marks.reduce((a, m) => a + (m?.awarded_marks || 0), 0);
+  const totalPossible = marks.reduce((a, m) => a + (m?.total_marks || 0), 0);
 
   return (
     <AppLayout>
       <div className="p-6 md:p-10 max-w-5xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-sm text-primary font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
-            <Sparkles className="h-3 w-3" /> AI Question Generator
+            <Sparkles className="h-3 w-3" /> Topical Question Set · {board === "cie" ? "CIE" : "Edexcel IAL"}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold">Train like it's exam day.</h1>
-          <p className="text-muted-foreground mt-1">Original questions in real Edexcel style. Examiner-grade marking.</p>
+          <p className="text-muted-foreground mt-1">A fresh set of {BATCH_SIZE} original questions per topic. Examiner-grade marking on each.</p>
         </div>
 
-        {/* Setup card */}
-        <div className="glass-card rounded-2xl p-6 mb-6">
+        {/* Setup */}
+        <div className="surface p-6 mb-6">
           <div className="grid md:grid-cols-4 gap-4">
             <div>
               <label className="text-xs uppercase tracking-wider text-muted-foreground">Subject</label>
@@ -174,84 +171,120 @@ const QuestionsPage = () => {
               </select>
             </div>
           </div>
-          <Button onClick={generate} disabled={loadingGen} className="mt-5 bg-primary hover:bg-primary/90 glow-primary">
-            {loadingGen ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating…</> : <><Brain className="h-4 w-4 mr-2" />Generate question</>}
+          <Button onClick={generateBatch} disabled={loadingGen} className="mt-5 btn-primary">
+            {loadingGen
+              ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating set of {BATCH_SIZE}…</>
+              : <><Brain className="h-4 w-4 mr-2" />{batch.length ? "Generate new set" : `Generate set of ${BATCH_SIZE}`}</>}
           </Button>
         </div>
 
-        {/* Question display */}
-        {question && (
-          <div className="glass-card rounded-2xl p-8 animate-in-up">
-            <div className="flex items-start justify-between mb-6 pb-6 border-b border-border">
-              <div>
-                <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">{subjectMeta.name} · {topic}</div>
-                <div className="text-xs font-mono text-primary mt-1">{difficulty} · {qType}</div>
+        {/* Question pager */}
+        {batch.length > 0 && (
+          <div className="surface p-6 md:p-8 animate-in-up">
+            {/* Pager */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {batch.map((_, i) => {
+                  const isDone = !!marks[i];
+                  const isCurrent = i === idx;
+                  return (
+                    <button key={i} onClick={() => setIdx(i)}
+                      className={`h-7 w-7 rounded-full text-[11px] font-mono font-semibold transition-all ${
+                        isCurrent ? "bg-primary text-primary-foreground"
+                        : isDone ? "bg-success/20 text-success"
+                        : "bg-secondary text-muted-foreground hover:bg-secondary/70"
+                      }`}>
+                      {i + 1}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="font-mono text-sm bg-secondary px-3 py-1.5 rounded-md">[{question.marks} marks]</div>
-            </div>
-            <div className="prose prose-invert max-w-none mb-8">
-              <div className="text-lg leading-relaxed" {...formattedHtmlProps(question.question_text)} />
+              <div className="text-xs font-mono text-muted-foreground tabular">
+                {completed}/{batch.length} marked {totalPossible > 0 && `· ${totalAwarded}/${totalPossible}`}
+              </div>
             </div>
 
-            {!marking && (
+            <div className="flex items-start justify-between mb-5 pb-5 border-b border-border">
+              <div>
+                <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">{subjectMeta.name} · {topic}</div>
+                <div className="text-xs font-mono text-primary mt-1">Question {idx + 1} of {batch.length} · {difficulty} · {qType}</div>
+              </div>
+              <div className="font-mono text-sm bg-secondary px-3 py-1.5 rounded-md">[{current.marks} marks]</div>
+            </div>
+
+            <div className="prose prose-invert max-w-none mb-6">
+              <div className="text-lg leading-relaxed" {...formattedHtmlProps(current.question_text)} />
+            </div>
+
+            {!currentMark && (
               <>
-                {qType === "Multiple Choice" && question.options ? (
+                {qType === "Multiple Choice" && current.options ? (
                   <div className="space-y-2 mb-6">
-                    {question.options.map((opt, i) => (
-                      <button key={i} onClick={() => setAnswer(opt)}
-                        className={`w-full text-left p-4 rounded-lg border transition-all ${answer === opt ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
+                    {current.options.map((opt, i) => (
+                      <button key={i} onClick={() => setCurrentAnswer(opt)}
+                        className={`w-full text-left p-4 rounded-lg border transition-all ${currentAnswer === opt ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
                         <span className="font-mono text-xs text-muted-foreground mr-3">{String.fromCharCode(65 + i)}</span>
                         {opt}
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <Textarea value={answer} onChange={e => setAnswer(e.target.value)}
+                  <Textarea value={currentAnswer} onChange={e => setCurrentAnswer(e.target.value)}
                     placeholder="Write your answer here. Show your working."
                     className="min-h-[180px] mb-4 font-mono text-sm" />
                 )}
                 <div className="flex gap-3">
-                  <Button onClick={submit} disabled={loadingMark || !answer.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  <Button onClick={submit} disabled={loadingMark || !currentAnswer.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
                     {loadingMark ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Marking…</> : "Submit answer"}
                   </Button>
-                  <Button variant="outline" onClick={generate}><RefreshCw className="h-4 w-4 mr-2" />Skip</Button>
+                  <Button variant="outline" onClick={goNext} disabled={idx === batch.length - 1}>
+                    Skip <ArrowRight className="h-4 w-4 ml-1.5" />
+                  </Button>
                 </div>
               </>
             )}
 
-            {marking && (
+            {currentMark && (
               <div className="space-y-6 animate-in-up">
                 <div className="flex items-center gap-4 p-5 rounded-xl bg-secondary/50">
-                  <div className="text-5xl font-mono font-extrabold text-gradient">{marking.awarded_marks}<span className="text-2xl text-muted-foreground">/{marking.total_marks}</span></div>
+                  <div className="text-5xl font-mono font-extrabold text-gradient">{currentMark.awarded_marks}<span className="text-2xl text-muted-foreground">/{currentMark.total_marks}</span></div>
                   <div className="flex-1">
                     <div className="text-xs uppercase tracking-wider text-muted-foreground">Marks awarded</div>
-                    <div className="text-sm font-medium mt-0.5">{marking.awarded_marks === marking.total_marks ? "Full marks. Clean." : marking.awarded_marks >= marking.total_marks * 0.7 ? "Strong. Tighten the gaps below." : "Plenty to improve. Read the feedback."}</div>
+                    <div className="text-sm font-medium mt-0.5">
+                      {currentMark.awarded_marks === currentMark.total_marks ? "Full marks. Clean."
+                        : currentMark.awarded_marks >= currentMark.total_marks * 0.7 ? "Strong. Tighten the gaps below."
+                        : "Plenty to improve. Read the feedback."}
+                    </div>
                   </div>
                   <CheckCircle2 className="h-6 w-6 text-success" />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-accent font-mono mb-2">Examiner feedback</div>
-                  <div className="prose prose-invert max-w-none text-sm" {...formattedHtmlProps(marking.feedback)} />
+                  <div className="prose prose-invert max-w-none text-sm" {...formattedHtmlProps(currentMark.feedback)} />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-success font-mono mb-2">Model answer</div>
-                  <div className="prose prose-invert max-w-none text-sm p-4 rounded-lg bg-success/5 border border-success/20" {...formattedHtmlProps(marking.model_answer)} />
-                </div>
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
-                  <Button onClick={generate} className="bg-primary hover:bg-primary/90"><RefreshCw className="h-4 w-4 mr-2" />Generate another like this</Button>
-                  <Button variant="outline" onClick={() => adjustDifficulty("down")}><TrendingDown className="h-4 w-4 mr-2" />Make it easier</Button>
-                  <Button variant="outline" onClick={() => adjustDifficulty("up")}><TrendingUp className="h-4 w-4 mr-2" />Make it harder</Button>
+                  <div className="prose prose-invert max-w-none text-sm p-4 rounded-lg bg-success/5 border border-success/20" {...formattedHtmlProps(currentMark.model_answer)} />
                 </div>
               </div>
             )}
+
+            <div className="flex justify-between mt-6 pt-5 border-t border-border">
+              <Button variant="outline" onClick={goPrev} disabled={idx === 0}>
+                <ArrowLeft className="h-4 w-4 mr-1.5" /> Previous
+              </Button>
+              <Button onClick={goNext} disabled={idx === batch.length - 1} className="btn-primary">
+                Next <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
+            </div>
           </div>
         )}
 
-        {!question && !loadingGen && (
-          <div className="glass-card rounded-2xl p-12 text-center">
+        {batch.length === 0 && !loadingGen && (
+          <div className="surface p-12 text-center">
             <Brain className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-2">Ready when you are.</h3>
-            <p className="text-muted-foreground">Pick a topic above and hit generate. Each question is original — built in the exact style of real Edexcel papers.</p>
+            <p className="text-muted-foreground">Pick a topic above and hit generate. We'll build a set of {BATCH_SIZE} original questions in real {board === "cie" ? "CIE" : "Edexcel"} style.</p>
           </div>
         )}
       </div>
