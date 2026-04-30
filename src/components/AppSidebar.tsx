@@ -62,7 +62,7 @@ export const AppSidebar = () => {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"}`}>
               <it.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{it.label}</span>
-              {it.pro && <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-accent/20 text-accent">Pro</span>}
+              {it.pro && <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-primary/15 text-primary">Pro</span>}
             </NavLink>
           );
         })}
@@ -72,7 +72,7 @@ export const AppSidebar = () => {
         <div className="px-2">
           <div className="text-sm font-semibold text-foreground truncate">{first} {last}</div>
           <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-            <Flame className="h-3 w-3 text-accent" />
+            <Flame className="h-3 w-3 text-primary" />
             <span className="font-mono tabular">{profile?.current_streak ?? 0} day streak</span>
           </div>
           <div className="mt-2 flex items-center gap-1 flex-wrap">
