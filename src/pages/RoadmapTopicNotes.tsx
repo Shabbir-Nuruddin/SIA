@@ -8,7 +8,7 @@ import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { formattedHtmlProps } from "@/lib/formatText";
+import { formattedHtmlProps, renderedMathHtmlProps } from "@/lib/formatText";
 
 // Full-screen Notes route consuming the structured ai-notes JSON.
 // Tabs: Overview / Definitions / Worked Examples / Equations / Visual / Tips / Flashcards.
