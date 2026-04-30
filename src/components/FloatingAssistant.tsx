@@ -81,7 +81,7 @@ export const FloatingAssistant = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, context }),
+        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board } }),
       });
       if (!resp.ok || !resp.body) throw new Error("Tutor unavailable");
 
