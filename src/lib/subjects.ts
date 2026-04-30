@@ -1,3 +1,5 @@
+import { CIE_SUBJECTS } from "./cieSyllabus";
+
 export type SubjectCode = "mathematics" | "biology" | "chemistry" | "physics";
 export type Board = "edexcel-ial" | "cie";
 
