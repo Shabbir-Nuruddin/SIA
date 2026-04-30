@@ -59,21 +59,21 @@ const notesTool = {
           items: {
             type: "object",
             properties: {
-              equation: { type: "string", description: "Plain text equation. No LaTeX, no $ signs." },
+              equation: { type: "string", description: "The equation as a single LaTeX expression wrapped in $$...$$ (display math). Example: '$$\\\\Delta G^{\\\\ominus} = -nFE^{\\\\ominus}_{cell}$$'." },
               variables: {
                 type: "array",
                 items: {
                   type: "object",
                   properties: {
-                    symbol: { type: "string" },
-                    meaning: { type: "string" },
-                    unit: { type: "string" },
+                    symbol: { type: "string", description: "Symbol as inline LaTeX wrapped in $...$. Example: '$\\\\Delta G^{\\\\ominus}$' or '$E^{\\\\ominus}_{cell}$'." },
+                    meaning: { type: "string", description: "Plain prose meaning. No LaTeX, no $ signs, no backslashes. Example: 'Standard Gibbs free energy change'." },
+                    unit: { type: "string", description: "Unit as inline LaTeX wrapped in $...$. Example: '$\\\\text{J mol}^{-1}$' or '$\\\\text{kJ mol}^{-1}$'. Use 'dimensionless' if none." },
                   },
                   required: ["symbol", "meaning", "unit"],
                   additionalProperties: false,
                 },
               },
-              worked_substitution: { type: "string", description: "One worked numerical substitution example." },
+              worked_substitution: { type: "string", description: "One worked numerical substitution as prose with inline LaTeX (use $...$ for math). Show full numeric chain." },
             },
             required: ["equation", "variables", "worked_substitution"],
             additionalProperties: false,
