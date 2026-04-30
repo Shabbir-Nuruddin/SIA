@@ -87,7 +87,7 @@ const QuestionsPage = () => {
 
   const generateBatch = async () => {
     setLoadingGen(true);
-    setBatch([]); setAnswers([]); setMarks([]); setIdx(0);
+    setBatch([]); setAnswers([]); setAnswerImages([]); setMarks([]); setIdx(0);
     try {
       let syllabus_context: string | undefined;
       if (board === "cie") {
