@@ -181,7 +181,7 @@ const Dashboard = () => {
               const isSkipped = s.status === "skipped";
 
               return (
-                <div key={s.id}>
+                <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
                   <div
                     className={`surface ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-primary/40" : ""}`}
                     style={isSkipped ? { borderLeftColor: "hsl(var(--accent))" } : {}}
