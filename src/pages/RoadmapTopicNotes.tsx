@@ -291,13 +291,18 @@ const RoadmapTopicNotes = () => {
 const Flashcard = ({ q, a, index }: { q: string; a: string; index: number }) => {
   const [revealed, setRevealed] = useState(false);
   return (
-    <div className="surface p-4 cursor-pointer select-none" onClick={() => setRevealed(r => !r)}>
-      <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1.5">Card {index}</div>
-      <div className="font-semibold mb-2">{q}</div>
-      {revealed ? (
-        <div className="text-sm text-muted-foreground border-t border-border pt-2 mt-2 animate-fade-in">{a}</div>
+    <div
+      className="surface p-5 cursor-pointer select-none transition-all hover:border-primary/40 min-h-[140px] flex flex-col"
+      onClick={() => setRevealed(r => !r)}
+    >
+      <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-between">
+        <span>Card {index}</span>
+        <span className="text-primary">{revealed ? "Answer" : "Question"} · tap to flip</span>
+      </div>
+      {!revealed ? (
+        <div className="font-semibold text-[15px] flex-1 flex items-center animate-fade-in">{q}</div>
       ) : (
-        <div className="text-[12px] text-primary font-mono uppercase tracking-wider">Tap to reveal</div>
+        <div className="text-sm flex-1 flex items-center text-foreground/90 animate-fade-in">{a}</div>
       )}
     </div>
   );
