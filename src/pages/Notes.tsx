@@ -394,7 +394,7 @@ const NotesPage = () => {
 
                 <Section title="Core concepts">
                   <div className="space-y-4">
-                    {notes.core_concepts.map((c, i) => (
+                    {(notes.core_concepts ?? []).map((c, i) => (
                       <div key={i}>
                         <div className="font-semibold text-sm mb-1.5" {...formattedHtmlProps(c.cluster)} />
                         <ul className="list-disc pl-5 space-y-1 text-sm">
