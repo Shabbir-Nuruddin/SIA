@@ -309,7 +309,7 @@ export function buildNodePlan(
       scheduled_date: slotIso,
       status: "locked",
       science_method: science,
-      why_now_text: whyNowLearn(item.topic, SUBJECTS[u.subject].name, states[item.unitIdx].daysToExam - curOffset),
+      why_now_text: whyNowLearn(item.topic, SUBJ[u.subject].name, states[item.unitIdx].daysToExam - curOffset),
       unlocks_after_order: order - 2,
     };
     nodes.push(learnNode);
