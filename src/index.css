@@ -94,6 +94,111 @@
     --sidebar-border: 215 14% 86%;
   }
   html.light { color-scheme: light; }
+
+  /* ===== THEMES ===== Each overrides only the colour-affecting tokens. */
+
+  html.theme-midnight { /* uses :root tokens */ }
+
+  html.theme-ocean {
+    --background: 196 45% 8%;
+    --background-elevated: 196 38% 12%;
+    --card: 196 35% 13%;
+    --card-hover: 196 32% 16%;
+    --secondary: 196 30% 15%;
+    --muted: 196 28% 13%;
+    --border: 196 25% 22%;
+    --input: 196 30% 15%;
+    --primary: 188 70% 48%;
+    --primary-glow: 188 80% 58%;
+    --ring: 188 70% 48%;
+    --accent: 168 60% 45%;
+    --sidebar-background: 196 50% 5%;
+    --sidebar-accent: 196 35% 12%;
+    --sidebar-border: 196 25% 18%;
+  }
+
+  html.theme-forest {
+    --background: 150 25% 9%;
+    --background-elevated: 150 22% 12%;
+    --card: 150 20% 13%;
+    --card-hover: 150 18% 16%;
+    --secondary: 150 18% 15%;
+    --muted: 150 16% 13%;
+    --border: 150 14% 22%;
+    --input: 150 18% 15%;
+    --primary: 142 60% 48%;
+    --primary-glow: 142 70% 58%;
+    --ring: 142 60% 48%;
+    --accent: 32 80% 50%;
+    --sidebar-background: 150 30% 5%;
+    --sidebar-accent: 150 22% 12%;
+    --sidebar-border: 150 14% 18%;
+  }
+
+  html.theme-rose {
+    --background: 340 18% 9%;
+    --background-elevated: 340 16% 12%;
+    --card: 340 14% 14%;
+    --card-hover: 340 12% 17%;
+    --secondary: 340 12% 16%;
+    --muted: 340 10% 14%;
+    --border: 340 10% 23%;
+    --input: 340 12% 16%;
+    --primary: 340 70% 60%;
+    --primary-glow: 340 80% 68%;
+    --ring: 340 70% 60%;
+    --accent: 28 85% 58%;
+    --sidebar-background: 340 22% 6%;
+    --sidebar-accent: 340 14% 13%;
+    --sidebar-border: 340 10% 20%;
+  }
+
+  html.theme-amber {
+    --background: 28 22% 9%;
+    --background-elevated: 28 18% 12%;
+    --card: 28 16% 14%;
+    --card-hover: 28 14% 17%;
+    --secondary: 28 14% 16%;
+    --muted: 28 12% 14%;
+    --border: 28 12% 23%;
+    --input: 28 14% 16%;
+    --primary: 32 90% 55%;
+    --primary-glow: 32 95% 65%;
+    --ring: 32 90% 55%;
+    --accent: 14 80% 55%;
+    --sidebar-background: 28 26% 6%;
+    --sidebar-accent: 28 16% 13%;
+    --sidebar-border: 28 12% 20%;
+  }
+
+  html.theme-light { /* uses html.light tokens above */ }
+
+  html.theme-paper {
+    --background: 38 35% 95%;
+    --background-elevated: 0 0% 100%;
+    --foreground: 25 30% 15%;
+    --card: 0 0% 100%;
+    --card-hover: 38 30% 92%;
+    --card-foreground: 25 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 30% 15%;
+    --secondary: 38 25% 90%;
+    --secondary-foreground: 25 30% 15%;
+    --muted: 38 25% 92%;
+    --muted-foreground: 25 18% 38%;
+    --border: 38 18% 80%;
+    --input: 38 18% 86%;
+    --primary: 22 70% 42%;
+    --primary-glow: 22 80% 52%;
+    --ring: 22 70% 42%;
+    --accent: 14 70% 48%;
+    --sidebar-background: 38 30% 92%;
+    --sidebar-foreground: 25 30% 25%;
+    --sidebar-accent: 38 25% 88%;
+    --sidebar-accent-foreground: 25 30% 15%;
+    --sidebar-border: 38 18% 78%;
+  }
+  html.theme-paper { color-scheme: light; }
 }
 
 @layer base {
