@@ -48,9 +48,12 @@ const QuestionsPage = () => {
   const [batch, setBatch] = useState<Generated[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [answerImages, setAnswerImages] = useState<(string | null)[]>([]);
   const [marks, setMarks] = useState<(MarkResult | null)[]>([]);
   const [loadingGen, setLoadingGen] = useState(false);
   const [loadingMark, setLoadingMark] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!user) return;
