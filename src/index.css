@@ -96,6 +96,10 @@
   html.light { color-scheme: light; }
 
   /* ===== THEMES ===== Each overrides only the colour-affecting tokens. */
+}
+
+/* Themes live OUTSIDE @layer base so they always win over Tailwind's base layer
+   regardless of source order. They still cascade by specificity (html.theme-X). */
 
   html.theme-midnight { /* uses :root tokens */ }
 
@@ -198,8 +202,7 @@
     --sidebar-accent-foreground: 25 30% 15%;
     --sidebar-border: 38 18% 78%;
   }
-  html.theme-paper { color-scheme: light; }
-}
+html.theme-paper { color-scheme: light; }
 
 @layer base {
   * { @apply border-border; }
