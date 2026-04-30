@@ -332,6 +332,16 @@ const Dashboard = () => {
           </aside>
         </div>
       </div>
+      {profile && !profile.tutorial_completed && sessions.length > 0 && (
+        <TutorialOverlay
+          firstName={profile.first_name || "Student"}
+          daysToExam={urgency.daysToNearest}
+          onFinish={async () => {
+            await supabase.from("profiles").update({ tutorial_completed: true }).eq("id", user!.id);
+            setProfile(p => p ? { ...p, tutorial_completed: true } : p);
+          }}
+        />
+      )}
     </AppLayout>
   );
 };
