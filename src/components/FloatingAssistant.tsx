@@ -4,6 +4,7 @@ import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { MathMarkdown } from "@/components/MathMarkdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -175,13 +176,16 @@ export const FloatingAssistant = () => {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
+                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
                       : "bg-secondary text-foreground"
                   }`}
                 >
-                  {m.content || (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")}
+                  {m.role === "assistant" ? (
+                    m.content ? <MathMarkdown>{m.content}</MathMarkdown>
+                      : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")
+                  ) : m.content}
                 </div>
               </div>
             ))}
