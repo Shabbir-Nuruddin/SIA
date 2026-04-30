@@ -10,65 +10,115 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
+// Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
   type: "function",
   function: {
     name: "create_topic_notes",
-    description: "Generate structured exam-focused revision notes for one Edexcel topic.",
+    description: "Generate comprehensive structured revision notes for one topic.",
     parameters: {
       type: "object",
       properties: {
+        overview: {
+          type: "string",
+          description: "3–4 paragraphs of flowing prose explaining what the topic is, why it matters, and how it connects to other topics in the unit. No bullets, no markdown, no LaTeX.",
+        },
         key_definitions: {
           type: "array",
+          minItems: 8,
           items: {
             type: "object",
             properties: {
               term: { type: "string" },
-              definition: { type: "string", description: "One-line precise definition. No LaTeX, no markdown. Use plain text and Unicode (Δ, →, x², etc.)" },
+              mark_scheme: { type: "string", description: "Precise mark-scheme-style definition." },
+              plain_english: { type: "string", description: "One-sentence plain-English explanation." },
+              common_mistake: { type: "string", description: "One specific mistake students make about this term." },
             },
-            required: ["term", "definition"],
+            required: ["term", "mark_scheme", "plain_english", "common_mistake"],
+            additionalProperties: false,
           },
         },
-        core_concepts: {
+        core_content: {
           type: "array",
+          description: "Every syllabus point for this topic. One item per syllabus statement.",
           items: {
             type: "object",
             properties: {
-              cluster: { type: "string", description: "Concept cluster heading" },
-              bullets: { type: "array", items: { type: "string" }, description: "Max 5 exam-relevant bullets. Plain text, no markdown asterisks or hashes." },
+              statement: { type: "string", description: "The fact or rule, stated clearly." },
+              worked_example: { type: "string", description: "Setup → method → answer with units. Plain text." },
+              wrong_approach: { type: "string", description: "The most common wrong method and why it loses marks." },
+              typical_marks: { type: "integer", description: "How many marks this typically carries in an exam question." },
             },
-            required: ["cluster", "bullets"],
+            required: ["statement", "worked_example", "wrong_approach", "typical_marks"],
+            additionalProperties: false,
           },
         },
-        common_mistakes: {
+        equations: {
           type: "array",
-          items: { type: "string", description: "Format: 'Students often write X — examiners want Y instead'" },
-        },
-        worked_example: {
-          type: "object",
-          properties: {
-            problem: { type: "string" },
-            steps: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  step: { type: "string", description: "Step text. Include units at every step for sciences. Plain text only — no LaTeX." },
-                  reason: { type: "string", description: "Why this step. One short sentence." },
+          description: "Every equation needed for this topic. May be empty for non-quantitative topics.",
+          items: {
+            type: "object",
+            properties: {
+              equation: { type: "string", description: "Plain text equation. No LaTeX, no $ signs." },
+              variables: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    symbol: { type: "string" },
+                    meaning: { type: "string" },
+                    unit: { type: "string" },
+                  },
+                  required: ["symbol", "meaning", "unit"],
+                  additionalProperties: false,
                 },
-                required: ["step", "reason"],
               },
+              worked_substitution: { type: "string", description: "One worked numerical substitution example." },
             },
-            answer: { type: "string" },
+            required: ["equation", "variables", "worked_substitution"],
+            additionalProperties: false,
           },
-          required: ["problem", "steps", "answer"],
+        },
+        visual_summary: {
+          type: "object",
+          description: "A diagram, table, or flowchart describing key relationships, rendered as ASCII or HTML table markup.",
+          properties: {
+            kind: { type: "string", enum: ["table", "flowchart", "diagram"] },
+            caption: { type: "string" },
+            content: { type: "string", description: "ASCII art, monospace table, or simple HTML <table>... markup." },
+          },
+          required: ["kind", "caption", "content"],
+          additionalProperties: false,
         },
         examiner_tips: {
           type: "array",
-          items: { type: "string", description: "Second-person: 'Always state the unit when…'" },
+          minItems: 5,
+          items: {
+            type: "object",
+            properties: {
+              command_word: { type: "string", description: "The Edexcel command word this tip applies to (Calculate, Explain, Describe, Evaluate, Compare, Suggest, Determine, State, Deduce, Show that)." },
+              tip: { type: "string", description: "Specific, actionable tip referencing the command word." },
+            },
+            required: ["command_word", "tip"],
+            additionalProperties: false,
+          },
+        },
+        flashcards: {
+          type: "array",
+          minItems: 10,
+          maxItems: 10,
+          items: {
+            type: "object",
+            properties: {
+              q: { type: "string" },
+              a: { type: "string" },
+            },
+            required: ["q", "a"],
+            additionalProperties: false,
+          },
         },
       },
-      required: ["key_definitions", "core_concepts", "common_mistakes", "worked_example", "examiner_tips"],
+      required: ["overview", "key_definitions", "core_content", "equations", "visual_summary", "examiner_tips", "flashcards"],
       additionalProperties: false,
     },
   },
@@ -80,32 +130,32 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "AI service not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   try {
-    const { subject, unit_number, unit_name, topic, syllabus_context } = await req.json();
+    const { subject, unit_number, unit_name, topic, syllabus_context, board, level } = await req.json();
+    const boardLabel = board || "Edexcel IAL";
+    const levelLabel = level || "A-Level";
 
     const isChem = subject === "chemistry";
-    const system = `You are a senior Edexcel A-Level ${subject} examiner writing concise, exam-focused revision notes. ${isChem && syllabus_context ? "You MUST stay strictly within the official Edexcel International A-Level Chemistry specification content provided below. If a concept is not in the syllabus statements for this topic, do NOT include it." : ""}
+    const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher. ${isChem && syllabus_context ? "You MUST stay strictly within the official Edexcel International A-Level Chemistry specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it." : ""}
 
 ABSOLUTE FORMATTING RULES:
 - Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math.
-- Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, etc.
-- Write "x squared" or use ² superscript — never "x^2".
-- Write fractions as a/b or use words.
-- No markdown headings (no #), no bold asterisks (**), no list hyphens — return structured data in the tool fields.
-- UK English. Use Edexcel mark scheme phrasing.`;
+- Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½, π, etc.
+- Write equations in plain text (e.g., rate = k[A]^m[B]^n).
+- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
+- UK English. Use ${boardLabel} mark scheme phrasing.`;
 
-    const user = `Generate revision notes for:
-Subject: Edexcel A-Level ${subject}
-Unit: Unit ${unit_number} — ${unit_name}
-Topic: ${topic}
+    const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject}.
 
 ${syllabus_context ? `Official syllabus content (your scope is limited to this):\n${syllabus_context}\n` : ""}
 
 Produce notes in this exact structure via the tool:
-1. KEY DEFINITIONS — only terms that appear in Edexcel mark schemes. Each: bolded term + one-line precise definition.
-2. CORE CONCEPTS — bullet points (max 5 per cluster). Every bullet exam-relevant. If a fact has never been tested in Edexcel, exclude it.
-3. COMMON EXAM MISTAKES — 2 to 4 specific mistakes, in the format 'Students often write X — examiners want Y instead'.
-4. WORKED EXAMPLE — one fully solved example. For sciences include units at every step. For maths show full working with reasons.
-5. EXAMINER TIPS — 2 to 3 second-person tips on what gets full marks.`;
+1. OVERVIEW — 3–4 paragraphs of flowing prose. Conceptual, like a knowledgeable teacher introducing the topic. No bullets.
+2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
+3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks.
+4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
+5. VISUAL SUMMARY — one diagram/table/flowchart in ASCII or simple HTML table markup that captures key relationships.
+6. EXAMINER TIPS — minimum 5, each tied to a specific command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
+7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
     const res = await fetch(GATEWAY, {
       method: "POST",
