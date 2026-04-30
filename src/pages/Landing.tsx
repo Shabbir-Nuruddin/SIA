@@ -77,13 +77,13 @@ const Landing = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
               </span>
-              For students who don't want to waste another hour
+              Study smart, not endlessly — zero decision fatigue
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.0] mb-6">
               Study less.<br />
               <span className="text-gradient">Score higher.</span><br />
-              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">Stop guessing what to revise — we tell you, every single day.</span>
+              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">Stop guessing what to revise<br />we tell you, every single day.</span>
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground max-w-[560px] mb-9 leading-relaxed">
@@ -103,7 +103,7 @@ const Landing = () => {
             </div>
 
             <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-              Supports Edexcel · AQA · CIE · IB · IGCSE · AS · A Level
+              Supports Edexcel · AQA · CIE · IB
             </p>
           </div>
         </div>
