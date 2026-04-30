@@ -18,11 +18,13 @@ serve(async (req) => {
   }
   try {
     const { messages, context } = await req.json();
-    const ctxLine = context
+    const board = context?.board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel International A-Level";
+    const ctxLine = context?.topic
       ? `The student is currently on the topic: "${context.topic}" — ${context.subject ?? ""} ${context.unit_name ?? ""}. Tailor your help to that topic when relevant.`
       : "";
-    const system = `You are Apex Tutor — a calm, encouraging A-Level / IGCSE study coach.
+    const system = `You are Apex Tutor — a calm, encouraging ${board} study coach.
 You help students understand concepts, work through problems step-by-step, and stay motivated.
+Use UK English and the mark-scheme phrasing of the ${board} specification (9701/9700/9702/9709 for CIE; WCH/WBI/WPH/WMA for Edexcel IAL).
 Plain text only. No LaTeX. Use Unicode for symbols (Δ, →, ⇌, ², ³, etc.).
 Keep replies under 150 words unless the student asks for depth.
 ${ctxLine}`;
