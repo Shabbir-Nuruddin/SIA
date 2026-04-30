@@ -127,15 +127,6 @@ const Dashboard = () => {
   // Urgency score (recomputes whenever units/sessions change)
   const urgency = computeUrgency(units);
 
-  // Re-tick at midnight so urgency refreshes daily without a reload.
-  useEffect(() => {
-    const ms = (() => {
-      const next = new Date(); next.setHours(24, 0, 5, 0);
-      return next.getTime() - Date.now();
-    })();
-    const t = setTimeout(() => load(), ms);
-    return () => clearTimeout(t);
-  }, [units.length]);
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("roadmap_sessions").update({
