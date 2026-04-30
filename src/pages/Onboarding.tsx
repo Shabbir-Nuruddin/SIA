@@ -191,7 +191,7 @@ const Onboarding = () => {
               ]).map(b => {
                 const sel = board === b.id;
                 return (
-                  <button key={b.id} onClick={() => setBoard(b.id)}
+                  <button key={b.id} onClick={() => handleBoardChange(b.id)}
                     className={`glass-card rounded-2xl p-6 text-left transition-all duration-300 hover:-translate-y-0.5 ${sel ? "border-primary glow-primary" : "hover:border-primary/30"}`}>
                     <div className="flex items-start justify-between mb-3">
                       <div className="font-bold text-lg">{b.name}</div>
