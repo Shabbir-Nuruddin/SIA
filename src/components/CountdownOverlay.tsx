@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { SUBJECTS, SubjectCode, formatDuration } from "@/lib/subjects";
-import { differenceInDays, parseISO, format } from "date-fns";
+import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { ChevronDown } from "lucide-react";
 
 interface UnitRow {
@@ -11,7 +10,31 @@ interface UnitRow {
   unit_number: number;
   unit_name: string;
   exam_date: string;
-  paper_duration_minutes: number;
+}
+
+const subjectDot: Record<SubjectCode, string> = {
+  mathematics: "hsl(var(--subject-maths))",
+  biology: "hsl(var(--subject-biology))",
+  chemistry: "hsl(var(--subject-chemistry))",
+  physics: "hsl(var(--subject-physics))",
+};
+
+function urgencyColor(days: number, hours: number) {
+  if (days < 1) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: true };
+  if (days < 3) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: false };
+  if (days < 7) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: false };
+  if (days < 15) return { bg: "hsl(var(--accent))", text: "#fff", pulse: false };
+  if (days < 30) return { bg: "hsl(32 94% 38%)", text: "#fff", pulse: false };
+  return { bg: "hsl(var(--primary))", text: "#fff", pulse: false };
+}
+
+function urgencyLine(unitName: string, days: number) {
+  if (days < 1) return `${unitName} — exam day. Final review only.`;
+  if (days < 3) return `${unitName} — ${days} days. Revise everything.`;
+  if (days < 7) return `${unitName} — ${days} days left. No days off.`;
+  if (days < 15) return `${unitName} — ${days} days. Every session counts.`;
+  if (days < 30) return `${unitName} — ${days} days. Stay on plan.`;
+  return `${unitName} — ${days} days away`;
 }
 
 export const CountdownOverlay = () => {
@@ -19,51 +42,61 @@ export const CountdownOverlay = () => {
   const { pathname } = useLocation();
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [open, setOpen] = useState(false);
+  const [, setTick] = useState(0);
 
-  // Hide entirely during a mock paper exam
   const hide = pathname.startsWith("/mock-papers/exam") || !user;
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from("user_subjects")
-      .select("subject,unit_number,unit_name,exam_date,paper_duration_minutes")
+    supabase.from("user_subjects")
+      .select("subject,unit_number,unit_name,exam_date")
       .eq("user_id", user.id)
       .order("exam_date")
       .then(({ data }) => { if (data) setUnits(data as UnitRow[]); });
   }, [user, pathname]);
 
+  // Re-render every minute so days/hours stay live
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   if (hide || units.length === 0) return null;
 
+  const now = Date.now();
   const upcoming = units
-    .map(u => ({ ...u, days: differenceInDays(parseISO(u.exam_date), new Date()) }))
-    .filter(u => u.days >= 0)
-    .sort((a, b) => a.days - b.days);
+    .map(u => {
+      const ms = new Date(u.exam_date + "T09:00:00").getTime() - now;
+      const totalH = Math.max(0, Math.floor(ms / 3_600_000));
+      const days = Math.floor(totalH / 24);
+      const hours = totalH % 24;
+      return { ...u, days, hours, ms };
+    })
+    .filter(u => u.ms >= -86_400_000)
+    .sort((a, b) => a.ms - b.ms);
 
   if (upcoming.length === 0) return null;
-
   const next = upcoming[0];
   const meta = SUBJECTS[next.subject];
-  const amber = next.days < 30;
+  const c = urgencyColor(next.days, next.hours);
+  const label = `${meta.name} U${next.unit_number}`;
 
   return (
     <>
       <div
-        className="fixed top-0 inset-x-0 z-50 select-none"
-        style={{ height: 36, background: "#080810", borderBottom: "1px solid hsl(var(--border))" }}
+        className={`fixed top-0 inset-x-0 z-50 select-none ${c.pulse ? "animate-slow-pulse" : ""}`}
+        style={{ height: 40, background: c.bg, color: c.text, borderBottom: "1px solid rgba(0,0,0,0.2)" }}
       >
         <button
           onClick={() => setOpen(o => !o)}
-          className="w-full h-full flex items-center justify-center gap-2 text-xs font-mono tracking-wide hover:bg-white/[0.02] transition-colors"
-          style={{ color: amber ? "#F5A623" : "rgba(255,255,255,0.7)" }}
+          className="w-full h-full flex items-center justify-center gap-2.5 text-[13px] font-medium hover:brightness-110 transition px-4"
         >
-          <span className="text-base leading-none">{meta.emoji}</span>
-          <span className="font-semibold">
-            {meta.name} Unit {next.unit_number}
+          <span className="h-2 w-2 rounded-full shrink-0" style={{ background: subjectDot[next.subject], boxShadow: "0 0 0 2px rgba(255,255,255,0.2)" }} />
+          <span className="truncate">{urgencyLine(label, next.days)}</span>
+          <span className="font-mono font-bold tabular tracking-tight whitespace-nowrap">
+            {next.days}d {next.hours}h
           </span>
-          <span className="opacity-60">—</span>
-          <span className="font-bold">{next.days} days</span>
-          <ChevronDown className={`h-3 w-3 ml-1 opacity-50 transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       </div>
 
@@ -71,28 +104,24 @@ export const CountdownOverlay = () => {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="fixed top-9 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)] rounded-b-xl border border-t-0 border-border shadow-2xl animate-in-up"
-            style={{ background: "#0B0B14" }}
+            className="fixed top-10 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,560px)] surface shadow-2xl animate-in-up overflow-hidden"
+            style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
           >
-            <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-muted-foreground font-mono border-b border-border">
+            <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
               All upcoming exams
             </div>
             <div className="divide-y divide-border max-h-[60vh] overflow-y-auto">
               {upcoming.map(u => {
                 const m = SUBJECTS[u.subject];
-                const a = u.days < 30;
                 return (
-                  <div key={`${u.subject}-${u.unit_number}`} className="grid grid-cols-12 items-center gap-2 px-4 py-3 text-sm">
-                    <div className="col-span-1 text-lg">{m.emoji}</div>
-                    <div className="col-span-5">
-                      <div className="font-semibold leading-tight">{m.name}</div>
-                      <div className="text-xs text-muted-foreground">Unit {u.unit_number} · {u.unit_name}</div>
+                  <div key={`${u.subject}-${u.unit_number}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-card-hover">
+                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: subjectDot[u.subject] }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground truncate">{m.name} · Unit {u.unit_number}</div>
+                      <div className="text-xs text-muted-foreground truncate">{u.unit_name}</div>
                     </div>
-                    <div className="col-span-3 text-xs text-muted-foreground font-mono">
-                      {format(parseISO(u.exam_date), "d MMM yyyy")} · {formatDuration(u.paper_duration_minutes)}
-                    </div>
-                    <div className="col-span-3 text-right font-mono font-bold" style={{ color: a ? "#F5A623" : "hsl(var(--foreground))" }}>
-                      {u.days} days
+                    <div className="font-mono text-sm font-bold tabular shrink-0" style={{ color: u.days < 30 ? "hsl(var(--accent))" : "hsl(var(--foreground))" }}>
+                      {u.days}d {u.hours}h
                     </div>
                   </div>
                 );
