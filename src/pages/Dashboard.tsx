@@ -32,6 +32,8 @@ interface UnitRow {
   unit_number: number;
   unit_name: string;
   exam_date: string;
+  target_grade: string | null;
+  current_grade: string | null;
 }
 
 const subjectClass: Record<string, string> = {
