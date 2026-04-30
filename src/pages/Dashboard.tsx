@@ -83,8 +83,8 @@ const Dashboard = () => {
     if (!user) return;
     const [s, u, p] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
-      supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("first_name,onboarded").eq("id", user.id).single(),
+      supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
+      supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
     if (u.data) setUnits(u.data as UnitRow[]);
