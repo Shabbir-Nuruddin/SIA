@@ -94,6 +94,18 @@ const Dashboard = () => {
 
   useEffect(() => { load(); }, [user]);
 
+  // Re-tick at midnight so urgency refreshes daily without a reload.
+  // MUST be declared before any early returns to keep hook order stable.
+  useEffect(() => {
+    if (units.length === 0) return;
+    const ms = (() => {
+      const next = new Date(); next.setHours(24, 0, 5, 0);
+      return next.getTime() - Date.now();
+    })();
+    const t = setTimeout(() => load(), ms);
+    return () => clearTimeout(t);
+  }, [units.length]);
+
   if (loading) return <AppLayout><div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></AppLayout>;
   if (profile && !profile.onboarded) return <Navigate to="/onboarding" replace />;
   if (units.length === 0) return <Navigate to="/onboarding" replace />;
@@ -115,15 +127,6 @@ const Dashboard = () => {
   // Urgency score (recomputes whenever units/sessions change)
   const urgency = computeUrgency(units);
 
-  // Re-tick at midnight so urgency refreshes daily without a reload.
-  useEffect(() => {
-    const ms = (() => {
-      const next = new Date(); next.setHours(24, 0, 5, 0);
-      return next.getTime() - Date.now();
-    })();
-    const t = setTimeout(() => load(), ms);
-    return () => clearTimeout(t);
-  }, [units.length]);
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("roadmap_sessions").update({
