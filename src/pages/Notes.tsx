@@ -100,12 +100,14 @@ const NotesPage = () => {
         const subjMeta = SUBJECTS[subject];
         const unitMeta = subjMeta.units.find(u => u.number === unit);
         let syllabus_context: string | undefined;
-        if (subject === "chemistry") {
+        if (board === "cie") {
+          syllabus_context = buildCieSyllabusContext(subject, topic);
+        } else if (subject === "chemistry") {
           const t = findChemistryTopic(topic);
           if (t) syllabus_context = t.statements.map(s => `${s.ref} ${s.text}`).join("\n");
         }
         const { data, error } = await supabase.functions.invoke("ai-notes", {
-          body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context },
+          body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context, board },
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
