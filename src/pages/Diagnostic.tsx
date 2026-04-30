@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
 import { ArrowRight, Brain } from "lucide-react";
@@ -167,7 +168,12 @@ const Diagnostic = () => {
           </div>
 
           <div className="text-center">
-            <Button size="lg" onClick={() => navigate("/onboarding")} className="btn-primary h-12 px-8 text-base">
+            <Button size="lg" onClick={async () => {
+              if (user) {
+                await supabase.from("profiles").update({ diagnostic_completed: true }).eq("id", user.id);
+              }
+              navigate("/onboarding");
+            }} className="btn-primary h-12 px-8 text-base">
               Build my plan now <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <p className="text-[11px] text-muted-foreground font-mono uppercase tracking-wider mt-4">
