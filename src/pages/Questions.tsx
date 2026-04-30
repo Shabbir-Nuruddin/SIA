@@ -66,9 +66,24 @@ const QuestionsPage = () => {
 
   const current = batch[idx];
   const currentAnswer = answers[idx] || "";
+  const currentImage = answerImages[idx] || null;
   const currentMark = marks[idx] || null;
 
   const setCurrentAnswer = (v: string) => setAnswers(a => { const c = [...a]; c[idx] = v; return c; });
+  const setCurrentImage = (v: string | null) => setAnswerImages(a => { const c = [...a]; c[idx] = v; return c; });
+
+  const handleAnswerImage = async (file: File | undefined) => {
+    if (!file) return;
+    setImageBusy(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setCurrentImage(dataUrl);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't read image");
+    } finally {
+      setImageBusy(false);
+    }
+  };
 
   const generateBatch = async () => {
     setLoadingGen(true);
