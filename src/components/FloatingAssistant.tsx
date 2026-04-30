@@ -170,7 +170,7 @@ export const FloatingAssistant = () => {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.length === 0 && (
               <div className="text-center text-sm text-muted-foreground py-8 px-4 leading-relaxed">
-                Stuck on a concept? Want a step-by-step? Ask away.
+                {firstName ? `Hey ${firstName} — ` : ""}stuck on a concept? Want a step-by-step? Ask away.
                 {context?.topic && (
                   <div className="mt-3 text-xs text-primary font-mono">Context: {context.topic}</div>
                 )}
