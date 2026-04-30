@@ -119,9 +119,18 @@ function whyNowBreak(): string {
 function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[], board: "edexcel-ial" | "cie" = "edexcel-ial"): string[] {
   const SUBJ = getSubjectsForBoard(board);
   const fromSpec = board === "edexcel-ial" ? ROADMAP_TOPICS[subject]?.[unitNumber] : undefined;
+  const subjMeta = SUBJ[subject];
+  if (!subjMeta) {
+    console.warn(`[roadmap] No subject metadata for "${subject}" on board "${board}". Using fallback topic.`);
+    return fromSpec && fromSpec.length > 0 ? [...fromSpec] : [`Unit ${unitNumber} review`];
+  }
+  const unitMeta = subjMeta.units.find(u => u.number === unitNumber);
   const list = fromSpec && fromSpec.length > 0
     ? [...fromSpec]
-    : (SUBJ[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
+    : (unitMeta?.topics ?? []).slice();
+
+  // Last-resort fallback so the unit still produces at least one node.
+  if (list.length === 0) list.push(unitMeta?.name || `Unit ${unitNumber} review`);
 
   // Sort: foundational first, then weak topics bumped to front, then by spec order.
   const weakSet = new Set(
