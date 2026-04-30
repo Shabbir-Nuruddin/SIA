@@ -17,7 +17,7 @@ const items = [
   { to: "/mock-papers", icon: FileText, label: "Mock Papers" },
   { to: "/notes", icon: BookOpen, label: "Notes" },
   { to: "/papers", icon: LinkIcon, label: "Past Papers" },
-  { to: "/assistant", icon: MessageCircle, label: "AI Assistant", pro: true },
+  { to: "/faq", icon: MessageCircle, label: "Exam FAQs" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
 
