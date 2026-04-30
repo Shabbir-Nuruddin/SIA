@@ -255,9 +255,9 @@ const RoadmapTopicNotes = () => {
                   <div className="surface p-5">
                     <div className="text-[11px] uppercase font-mono text-primary tracking-wider mb-2">{notes.visual_summary.kind} · {notes.visual_summary.caption}</div>
                     {notes.visual_summary.content.includes("<table") || notes.visual_summary.content.includes("<tr") ? (
-                      <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: notes.visual_summary.content }} />
+                      <div className="overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" {...renderedMathHtmlProps(notes.visual_summary.content)} />
                     ) : (
-                      <pre className="whitespace-pre font-mono text-[13px] bg-secondary rounded-md p-3 overflow-x-auto">{notes.visual_summary.content}</pre>
+                      <pre className="whitespace-pre-wrap font-mono text-[13px] bg-secondary rounded-md p-3 overflow-x-auto" {...renderedMathHtmlProps(notes.visual_summary.content)} />
                     )}
                   </div>
                 ) : <p className="text-muted-foreground text-sm italic">No visual summary.</p>}
