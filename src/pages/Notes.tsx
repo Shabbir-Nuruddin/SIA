@@ -398,7 +398,7 @@ const NotesPage = () => {
                       <div key={i}>
                         <div className="font-semibold text-sm mb-1.5" {...formattedHtmlProps(c.cluster)} />
                         <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {c.bullets.map((b, j) => (
+                          {(c.bullets ?? []).map((b, j) => (
                             <li key={j} dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(b)) }} />
                           ))}
                         </ul>
