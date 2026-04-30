@@ -163,6 +163,8 @@ export function buildNodePlan(
   const sessionsPerDay = Math.max(1, Math.floor((hoursPerDay * 60) / 25));
   const restDays = new Set(opts.restDays ?? []);
   const weakTopics = opts.weakTopics ?? [];
+  const board = opts.board ?? "edexcel-ial";
+  const SUBJ = getSubjectsForBoard(board);
 
   // Filter out exams that have already passed.
   const liveUnits = units.filter(u => daysBetweenLocal(todayIso, u.exam_date) > 0);
