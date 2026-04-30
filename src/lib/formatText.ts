@@ -30,38 +30,78 @@ const escapeHtml = (s: string) =>
 /*  so plain "x^2", "sqrt(2)", "1/2", "\frac{a}{b}", "H_2O" render.    */
 /* ------------------------------------------------------------------ */
 
+// Match a balanced {...} block starting at index i (i points at '{').
+// Returns end index (exclusive) or -1 if unbalanced.
+const matchBraces = (s: string, i: number): number => {
+  if (s[i] !== "{") return -1;
+  let depth = 0;
+  for (let j = i; j < s.length; j++) {
+    if (s[j] === "{") depth++;
+    else if (s[j] === "}") {
+      depth--;
+      if (depth === 0) return j + 1;
+    }
+  }
+  return -1;
+};
+
+// Find spans of \frac{...}{...} or \sqrt[..]{...} with proper brace nesting.
+const wrapBalancedMacro = (text: string, macro: "frac" | "sqrt"): string => {
+  const needle = "\\" + macro;
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const k = text.indexOf(needle, i);
+    if (k === -1) { out += text.slice(i); break; }
+    out += text.slice(i, k);
+    let p = k + needle.length;
+    // optional [..] for sqrt
+    if (macro === "sqrt" && text[p] === "[") {
+      const close = text.indexOf("]", p);
+      if (close === -1) { out += text.slice(k); break; }
+      p = close + 1;
+    }
+    // skip whitespace
+    while (text[p] === " ") p++;
+    if (text[p] !== "{") { out += text.slice(k, p); i = p; continue; }
+    const end1 = matchBraces(text, p);
+    if (end1 === -1) { out += text.slice(k); break; }
+    let end = end1;
+    if (macro === "frac") {
+      let q = end1;
+      while (text[q] === " ") q++;
+      if (text[q] !== "{") { out += text.slice(k, end1); i = end1; continue; }
+      const end2 = matchBraces(text, q);
+      if (end2 === -1) { out += text.slice(k); break; }
+      end = end2;
+    }
+    out += `$${text.slice(k, end)}$`;
+    i = end;
+  }
+  return out;
+};
+
 const autoWrapMath = (text: string): string => {
-  // Skip already-delimited math segments — handled later.
-  // We split on existing math markers so we only transform prose.
   const segments = text.split(
     /(\$\$[\s\S]+?\$\$|\$[^\n$]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g
   );
   return segments
     .map((seg, i) => {
-      if (i % 2 === 1) return seg; // already math
+      if (i % 2 === 1) return seg;
       let s = seg;
-
-      // \frac{...}{...} → wrap as inline math
-      s = s.replace(/\\frac\s*\{[^{}]+\}\s*\{[^{}]+\}/g, (m) => `$${m}$`);
-
-      // \sqrt{...} or \sqrt[n]{...}
-      s = s.replace(/\\sqrt(?:\[[^\]]+\])?\s*\{[^{}]+\}/g, (m) => `$${m}$`);
-
-      // sqrt(...)  →  $\sqrt{...}$
+      s = wrapBalancedMacro(s, "frac");
+      s = wrapBalancedMacro(s, "sqrt");
+      // sqrt(...) → $\sqrt{...}$
       s = s.replace(/\bsqrt\s*\(([^()]+)\)/gi, (_m, inner) => `$\\sqrt{${inner}}$`);
-
-      // a^b, a^{...}, a_b, a_{...}  (single token)
+      // a^b / a^{..} / a_b / a_{..}
       s = s.replace(
         /\b([A-Za-z0-9])(\^|_)(\{[^}]+\}|[A-Za-z0-9+\-]+)/g,
         (_m, base, op, exp) => `$${base}${op}${exp}$`
       );
-
-      // Greek/symbol macros standing alone (\pi, \theta, \alpha, \Delta, etc.)
       s = s.replace(
         /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ)\b/g,
         (m) => `$${m}$`
       );
-
       return s;
     })
     .join("");
@@ -127,47 +167,38 @@ export const toPlainText = (input: string): string => {
 /*  Main HTML formatter (math → KaTeX, prose → markdown-lite)          */
 /* ------------------------------------------------------------------ */
 
-// Replace all math segments with KaTeX HTML; leaves prose untouched.
-const renderMathSegments = (text: string): string => {
-  // Order matters: handle display math first, then inline.
+// Render math, replacing each KaTeX HTML chunk with a placeholder token,
+// so subsequent HTML-escaping of prose can't corrupt KaTeX markup.
+const PLACEHOLDER_RE = /\uE000(\d+)\uE001/g;
+const renderMathWithPlaceholders = (text: string): { text: string; store: string[] } => {
+  const store: string[] = [];
+  const push = (html: string) => {
+    const i = store.length;
+    store.push(html);
+    return `\uE000${i}\uE001`;
+  };
   let s = text;
-
-  // $$...$$
-  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => renderMath(tex, true));
-  // \[...\]
-  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => renderMath(tex, true));
-  // \(...\)
-  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => renderMath(tex, false));
-  // $...$  (single line, non-greedy)
-  s = s.replace(/\$([^\n$]+?)\$/g, (_m, tex) => renderMath(tex, false));
-
-  return s;
+  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => push(renderMath(tex, true)));
+  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => push(renderMath(tex, true)));
+  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => push(renderMath(tex, false)));
+  s = s.replace(/\$([^\n$]+?)\$/g, (_m, tex) => push(renderMath(tex, false)));
+  return { text: s, store };
 };
 
-// Markdown-lite for inline runs. Math is rendered first, so the resulting
-// KaTeX HTML is preserved (we only escape & < > on the *prose* segments).
-const inlineFormat = (raw: string): string => {
-  // Split on KaTeX spans so we don't escape their HTML.
-  const parts = raw.split(/(<span class="katex[\s\S]*?<\/span>)/g);
-  return parts
-    .map((part) => {
-      if (part.startsWith('<span class="katex')) return part;
-      let s = escapeHtml(part);
-      s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-      s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
-      s = s.replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
-      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-      return s;
-    })
-    .join("");
+const inlineFormat = (raw: string, store: string[]): string => {
+  let s = escapeHtml(raw);
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  s = s.replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(PLACEHOLDER_RE, (_m, n) => store[parseInt(n, 10)] ?? "");
+  return s;
 };
 
 export const toFormattedHtml = (input: string): string => {
   if (!input) return "";
-  // 1) Heuristically wrap bare math, 2) render math via KaTeX,
-  // 3) build block structure, escaping only prose.
   const wrapped = autoWrapMath(input);
-  const mathRendered = renderMathSegments(wrapped);
+  const { text: mathRendered, store } = renderMathWithPlaceholders(wrapped);
 
   const lines = mathRendered.split(/\r?\n/);
   const out: string[] = [];
@@ -185,25 +216,25 @@ export const toFormattedHtml = (input: string): string => {
     if (h) {
       closeLists();
       const lvl = Math.min(6, h[1].length);
-      out.push(`<h${lvl}>${inlineFormat(h[2])}</h${lvl}>`);
+      out.push(`<h${lvl}>${inlineFormat(h[2], store)}</h${lvl}>`);
       continue;
     }
     const ul = line.match(/^\s*[-*•]\s+(.*)$/);
     if (ul) {
       if (inOl) { out.push("</ol>"); inOl = false; }
       if (!inUl) { out.push("<ul>"); inUl = true; }
-      out.push(`<li>${inlineFormat(ul[1])}</li>`);
+      out.push(`<li>${inlineFormat(ul[1], store)}</li>`);
       continue;
     }
     const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
     if (ol) {
       if (inUl) { out.push("</ul>"); inUl = false; }
       if (!inOl) { out.push("<ol>"); inOl = true; }
-      out.push(`<li>${inlineFormat(ol[1])}</li>`);
+      out.push(`<li>${inlineFormat(ol[1], store)}</li>`);
       continue;
     }
     closeLists();
-    out.push(`<p>${inlineFormat(line)}</p>`);
+    out.push(`<p>${inlineFormat(line, store)}</p>`);
   }
   closeLists();
   return out.join("");

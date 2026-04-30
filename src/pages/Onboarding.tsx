@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
@@ -44,6 +45,25 @@ const Onboarding = () => {
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [firstName, setFirstName] = useState("");
+  const [needsName, setNeedsName] = useState(false);
+
+  // If the user signed in via Google (no first_name on profile), prompt for it.
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from("profiles").select("first_name").eq("id", user.id).maybeSingle();
+      const existing = (data?.first_name || "").trim();
+      if (existing) {
+        setFirstName(existing);
+        setNeedsName(false);
+      } else {
+        const meta: any = (user as any)?.user_metadata || {};
+        const fallback = (meta.given_name || meta.first_name || (meta.full_name || meta.name || "").split(" ")[0] || "").trim();
+        if (fallback) setFirstName(fallback);
+        setNeedsName(true);
+      }
+    })();
+  }, [user]);
 
   const SUBJECT_LIST = Object.values(getSubjectsForBoard(board));
 
@@ -192,6 +212,22 @@ const Onboarding = () => {
 
         {step === 0 && (
           <div className="animate-in-up">
+            {needsName && (
+              <div className="glass-card rounded-2xl p-6 mb-8 max-w-md">
+                <Label htmlFor="ob_name" className="text-sm font-semibold">What should we call you?</Label>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">We'll use this name when your tutor talks to you.</p>
+                <Input
+                  id="ob_name"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                  placeholder="e.g. Alex"
+                  maxLength={40}
+                  pattern="^[A-Za-z][A-Za-z'\- ]*$"
+                  className="h-11"
+                  autoFocus
+                />
+              </div>
+            )}
             <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which exam board?</h1>
             <p className="text-muted-foreground mb-10">We tailor every question, mark scheme and tip to your board.</p>
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
@@ -213,7 +249,18 @@ const Onboarding = () => {
                 );
               })}
             </div>
-            <Button size="lg" onClick={() => setStep(1)} className="bg-primary hover:bg-primary/90 h-12 px-8">
+            <Button
+              size="lg"
+              disabled={needsName && !firstName.trim()}
+              onClick={() => {
+                if (needsName && !/^[A-Za-z][A-Za-z'\- ]*$/.test(firstName.trim())) {
+                  toast.error("Please enter a name (letters only).");
+                  return;
+                }
+                setStep(1);
+              }}
+              className="bg-primary hover:bg-primary/90 h-12 px-8"
+            >
               Continue with {board === "edexcel-ial" ? "Edexcel IAL" : "Cambridge"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
