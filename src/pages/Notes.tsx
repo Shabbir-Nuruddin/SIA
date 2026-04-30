@@ -4,27 +4,144 @@ import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
-import { formattedHtmlProps, toPlainText } from "@/lib/formatText";
+import { formattedHtmlProps, toPlainText, toFormattedHtml } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download, ChevronDown, ChevronRight, FileText } from "lucide-react";
+import {
+  BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download,
+  ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 
-interface NoteContent {
-  key_definitions: { term: string; definition: string }[];
-  core_concepts: { cluster: string; bullets: string[] }[];
-  common_mistakes: string[];
-  worked_example: { problem: string; steps: { step: string; reason: string }[]; answer: string };
-  examiner_tips: string[];
+/* ────────────────────────────────────────────────────────────
+   UNIFIED NOTE MODEL
+   The edge function returns the new ChemRevise-inspired shape:
+   { overview, key_definitions[{term,mark_scheme,plain_english,common_mistake}],
+     core_content[{statement,worked_example,wrong_approach,typical_marks}],
+     equations[{equation,variables[],worked_substitution}],
+     visual_summary{kind,caption,content},
+     examiner_tips[{command_word,tip}],
+     flashcards[{q,a}] }
+   Older cached rows used the legacy shape:
+   { key_definitions[{term,definition}], core_concepts[{cluster,bullets}],
+     common_mistakes[], worked_example{problem,steps,answer}, examiner_tips[] }
+   Normalise both into NormalisedNotes so render never crashes.
+   ──────────────────────────────────────────────────────────── */
+
+interface KeyDef { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
+interface CoreItem { statement: string; worked_example: string; wrong_approach?: string; typical_marks?: number; }
+interface EquationItem { equation: string; variables: { symbol: string; meaning: string; unit: string }[]; worked_substitution: string; }
+interface VisualSummary { kind: "table" | "flowchart" | "diagram"; caption: string; content: string; }
+interface TipItem { command_word: string; tip: string; }
+interface Flashcard { q: string; a: string; }
+
+interface NormalisedNotes {
+  overview: string;
+  key_definitions: KeyDef[];
+  core_content: CoreItem[];
+  equations: EquationItem[];
+  visual_summary: VisualSummary | null;
+  examiner_tips: TipItem[];
+  flashcards: Flashcard[];
 }
 
-interface Annotation {
-  id: string;
-  highlighted_text: string;
-  note: string;
-}
+const normaliseNotes = (raw: any): NormalisedNotes => {
+  if (!raw || typeof raw !== "object") {
+    return { overview: "", key_definitions: [], core_content: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [] };
+  }
+  // Detect legacy shape
+  const isLegacy = Array.isArray(raw.core_concepts) || (Array.isArray(raw.common_mistakes) && raw.common_mistakes.length);
+
+  // Key definitions
+  const key_definitions: KeyDef[] = Array.isArray(raw.key_definitions)
+    ? raw.key_definitions.map((d: any) => ({
+        term: d?.term ?? "",
+        mark_scheme: d?.mark_scheme ?? d?.definition ?? "",
+        plain_english: d?.plain_english ?? "",
+        common_mistake: d?.common_mistake ?? "",
+      }))
+    : [];
+
+  // Core content
+  let core_content: CoreItem[] = [];
+  if (Array.isArray(raw.core_content)) {
+    core_content = raw.core_content.map((c: any) => ({
+      statement: c?.statement ?? "",
+      worked_example: c?.worked_example ?? "",
+      wrong_approach: c?.wrong_approach ?? "",
+      typical_marks: typeof c?.typical_marks === "number" ? c.typical_marks : undefined,
+    }));
+  } else if (Array.isArray(raw.core_concepts)) {
+    // Legacy: each cluster's bullets become a single statement entry
+    core_content = raw.core_concepts.flatMap((c: any) => {
+      const bullets: string[] = Array.isArray(c?.bullets) ? c.bullets : [];
+      return bullets.map((b) => ({ statement: `${c?.cluster ? c.cluster + " — " : ""}${b}`, worked_example: "", wrong_approach: "" }));
+    });
+  }
+
+  // Legacy worked example → push into core_content as one item if present
+  if (isLegacy && raw.worked_example) {
+    const w = raw.worked_example;
+    const steps: string = Array.isArray(w?.steps)
+      ? w.steps.map((s: any, i: number) => `Step ${i + 1}: ${s?.step ?? ""}${s?.reason ? ` — ${s.reason}` : ""}`).join("\n")
+      : "";
+    core_content.unshift({
+      statement: w?.problem ?? "Worked example",
+      worked_example: `${steps}${w?.answer ? `\nAnswer: ${w.answer}` : ""}`.trim(),
+      wrong_approach: "",
+    });
+  }
+
+  // Legacy common_mistakes → tack onto core items as wrong_approach hints; or surface separately
+  // We'll surface them as a synthesised section by reusing core_content entries when sparse.
+
+  const equations: EquationItem[] = Array.isArray(raw.equations)
+    ? raw.equations.map((e: any) => ({
+        equation: e?.equation ?? "",
+        variables: Array.isArray(e?.variables) ? e.variables.map((v: any) => ({ symbol: v?.symbol ?? "", meaning: v?.meaning ?? "", unit: v?.unit ?? "" })) : [],
+        worked_substitution: e?.worked_substitution ?? "",
+      }))
+    : [];
+
+  const visual_summary: VisualSummary | null =
+    raw.visual_summary && typeof raw.visual_summary === "object"
+      ? { kind: raw.visual_summary.kind ?? "diagram", caption: raw.visual_summary.caption ?? "", content: raw.visual_summary.content ?? "" }
+      : null;
+
+  let examiner_tips: TipItem[] = [];
+  if (Array.isArray(raw.examiner_tips)) {
+    examiner_tips = raw.examiner_tips.map((t: any) =>
+      typeof t === "string"
+        ? { command_word: "", tip: t }
+        : { command_word: t?.command_word ?? "", tip: t?.tip ?? "" }
+    );
+  }
+
+  // Append legacy common_mistakes as examiner-style tips so they remain visible
+  if (Array.isArray(raw.common_mistakes)) {
+    raw.common_mistakes.forEach((m: string) => examiner_tips.push({ command_word: "Avoid", tip: m }));
+  }
+
+  const flashcards: Flashcard[] = Array.isArray(raw.flashcards)
+    ? raw.flashcards.map((f: any) => ({ q: f?.q ?? "", a: f?.a ?? "" }))
+    : [];
+
+  return {
+    overview: raw.overview ?? "",
+    key_definitions,
+    core_content,
+    equations,
+    visual_summary,
+    examiner_tips,
+    flashcards,
+  };
+};
+
+interface Annotation { id: string; highlighted_text: string; note: string; }
+
+const formatToHtml = (s: string) => toFormattedHtml(s ?? "");
 
 const NotesPage = () => {
   const { user } = useAuth();
@@ -33,23 +150,27 @@ const NotesPage = () => {
   const SUBJECTS = getSubjectsForBoard(board);
   const [enrolled, setEnrolled] = useState<Array<{ subject: SubjectCode; unit_number: number; unit_name: string }>>([]);
   const [openSubject, setOpenSubject] = useState<SubjectCode | null>(null);
+  const [openUnit, setOpenUnit] = useState<string | null>(null);
 
   const subjectParam = (params.get("subject") as SubjectCode) || null;
   const unitParam = params.get("unit") ? Number(params.get("unit")) : null;
   const topicParam = params.get("topic") || null;
 
-  const [notes, setNotes] = useState<NoteContent | null>(null);
+  const [notes, setNotes] = useState<NormalisedNotes | null>(null);
   const [noteRowId, setNoteRowId] = useState<string | null>(null);
   const [loadingNotes, setLoadingNotes] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [showFlashcards, setShowFlashcards] = useState(false);
+  const [flashIndex, setFlashIndex] = useState(0);
+  const [flashFlipped, setFlashFlipped] = useState(false);
 
-  // Floating selection toolbar state
   const [selection, setSelection] = useState<{ text: string; x: number; y: number } | null>(null);
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draftNote, setDraftNote] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Load enrolled units + board
+  // Load profile board + enrolled units
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("exam_board").eq("id", user.id).single().then(({ data }) => {
@@ -65,40 +186,48 @@ const NotesPage = () => {
     // eslint-disable-next-line
   }, [user]);
 
-  // Load (or generate) notes when topic changes
   useEffect(() => {
     if (!user || !subjectParam || !unitParam || !topicParam) {
-      setNotes(null);
-      setNoteRowId(null);
-      setAnnotations([]);
+      setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       return;
     }
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
 
-  const loadOrGenerate = async (subject: SubjectCode, unit: number, topic: string) => {
+  const STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  const loadOrGenerate = async (subject: SubjectCode, unit: number, topic: string, forceRefresh = false) => {
     if (!user) return;
     setLoadingNotes(true);
+    setLoadError(null);
     setNotes(null);
+    setShowFlashcards(false);
+    setFlashIndex(0);
+    setFlashFlipped(false);
     try {
-      // Try cached
-      const { data: cached } = await supabase
-        .from("topic_notes")
-        .select("id,content")
-        .eq("user_id", user.id)
-        .eq("subject", subject)
-        .eq("unit_number", unit)
-        .eq("topic", topic)
-        .maybeSingle();
+      let cached: any = null;
+      if (!forceRefresh) {
+        const { data } = await supabase
+          .from("topic_notes")
+          .select("id,content,updated_at")
+          .eq("user_id", user.id)
+          .eq("subject", subject)
+          .eq("unit_number", unit)
+          .eq("topic", topic)
+          .maybeSingle();
+        cached = data;
+      }
 
-      if (cached) {
-        setNotes(cached.content as unknown as NoteContent);
+      const isFresh = cached?.updated_at && (Date.now() - new Date(cached.updated_at).getTime() < STALE_MS);
+
+      if (cached && isFresh && !forceRefresh) {
+        setNotes(normaliseNotes(cached.content));
         setNoteRowId(cached.id);
         await loadAnnotations(cached.id);
       } else {
         const subjMeta = SUBJECTS[subject];
-        const unitMeta = subjMeta.units.find(u => u.number === unit);
+        const unitMeta = subjMeta?.units.find(u => u.number === unit);
         let syllabus_context: string | undefined;
         if (board === "cie") {
           syllabus_context = buildCieSyllabusContext(subject, topic);
@@ -109,21 +238,29 @@ const NotesPage = () => {
         const { data, error } = await supabase.functions.invoke("ai-notes", {
           body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context, board },
         });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
+        if (error) throw new Error(error.message || "Notes service unavailable");
+        if (!data || data.error) throw new Error(data?.error || "Notes service returned no data");
 
-        const { data: inserted, error: insErr } = await supabase
-          .from("topic_notes")
-          .insert({ user_id: user.id, subject, unit_number: unit, topic, content: data })
-          .select("id")
-          .single();
-        if (insErr) throw insErr;
-        setNotes(data as NoteContent);
-        setNoteRowId(inserted.id);
-        setAnnotations([]);
+        // Upsert (replace stale)
+        if (cached?.id) {
+          await supabase.from("topic_notes").update({ content: data, updated_at: new Date().toISOString() }).eq("id", cached.id);
+          setNoteRowId(cached.id);
+          await loadAnnotations(cached.id);
+        } else {
+          const { data: inserted, error: insErr } = await supabase
+            .from("topic_notes")
+            .insert({ user_id: user.id, subject, unit_number: unit, topic, content: data })
+            .select("id")
+            .single();
+          if (insErr) throw insErr;
+          setNoteRowId(inserted.id);
+          setAnnotations([]);
+        }
+        setNotes(normaliseNotes(data));
       }
     } catch (err: any) {
-      toast.error(err?.message || "Couldn't load notes. Try again.");
+      console.error("Notes load error:", err);
+      setLoadError(err?.message || "Couldn't load notes.");
     } finally {
       setLoadingNotes(false);
     }
@@ -140,64 +277,34 @@ const NotesPage = () => {
     if (data) setAnnotations(data as Annotation[]);
   };
 
-  // Selection handler within the notes panel
   const handleMouseUp = () => {
     const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !panelRef.current) {
-      setSelection(null);
-      return;
-    }
+    if (!sel || sel.isCollapsed || !panelRef.current) { setSelection(null); return; }
     const text = sel.toString().trim();
-    if (text.length < 3 || text.length > 400) {
-      setSelection(null);
-      return;
-    }
-    // Ensure selection is inside panel
+    if (text.length < 3 || text.length > 400) { setSelection(null); return; }
     const range = sel.getRangeAt(0);
-    if (!panelRef.current.contains(range.commonAncestorContainer)) {
-      setSelection(null);
-      return;
-    }
+    if (!panelRef.current.contains(range.commonAncestorContainer)) { setSelection(null); return; }
     const rect = range.getBoundingClientRect();
     const panelRect = panelRef.current.getBoundingClientRect();
-    setSelection({
-      text,
-      x: rect.left - panelRect.left + rect.width / 2,
-      y: rect.top - panelRect.top - 8,
-    });
+    setSelection({ text, x: rect.left - panelRect.left + rect.width / 2, y: rect.top - panelRect.top - 8 });
   };
 
   const startComposing = () => {
     if (!selection) return;
-    setComposing(selection);
-    setDraftNote("");
-    setSelection(null);
+    setComposing(selection); setDraftNote(""); setSelection(null);
     window.getSelection()?.removeAllRanges();
   };
 
   const saveAnnotation = async () => {
     if (!composing || !noteRowId || !user) return;
-    if (!draftNote.trim()) {
-      toast.error("Annotation can't be empty.");
-      return;
-    }
+    if (!draftNote.trim()) { toast.error("Annotation can't be empty."); return; }
     const { data, error } = await supabase
       .from("note_annotations")
-      .insert({
-        user_id: user.id,
-        topic_notes_id: noteRowId,
-        highlighted_text: composing.text,
-        note: draftNote.trim(),
-      })
-      .select("id,highlighted_text,note")
-      .single();
-    if (error) {
-      toast.error("Couldn't save annotation.");
-      return;
-    }
+      .insert({ user_id: user.id, topic_notes_id: noteRowId, highlighted_text: composing.text, note: draftNote.trim() })
+      .select("id,highlighted_text,note").single();
+    if (error) { toast.error("Couldn't save annotation."); return; }
     setAnnotations(a => [...a, data as Annotation]);
-    setComposing(null);
-    setDraftNote("");
+    setComposing(null); setDraftNote("");
     toast.success("Annotation saved.");
   };
 
@@ -206,11 +313,9 @@ const NotesPage = () => {
     setAnnotations(a => a.filter(x => x.id !== id));
   };
 
-  // Render helper: wrap occurrences of highlighted_text with marked spans
   const annotateHtml = (html: string): string => {
     if (annotations.length === 0) return html;
     let out = html;
-    // Sort longest first to avoid nested replacement issues
     const sorted = [...annotations].sort((a, b) => b.highlighted_text.length - a.highlighted_text.length);
     for (const a of sorted) {
       const escaped = a.highlighted_text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -242,46 +347,51 @@ const NotesPage = () => {
       }
       y += gap;
     };
-
     const footer = () => {
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(9);
-      doc.setTextColor(120);
-      doc.text(`Apex · ${studentName} · ${sub.name} U${unitParam} — ${topicParam}`, margin, pageH - 24);
+      doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(120);
+      doc.text(`Apex · ${studentName} · ${sub?.name ?? ""} U${unitParam} — ${topicParam}`, margin, pageH - 24);
       doc.setTextColor(0);
     };
 
-    writeLine(`${sub.name} — Unit ${unitParam}`, 10, false, 0);
+    writeLine(`${sub?.name ?? ""} — Unit ${unitParam}`, 10, false, 0);
     writeLine(topicParam, 22, true, 16);
 
-    writeLine("Key definitions", 14, true);
-    notes.key_definitions.forEach(d => writeLine(`${d.term}: ${d.definition}`, 11, false, 4));
-    y += 8;
+    if (notes.overview) { writeLine("Overview", 14, true); writeLine(notes.overview, 11, false, 8); }
 
-    writeLine("Core concepts", 14, true);
-    notes.core_concepts.forEach(c => {
-      writeLine(c.cluster, 12, true, 2);
-      c.bullets.forEach(b => writeLine(`• ${b}`, 11, false, 2));
-      y += 4;
-    });
+    if (notes.key_definitions.length) {
+      writeLine("Key definitions", 14, true);
+      notes.key_definitions.forEach(d => {
+        writeLine(`${d.term}: ${d.mark_scheme}`, 11, false, 2);
+        if (d.plain_english) writeLine(`Plain English: ${d.plain_english}`, 10, false, 2);
+        if (d.common_mistake) writeLine(`Common mistake: ${d.common_mistake}`, 10, false, 4);
+      });
+    }
 
-    writeLine("Common exam mistakes", 14, true);
-    notes.common_mistakes.forEach(m => writeLine(`• ${m}`, 11, false, 2));
-    y += 8;
+    if (notes.core_content.length) {
+      writeLine("Core content", 14, true);
+      notes.core_content.forEach((c, i) => {
+        writeLine(`${i + 1}. ${c.statement}${c.typical_marks ? ` [${c.typical_marks} marks]` : ""}`, 12, true, 2);
+        if (c.worked_example) writeLine(`Worked: ${c.worked_example}`, 10, false, 2);
+        if (c.wrong_approach) writeLine(`Avoid: ${c.wrong_approach}`, 10, false, 4);
+      });
+    }
 
-    writeLine("Worked example", 14, true);
-    writeLine(`Problem: ${notes.worked_example.problem}`, 11);
-    notes.worked_example.steps.forEach((s, i) => {
-      writeLine(`Step ${i + 1}: ${s.step}`, 11, false, 1);
-      writeLine(`Why: ${s.reason}`, 10, false, 4);
-    });
-    writeLine(`Answer: ${notes.worked_example.answer}`, 11, true);
+    if (notes.equations.length) {
+      writeLine("Equations", 14, true);
+      notes.equations.forEach(e => {
+        writeLine(e.equation, 11, true, 2);
+        e.variables.forEach(v => writeLine(`  ${v.symbol} = ${v.meaning} (${v.unit})`, 10, false, 1));
+        if (e.worked_substitution) writeLine(`Substitution: ${e.worked_substitution}`, 10, false, 4);
+      });
+    }
 
-    writeLine("Examiner tips", 14, true);
-    notes.examiner_tips.forEach(t => writeLine(`• ${t}`, 11, false, 2));
+    if (notes.examiner_tips.length) {
+      writeLine("Examiner tips", 14, true);
+      notes.examiner_tips.forEach(t => writeLine(`• ${t.command_word ? `[${t.command_word}] ` : ""}${t.tip}`, 11, false, 2));
+    }
 
     footer();
-    doc.save(`Apex-${sub.code}-U${unitParam}-${topicParam.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+    doc.save(`Apex-${subjectParam}-U${unitParam}-${topicParam.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
   };
 
   const getStudentName = async (): Promise<string> => {
@@ -314,10 +424,11 @@ const NotesPage = () => {
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-6">
-          {/* Topic browser */}
+          {/* Sidebar */}
           <aside className="space-y-3">
             {Object.entries(groupedBySubject).map(([code, units]) => {
               const m = SUBJECTS[code as SubjectCode];
+              if (!m) return null;
               const open = openSubject === (code as SubjectCode);
               return (
                 <div key={code} className="glass-card rounded-xl overflow-hidden">
@@ -332,22 +443,35 @@ const NotesPage = () => {
                     <div className="px-3 pb-3 space-y-3">
                       {units.map(u => {
                         const unitMeta = m.units.find(x => x.number === u.unit_number);
+                        const unitKey = `${code}-${u.unit_number}`;
+                        const unitOpen = openUnit === unitKey || (subjectParam === code && unitParam === u.unit_number);
                         return (
                           <div key={u.unit_number}>
-                            <div className="text-[10px] uppercase tracking-wider font-mono text-primary mb-1">Unit {u.unit_number}</div>
-                            <div className="space-y-0.5">
-                              {(unitMeta?.topics ?? []).map(t => {
-                                const active = subjectParam === code && unitParam === u.unit_number && topicParam === t;
-                                return (
-                                  <button key={t}
-                                    onClick={() => selectTopic(code as SubjectCode, u.unit_number, t)}
-                                    className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/15 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}>
-                                    <FileText className="h-3 w-3 shrink-0" />
-                                    <span className="truncate">{t}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
+                            <button
+                              onClick={() => setOpenUnit(unitOpen ? null : unitKey)}
+                              className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-mono text-primary mb-1 hover:text-primary/80"
+                            >
+                              {unitOpen ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
+                              <span>Unit {u.unit_number} · {unitMeta?.unitCode ?? ""}</span>
+                            </button>
+                            {unitOpen && (
+                              <div className="space-y-0.5 ml-3">
+                                {(unitMeta?.topics ?? []).map(t => {
+                                  const active = subjectParam === code && unitParam === u.unit_number && topicParam === t;
+                                  return (
+                                    <button key={t}
+                                      onClick={() => selectTopic(code as SubjectCode, u.unit_number, t)}
+                                      className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/15 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}>
+                                      <FileText className="h-3 w-3 shrink-0" />
+                                      <span className="truncate">{t}</span>
+                                    </button>
+                                  );
+                                })}
+                                {(!unitMeta?.topics || unitMeta.topics.length === 0) && (
+                                  <div className="text-[11px] text-muted-foreground italic px-2 py-1">No topics defined</div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -372,121 +496,212 @@ const NotesPage = () => {
                 <p className="text-muted-foreground">Notes generate in seconds and stay saved to your account.</p>
               </div>
             ) : loadingNotes ? (
+              <NotesSkeleton topic={topicParam} board={board} />
+            ) : loadError ? (
               <div className="glass-card rounded-2xl p-12 text-center">
-                <Loader2 className="h-8 w-8 text-primary mx-auto mb-4 animate-spin" />
-                <h3 className="text-xl font-bold mb-2">Generating your {topicParam} notes...</h3>
-                <p className="text-muted-foreground text-sm">Pulling {board === "cie" ? "Cambridge (CIE)" : "Edexcel"} mark-scheme phrasing and worked examples.</p>
+                <AlertTriangle className="h-10 w-10 text-urgent mx-auto mb-4" />
+                <h3 className="text-xl font-bold mb-2">Notes couldn't load.</h3>
+                <p className="text-muted-foreground text-sm mb-6">This is on our end, not yours.</p>
+                <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} className="bg-primary hover:bg-primary/90">
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try again
+                </Button>
               </div>
             ) : notes ? (
               <div className="glass-card rounded-2xl p-6 md:p-8 relative" ref={panelRef} onMouseUp={handleMouseUp}>
                 <div className="flex items-start justify-between gap-3 mb-6 pb-5 border-b border-border">
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground">{SUBJECTS[subjectParam].name} · Unit {unitParam}</div>
+                    <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground">{SUBJECTS[subjectParam]?.name ?? ""} · Unit {unitParam}</div>
                     <h2 className="text-2xl font-extrabold mt-1">{topicParam}</h2>
                   </div>
-                  <Button onClick={downloadPdf} variant="outline" size="sm">
-                    <Download className="h-3.5 w-3.5 mr-1.5" />PDF
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button onClick={downloadPdf} variant="outline" size="sm">
+                      <Download className="h-3.5 w-3.5 mr-1.5" />PDF
+                    </Button>
+                  </div>
                 </div>
 
-                <Section title="Key definitions">
-                  <dl className="space-y-2">
-                    {(notes.key_definitions ?? []).map((d, i) => (
-                      <div key={i} className="flex flex-col sm:flex-row sm:gap-3 text-sm">
-                        <dt className="font-semibold text-primary sm:w-1/3 shrink-0" {...formattedHtmlProps(d.term)} />
-                        <dd className="text-foreground/90" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(d.definition)) }} />
-                      </div>
-                    ))}
-                  </dl>
-                </Section>
+                {notes.overview && (
+                  <Section title="Overview">
+                    <div className="text-sm leading-relaxed text-foreground/90 space-y-2"
+                         dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.overview)) }} />
+                  </Section>
+                )}
 
-                <Section title="Core concepts">
-                  <div className="space-y-4">
-                    {(notes.core_concepts ?? []).map((c, i) => (
-                      <div key={i}>
-                        <div className="font-semibold text-sm mb-1.5" {...formattedHtmlProps(c.cluster)} />
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {(c.bullets ?? []).map((b, j) => (
-                            <li key={j} dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(b)) }} />
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </Section>
-
-                <Section title="Common exam mistakes">
-                  <ul className="space-y-2 text-sm">
-                    {(notes.common_mistakes ?? []).map((m, i) => (
-                      <li key={i} className="pl-3 border-l-2 border-urgent/60"
-                          dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(m)) }} />
-                    ))}
-                  </ul>
-                </Section>
-
-                <Section title="Worked example">
-                  <div className="rounded-lg bg-secondary/40 p-4 text-sm space-y-3">
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1">Problem</div>
-                      <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.worked_example?.problem ?? "")) }} />
+                {notes.key_definitions.length > 0 && (
+                  <Section title="Key Definitions">
+                    <div className="space-y-3">
+                      {notes.key_definitions.map((d, i) => (
+                        <div key={i} className="rounded-md border border-border/60 p-3 bg-secondary/20">
+                          <div className="font-semibold text-primary text-sm" {...formattedHtmlProps(d.term)} />
+                          <div className="text-sm mt-1" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(d.mark_scheme)) }} />
+                          {d.plain_english && (
+                            <div className="text-xs text-muted-foreground mt-1.5" dangerouslySetInnerHTML={{ __html: formatToHtml(`In plain English: ${d.plain_english}`) }} />
+                          )}
+                          {d.common_mistake && (
+                            <div className="text-xs mt-1.5 pl-2 border-l-2 border-urgent/60 text-foreground/80" dangerouslySetInnerHTML={{ __html: formatToHtml(`⚠ ${d.common_mistake}`) }} />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <ol className="space-y-2 list-decimal pl-5">
-                      {(notes.worked_example?.steps ?? []).map((s, i) => (
-                        <li key={i}>
-                          <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(s.step)) }} />
-                          <div className="text-xs text-muted-foreground mt-0.5" dangerouslySetInnerHTML={{ __html: formatToHtml(s.reason) }} />
+                  </Section>
+                )}
+
+                {notes.core_content.length > 0 && (
+                  <Section title="Core Content">
+                    <div className="space-y-4">
+                      {notes.core_content.map((c, i) => (
+                        <div key={i} className="rounded-md bg-secondary/30 p-4">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className="text-xs font-mono text-primary shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                            <div className="flex-1">
+                              <div className="font-semibold text-sm" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(c.statement)) }} />
+                              {typeof c.typical_marks === "number" && c.typical_marks > 0 && (
+                                <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-accent mt-0.5">{c.typical_marks} mark{c.typical_marks === 1 ? "" : "s"}</span>
+                              )}
+                            </div>
+                          </div>
+                          {c.worked_example && (
+                            <div className="mt-2 text-xs">
+                              <div className="text-[10px] uppercase tracking-wider font-mono text-success mb-1">Worked example</div>
+                              <div className="text-foreground/90 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(c.worked_example)) }} />
+                            </div>
+                          )}
+                          {c.wrong_approach && (
+                            <div className="mt-2 text-xs">
+                              <div className="text-[10px] uppercase tracking-wider font-mono text-urgent mb-1">Common wrong approach</div>
+                              <div className="text-foreground/80" dangerouslySetInnerHTML={{ __html: formatToHtml(c.wrong_approach) }} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                )}
+
+                {notes.equations.length > 0 && (
+                  <Section title="Equations">
+                    <div className="space-y-3">
+                      {notes.equations.map((e, i) => (
+                        <div key={i} className="rounded-md border border-border/60 p-3">
+                          <div className="font-mono text-base font-bold text-primary mb-2" {...formattedHtmlProps(e.equation)} />
+                          {e.variables.length > 0 && (
+                            <div className="text-xs space-y-0.5 mb-2">
+                              {e.variables.map((v, j) => (
+                                <div key={j} className="flex gap-2">
+                                  <span className="font-mono font-semibold text-accent" {...formattedHtmlProps(v.symbol)} />
+                                  <span className="text-muted-foreground">=</span>
+                                  <span {...formattedHtmlProps(v.meaning)} />
+                                  {v.unit && <span className="text-muted-foreground">({v.unit})</span>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {e.worked_substitution && (
+                            <div className="text-xs mt-2">
+                              <span className="text-[10px] uppercase tracking-wider font-mono text-success mr-2">Substitution</span>
+                              <span dangerouslySetInnerHTML={{ __html: formatToHtml(e.worked_substitution) }} />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                )}
+
+                {notes.visual_summary && notes.visual_summary.content && (
+                  <Section title="Visual Summary">
+                    {notes.visual_summary.caption && (
+                      <div className="text-xs text-muted-foreground mb-2">{notes.visual_summary.caption}</div>
+                    )}
+                    {notes.visual_summary.content.trim().startsWith("<") ? (
+                      <div className="text-sm overflow-x-auto" dangerouslySetInnerHTML={{ __html: notes.visual_summary.content }} />
+                    ) : (
+                      <pre className="text-xs font-mono bg-secondary/30 p-3 rounded-md overflow-x-auto whitespace-pre">{notes.visual_summary.content}</pre>
+                    )}
+                  </Section>
+                )}
+
+                {notes.examiner_tips.length > 0 && (
+                  <Section title="Examiner Tips">
+                    <ul className="space-y-2 text-sm">
+                      {notes.examiner_tips.map((t, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-accent shrink-0">→</span>
+                          <span>
+                            {t.command_word && (
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-primary mr-2 px-1.5 py-0.5 rounded bg-primary/10">{t.command_word}</span>
+                            )}
+                            <span dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(t.tip)) }} />
+                          </span>
                         </li>
                       ))}
-                    </ol>
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider font-mono text-success mr-2">Answer</span>
-                      <span className="font-mono font-bold" dangerouslySetInnerHTML={{ __html: formatToHtml(notes.worked_example?.answer ?? "") }} />
-                    </div>
-                  </div>
-                </Section>
+                    </ul>
+                  </Section>
+                )}
 
-                <Section title="Examiner tips">
-                  <ul className="space-y-2 text-sm">
-                    {(notes.examiner_tips ?? []).map((t, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-accent shrink-0">→</span>
-                        <span dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(t)) }} />
-                      </li>
-                    ))}
-                  </ul>
-                </Section>
+                {notes.flashcards.length > 0 && (
+                  <Section title="Flashcards">
+                    {!showFlashcards ? (
+                      <Button variant="outline" size="sm" onClick={() => { setShowFlashcards(true); setFlashIndex(0); setFlashFlipped(false); }}>
+                        Practice {notes.flashcards.length} flashcards →
+                      </Button>
+                    ) : (
+                      <div className="rounded-lg border border-border bg-secondary/20 p-6 text-center">
+                        <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground mb-2">
+                          {flashIndex + 1} / {notes.flashcards.length}
+                        </div>
+                        <div
+                          onClick={() => setFlashFlipped(f => !f)}
+                          className="min-h-[120px] flex items-center justify-center cursor-pointer text-sm font-medium px-4"
+                        >
+                          {flashFlipped ? (
+                            <span className="text-success" {...formattedHtmlProps(notes.flashcards[flashIndex].a)} />
+                          ) : (
+                            <span {...formattedHtmlProps(notes.flashcards[flashIndex].q)} />
+                          )}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mb-3">Click card to {flashFlipped ? "see question" : "reveal answer"}</div>
+                        <div className="flex justify-center gap-2">
+                          <Button size="sm" variant="outline" disabled={flashIndex === 0}
+                            onClick={() => { setFlashIndex(i => Math.max(0, i - 1)); setFlashFlipped(false); }}>
+                            ← Prev
+                          </Button>
+                          <Button size="sm" variant="outline"
+                            onClick={() => { setFlashFlipped(false); setShowFlashcards(false); }}>
+                            Done
+                          </Button>
+                          <Button size="sm" disabled={flashIndex === notes.flashcards.length - 1}
+                            onClick={() => { setFlashIndex(i => Math.min(notes.flashcards.length - 1, i + 1)); setFlashFlipped(false); }}>
+                            Next →
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Section>
+                )}
 
                 {/* Floating selection toolbar */}
                 {selection && !composing && (
-                  <div
-                    className="absolute z-30 -translate-x-1/2 -translate-y-full"
-                    style={{ left: selection.x, top: selection.y }}
-                  >
-                    <button
-                      onClick={startComposing}
-                      className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1.5 hover:bg-primary/90"
-                    >
+                  <div className="absolute z-30 -translate-x-1/2 -translate-y-full"
+                       style={{ left: selection.x, top: selection.y }}>
+                    <button onClick={startComposing}
+                      className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1.5 hover:bg-primary/90">
                       <Highlighter className="h-3 w-3" /> Add note
                     </button>
                   </div>
                 )}
 
-                {/* Compose bubble */}
                 {composing && (
-                  <div
-                    className="absolute z-30 -translate-x-1/2 w-72"
-                    style={{ left: composing.x, top: composing.y + 8 }}
-                  >
+                  <div className="absolute z-30 -translate-x-1/2 w-72"
+                       style={{ left: composing.x, top: composing.y + 8 }}>
                     <div className="glass-card rounded-lg p-3 shadow-xl border-primary/40">
                       <div className="text-[10px] uppercase tracking-wider font-mono text-primary mb-1.5">Annotate</div>
                       <div className="text-xs text-muted-foreground mb-2 italic line-clamp-2">"{composing.text}"</div>
-                      <Textarea
-                        value={draftNote}
-                        onChange={e => setDraftNote(e.target.value)}
-                        placeholder="Your note…"
-                        className="min-h-[60px] text-xs"
-                        autoFocus
-                      />
+                      <Textarea value={draftNote} onChange={e => setDraftNote(e.target.value)}
+                        placeholder="Your note…" className="min-h-[60px] text-xs" autoFocus />
                       <div className="flex gap-2 mt-2 justify-end">
                         <Button size="sm" variant="ghost" onClick={() => { setComposing(null); setDraftNote(""); }}>Cancel</Button>
                         <Button size="sm" onClick={saveAnnotation} className="bg-primary hover:bg-primary/90">Save</Button>
@@ -495,7 +710,6 @@ const NotesPage = () => {
                   </div>
                 )}
 
-                {/* Hover tooltip — wires via delegated mouseover */}
                 <AnnotationTooltipLayer annotations={annotations} container={panelRef} onDelete={deleteAnnotation} />
               </div>
             ) : null}
@@ -505,30 +719,43 @@ const NotesPage = () => {
 
       <style>{`
         .apex-annotation {
-          background: transparent;
-          color: inherit;
+          background: transparent; color: inherit;
           border-bottom: 2px solid hsl(var(--accent) / 0.85);
-          padding-bottom: 1px;
-          cursor: help;
-          transition: background 120ms;
+          padding-bottom: 1px; cursor: help; transition: background 120ms;
         }
-        .apex-annotation:hover {
-          background: hsl(var(--accent) / 0.18);
-        }
+        .apex-annotation:hover { background: hsl(var(--accent) / 0.18); }
       `}</style>
     </AppLayout>
   );
 };
-
-// Inline import-like helper to avoid extra import
-import { toFormattedHtml } from "@/lib/formatText";
-const formatToHtml = (s: string) => toFormattedHtml(s);
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section className="mb-8">
     <h3 className="text-xs uppercase tracking-[0.2em] font-mono text-primary mb-3">{title}</h3>
     {children}
   </section>
+);
+
+const NotesSkeleton = ({ topic, board }: { topic: string; board: string }) => (
+  <div className="glass-card rounded-2xl p-6 md:p-8">
+    <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border">
+      <Loader2 className="h-5 w-5 text-primary animate-spin" />
+      <div>
+        <div className="text-sm font-semibold">Generating your {topic} notes...</div>
+        <div className="text-xs text-muted-foreground">Pulling {board === "cie" ? "Cambridge (CIE)" : "Edexcel"} mark-scheme phrasing and worked examples.</div>
+      </div>
+    </div>
+    {["w-1/3", "w-full", "w-5/6", "w-2/3"].map((w, i) => (
+      <div key={i} className="mb-6">
+        <div className={`h-3 ${w} rounded bg-secondary/60 animate-pulse mb-3`} />
+        <div className="space-y-2">
+          <div className="h-2 w-full rounded bg-secondary/40 animate-pulse" />
+          <div className="h-2 w-11/12 rounded bg-secondary/40 animate-pulse" />
+          <div className="h-2 w-4/5 rounded bg-secondary/40 animate-pulse" />
+        </div>
+      </div>
+    ))}
+  </div>
 );
 
 const AnnotationTooltipLayer = ({
@@ -567,19 +794,13 @@ const AnnotationTooltipLayer = ({
   if (!a) return null;
 
   return (
-    <div
-      className="apex-tooltip absolute z-30 -translate-x-1/2 max-w-xs"
+    <div className="apex-tooltip absolute z-30 -translate-x-1/2 max-w-xs"
       style={{ left: hovered.x, top: hovered.y }}
-      onMouseLeave={() => setHovered(null)}
-    >
+      onMouseLeave={() => setHovered(null)}>
       <div className="bg-popover border border-accent/40 rounded-md shadow-xl p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="text-xs leading-relaxed text-popover-foreground">{a.note}</div>
-          <button
-            onClick={() => onDelete(a.id)}
-            className="text-muted-foreground hover:text-urgent shrink-0"
-            aria-label="Delete annotation"
-          >
+          <button onClick={() => onDelete(a.id)} className="text-muted-foreground hover:text-urgent shrink-0" aria-label="Delete annotation">
             <Trash2 className="h-3 w-3" />
           </button>
         </div>
