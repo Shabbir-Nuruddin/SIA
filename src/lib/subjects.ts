@@ -273,13 +273,8 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
 export const SUBJECT_LIST: SubjectMeta[] = Object.values(SUBJECTS);
 
 // Board-aware catalog: returns Edexcel IAL (default) or CIE subject metadata.
-// Lazy import to avoid circular references.
 export function getSubjectsForBoard(board: Board | string | null | undefined): Record<SubjectCode, SubjectMeta> {
-  if (board === "cie") {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { CIE_SUBJECTS } = require("./cieSyllabus") as typeof import("./cieSyllabus");
-    return CIE_SUBJECTS;
-  }
+  if (board === "cie") return CIE_SUBJECTS;
   return SUBJECTS;
 }
 
