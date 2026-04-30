@@ -585,6 +585,34 @@ export const CIE_MATHS_TOPICS: CIESyllabusTopic[] = [
     { ref: "27.1", text: "use of standardised normal tables; standardising X to Z" },
     { ref: "27.2", text: "approximation to binomial when np > 5 and n(1−p) > 5; continuity correction" },
   ]},
+  // Probability & Statistics 2 (Paper 6 option — A2)
+  { number: 34, unit: 6, name: "The Poisson distribution (S2)", statements: [
+    { ref: "S2.1.1", text: "Poisson distribution as a model; mean and variance both equal to λ" },
+    { ref: "S2.1.2", text: "calculate P(X = r), P(X ≤ r) using the Poisson formula and tables" },
+    { ref: "S2.1.3", text: "Poisson as an approximation to the binomial when n is large and p is small (np < 5)" },
+    { ref: "S2.1.4", text: "normal approximation to Poisson when λ > 15; continuity correction" },
+  ]},
+  { number: 35, unit: 6, name: "Linear combinations of random variables (S2)", statements: [
+    { ref: "S2.2.1", text: "E(aX + b) = aE(X) + b; Var(aX + b) = a²Var(X)" },
+    { ref: "S2.2.2", text: "for independent X and Y: E(aX + bY) = aE(X) + bE(Y); Var(aX + bY) = a²Var(X) + b²Var(Y)" },
+    { ref: "S2.2.3", text: "linear combinations of independent normal variables are normal; sums and differences of independent Poisson variables are Poisson" },
+  ]},
+  { number: 36, unit: 6, name: "Continuous random variables (S2)", statements: [
+    { ref: "S2.3.1", text: "probability density functions f(x); ∫f(x) dx = 1; P(a ≤ X ≤ b) = ∫_a^b f(x) dx" },
+    { ref: "S2.3.2", text: "median (P(X ≤ m) = 0.5), mean E(X) = ∫x f(x) dx, variance Var(X) = E(X²) − [E(X)]²" },
+    { ref: "S2.3.3", text: "use of the cumulative distribution function F(x)" },
+  ]},
+  { number: 37, unit: 6, name: "Sampling and estimation (S2)", statements: [
+    { ref: "S2.4.1", text: "concept of a random sample; population vs sample; need for randomness" },
+    { ref: "S2.4.2", text: "distribution of the sample mean X̄ ~ N(μ, σ²/n) by the Central Limit Theorem for large n" },
+    { ref: "S2.4.3", text: "unbiased estimates of population mean and variance from a sample (use of n − 1 divisor for s²)" },
+    { ref: "S2.4.4", text: "confidence intervals for a population mean (σ known and unknown for large samples) and for a population proportion" },
+  ]},
+  { number: 38, unit: 6, name: "Hypothesis testing (S2)", statements: [
+    { ref: "S2.5.1", text: "null and alternative hypotheses; one- and two-tailed tests; significance level; critical region; Type I and Type II errors" },
+    { ref: "S2.5.2", text: "hypothesis tests for the mean of a normal distribution (σ known) and for a population proportion using the binomial distribution" },
+    { ref: "S2.5.3", text: "hypothesis tests using the Poisson distribution and using the normal approximation to the binomial or Poisson" },
+  ]},
 ];
 
 // === Subject metas for the CIE board ===
