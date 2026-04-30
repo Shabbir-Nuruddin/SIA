@@ -3,13 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { formattedHtmlProps, toPlainText } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download, ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 
 interface NoteContent {
   key_definitions: { term: string; definition: string }[];
