@@ -272,12 +272,8 @@ const RoadmapTopicNotes = () => {
               </section>
             )}
 
-            {tab === "flashcards" && (
-              <section className="space-y-3">
-                {notes.flashcards?.map((f, i) => (
-                  <Flashcard key={i} q={f.q} a={f.a} index={i + 1} />
-                ))}
-              </section>
+            {tab === "flashcards" && notes.flashcards && notes.flashcards.length > 0 && (
+              <FlashcardDeck cards={notes.flashcards} />
             )}
           </article>
         )}
