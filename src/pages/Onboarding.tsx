@@ -97,7 +97,7 @@ const Onboarding = () => {
       await supabase.from("user_subjects").delete().eq("user_id", user.id);
       const { error: e1 } = await supabase.from("user_subjects").insert(rows);
       if (e1) throw e1;
-      const { error: e2 } = await supabase.from("profiles").update({ onboarded: true }).eq("id", user.id);
+      const { error: e2 } = await supabase.from("profiles").update({ onboarded: true, exam_board: board }).eq("id", user.id);
       if (e2) throw e2;
 
       // Persist the generated roadmap so Today's Plan has sessions to render
@@ -164,8 +164,37 @@ const Onboarding = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-12">
           <ApexLogo />
-          <div className="font-mono text-xs text-muted-foreground">STEP {step} / 3</div>
+          <div className="font-mono text-xs text-muted-foreground">STEP {step + 1} / 4</div>
         </div>
+
+        {step === 0 && (
+          <div className="animate-in-up">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which exam board?</h1>
+            <p className="text-muted-foreground mb-10">We tailor every question, mark scheme and tip to your board.</p>
+            <div className="grid sm:grid-cols-2 gap-4 mb-10">
+              {([
+                { id: "edexcel-ial" as const, name: "Edexcel IAL", sub: "International A-Level · Pearson", spec: "Units 1–6 (e.g. WCH11, WBI11)" },
+                { id: "cie" as const, name: "Cambridge (CIE)", sub: "A Level · Cambridge International", spec: "9701, 9700, 9702, 9709" },
+              ]).map(b => {
+                const sel = board === b.id;
+                return (
+                  <button key={b.id} onClick={() => setBoard(b.id)}
+                    className={`glass-card rounded-2xl p-6 text-left transition-all duration-300 hover:-translate-y-0.5 ${sel ? "border-primary glow-primary" : "hover:border-primary/30"}`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="font-bold text-lg">{b.name}</div>
+                      <Checkbox checked={sel} className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+                    </div>
+                    <div className="text-sm text-muted-foreground">{b.sub}</div>
+                    <div className="text-[11px] font-mono text-muted-foreground mt-2">Spec codes: {b.spec}</div>
+                  </button>
+                );
+              })}
+            </div>
+            <Button size="lg" onClick={() => setStep(1)} className="bg-primary hover:bg-primary/90 h-12 px-8">
+              Continue with {board === "edexcel-ial" ? "Edexcel IAL" : "Cambridge"} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         {step === 1 && (
           <div className="animate-in-up">
