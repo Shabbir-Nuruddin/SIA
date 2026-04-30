@@ -146,6 +146,7 @@ export interface BuildOpts {
   restDays?: number[]; // 0=Sun … 6=Sat
   weakTopics?: WeakTopic[];
   preserveBefore?: PlanNode[];
+  board?: "edexcel-ial" | "cie";
 }
 
 /**
