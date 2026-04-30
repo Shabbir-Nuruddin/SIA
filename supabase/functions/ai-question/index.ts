@@ -92,7 +92,7 @@ For Multiple Choice, include 4 plausible options per question.`;
     } else if (action === "mark") {
       const { subject, topic, questionText, markScheme, totalMarks, studentAnswer, studentAnswerImage, board } = body;
       const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel A-Level";
-      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing.${studentAnswerImage ? " The student answer is provided as a photo of handwritten working — read it carefully, transcribe what you can, and mark generously where intent is clear despite handwriting." : ""}`;
+      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing. In your model_answer and feedback, render ALL mathematical expressions in LaTeX using $...$ inline (e.g. $x^2$, $\\frac{a}{b}$, $\\sqrt{x+1}$) and $$...$$ for display equations. Use \\frac, \\sqrt, ^{...}, _{...}.${studentAnswerImage ? " The student answer is provided as a photo of handwritten working — read it carefully, transcribe what you can, and mark generously where intent is clear despite handwriting." : ""}`;
       const userText = `Question (worth ${totalMarks} marks):
 ${questionText}
 
