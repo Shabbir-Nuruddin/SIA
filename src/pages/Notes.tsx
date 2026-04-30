@@ -439,7 +439,7 @@ const NotesPage = () => {
 
                 <Section title="Examiner tips">
                   <ul className="space-y-2 text-sm">
-                    {notes.examiner_tips.map((t, i) => (
+                    {(notes.examiner_tips ?? []).map((t, i) => (
                       <li key={i} className="flex gap-2">
                         <span className="text-accent shrink-0">→</span>
                         <span dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(t)) }} />
