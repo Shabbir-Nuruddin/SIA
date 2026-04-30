@@ -217,27 +217,62 @@ export const FloatingAssistant = () => {
                 )}
               </div>
             )}
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                      : "bg-secondary text-foreground"
-                  }`}
-                >
-                  {m.role === "assistant" ? (
-                    m.content ? <MathMarkdown>{m.content}</MathMarkdown>
-                      : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")
-                  ) : m.content}
+            {messages.map((m, i) => {
+              const assistantText = m.role === "assistant" && typeof m.content === "string" ? m.content : "";
+              return (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-foreground"
+                    }`}
+                  >
+                    {m.role === "assistant"
+                      ? (assistantText
+                          ? <MathMarkdown>{assistantText}</MathMarkdown>
+                          : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : null))
+                      : renderUserContent(m.content)}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Input */}
           <div className="p-3 border-t border-border">
+            {pendingImage && (
+              <div className="relative inline-block mb-2">
+                <img src={pendingImage} alt="attached" className="h-16 rounded-md border border-border" />
+                <button
+                  onClick={() => setPendingImage(null)}
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
             <div className="flex gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => { handleFile(e.target.files?.[0]); e.target.value = ""; }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileRef.current?.click()}
+                disabled={imageBusy || streaming}
+                className="self-end h-10 w-10 p-0 shrink-0"
+                aria-label="Attach image"
+                title="Attach a photo of your working or a question"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+              </Button>
               <Textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -247,11 +282,11 @@ export const FloatingAssistant = () => {
                     send();
                   }
                 }}
-                placeholder="Ask the tutor…"
+                placeholder={pendingImage ? "Add a note (optional)…" : "Ask the tutor…"}
                 className="min-h-[40px] max-h-[120px] text-sm resize-none flex-1"
                 rows={1}
               />
-              <Button onClick={send} disabled={!input.trim() || streaming} size="sm" className="btn-primary self-end h-10 w-10 p-0">
+              <Button onClick={send} disabled={(!input.trim() && !pendingImage) || streaming} size="sm" className="btn-primary self-end h-10 w-10 p-0">
                 {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
