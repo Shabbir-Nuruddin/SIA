@@ -95,6 +95,7 @@ export const FloatingAssistant = () => {
   const send = async () => {
     const text = input.trim();
     if ((!text && !pendingImage) || streaming) return;
+    if (!(await checkAndWarn("tutor_messages"))) return;
 
     // Build OpenAI-style content (multimodal when image present)
     const content: string | ContentPart[] = pendingImage
