@@ -218,7 +218,7 @@ const Dashboard = () => {
                       <div className="flex flex-wrap gap-2">
                         {s.subject && (
                           <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
-                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm">
+                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
                               <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />
                               {isInProgress ? "Continue" : "Start session"}
                             </Button>
