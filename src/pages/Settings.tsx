@@ -86,7 +86,7 @@ const SettingsPage = () => {
   // Apply theme on change
   useEffect(() => {
     if (!profile) return;
-    document.documentElement.classList.toggle("light", profile.theme === "light");
+    applyTheme(profile.theme);
   }, [profile?.theme]); // eslint-disable-line
 
   const saveProfile = async () => {
