@@ -230,6 +230,9 @@ const NotesPage = () => {
         setNoteRowId(cached.id);
         await loadAnnotations(cached.id);
       } else {
+        // Plan gate: free = 3 notes / week
+        const ok = await checkAndWarn("notes_per_week");
+        if (!ok) { setLoadingNotes(false); return; }
         const subjMeta = SUBJECTS[subject];
         const unitMeta = subjMeta?.units.find(u => u.number === unit);
         let syllabus_context: string | undefined;
