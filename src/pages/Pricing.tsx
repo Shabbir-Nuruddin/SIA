@@ -38,7 +38,7 @@ const TIERS: Tier[] = [
     id: "pro",
     name: "Pro",
     tagline: "The plan most students pick. Built for exam season.",
-    price: "AED 39",
+    price: "AED 39.99",
     cadence: "/ month",
     Icon: Zap,
     highlight: true,
@@ -61,7 +61,7 @@ const TIERS: Tier[] = [
     id: "advanced",
     name: "Advanced",
     tagline: "For top-grade hunters and full-on offer holders.",
-    price: "AED 129",
+    price: "AED 129.99",
     cadence: "/ month",
     Icon: Crown,
     features: [

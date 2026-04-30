@@ -193,7 +193,7 @@ const Landing = () => {
                 Most popular
               </div>
               <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
-              <div className="text-4xl font-extrabold mb-1">AED 39<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-4xl font-extrabold mb-1">AED 39.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
               <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
@@ -215,7 +215,7 @@ const Landing = () => {
             {/* Advanced */}
             <div className="surface p-7 flex flex-col">
               <div className="text-xs uppercase tracking-wider text-accent font-mono mb-1">Advanced</div>
-              <div className="text-4xl font-extrabold mb-1">AED 129<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-4xl font-extrabold mb-1">AED 129.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
               <div className="text-xs text-muted-foreground mb-6">For top-grade hunters</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[

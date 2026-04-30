@@ -249,9 +249,9 @@ const QuestionsPage = () => {
                   <div className="space-y-2 mb-6">
                     {current.options.map((opt, i) => (
                       <button key={i} onClick={() => setCurrentAnswer(opt)}
-                        className={`w-full text-left p-4 rounded-lg border transition-all ${currentAnswer === opt ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
-                        <span className="font-mono text-xs text-muted-foreground mr-3">{String.fromCharCode(65 + i)}</span>
-                        {opt}
+                        className={`w-full text-left p-4 rounded-lg border transition-all flex items-center gap-3 ${currentAnswer === opt ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}>
+                        <span className="font-mono text-xs text-muted-foreground">{String.fromCharCode(65 + i)}</span>
+                        <span {...formattedHtmlProps(opt)} />
                       </button>
                     ))}
                   </div>
