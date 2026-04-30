@@ -71,9 +71,11 @@ const QuestionsPage = () => {
     setBatch([]); setAnswers([]); setMarks([]); setIdx(0);
     try {
       let syllabus_context: string | undefined;
-      if (subject === "chemistry") {
+      if (board === "cie") {
+        syllabus_context = buildCieSyllabusContext(subject, topic);
+      } else if (subject === "chemistry") {
         const t = findChemistryTopic(topic);
-        if (t) syllabus_context = `${board === "cie" ? "Cambridge (CIE)" : "Edexcel IAL"} Chemistry — Topic: ${t.name}\nSpec statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
+        if (t) syllabus_context = `Edexcel IAL Chemistry — Topic: ${t.name}\nSpec statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
       }
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context, count: BATCH_SIZE, board },
