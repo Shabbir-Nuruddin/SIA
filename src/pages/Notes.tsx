@@ -264,6 +264,7 @@ const NotesPage = () => {
           setAnnotations([]);
         }
         setNotes(normaliseNotes(data));
+        if (planState?.plan === "free") await incrementUsage("notes_per_week");
       }
     } catch (err: any) {
       console.error("Notes load error:", err);
