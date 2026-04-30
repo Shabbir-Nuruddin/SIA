@@ -65,6 +65,51 @@ export type Database = {
         }
         Relationships: []
       }
+      exams: {
+        Row: {
+          created_at: string
+          exam_date: string
+          exam_type: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          subject: string | null
+          topics: string[]
+          unit_numbers: number[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exam_date: string
+          exam_type?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          subject?: string | null
+          topics?: string[]
+          unit_numbers?: number[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exam_date?: string
+          exam_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          subject?: string | null
+          topics?: string[]
+          unit_numbers?: number[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mock_paper_questions: {
         Row: {
           awarded_marks: number | null

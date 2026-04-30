@@ -6,18 +6,23 @@ import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { ChevronDown } from "lucide-react";
 import { parseLocalDate } from "@/lib/dateLocal";
 
-interface UnitRow {
-  subject: SubjectCode;
-  unit_number: number;
-  unit_name: string;
+interface ExamRow {
+  id?: string;
+  subject: SubjectCode | null;
+  unit_numbers?: number[];
+  unit_number?: number; // legacy from user_subjects
+  unit_name?: string;
   exam_date: string;
+  name?: string;
+  exam_type?: string;
 }
 
-const subjectDot: Record<SubjectCode, string> = {
+const subjectDot: Record<string, string> = {
   mathematics: "#3B82F6",
   biology: "#16A34A",
   chemistry: "#9333EA",
   physics: "#F97316",
+  _none: "hsl(var(--muted-foreground))",
 };
 
 function urgencyMessage(days: number): { text: string; color: string; pulse: boolean } {
@@ -37,7 +42,7 @@ function formatExamDate(iso: string) {
 export const CountdownOverlay = () => {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const [units, setUnits] = useState<UnitRow[]>([]);
+  const [items, setItems] = useState<ExamRow[]>([]);
   const [open, setOpen] = useState(false);
   const [, setTick] = useState(0);
 
@@ -45,11 +50,28 @@ export const CountdownOverlay = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("user_subjects")
-      .select("subject,unit_number,unit_name,exam_date")
-      .eq("user_id", user.id)
-      .order("exam_date")
-      .then(({ data }) => { if (data) setUnits(data as UnitRow[]); });
+    (async () => {
+      // 1) Prefer the user's scheduled exams (active only)
+      const { data: exams } = await supabase
+        .from("exams")
+        .select("id, name, exam_type, subject, unit_numbers, exam_date, is_active")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .order("exam_date");
+
+      if (exams && exams.length > 0) {
+        setItems(exams as any);
+        return;
+      }
+
+      // 2) Fall back to user_subjects exam_dates (legacy, in case user hasn't added an Exam yet)
+      const { data: subs } = await supabase
+        .from("user_subjects")
+        .select("subject,unit_number,unit_name,exam_date")
+        .eq("user_id", user.id)
+        .order("exam_date");
+      setItems((subs ?? []).map(s => ({ ...s, name: undefined, exam_type: undefined })));
+    })();
   }, [user, pathname]);
 
   useEffect(() => {
@@ -57,12 +79,11 @@ export const CountdownOverlay = () => {
     return () => clearInterval(id);
   }, []);
 
-  if (hide || units.length === 0) return null;
+  if (hide || items.length === 0) return null;
 
   const now = Date.now();
-  const upcoming = units
+  const upcoming = items
     .map(u => {
-      // Anchor exam at 09:00 local on the exam date
       const examLocal = parseLocalDate(u.exam_date);
       examLocal.setHours(9, 0, 0, 0);
       const ms = examLocal.getTime() - now;
@@ -76,9 +97,21 @@ export const CountdownOverlay = () => {
 
   if (upcoming.length === 0) return null;
   const next = upcoming[0];
-  const meta = SUBJECTS[next.subject];
+  const meta = next.subject ? SUBJECTS[next.subject as SubjectCode] : null;
   const msg = urgencyMessage(next.days);
-  const unitLabel = `${meta.name} ${meta.units.find(u => u.number === next.unit_number)?.name ?? `Unit ${next.unit_number}`}`;
+
+  // Build label
+  let label: string;
+  if (next.name) {
+    label = next.name;
+  } else if (meta && next.unit_number != null) {
+    const u = meta.units.find(u => u.number === next.unit_number);
+    label = `${meta.name} ${u?.name ?? `Unit ${next.unit_number}`}`;
+  } else if (meta) {
+    label = meta.name;
+  } else {
+    label = "Upcoming exam";
+  }
 
   return (
     <>
@@ -98,10 +131,10 @@ export const CountdownOverlay = () => {
           <div className="flex items-center gap-2.5 min-w-0 text-[13px] font-medium">
             <span
               className={`h-2 w-2 rounded-full shrink-0 ${msg.pulse ? "animate-slow-pulse" : ""}`}
-              style={{ background: subjectDot[next.subject] }}
+              style={{ background: subjectDot[(next.subject as string) ?? "_none"] }}
             />
             <span className="truncate" style={{ color: "rgba(240,246,252,0.8)" }}>
-              {unitLabel}
+              {label}
             </span>
             <span className="opacity-50 shrink-0">—</span>
             <span className="font-mono tabular shrink-0" style={{ color: "rgba(240,246,252,0.8)" }}>
@@ -142,22 +175,28 @@ export const CountdownOverlay = () => {
               </div>
               <div className="max-h-[60vh] overflow-y-auto" style={{ borderTop: "1px solid #30363D" }}>
                 {upcoming.map(u => {
-                  const m = SUBJECTS[u.subject];
+                  const m = u.subject ? SUBJECTS[u.subject as SubjectCode] : null;
                   const uMsg = urgencyMessage(u.days);
-                  const uName = m.units.find(x => x.number === u.unit_number)?.name ?? `Unit ${u.unit_number}`;
+                  let uLabel: string;
+                  if (u.name) uLabel = u.name;
+                  else if (m && u.unit_number != null) {
+                    const uu = m.units.find(x => x.number === u.unit_number);
+                    uLabel = `${m.name} · ${uu?.name ?? `Unit ${u.unit_number}`}`;
+                  } else uLabel = m?.name ?? "Upcoming exam";
                   return (
                     <div
-                      key={`${u.subject}-${u.unit_number}`}
+                      key={`${u.id ?? u.subject}-${u.unit_number ?? "x"}-${u.exam_date}`}
                       className="flex items-center gap-3 px-5 py-3 text-[13px] hover:bg-[#1C2128] transition-colors"
                       style={{ borderBottom: "1px solid #21262D" }}
                     >
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: subjectDot[u.subject] }} />
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: subjectDot[(u.subject as string) ?? "_none"] }} />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate" style={{ color: "#F0F6FC" }}>
-                          {m.name} · {uName}
+                          {uLabel}
                         </div>
                         <div className="text-[11px] mt-0.5" style={{ color: "rgba(240,246,252,0.5)" }}>
                           {formatExamDate(u.exam_date)}
+                          {u.exam_type ? ` · ${u.exam_type}` : ""}
                         </div>
                       </div>
                       <div className="font-mono text-[13px] tabular font-semibold shrink-0" style={{ color: uMsg.color === "rgba(240,246,252,0.6)" ? "rgba(240,246,252,0.8)" : uMsg.color }}>

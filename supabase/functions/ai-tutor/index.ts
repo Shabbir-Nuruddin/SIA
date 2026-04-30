@@ -19,14 +19,17 @@ serve(async (req) => {
   try {
     const { messages, context } = await req.json();
     const board = context?.board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel International A-Level";
+    const name = (context?.first_name || "").toString().trim();
     const ctxLine = context?.topic
       ? `The student is currently on the topic: "${context.topic}" — ${context.subject ?? ""} ${context.unit_name ?? ""}. Tailor your help to that topic when relevant.`
       : "";
+    const nameLine = name ? `The student's name is ${name}. Address them by name occasionally — warm but not over-the-top.` : "";
     const system = `You are Apex Tutor — a calm, encouraging ${board} study coach.
 You help students understand concepts, work through problems step-by-step, and stay motivated.
 Use UK English and the mark-scheme phrasing of the ${board} specification (9701/9700/9702/9709 for CIE; WCH/WBI/WPH/WMA for Edexcel IAL).
-Plain text only. No LaTeX. Use Unicode for symbols (Δ, →, ⇌, ², ³, etc.).
+You may use LaTeX math: $...$ for inline (e.g. $x^2 + 2x$), $$...$$ for display, and \\frac{a}{b} for fractions. Use proper subscripts (H_2O) and superscripts (x^2).
 Keep replies under 150 words unless the student asks for depth.
+${nameLine}
 ${ctxLine}`;
 
     const res = await fetch(GATEWAY, {

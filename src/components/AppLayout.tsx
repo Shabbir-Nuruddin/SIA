@@ -6,6 +6,7 @@ import { CountdownOverlay } from "@/components/CountdownOverlay";
 import { TodayProgressBar } from "@/components/TodayProgressBar";
 import { PomodoroPill } from "@/components/PomodoroPill";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import { useNotificationScheduler } from "@/lib/useNotificationScheduler";
 import { Loader2 } from "lucide-react";
 
@@ -27,6 +28,7 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
       {!chromeHidden && <AppSidebar />}
       <main className="flex-1 overflow-x-hidden min-w-0">{children}</main>
       <PomodoroPill />
+      <MusicPlayer />
       <FloatingAssistant />
     </div>
   );

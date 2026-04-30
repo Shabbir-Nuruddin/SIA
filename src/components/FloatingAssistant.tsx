@@ -4,6 +4,7 @@ import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { MathMarkdown } from "@/components/MathMarkdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -12,6 +13,7 @@ interface AssistantContext {
   subject?: string;
   unit_name?: string;
   board?: "edexcel-ial" | "cie";
+  first_name?: string;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
@@ -24,15 +26,17 @@ export const FloatingAssistant = () => {
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const [firstName, setFirstName] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Load board from profile so the tutor adapts to Edexcel vs CIE
+  // Load board + first name from profile so the tutor can personalise
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+      const { data } = await supabase.from("profiles").select("exam_board,first_name").eq("id", user.id).single();
       if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+      if (data?.first_name) setFirstName(data.first_name);
     })();
   }, []);
 
@@ -81,7 +85,7 @@ export const FloatingAssistant = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board } }),
+        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board, first_name: context?.first_name || firstName || undefined } }),
       });
       if (!resp.ok || !resp.body) throw new Error("Tutor unavailable");
 
@@ -166,7 +170,7 @@ export const FloatingAssistant = () => {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
             {messages.length === 0 && (
               <div className="text-center text-sm text-muted-foreground py-8 px-4 leading-relaxed">
-                Stuck on a concept? Want a step-by-step? Ask away.
+                {firstName ? `Hey ${firstName} — ` : ""}stuck on a concept? Want a step-by-step? Ask away.
                 {context?.topic && (
                   <div className="mt-3 text-xs text-primary font-mono">Context: {context.topic}</div>
                 )}
@@ -175,13 +179,16 @@ export const FloatingAssistant = () => {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
+                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
                       : "bg-secondary text-foreground"
                   }`}
                 >
-                  {m.content || (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")}
+                  {m.role === "assistant" ? (
+                    m.content ? <MathMarkdown>{m.content}</MathMarkdown>
+                      : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")
+                  ) : m.content}
                 </div>
               </div>
             ))}

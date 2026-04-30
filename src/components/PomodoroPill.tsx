@@ -45,7 +45,7 @@ export const PomodoroPill = () => {
 
   return (
     <div
-      className="fixed bottom-5 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1.5 py-1.5 rounded-full shadow-lg text-white"
+      className="fixed bottom-20 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1.5 py-1.5 rounded-full shadow-lg text-white"
       style={{ background: bg, minWidth: 180 }}
     >
       <span className="text-base leading-none">{isBreak ? "☕" : "🍅"}</span>

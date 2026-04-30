@@ -3,17 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
-import { SUBJECT_LIST as DEFAULT_SUBJECT_LIST, SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration, BOARD_LABEL } from "@/lib/subjects";
+import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from "@/lib/subjects";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 
 interface UnitInput {
   selected: boolean;
-  exam_date: string;
 }
 interface SubjectInput {
   selected: boolean;
@@ -30,16 +29,23 @@ const STATS = [
   "Active recall is 3x more effective than re-reading notes.",
 ];
 
-const defaultDate = "2026-06-01";
+// Sentinel date: 1 year out. Replaced by the user's actual scheduled tests
+// from the new Exams page, which now drives urgency timers.
+const sentinelFutureDate = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+};
 
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const [hoursPerDay, setHoursPerDay] = useState(2);
+  const [firstName, setFirstName] = useState("");
 
   const SUBJECT_LIST = Object.values(getSubjectsForBoard(board));
-  const SUBJECTS = getSubjectsForBoard(board);
 
   const buildInitialSubjects = (b: "edexcel-ial" | "cie"): Record<SubjectCode, SubjectInput> => {
     const list = Object.values(getSubjectsForBoard(b));
@@ -51,7 +57,7 @@ const Onboarding = () => {
         current_grade: "C" as Grade,
         units: s.units.reduce((u, unit) => ({
           ...u,
-          [unit.number]: { selected: !unit.aLevelOnly, exam_date: defaultDate }
+          [unit.number]: { selected: !unit.aLevelOnly }
         }), {} as Record<number, UnitInput>),
       }
     }), {} as Record<SubjectCode, SubjectInput>);
@@ -62,7 +68,6 @@ const Onboarding = () => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Rebuild unit selection when board changes (CIE has different unit numbers)
   const handleBoardChange = (b: "edexcel-ial" | "cie") => {
     setBoard(b);
     setSubjects(buildInitialSubjects(b));
@@ -86,6 +91,7 @@ const Onboarding = () => {
     if (!user) return;
     setLoading(true);
     try {
+      const placeholderDate = sentinelFutureDate();
       const rows: any[] = [];
       for (const s of SUBJECT_LIST) {
         if (!subjects[s.code].selected) continue;
@@ -98,22 +104,28 @@ const Onboarding = () => {
             unit_number: unit.number,
             unit_name: unit.name,
             paper_duration_minutes: unit.durationMinutes,
-            exam_date: u.exam_date,
+            exam_date: placeholderDate, // user adds real dates via Exams page
             target_grade: subjects[s.code].target_grade,
             current_grade: subjects[s.code].current_grade,
           });
         }
       }
-      if (rows.length === 0) throw new Error("Pick at least one unit and a date.");
+      if (rows.length === 0) throw new Error("Pick at least one unit.");
 
-      // Wipe any prior rows for this user, then insert fresh
       await supabase.from("user_subjects").delete().eq("user_id", user.id);
       const { error: e1 } = await supabase.from("user_subjects").insert(rows);
       if (e1) throw e1;
-      const { error: e2 } = await supabase.from("profiles").update({ onboarded: true, exam_board: board }).eq("id", user.id);
+
+      const profileUpdates: any = {
+        onboarded: true,
+        exam_board: board,
+        hours_per_day: hoursPerDay,
+      };
+      if (firstName.trim()) profileUpdates.first_name = firstName.trim();
+      const { error: e2 } = await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
       if (e2) throw e2;
 
-      // Persist the generated roadmap so Today's Plan has sessions to render
+      // Build an "efficient revision" roadmap (no specific exam — just paced practice)
       try {
         const { generateAndPersistRoadmap } = await import("@/lib/persistRoadmap");
         await generateAndPersistRoadmap(
@@ -126,14 +138,12 @@ const Onboarding = () => {
             target_grade: r.target_grade,
             current_grade: r.current_grade,
           })),
-          { weeklyMinutes: 14 * 60, studyStartTime: "16:00" }
+          { weeklyMinutes: hoursPerDay * 60 * 7, studyStartTime: "16:00" }
         );
       } catch (rmErr) {
         console.error("Roadmap persistence failed", rmErr);
-        // non-fatal — user can regenerate from Settings/Roadmap
       }
 
-      // Build the sequential node-based roadmap path
       try {
         const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
         await generateRoadmapForUser(user.id);
@@ -244,8 +254,11 @@ const Onboarding = () => {
 
         {step === 2 && (
           <div className="animate-in-up">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which units, and when?</h1>
-            <p className="text-muted-foreground mb-10">Tick each unit you're sitting and lock in the exam date. Paper durations come from the spec.</p>
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which units are you studying?</h1>
+            <p className="text-muted-foreground mb-10">
+              Tick every unit you're covering this year. You can add specific tests, mocks or board exams from
+              the <span className="text-primary font-semibold">Exams</span> tab whenever you have one scheduled.
+            </p>
             <div className="space-y-6 mb-10">
               {selectedSubjects.map(s => (
                 <div key={s.code} className="glass-card rounded-2xl p-6">
@@ -256,40 +269,24 @@ const Onboarding = () => {
                       <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">{s.spec}</div>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-2">
                     {s.units.map(unit => {
                       const u = subjects[s.code].units[unit.number];
                       return (
-                        <div key={unit.number} className={`rounded-xl border p-4 transition-all ${u.selected ? "border-primary/50 bg-primary/5" : "border-border"}`}>
-                          <div className="flex items-start gap-3">
-                            <Checkbox
-                              checked={u.selected}
-                              onCheckedChange={(v) => updateUnit(s.code, unit.number, { selected: !!v })}
-                              className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                                <div>
-                                  <span className="font-mono text-xs text-primary mr-2">{unit.unitCode || `UNIT ${unit.number}`}</span>
-                                  <span className="font-semibold">{unit.name}</span>
-                                  {unit.aLevelOnly && <span className="ml-2 text-[10px] uppercase font-mono text-accent">A-Level only</span>}
-                                </div>
-                                <div className="text-xs text-muted-foreground font-mono">{unit.paperLabel} · {formatDuration(unit.durationMinutes)}</div>
-                              </div>
-                              {u.selected && (
-                                <div className="mt-3">
-                                  <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Exam date</Label>
-                                  <Input
-                                    type="date"
-                                    value={u.exam_date}
-                                    onChange={e => updateUnit(s.code, unit.number, { exam_date: e.target.value })}
-                                    className="mt-1 max-w-xs"
-                                  />
-                                </div>
-                              )}
+                        <label key={unit.number} className={`rounded-xl border p-3 transition-all flex items-start gap-3 cursor-pointer ${u.selected ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/30"}`}>
+                          <Checkbox
+                            checked={u.selected}
+                            onCheckedChange={(v) => updateUnit(s.code, unit.number, { selected: !!v })}
+                            className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div>
+                              <span className="font-mono text-xs text-primary mr-2">{unit.unitCode || `UNIT ${unit.number}`}</span>
+                              <span className="font-semibold text-sm">{unit.name}</span>
                             </div>
+                            <div className="text-[11px] text-muted-foreground font-mono mt-0.5">{unit.paperLabel} · {formatDuration(unit.durationMinutes)}</div>
                           </div>
-                        </div>
+                        </label>
                       );
                     })}
                   </div>
@@ -307,8 +304,32 @@ const Onboarding = () => {
 
         {step === 3 && (
           <div className="animate-in-up">
-            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Set your targets.</h1>
-            <p className="text-muted-foreground mb-10">What grades are you fighting for in each subject?</p>
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Targets and intensity.</h1>
+            <p className="text-muted-foreground mb-10">How hard are you pushing, and for how many hours a day?</p>
+
+            <div className="glass-card rounded-2xl p-6 mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-semibold">Daily study hours</Label>
+                <div className="font-mono text-2xl font-bold text-primary tabular">{hoursPerDay}h</div>
+              </div>
+              <Slider
+                value={[hoursPerDay]}
+                onValueChange={(v) => setHoursPerDay(v[0])}
+                min={1}
+                max={8}
+                step={0.5}
+                className="mt-4"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-2">
+                <span>Light · 1h</span>
+                <span>Steady · 2–3h</span>
+                <span>Heavy · 5h+</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Your roadmap will pace topics so you cover roughly this much per day. You can change it anytime in Settings.
+              </p>
+            </div>
+
             <div className="space-y-4 mb-10">
               {selectedSubjects.map(s => (
                 <div key={s.code} className="glass-card rounded-2xl p-6">
@@ -337,6 +358,7 @@ const Onboarding = () => {
                 </div>
               ))}
             </div>
+
             <div className="flex gap-3">
               <Button variant="outline" size="lg" onClick={() => setStep(2)}>Back</Button>
               <Button size="lg" onClick={handleSubmit} disabled={loading} className="bg-primary hover:bg-primary/90 h-12 px-8">
