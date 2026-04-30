@@ -40,6 +40,7 @@ const QuestionsPage = () => {
   const [params] = useSearchParams();
   const initialSubject = (params.get("subject") as SubjectCode) || "mathematics";
   const initialTopic = params.get("topic") || "";
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
 
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const SUBJECTS = getSubjectsForBoard(board);
