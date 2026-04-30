@@ -383,7 +383,7 @@ const NotesPage = () => {
 
                 <Section title="Key definitions">
                   <dl className="space-y-2">
-                    {notes.key_definitions.map((d, i) => (
+                    {(notes.key_definitions ?? []).map((d, i) => (
                       <div key={i} className="flex flex-col sm:flex-row sm:gap-3 text-sm">
                         <dt className="font-semibold text-primary sm:w-1/3 shrink-0" {...formattedHtmlProps(d.term)} />
                         <dd className="text-foreground/90" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(d.definition)) }} />
