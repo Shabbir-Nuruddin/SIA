@@ -599,7 +599,7 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
 export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {}) {
   const [{ data: subjectsRows, error: e1 }, { data: profile }, { data: weak }, { data: completed }] = await Promise.all([
     supabase.from("user_subjects").select("subject, unit_number, unit_name, exam_date, target_grade, current_grade, paper_duration_minutes").eq("user_id", userId),
-    supabase.from("profiles").select("hours_per_day, rest_days").eq("id", userId).single(),
+    supabase.from("profiles").select("hours_per_day, rest_days, exam_board").eq("id", userId).single(),
     supabase.from("topic_progress").select("subject, unit_number, topic_name, last_score_percent").eq("user_id", userId).eq("weak_flag", true),
     supabase.from("roadmap_nodes").select("*").eq("user_id", userId).eq("status", "complete").order("node_order"),
   ]);
@@ -608,6 +608,7 @@ export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {
 
   const hoursPerDay = (profile as any)?.hours_per_day ?? 2;
   const restDays = ((profile as any)?.rest_days ?? []) as number[];
+  const board: "edexcel-ial" | "cie" = (profile as any)?.exam_board === "cie" ? "cie" : "edexcel-ial";
   const preserveBefore = (completed ?? []).map((c: any) => ({ ...c })) as PlanNode[];
 
   const plan = buildNodePlan(userId, subjectsRows as UnitInput[], {
@@ -615,6 +616,7 @@ export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {
     restDays,
     weakTopics: (weak ?? []) as WeakTopic[],
     preserveBefore,
+    board,
     ...opts,
   });
   return persistNodePlan(userId, plan);
