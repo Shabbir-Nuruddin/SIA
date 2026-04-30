@@ -235,6 +235,9 @@ export type Database = {
           id: string
           last_name: string | null
           last_session_date: string | null
+          notification_enabled: boolean
+          notification_prompted: boolean
+          notification_time: string
           onboarded: boolean
           pomodoro_break_minutes: number
           pomodoro_work_minutes: number
@@ -255,6 +258,9 @@ export type Database = {
           id: string
           last_name?: string | null
           last_session_date?: string | null
+          notification_enabled?: boolean
+          notification_prompted?: boolean
+          notification_time?: string
           onboarded?: boolean
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
@@ -275,6 +281,9 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_session_date?: string | null
+          notification_enabled?: boolean
+          notification_prompted?: boolean
+          notification_time?: string
           onboarded?: boolean
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
@@ -284,6 +293,77 @@ export type Database = {
           xp?: number
         }
         Relationships: []
+      }
+      roadmap_nodes: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          node_order: number
+          node_type: string
+          scheduled_date: string
+          science_method: string | null
+          score_percent: number | null
+          source_node_id: string | null
+          status: string
+          subject: string | null
+          topic_name: string | null
+          unit_code: string | null
+          unit_name: string | null
+          unit_number: number | null
+          unlocks_after_node_id: string | null
+          user_id: string
+          why_now_text: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          node_order: number
+          node_type: string
+          scheduled_date: string
+          science_method?: string | null
+          score_percent?: number | null
+          source_node_id?: string | null
+          status?: string
+          subject?: string | null
+          topic_name?: string | null
+          unit_code?: string | null
+          unit_name?: string | null
+          unit_number?: number | null
+          unlocks_after_node_id?: string | null
+          user_id: string
+          why_now_text?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          node_order?: number
+          node_type?: string
+          scheduled_date?: string
+          science_method?: string | null
+          score_percent?: number | null
+          source_node_id?: string | null
+          status?: string
+          subject?: string | null
+          topic_name?: string | null
+          unit_code?: string | null
+          unit_name?: string | null
+          unit_number?: number | null
+          unlocks_after_node_id?: string | null
+          user_id?: string
+          why_now_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_nodes_unlocks_after_node_id_fkey"
+            columns: ["unlocks_after_node_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roadmap_sessions: {
         Row: {

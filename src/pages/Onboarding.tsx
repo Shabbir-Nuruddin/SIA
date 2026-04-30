@@ -119,6 +119,14 @@ const Onboarding = () => {
         // non-fatal — user can regenerate from Settings/Roadmap
       }
 
+      // Build the sequential node-based roadmap path
+      try {
+        const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
+        await generateRoadmapForUser(user.id);
+      } catch (rnErr) {
+        console.error("Node roadmap generation failed", rnErr);
+      }
+
       setStep(4);
       const interval = setInterval(() => {
         setProgress(p => {
