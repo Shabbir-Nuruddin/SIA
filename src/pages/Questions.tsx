@@ -108,7 +108,7 @@ const QuestionsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: {
-          action: "mark", subject, topic,
+          action: "mark", subject, topic, board,
           questionText: current.question_text, markScheme: current.mark_scheme,
           totalMarks: current.marks, studentAnswer: currentAnswer,
         },
