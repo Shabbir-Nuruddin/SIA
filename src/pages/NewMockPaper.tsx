@@ -11,6 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { SUBJECTS, SubjectCode, SUBJECT_LIST, formatDuration, minutesPerMark } from "@/lib/subjects";
 import { Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 type Difficulty = "foundation" | "mixed" | "challenge";
 
@@ -21,6 +23,7 @@ const NewMockPaper = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
 
   const [subject, setSubject] = useState<SubjectCode>((params.get("subject") as SubjectCode) || "mathematics");
   const [enrolledUnits, setEnrolledUnits] = useState<number[]>([]);
@@ -70,6 +73,7 @@ const NewMockPaper = () => {
   const toggle = <T,>(arr: T[], v: T): T[] => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 
   const handleGenerate = async () => {
+    if (!(await checkAndWarn("mock_papers"))) return;
     if (!user) return;
     if (selectedUnits.length === 0) return toast.error("Pick at least one unit.");
     if (selectedTopics.length === 0) return toast.error("Pick at least one topic.");
@@ -279,6 +283,14 @@ const NewMockPaper = () => {
           </Button>
         </div>
       </div>
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </AppLayout>
   );
 };

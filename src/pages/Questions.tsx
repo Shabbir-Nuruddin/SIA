@@ -12,6 +12,9 @@ import { formattedHtmlProps } from "@/lib/formatText";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { Brain, Loader2, RefreshCw, Sparkles, CheckCircle2, ArrowLeft, ArrowRight, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { incrementUsage } from "@/lib/plan";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
 type QType = "Multiple Choice" | "Short Answer" | "Extended Response" | "Calculation";
@@ -37,6 +40,7 @@ const QuestionsPage = () => {
   const [params] = useSearchParams();
   const initialSubject = (params.get("subject") as SubjectCode) || "mathematics";
   const initialTopic = params.get("topic") || "";
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
 
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const SUBJECTS = getSubjectsForBoard(board);
@@ -74,6 +78,7 @@ const QuestionsPage = () => {
 
   const handleAnswerImage = async (file: File | undefined) => {
     if (!file) return;
+    if (!(await checkAndWarn("photo_upload"))) return;
     setImageBusy(true);
     try {
       const dataUrl = await fileToCompressedDataUrl(file);
@@ -86,6 +91,7 @@ const QuestionsPage = () => {
   };
 
   const generateBatch = async () => {
+    if (!(await checkAndWarn("questions_per_day"))) return;
     setLoadingGen(true);
     setBatch([]); setAnswers([]); setAnswerImages([]); setMarks([]); setIdx(0);
     try {
@@ -114,6 +120,10 @@ const QuestionsPage = () => {
           question_text: q.question_text, marks: q.marks, mark_scheme: q.mark_scheme,
         }));
         await supabase.from("ai_questions").insert(rows);
+      }
+      // Count this batch toward the daily question limit (free = 10/day)
+      if (planState?.plan === "free") {
+        for (let i = 0; i < BATCH_SIZE; i++) await incrementUsage("questions_per_day");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't generate. Try again.");
@@ -351,6 +361,14 @@ const QuestionsPage = () => {
           </div>
         )}
       </div>
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </AppLayout>
   );
 };

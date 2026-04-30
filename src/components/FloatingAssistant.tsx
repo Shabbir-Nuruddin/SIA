@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { incrementUsage } from "@/lib/plan";
 
 type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
@@ -34,6 +37,7 @@ export const FloatingAssistant = () => {
   const [firstName, setFirstName] = useState<string>("");
   const fileRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
 
   // Load board + first name from profile so the tutor can personalise
   useEffect(() => {
@@ -76,6 +80,7 @@ export const FloatingAssistant = () => {
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
+    if (!(await checkAndWarn("photo_upload"))) return;
     setImageBusy(true);
     try {
       const dataUrl = await fileToCompressedDataUrl(file);
@@ -90,6 +95,7 @@ export const FloatingAssistant = () => {
   const send = async () => {
     const text = input.trim();
     if ((!text && !pendingImage) || streaming) return;
+    if (!(await checkAndWarn("tutor_messages"))) return;
 
     // Build OpenAI-style content (multimodal when image present)
     const content: string | ContentPart[] = pendingImage
@@ -153,6 +159,8 @@ export const FloatingAssistant = () => {
           }
         }
       }
+      // Successful tutor message — bump lifetime counter for free users
+      if (planState?.plan === "free") await incrementUsage("tutor_messages");
     } catch (err) {
       setMessages(m => [...m, { role: "assistant", content: "Sorry — tutor unavailable just now. Try again in a moment." }]);
     } finally {
@@ -293,6 +301,14 @@ export const FloatingAssistant = () => {
           </div>
         </div>
       )}
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </>
   );
 };

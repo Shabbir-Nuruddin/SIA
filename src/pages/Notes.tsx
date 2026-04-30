@@ -14,6 +14,9 @@ import {
 import { toast } from "sonner";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { incrementUsage } from "@/lib/plan";
 
 /* ────────────────────────────────────────────────────────────
    UNIFIED NOTE MODEL
@@ -146,6 +149,7 @@ const formatToHtml = (s: string) => toFormattedHtml(s ?? "");
 const NotesPage = () => {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const SUBJECTS = getSubjectsForBoard(board);
   const [enrolled, setEnrolled] = useState<Array<{ subject: SubjectCode; unit_number: number; unit_name: string }>>([]);
@@ -226,6 +230,9 @@ const NotesPage = () => {
         setNoteRowId(cached.id);
         await loadAnnotations(cached.id);
       } else {
+        // Plan gate: free = 3 notes / week
+        const ok = await checkAndWarn("notes_per_week");
+        if (!ok) { setLoadingNotes(false); return; }
         const subjMeta = SUBJECTS[subject];
         const unitMeta = subjMeta?.units.find(u => u.number === unit);
         let syllabus_context: string | undefined;
@@ -257,6 +264,7 @@ const NotesPage = () => {
           setAnnotations([]);
         }
         setNotes(normaliseNotes(data));
+        if (planState?.plan === "free") await incrementUsage("notes_per_week");
       }
     } catch (err: any) {
       console.error("Notes load error:", err);
@@ -725,6 +733,14 @@ const NotesPage = () => {
         }
         .apex-annotation:hover { background: hsl(var(--accent) / 0.18); }
       `}</style>
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </AppLayout>
   );
 };

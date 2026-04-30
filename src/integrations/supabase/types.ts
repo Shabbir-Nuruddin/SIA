@@ -281,12 +281,17 @@ export type Database = {
           id: string
           last_name: string | null
           last_session_date: string | null
+          notes_week_count: number
+          notes_week_reset_at: string
           notification_enabled: boolean
           notification_prompted: boolean
           notification_time: string
           onboarded: boolean
+          plan: Database["public"]["Enums"]["plan_tier"]
           pomodoro_break_minutes: number
           pomodoro_work_minutes: number
+          questions_today_count: number
+          questions_today_reset_at: string
           rest_days: number[]
           study_start_time: string
           theme: string
@@ -307,12 +312,17 @@ export type Database = {
           id: string
           last_name?: string | null
           last_session_date?: string | null
+          notes_week_count?: number
+          notes_week_reset_at?: string
           notification_enabled?: boolean
           notification_prompted?: boolean
           notification_time?: string
           onboarded?: boolean
+          plan?: Database["public"]["Enums"]["plan_tier"]
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
+          questions_today_count?: number
+          questions_today_reset_at?: string
           rest_days?: number[]
           study_start_time?: string
           theme?: string
@@ -333,12 +343,17 @@ export type Database = {
           id?: string
           last_name?: string | null
           last_session_date?: string | null
+          notes_week_count?: number
+          notes_week_reset_at?: string
           notification_enabled?: boolean
           notification_prompted?: boolean
           notification_time?: string
           onboarded?: boolean
+          plan?: Database["public"]["Enums"]["plan_tier"]
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
+          questions_today_count?: number
+          questions_today_reset_at?: string
           rest_days?: number[]
           study_start_time?: string
           theme?: string
@@ -623,6 +638,7 @@ export type Database = {
     }
     Enums: {
       grade_level: "A*" | "A" | "B" | "C" | "D" | "E" | "U"
+      plan_tier: "free" | "pro" | "advanced"
       subject_code: "mathematics" | "biology" | "chemistry" | "physics"
     }
     CompositeTypes: {
@@ -752,6 +768,7 @@ export const Constants = {
   public: {
     Enums: {
       grade_level: ["A*", "A", "B", "C", "D", "E", "U"],
+      plan_tier: ["free", "pro", "advanced"],
       subject_code: ["mathematics", "biology", "chemistry", "physics"],
     },
   },
