@@ -219,10 +219,13 @@ const Onboarding = () => {
                 );
               })}
             </div>
-            <Button size="lg" disabled={selectedCount === 0} onClick={() => setStep(2)} className="bg-primary hover:bg-primary/90 h-12 px-8">
-              Continue with {selectedCount} {selectedCount === 1 ? "subject" : "subjects"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" size="lg" onClick={() => setStep(0)}>Back</Button>
+              <Button size="lg" disabled={selectedCount === 0} onClick={() => setStep(2)} className="bg-primary hover:bg-primary/90 h-12 px-8">
+                Continue with {selectedCount} {selectedCount === 1 ? "subject" : "subjects"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
 
