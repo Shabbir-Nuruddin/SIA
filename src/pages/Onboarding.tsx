@@ -187,7 +187,14 @@ const Onboarding = () => {
       }, 80);
       setTimeout(() => navigate("/dashboard"), 4500);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Setup failed");
+      console.error("[Onboarding] handleSubmit failed", err);
+      const msg =
+        err instanceof Error && err.message
+          ? err.message
+          : (err as { message?: string; details?: string; hint?: string } | null)?.message
+          || (err as { details?: string } | null)?.details
+          || "Setup failed — please try again. If it keeps failing, screenshot this and message support.";
+      toast.error(msg);
       setLoading(false);
     }
   };
