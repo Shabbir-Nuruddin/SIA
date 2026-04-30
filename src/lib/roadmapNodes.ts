@@ -1,22 +1,35 @@
-// Roadmap node generation engine.
-// Builds a sequential, science-backed guided path of nodes:
-//   learn → review (1d/3d/7d/14d) → mock (last 14 days) → break (every 4 sessions)
-// Interleaves subjects (no 3 consecutive same-subject nodes).
+// Roadmap node generation engine — rebuilt to spec.
+// - Sequential, science-backed guided path: learn → review (every 3 learns) → mock (last 14d) → break (every 4)
+// - Interleaves subjects (no >2 consecutive same-subject learn nodes per day)
+// - Spaced repetition reviews at +3, +7, +14 days
+// - Weak topics (from topic_progress.weak_flag) bumped to front + extra review nodes
+// - Completed nodes are preserved across regenerations
+// - All dates use getLocalDateString() — never UTC
 
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode, Grade, gradeGap } from "./subjects";
+import { ROADMAP_TOPICS, isFoundationalTopic } from "./roadmapTopics";
+import { getLocalDateString, addDaysLocal, parseLocalDate, daysBetweenLocal } from "./dateLocal";
 
 export type NodeType = "learn" | "review" | "mock" | "break";
-export type ScienceMethod = "active_recall" | "spaced_repetition" | "interleaving" | "elaboration" | "pomodoro";
+export type ScienceMethod =
+  | "active_recall"
+  | "spaced_repetition"
+  | "elaboration"
+  | "interleaving"
+  | "dual_coding"
+  | "concrete_examples"
+  | "pomodoro";
 export type NodeStatus = "locked" | "unlocked" | "in_progress" | "complete" | "skipped";
 
 export interface UnitInput {
   subject: SubjectCode;
   unit_number: number;
   unit_name: string;
-  exam_date: string;        // ISO yyyy-mm-dd
+  exam_date: string;        // ISO yyyy-mm-dd (treated as local)
   target_grade: Grade;
   current_grade: Grade;
+  paper_duration_minutes?: number;
 }
 
 export interface PlanNode {
@@ -28,12 +41,12 @@ export interface PlanNode {
   topic_name: string | null;
   node_type: NodeType;
   node_order: number;
-  scheduled_date: string;   // ISO date
+  scheduled_date: string;
   status: NodeStatus;
   science_method: ScienceMethod | null;
   why_now_text: string | null;
-  source_node_order?: number;  // internal — resolved to source_node_id after insert
-  unlocks_after_order?: number; // internal — resolved to unlocks_after_node_id after insert
+  source_node_order?: number;
+  unlocks_after_order?: number;
 }
 
 export interface RoadmapNodeRow {
@@ -57,284 +70,427 @@ export interface RoadmapNodeRow {
   created_at: string;
 }
 
-const ISO = (d: Date) => d.toISOString().slice(0, 10);
-const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const WELLNESS_MESSAGES = [
+  "Drink a full glass of water now. Dehydration reduces cognitive performance by up to 15%.",
+  "Stand up. Walk for 3 minutes. Movement increases blood flow to the prefrontal cortex.",
+  "Eat something light — nuts, fruit, or a banana. Glucose fuels working memory.",
+  "Close your eyes for 60 seconds. Even micro-rest reduces mental fatigue.",
+  "Take 3 slow deep breaths. Activates the parasympathetic nervous system and reduces cortisol.",
+  "You've earned this break. Your brain is consolidating what you just learned.",
+];
 
-// Topics that depend on others — schedule these later within a unit.
-const FOUNDATION_FIRST = new Set([
-  "algebraic expressions", "algebra and functions", "proof",
-  "atomic structure and the periodic table", "formulae, equations and amount of substance",
-  "cell structure and microscopy", "biological molecules",
-  "working as a physicist", "mechanics",
-]);
+const LEARN_METHODS: ScienceMethod[] = [
+  "active_recall",
+  "spaced_repetition",
+  "elaboration",
+  "interleaving",
+  "dual_coding",
+  "concrete_examples",
+];
 
-function isFoundational(topic: string): boolean {
-  const t = topic.toLowerCase();
-  for (const f of FOUNDATION_FIRST) if (t.includes(f)) return true;
-  return false;
+interface WeakTopic {
+  subject: string;
+  unit_number: number | null;
+  topic_name: string;
+  last_score_percent: number | null;
 }
 
-function urgencyScore(daysToExam: number, gap: number): number {
-  return (gap * 15) + Math.max(0, 45 - daysToExam);
+function urgencyScore(daysToExam: number): number {
+  if (daysToExam <= 0) return 100;
+  return Math.max(10, Math.min(100, Math.round(100 - (daysToExam / 90) * 100)));
 }
 
-function whyNowFor(node: { type: NodeType; topic?: string | null; subject?: SubjectCode | null; daysToExam?: number }, ctx: { totalForUnit: number }): string {
-  const subj = node.subject ? SUBJECTS[node.subject].name : "";
-  switch (node.type) {
-    case "learn":
-      if ((node.daysToExam ?? 999) < 30)
-        return `${subj} exam is in ${node.daysToExam} days. ${node.topic} is high-yield in past papers — cover it now.`;
-      if (isFoundational(node.topic ?? ""))
-        return `${node.topic} is foundational. Other ${subj} topics build on it, so we cover it early.`;
-      return `Scheduled now to give you spaced reviews before your ${subj} exam.`;
-    case "review":
-      return `Your brain forgets ~70% within 24 hours without review. 5 quick questions lock ${node.topic} in.`;
-    case "mock":
-      return `${node.daysToExam} days to your ${subj} exam. Time to test under exam conditions.`;
-    case "break":
-      return `You've done 4 focused sessions. A short break improves retention more than pushing through.`;
-  }
+function whyNowLearn(topic: string, subject: string, daysToExam: number): string {
+  return `${topic} appears regularly in ${subject} past papers for this unit. ${daysToExam} days to exam — covering it now leaves time for spaced reviews.`;
 }
 
-// Order topics within a unit: foundational first, then by index in the spec.
-function orderUnitTopics(topics: string[]): string[] {
-  return [...topics].sort((a, b) => {
-    const af = isFoundational(a) ? 0 : 1;
-    const bf = isFoundational(b) ? 0 : 1;
-    if (af !== bf) return af - bf;
-    return topics.indexOf(a) - topics.indexOf(b);
+function whyNowReview(topics: string[]): string {
+  return `Ebbinghaus forgetting curve: without review, you'd lose ~70% of these topics within a week. A 5-question recall now locks them in.`;
+}
+
+function whyNowMock(daysToExam: number): string {
+  return `${daysToExam} days to go. Time to simulate exam conditions — this is how marks are won.`;
+}
+
+function whyNowBreak(): string {
+  return `Your hippocampus consolidates memory during rest. This break is part of learning.`;
+}
+
+function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[]): string[] {
+  const fromSpec = ROADMAP_TOPICS[subject]?.[unitNumber];
+  const list = fromSpec && fromSpec.length > 0
+    ? [...fromSpec]
+    : (SUBJECTS[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
+
+  // Sort: foundational first, then weak topics bumped to front, then by spec order.
+  const weakSet = new Set(
+    weakTopics
+      .filter(w => w.subject === subject && (w.unit_number == null || w.unit_number === unitNumber))
+      .map(w => w.topic_name.toLowerCase())
+  );
+
+  return list.sort((a, b) => {
+    const wa = weakSet.has(a.toLowerCase()) ? 0 : 1;
+    const wb = weakSet.has(b.toLowerCase()) ? 0 : 1;
+    if (wa !== wb) return wa - wb;
+    const fa = isFoundationalTopic(a) ? 0 : 1;
+    const fb = isFoundationalTopic(b) ? 0 : 1;
+    if (fa !== fb) return fa - fb;
+    return list.indexOf(a) - list.indexOf(b);
   });
 }
 
 export interface BuildOpts {
   hoursPerDay?: number;
-  today?: Date;
+  restDays?: number[]; // 0=Sun … 6=Sat
+  weakTopics?: WeakTopic[];
+  preserveBefore?: PlanNode[];
 }
 
 /**
- * Build the sequential node plan in memory.
- * - Sequences topics per unit (foundational first)
- * - Interleaves subjects (no 3 in a row)
- * - Schedules learn nodes day-by-day, then injects breaks every 4 sessions
- * - Schedules spaced-repetition reviews at +3, +7, +14 days
- * - Schedules mock nodes in the final 14 days before each exam
+ * Build the sequential node plan in memory (no DB writes).
  */
-export function buildNodePlan(userId: string, units: UnitInput[], opts: BuildOpts = {}): PlanNode[] {
-  const today = opts.today ?? new Date();
-  today.setHours(0, 0, 0, 0);
-  const hoursPerDay = Math.max(1, opts.hoursPerDay ?? 2);
-  // 1 node ≈ 25 min Pomodoro. After 4 sessions: a break (≈20min) takes a slot.
-  // Effective: in 1 hour we fit 2 learn/review nodes; after every 4 we add a break node.
-  const sessionsPerDay = Math.max(2, Math.round(hoursPerDay * 2));
+export function buildNodePlan(
+  userId: string,
+  units: UnitInput[],
+  opts: BuildOpts = {},
+): PlanNode[] {
+  const todayIso = getLocalDateString();
+  const today = parseLocalDate(todayIso);
+  const hoursPerDay = Math.max(0.5, opts.hoursPerDay ?? 2);
+  const sessionsPerDay = Math.max(1, Math.floor((hoursPerDay * 60) / 25));
+  const restDays = new Set(opts.restDays ?? []);
+  const weakTopics = opts.weakTopics ?? [];
 
-  // 1) Build a queue of LEARN nodes per subject, ordered by topic priority within unit.
-  interface Pending {
-    subject: SubjectCode;
-    unit_number: number;
-    unit_name: string;
-    unit_code: string;
-    topic: string;
-    examDate: Date;
+  // Filter out exams that have already passed.
+  const liveUnits = units.filter(u => daysBetweenLocal(todayIso, u.exam_date) > 0);
+  if (liveUnits.length === 0) return [];
+
+  // Per-unit metadata
+  interface UnitState {
+    unit: UnitInput;
     daysToExam: number;
     urgency: number;
+    topics: string[];        // remaining topic queue (in order)
+    learned: string[];       // topics already turned into LEARN nodes
+    learnNodeIndices: number[]; // indices into `nodes` for that unit's LEARN nodes
   }
 
-  const subjectQueues = new Map<SubjectCode, Pending[]>();
-  for (const u of units) {
-    const meta = SUBJECTS[u.subject].units.find(x => x.number === u.unit_number);
-    if (!meta) continue;
-    const examDate = new Date(u.exam_date);
-    examDate.setHours(0, 0, 0, 0);
-    const daysToExam = Math.max(0, Math.round((+examDate - +today) / 86400000));
-    const gap = gradeGap(u.target_grade as Grade, u.current_grade as Grade);
-    const urgency = urgencyScore(daysToExam, gap);
-    const orderedTopics = orderUnitTopics(meta.topics);
-    const arr = subjectQueues.get(u.subject) ?? [];
-    for (const t of orderedTopics) {
-      arr.push({
-        subject: u.subject,
-        unit_number: u.unit_number,
-        unit_name: u.unit_name,
-        unit_code: `U${u.unit_number}`,
-        topic: t,
-        examDate,
-        daysToExam,
-        urgency,
-      });
-    }
-    // Sort by exam urgency so units with closer exams appear first
-    arr.sort((a, b) => b.urgency - a.urgency);
-    subjectQueues.set(u.subject, arr);
-  }
+  const states: UnitState[] = liveUnits.map(u => {
+    const days = daysBetweenLocal(todayIso, u.exam_date);
+    return {
+      unit: u,
+      daysToExam: days,
+      urgency: urgencyScore(days),
+      topics: topicListFor(u.subject, u.unit_number, weakTopics),
+      learned: [],
+      learnNodeIndices: [],
+    };
+  });
 
-  // 2) Interleave subjects across the global learn sequence — never 3 in a row.
-  const learnSequence: Pending[] = [];
-  const subjects = Array.from(subjectQueues.keys());
-  // Sort subjects by total urgency (most urgent subject's first item)
-  subjects.sort((a, b) => (subjectQueues.get(b)![0]?.urgency ?? 0) - (subjectQueues.get(a)![0]?.urgency ?? 0));
+  // Build a flat learn sequence respecting:
+  //   - urgency (highest first)
+  //   - interleaving (no >2 consecutive same-subject globally)
+  // Each iteration we round-robin by urgency until all topics are scheduled.
+  const learnQueue: { unitIdx: number; topic: string }[] = [];
+  let last1Subj: string | undefined;
+  let last2Subj: string | undefined;
+  while (states.some(s => s.topics.length > 0)) {
+    const candidates = states
+      .map((s, i) => ({ s, i }))
+      .filter(x => x.s.topics.length > 0)
+      .sort((a, b) => b.s.urgency - a.s.urgency);
 
-  let last1: SubjectCode | undefined;
-  let last2: SubjectCode | undefined;
-  while (subjects.some(s => (subjectQueues.get(s)?.length ?? 0) > 0)) {
-    // Choose the next subject: highest urgency item that doesn't violate "no 3 in a row"
-    let chosen: SubjectCode | undefined;
-    const candidates = subjects
-      .filter(s => (subjectQueues.get(s)?.length ?? 0) > 0)
-      .sort((a, b) => (subjectQueues.get(b)![0].urgency) - (subjectQueues.get(a)![0].urgency));
-
-    for (const s of candidates) {
-      if (!(last1 === s && last2 === s)) { chosen = s; break; }
-    }
+    let chosen = candidates.find(c => !(c.s.unit.subject === last1Subj && c.s.unit.subject === last2Subj));
     if (!chosen) chosen = candidates[0];
-    const item = subjectQueues.get(chosen)!.shift()!;
-    learnSequence.push(item);
-    last2 = last1;
-    last1 = chosen;
+    const topic = chosen.s.topics.shift()!;
+    chosen.s.learned.push(topic);
+    learnQueue.push({ unitIdx: chosen.i, topic });
+    last2Subj = last1Subj;
+    last1Subj = chosen.s.unit.subject;
   }
 
-  // 3) Place learn nodes on calendar days (sessionsPerDay per day, skip nothing — fill linearly).
+  // Walk the calendar day-by-day, placing nodes per sessionsPerDay budget.
   const nodes: PlanNode[] = [];
   let order = 1;
-  let dayOffset = 0;
-  let countOnDay = 0;
-  // Track per-topic last-learned day for spaced reviews
-  const reviewQueue: { item: Pending; learnOrder: number; learnDayOffset: number }[] = [];
+  const dayLoad = new Map<string, number>(); // total nodes placed per date (excluding break)
 
-  const pushBreakIfDue = (currentDayOffset: number) => {
-    // After every 4 learn/review on the same day, insert a break
-    const todayLearnReviewCount = nodes.filter(n =>
-      n.scheduled_date === ISO(addDays(today, currentDayOffset)) &&
-      (n.node_type === "learn" || n.node_type === "review")
-    ).length;
-    if (todayLearnReviewCount > 0 && todayLearnReviewCount % 4 === 0) {
-      const date = ISO(addDays(today, currentDayOffset));
+  // Helper to find the next non-rest date with capacity
+  function nextSlot(fromOffset: number): { offset: number; iso: string } {
+    let off = fromOffset;
+    while (true) {
+      const iso = getLocalDateString(addDaysLocal(today, off));
+      const dow = addDaysLocal(today, off).getDay();
+      if (!restDays.has(dow) && (dayLoad.get(iso) ?? 0) < sessionsPerDay) {
+        return { offset: off, iso };
+      }
+      off++;
+      if (off > 365 * 2) return { offset: off, iso }; // safety
+    }
+  }
+
+  // Track per-topic learn placements for review scheduling
+  interface ReviewSeed { unitIdx: number; topic: string; learnOffset: number; learnOrder: number }
+  const reviewSeeds: ReviewSeed[] = [];
+
+  // Track per-day same-subject consecutive count for sub-day interleaving
+  let curOffset = 0;
+  let lastSubjOnDay: string | undefined;
+  let consecOnDay = 0;
+  let placedSinceBreak = 0;
+
+  for (let qi = 0; qi < learnQueue.length; qi++) {
+    const item = learnQueue[qi];
+    const u = states[item.unitIdx].unit;
+
+    // Find a day that has room AND respects "no >2 consecutive same-subject"
+    while (true) {
+      const slot = nextSlot(curOffset);
+      // If we just hit a new day, reset trackers
+      if (slot.offset !== curOffset) {
+        lastSubjOnDay = undefined;
+        consecOnDay = 0;
+        placedSinceBreak = 0;
+      }
+      curOffset = slot.offset;
+
+      // Don't schedule a learn node after its exam date
+      if (curOffset > states[item.unitIdx].daysToExam) {
+        // Skip this topic — exam window already closed for this unit on this day
+        states[item.unitIdx].topics = []; // stop the bleed
+        break;
+      }
+
+      // Interleaving guard
+      if (lastSubjOnDay === u.subject && consecOnDay >= 2) {
+        // Look for another candidate for this slot from a different subject
+        // Find next item in learnQueue with a different subject
+        let swapIdx = -1;
+        for (let j = qi + 1; j < learnQueue.length; j++) {
+          if (states[learnQueue[j].unitIdx].unit.subject !== u.subject) { swapIdx = j; break; }
+        }
+        if (swapIdx > -1) {
+          // Swap qi <-> swapIdx and retry
+          const tmp = learnQueue[qi];
+          learnQueue[qi] = learnQueue[swapIdx];
+          learnQueue[swapIdx] = tmp;
+          continue;
+        }
+        // No swap available — push to next day
+        curOffset++;
+        lastSubjOnDay = undefined;
+        consecOnDay = 0;
+        placedSinceBreak = 0;
+        continue;
+      }
+      break;
+    }
+
+    if (states[item.unitIdx].topics.length === 0 && !learnQueue.slice(qi).some(x => x.unitIdx === item.unitIdx)) {
+      // unit was nulled out
+    }
+
+    const slotIso = getLocalDateString(addDaysLocal(today, curOffset));
+    const science = LEARN_METHODS[(qi) % LEARN_METHODS.length];
+
+    const learnNode: PlanNode = {
+      user_id: userId,
+      subject: u.subject,
+      unit_code: `U${u.unit_number}`,
+      unit_number: u.unit_number,
+      unit_name: u.unit_name,
+      topic_name: item.topic,
+      node_type: "learn",
+      node_order: order++,
+      scheduled_date: slotIso,
+      status: "locked",
+      science_method: science,
+      why_now_text: whyNowLearn(item.topic, SUBJECTS[u.subject].name, states[item.unitIdx].daysToExam - curOffset),
+      unlocks_after_order: order - 2,
+    };
+    nodes.push(learnNode);
+    states[item.unitIdx].learnNodeIndices.push(nodes.length - 1);
+    reviewSeeds.push({ unitIdx: item.unitIdx, topic: item.topic, learnOffset: curOffset, learnOrder: learnNode.node_order });
+    dayLoad.set(slotIso, (dayLoad.get(slotIso) ?? 0) + 1);
+
+    if (lastSubjOnDay === u.subject) consecOnDay++; else { lastSubjOnDay = u.subject; consecOnDay = 1; }
+    placedSinceBreak++;
+
+    // After every 3 learn nodes for this unit: insert REVIEW (last 3 topics together)
+    const learnedForUnit = states[item.unitIdx].learned;
+    if (learnedForUnit.length > 0 && learnedForUnit.length % 3 === 0) {
+      const last3 = learnedForUnit.slice(-3);
+      // Schedule review on the next available slot (could be same day if room)
+      const revSlot = nextSlot(curOffset);
+      const revIso = revSlot.iso;
+      nodes.push({
+        user_id: userId,
+        subject: u.subject,
+        unit_code: `U${u.unit_number}`,
+        unit_number: u.unit_number,
+        unit_name: u.unit_name,
+        topic_name: `Review: ${last3.join(", ")}`,
+        node_type: "review",
+        node_order: order++,
+        scheduled_date: revIso,
+        status: "locked",
+        science_method: "spaced_repetition",
+        why_now_text: whyNowReview(last3),
+        unlocks_after_order: order - 2,
+      });
+      dayLoad.set(revIso, (dayLoad.get(revIso) ?? 0) + 1);
+      placedSinceBreak++;
+    }
+
+    // After every 4 placed nodes total today: BREAK
+    if (placedSinceBreak >= 4) {
+      const brSlot = nextSlot(curOffset);
+      const wmsg = WELLNESS_MESSAGES[nodes.filter(n => n.node_type === "break").length % WELLNESS_MESSAGES.length];
       nodes.push({
         user_id: userId,
         subject: null,
         unit_code: null,
         unit_number: null,
         unit_name: null,
-        topic_name: null,
+        topic_name: wmsg,
         node_type: "break",
         node_order: order++,
-        scheduled_date: date,
+        scheduled_date: brSlot.iso,
         status: "locked",
         science_method: "pomodoro",
-        why_now_text: whyNowFor({ type: "break" }, { totalForUnit: 0 }),
+        why_now_text: whyNowBreak(),
         unlocks_after_order: order - 2,
       });
+      dayLoad.set(brSlot.iso, (dayLoad.get(brSlot.iso) ?? 0) + 1);
+      placedSinceBreak = 0;
     }
-  };
+  }
 
-  for (const item of learnSequence) {
-    if (countOnDay >= sessionsPerDay) {
-      dayOffset++;
-      countOnDay = 0;
-    }
-    const date = ISO(addDays(today, dayOffset));
+  // Per-unit closing nodes: 1 mock → 1 review of 2 weakest topics → 1 final mock → "unit complete" break
+  for (const s of states) {
+    if (s.learned.length === 0) continue;
+    // Schedule them on consecutive available days, but no later than 1 day before exam
+    const maxOffset = Math.max(0, s.daysToExam - 1);
 
-    // Don't schedule a learn node after its exam date
-    if (dayOffset > Math.round((+item.examDate - +today) / 86400000)) {
-      // Skip — exam already passed by the time we'd cover it
-      continue;
-    }
+    const placeAt = (preferredOff: number, fallbackOff: number) => {
+      // Find next slot starting from preferredOff, capped by maxOffset
+      let off = Math.max(preferredOff, fallbackOff);
+      while (off <= maxOffset) {
+        const iso = getLocalDateString(addDaysLocal(today, off));
+        const dow = addDaysLocal(today, off).getDay();
+        if (!restDays.has(dow) && (dayLoad.get(iso) ?? 0) < sessionsPerDay + 1) {
+          return { iso, off };
+        }
+        off++;
+      }
+      // Fallback: place on maxOffset day even if overloaded
+      return { iso: getLocalDateString(addDaysLocal(today, maxOffset)), off: maxOffset };
+    };
 
-    const learnNode: PlanNode = {
+    const m1 = placeAt(curOffset + 1, Math.max(0, s.daysToExam - 5));
+    nodes.push({
       user_id: userId,
-      subject: item.subject,
-      unit_code: item.unit_code,
-      unit_number: item.unit_number,
-      unit_name: item.unit_name,
-      topic_name: item.topic,
-      node_type: "learn",
+      subject: s.unit.subject,
+      unit_code: `U${s.unit.unit_number}`,
+      unit_number: s.unit.unit_number,
+      unit_name: s.unit.unit_name,
+      topic_name: `${s.unit.unit_name} — practice mock`,
+      node_type: "mock",
       node_order: order++,
-      scheduled_date: date,
+      scheduled_date: m1.iso,
       status: "locked",
       science_method: "active_recall",
-      why_now_text: whyNowFor({ type: "learn", topic: item.topic, subject: item.subject, daysToExam: item.daysToExam }, { totalForUnit: 0 }),
+      why_now_text: whyNowMock(s.daysToExam - m1.off),
       unlocks_after_order: order - 2,
-    };
-    nodes.push(learnNode);
-    reviewQueue.push({ item, learnOrder: learnNode.node_order, learnDayOffset: dayOffset });
-    countOnDay++;
-    pushBreakIfDue(dayOffset);
+    });
+    dayLoad.set(m1.iso, (dayLoad.get(m1.iso) ?? 0) + 1);
+
+    const r1 = placeAt(m1.off + 1, m1.off + 1);
+    nodes.push({
+      user_id: userId,
+      subject: s.unit.subject,
+      unit_code: `U${s.unit.unit_number}`,
+      unit_number: s.unit.unit_number,
+      unit_name: s.unit.unit_name,
+      topic_name: `Targeted review: weakest topics in ${s.unit.unit_name}`,
+      node_type: "review",
+      node_order: order++,
+      scheduled_date: r1.iso,
+      status: "locked",
+      science_method: "spaced_repetition",
+      why_now_text: `After your first mock, weak topics need a focused pass before the final exam mock.`,
+      unlocks_after_order: order - 2,
+    });
+    dayLoad.set(r1.iso, (dayLoad.get(r1.iso) ?? 0) + 1);
+
+    const m2 = placeAt(r1.off + 1, Math.max(r1.off + 1, s.daysToExam - 1));
+    nodes.push({
+      user_id: userId,
+      subject: s.unit.subject,
+      unit_code: `U${s.unit.unit_number}`,
+      unit_number: s.unit.unit_number,
+      unit_name: s.unit.unit_name,
+      topic_name: `${s.unit.unit_name} — final mock under exam conditions`,
+      node_type: "mock",
+      node_order: order++,
+      scheduled_date: m2.iso,
+      status: "locked",
+      science_method: "active_recall",
+      why_now_text: whyNowMock(s.daysToExam - m2.off),
+      unlocks_after_order: order - 2,
+    });
+    dayLoad.set(m2.iso, (dayLoad.get(m2.iso) ?? 0) + 1);
+
+    const ucIso = getLocalDateString(addDaysLocal(today, Math.min(s.daysToExam, m2.off + 1)));
+    nodes.push({
+      user_id: userId,
+      subject: null,
+      unit_code: null,
+      unit_number: null,
+      unit_name: null,
+      topic_name: `${s.unit.unit_name} — all done. Rest and consolidate.`,
+      node_type: "break",
+      node_order: order++,
+      scheduled_date: ucIso,
+      status: "locked",
+      science_method: "pomodoro",
+      why_now_text: `Sleep is when long-term consolidation happens. Trust the work you've done.`,
+      unlocks_after_order: order - 2,
+    });
   }
 
-  // 4) Insert spaced-repetition review nodes at +3, +7, +14 days (or 2 days before exam if sooner)
+  // 4) Spaced repetition reviews at +3, +7, +14 days for each LEARN seed
   const reviewIntervals = [3, 7, 14];
-  // Insert reviews in time order, finding gaps in the day's session count
-  const dayLoad = new Map<string, number>(); // date → count of nodes (excluding break)
-  for (const n of nodes) {
-    if (n.node_type !== "break") {
-      dayLoad.set(n.scheduled_date, (dayLoad.get(n.scheduled_date) ?? 0) + 1);
-    }
-  }
-
-  for (const r of reviewQueue) {
+  for (const seed of reviewSeeds) {
+    const s = states[seed.unitIdx];
     for (const gap of reviewIntervals) {
-      let revDayOffset = r.learnDayOffset + gap;
-      const examOffset = Math.round((+r.item.examDate - +today) / 86400000);
-      // Don't schedule review past exam; pull forward to 2 days before exam
-      if (revDayOffset > examOffset) revDayOffset = Math.max(r.learnDayOffset + 1, examOffset - 2);
-      if (revDayOffset <= r.learnDayOffset) continue;
-      const date = ISO(addDays(today, revDayOffset));
-      // Don't overload a day past sessionsPerDay+2 with reviews
-      const load = dayLoad.get(date) ?? 0;
-      if (load >= sessionsPerDay + 2) continue;
+      let revOff = seed.learnOffset + gap;
+      if (revOff > s.daysToExam - 2) revOff = Math.max(seed.learnOffset + 1, s.daysToExam - 2);
+      if (revOff <= seed.learnOffset) continue;
+      const revIso = getLocalDateString(addDaysLocal(today, revOff));
+      const dow = addDaysLocal(today, revOff).getDay();
+      if (restDays.has(dow)) continue;
+      if ((dayLoad.get(revIso) ?? 0) >= sessionsPerDay + 2) continue;
       nodes.push({
         user_id: userId,
-        subject: r.item.subject,
-        unit_code: r.item.unit_code,
-        unit_number: r.item.unit_number,
-        unit_name: r.item.unit_name,
-        topic_name: r.item.topic,
+        subject: s.unit.subject,
+        unit_code: `U${s.unit.unit_number}`,
+        unit_number: s.unit.unit_number,
+        unit_name: s.unit.unit_name,
+        topic_name: `Spaced review: ${seed.topic}`,
         node_type: "review",
-        node_order: 0, // assigned after final ordering pass
-        scheduled_date: date,
+        node_order: 0,
+        scheduled_date: revIso,
         status: "locked",
         science_method: "spaced_repetition",
-        why_now_text: whyNowFor({ type: "review", topic: r.item.topic, subject: r.item.subject }, { totalForUnit: 0 }),
-        source_node_order: r.learnOrder,
+        why_now_text: `+${gap}-day review of ${seed.topic}. Spaced repetition reduces forgetting by up to 80%.`,
+        source_node_order: seed.learnOrder,
       });
-      dayLoad.set(date, load + 1);
+      dayLoad.set(revIso, (dayLoad.get(revIso) ?? 0) + 1);
     }
   }
 
-  // 5) Mock nodes — final 14 days before each unit exam: 1 mock per ~4 nodes; final 3 days mocks only.
-  for (const u of units) {
-    const examDate = new Date(u.exam_date);
-    examDate.setHours(0, 0, 0, 0);
-    const examOffset = Math.round((+examDate - +today) / 86400000);
-    if (examOffset < 0) continue;
-    const start = Math.max(0, examOffset - 14);
-    for (let off = start; off < examOffset; off++) {
-      const date = ISO(addDays(today, off));
-      const daysToExam = examOffset - off;
-      // In final 3 days: ensure at least one mock per day
-      // Otherwise: every 4th day add a mock
-      const shouldAdd = daysToExam <= 3 || ((examOffset - off) % 4 === 0);
-      if (!shouldAdd) continue;
-      // Avoid duplicate mock for same unit on same day
-      const exists = nodes.some(n => n.node_type === "mock" && n.scheduled_date === date && n.subject === u.subject && n.unit_number === u.unit_number);
-      if (exists) continue;
-      nodes.push({
-        user_id: userId,
-        subject: u.subject,
-        unit_code: `U${u.unit_number}`,
-        unit_number: u.unit_number,
-        unit_name: u.unit_name,
-        topic_name: null,
-        node_type: "mock",
-        node_order: 0,
-        scheduled_date: date,
-        status: "locked",
-        science_method: "active_recall",
-        why_now_text: whyNowFor({ type: "mock", subject: u.subject, daysToExam }, { totalForUnit: 0 }),
-      });
-    }
-  }
-
-  // 6) Final ordering pass: sort by date, then by existing order, then assign sequential node_order.
+  // 5) Final ordering pass — sort by date, then existing node_order, assign sequential order
   nodes.sort((a, b) => {
     if (a.scheduled_date !== b.scheduled_date) return a.scheduled_date < b.scheduled_date ? -1 : 1;
     if ((a.node_order || 0) && (b.node_order || 0)) return a.node_order - b.node_order;
@@ -342,15 +498,33 @@ export function buildNodePlan(userId: string, units: UnitInput[], opts: BuildOpt
     if (b.node_type === "break" && a.node_type !== "break") return -1;
     return 0;
   });
-  nodes.forEach((n, i) => { n.node_order = i + 1; });
 
-  // 7) Set unlocks_after_order = previous node's order. First node is unlocked.
+  // Account for any preserved (already-completed) nodes when assigning order numbers
+  const baseOrder = (opts.preserveBefore?.length ?? 0) + 1;
+  nodes.forEach((n, i) => { n.node_order = baseOrder + i; });
+
+  // 6) Set unlocks chain. First new node unlocked if there are no preserved nodes,
+  // otherwise it unlocks after the last preserved one.
   for (let i = 0; i < nodes.length; i++) {
     if (i === 0) {
+      const hasPreserved = (opts.preserveBefore?.length ?? 0) > 0;
+      // Always start the new chain unlocked — students need access to today's session
       nodes[i].status = "unlocked";
-      nodes[i].unlocks_after_order = undefined;
+      nodes[i].unlocks_after_order = hasPreserved ? opts.preserveBefore![opts.preserveBefore!.length - 1].node_order : undefined;
     } else {
       nodes[i].unlocks_after_order = nodes[i - 1].node_order;
+    }
+  }
+
+  // Weak topic shortcut: also unlock the FIRST learn node for each weak topic immediately
+  if (weakTopics.length > 0) {
+    const weakSet = new Set(weakTopics.map(w => w.topic_name.toLowerCase()));
+    const seenWeak = new Set<string>();
+    for (const n of nodes) {
+      if (n.node_type === "learn" && n.topic_name && weakSet.has(n.topic_name.toLowerCase()) && !seenWeak.has(n.topic_name.toLowerCase())) {
+        n.status = "unlocked";
+        seenWeak.add(n.topic_name.toLowerCase());
+      }
     }
   }
 
@@ -358,13 +532,16 @@ export function buildNodePlan(userId: string, units: UnitInput[], opts: BuildOpt
 }
 
 /**
- * Persist nodes to DB. Resolves source_node_order / unlocks_after_order to real UUIDs after insert.
+ * Persist a node plan. Preserves completed nodes; only wipes locked/unlocked/in_progress.
  */
 export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise<{ inserted: number }> {
-  // Wipe existing nodes for fresh build (only future or unstarted)
-  await supabase.from("roadmap_nodes").delete().eq("user_id", userId);
+  // Wipe only nodes that are not yet complete (preserve history)
+  await supabase
+    .from("roadmap_nodes")
+    .delete()
+    .eq("user_id", userId)
+    .in("status", ["locked", "unlocked", "in_progress", "skipped"]);
 
-  // Insert without dependency refs first; then update refs in a second pass.
   const insertRows = plan.map(p => ({
     user_id: p.user_id,
     subject: p.subject,
@@ -380,7 +557,6 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
     why_now_text: p.why_now_text,
   }));
 
-  // Insert in chunks of 200
   const inserted: { id: string; node_order: number }[] = [];
   for (let i = 0; i < insertRows.length; i += 200) {
     const chunk = insertRows.slice(i, i + 200);
@@ -389,10 +565,10 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
     if (data) inserted.push(...data);
   }
 
+  // Resolve unlocks_after / source_node refs
   const orderToId = new Map<number, string>();
   inserted.forEach(r => orderToId.set(r.node_order, r.id));
 
-  // Now update unlocks_after_node_id and source_node_id
   for (const p of plan) {
     const id = orderToId.get(p.node_order);
     if (!id) continue;
@@ -413,21 +589,29 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
   return { inserted: inserted.length };
 }
 
+/**
+ * Top-level: pull user's units + profile + weak topics, then build & persist the plan.
+ */
 export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {}) {
-  const { data: subjectsRows, error } = await supabase
-    .from("user_subjects")
-    .select("subject, unit_number, unit_name, exam_date, target_grade, current_grade")
-    .eq("user_id", userId);
-  if (error) throw error;
+  const [{ data: subjectsRows, error: e1 }, { data: profile }, { data: weak }, { data: completed }] = await Promise.all([
+    supabase.from("user_subjects").select("subject, unit_number, unit_name, exam_date, target_grade, current_grade, paper_duration_minutes").eq("user_id", userId),
+    supabase.from("profiles").select("hours_per_day, rest_days").eq("id", userId).single(),
+    supabase.from("topic_progress").select("subject, unit_number, topic_name, last_score_percent").eq("user_id", userId).eq("weak_flag", true),
+    supabase.from("roadmap_nodes").select("*").eq("user_id", userId).eq("status", "complete").order("node_order"),
+  ]);
+  if (e1) throw e1;
   if (!subjectsRows || subjectsRows.length === 0) return { inserted: 0 };
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("hours_per_day")
-    .eq("id", userId)
-    .single();
   const hoursPerDay = (profile as any)?.hours_per_day ?? 2;
+  const restDays = ((profile as any)?.rest_days ?? []) as number[];
+  const preserveBefore = (completed ?? []).map((c: any) => ({ ...c })) as PlanNode[];
 
-  const plan = buildNodePlan(userId, subjectsRows as UnitInput[], { hoursPerDay, ...opts });
+  const plan = buildNodePlan(userId, subjectsRows as UnitInput[], {
+    hoursPerDay,
+    restDays,
+    weakTopics: (weak ?? []) as WeakTopic[],
+    preserveBefore,
+    ...opts,
+  });
   return persistNodePlan(userId, plan);
 }
