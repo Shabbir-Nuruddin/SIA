@@ -13,17 +13,28 @@ const MODEL = "google/gemini-3-flash-preview";
 const generateTool = {
   type: "function",
   function: {
-    name: "create_exam_question",
-    description: "Create an original exam question in the exact style of an Edexcel A-Level past paper.",
+    name: "create_exam_questions",
+    description: "Create a set of original exam questions in the exact style of past papers.",
     parameters: {
       type: "object",
       properties: {
-        question_text: { type: "string", description: "The full question, formatted like an Edexcel paper. Use bold command words at the start (e.g. **Calculate**, **Explain**, **Evaluate**). Include any data/scenario needed." },
-        marks: { type: "integer", description: "Mark allocation appropriate for the difficulty and question type." },
-        mark_scheme: { type: "string", description: "Concise Edexcel-style mark scheme: bullet points listing each mark-awarding point with M1/A1/B1 style codes where appropriate." },
-        options: { type: "array", items: { type: "string" }, description: "Only for Multiple Choice: 4 plausible answer options." },
+        questions: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "object",
+            properties: {
+              question_text: { type: "string", description: "The full question. Use bold command words at the start (e.g. **Calculate**, **Explain**)." },
+              marks: { type: "integer", description: "Mark allocation appropriate for difficulty/type." },
+              mark_scheme: { type: "string", description: "Concise mark scheme: bullet points with M1/A1/B1 codes where appropriate." },
+              options: { type: "array", items: { type: "string" }, description: "Only for Multiple Choice: 4 plausible options." },
+            },
+            required: ["question_text", "marks", "mark_scheme"],
+            additionalProperties: false,
+          },
+        },
       },
-      required: ["question_text", "marks", "mark_scheme"],
+      required: ["questions"],
       additionalProperties: false,
     },
   },
@@ -63,19 +74,21 @@ serve(async (req) => {
     let toolName = "";
 
     if (action === "generate") {
-      const { subject, topic, difficulty, questionType, syllabus_context } = body;
-      const system = `You are a senior Edexcel A-Level examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel A-Level past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand and question structure precisely. Use UK English. Use Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.
+      const { subject, topic, difficulty, questionType, syllabus_context, count, board } = body;
+      const n = Math.min(15, Math.max(1, Number(count) || 1));
+      const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
+      const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
-FORMATTING: Output plain text only. No LaTeX, no dollar signs, no backslash math. Use Unicode for symbols (Δ, →, ⇌, ×, ², ³, ⁻¹). Write x squared or use ² superscript — never "x^2". Write fractions as a/b.${syllabus_context ? `\n\nSCOPE — your question MUST stay strictly within these official Edexcel specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
-      const user = `Generate ONE ${difficulty} difficulty ${questionType} question on the topic "${topic}" for Edexcel A-Level ${subject}. Mark allocation should be realistic for the type:
+FORMATTING: Output plain text only. No LaTeX, no dollar signs, no backslash math. Use Unicode for symbols (Δ, →, ⇌, ×, ², ³, ⁻¹). Write x squared or use ² superscript — never "x^2". Write fractions as a/b.${syllabus_context ? `\n\nSCOPE — your questions MUST stay strictly within these specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
+      const user = `Generate ${n} DISTINCT ${difficulty} difficulty ${questionType} questions on the topic "${topic}" for ${boardLabel} ${subject}. Each question must test a different sub-skill or angle of the topic — no near-duplicates. Mark allocation should be realistic for the type:
 - Multiple Choice: 1 mark
 - Short Answer: 2-4 marks
 - Extended Response: 5-9 marks
 - Calculation: 3-6 marks
-For Multiple Choice, include 4 plausible options.`;
+For Multiple Choice, include 4 plausible options per question.`;
       messages = [{ role: "system", content: system }, { role: "user", content: user }];
       tools = [generateTool];
-      toolName = "create_exam_question";
+      toolName = "create_exam_questions";
     } else if (action === "mark") {
       const { subject, topic, questionText, markScheme, totalMarks, studentAnswer } = body;
       const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point.`;
