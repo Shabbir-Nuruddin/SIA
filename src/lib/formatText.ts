@@ -197,10 +197,8 @@ const inlineFormat = (raw: string, store: string[]): string => {
 
 export const toFormattedHtml = (input: string): string => {
   if (!input) return "";
-  // 1) Heuristically wrap bare math, 2) render math via KaTeX,
-  // 3) build block structure, escaping only prose.
   const wrapped = autoWrapMath(input);
-  const mathRendered = renderMathSegments(wrapped);
+  const { text: mathRendered, store } = renderMathWithPlaceholders(wrapped);
 
   const lines = mathRendered.split(/\r?\n/);
   const out: string[] = [];
@@ -218,25 +216,25 @@ export const toFormattedHtml = (input: string): string => {
     if (h) {
       closeLists();
       const lvl = Math.min(6, h[1].length);
-      out.push(`<h${lvl}>${inlineFormat(h[2])}</h${lvl}>`);
+      out.push(`<h${lvl}>${inlineFormat(h[2], store)}</h${lvl}>`);
       continue;
     }
     const ul = line.match(/^\s*[-*•]\s+(.*)$/);
     if (ul) {
       if (inOl) { out.push("</ol>"); inOl = false; }
       if (!inUl) { out.push("<ul>"); inUl = true; }
-      out.push(`<li>${inlineFormat(ul[1])}</li>`);
+      out.push(`<li>${inlineFormat(ul[1], store)}</li>`);
       continue;
     }
     const ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
     if (ol) {
       if (inUl) { out.push("</ul>"); inUl = false; }
       if (!inOl) { out.push("<ol>"); inOl = true; }
-      out.push(`<li>${inlineFormat(ol[1])}</li>`);
+      out.push(`<li>${inlineFormat(ol[1], store)}</li>`);
       continue;
     }
     closeLists();
-    out.push(`<p>${inlineFormat(line)}</p>`);
+    out.push(`<p>${inlineFormat(line, store)}</p>`);
   }
   closeLists();
   return out.join("");
