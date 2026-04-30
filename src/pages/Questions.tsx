@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +9,8 @@ import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { formattedHtmlProps } from "@/lib/formatText";
-import { Brain, Loader2, RefreshCw, Sparkles, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
+import { fileToCompressedDataUrl } from "@/lib/imageUpload";
+import { Brain, Loader2, RefreshCw, Sparkles, CheckCircle2, ArrowLeft, ArrowRight, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
