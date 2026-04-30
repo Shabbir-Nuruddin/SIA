@@ -160,47 +160,77 @@ const Landing = () => {
 
       {/* Pricing */}
       <section id="pricing" className="py-20 md:py-28 border-t border-border/50">
-        <div className="container max-w-5xl">
+        <div className="container max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Free to start. Pro when you mean it.</h2>
-            <p className="text-muted-foreground text-sm">Honest pricing. Cancel anytime.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Three plans. One target grade.</h2>
+            <p className="text-muted-foreground text-sm">Start free. Upgrade when exam season hits. Cancel anytime.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="surface p-7">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-1">Free</div>
+          <div className="grid md:grid-cols-3 gap-4 items-stretch">
+            {/* Starter */}
+            <div className="surface p-7 flex flex-col">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-1">Starter</div>
               <div className="text-4xl font-extrabold mb-1">£0</div>
-              <div className="text-xs text-muted-foreground mb-6">Forever</div>
-              <ul className="space-y-2.5 text-sm mb-6">
-                {["First 3 days of your roadmap", "10 topical questions per day", "1 mock paper per week", "AI notes for any topic", "Exam countdown timer"].map(x => (
+              <div className="text-xs text-muted-foreground mb-6">Forever free</div>
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                {[
+                  "Roadmap for 1 subject",
+                  "10 AI-marked questions / day",
+                  "Notes for 3 topics / week",
+                  "AI tutor — 20 messages / day",
+                  "Built-in focus music + Pomodoro",
+                ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
-                ))}
-                {["Full roadmap (all days until exam)", "Unlimited questions", "Unlimited mock papers", "Adaptive roadmap", "AI study assistant"].map(x => (
-                  <li key={x} className="flex items-start gap-2 text-muted-foreground"><XCircle className="h-4 w-4 text-text-muted mt-0.5 shrink-0" />{x}</li>
                 ))}
               </ul>
               <Link to="/auth?mode=signup"><Button variant="outline" className="w-full">Start free</Button></Link>
             </div>
 
-            <div className="surface p-7 border-primary/40 relative" style={{ background: "linear-gradient(180deg, hsl(var(--card)), hsl(215 17% 11%))" }}>
-              <div className="absolute -top-3 left-7 px-2.5 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase tracking-wider">Most popular</div>
+            {/* Pro — highlighted */}
+            <div className="surface p-7 flex flex-col border-primary/60 ring-2 ring-primary/40 relative shadow-2xl md:-translate-y-2"
+              style={{ background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card-hover)))" }}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                Most popular
+              </div>
               <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
-              <div className="text-4xl font-extrabold mb-1">£8<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-4xl font-extrabold mb-1">£9<span className="text-base text-muted-foreground font-medium">/mo</span></div>
               <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
-              <ul className="space-y-2.5 text-sm mb-6">
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
-                  "Everything in Free",
-                  "Full roadmap for all subjects and all days",
-                  "Unlimited topical questions",
-                  "Unlimited mock papers",
-                  "Roadmap adapts to your performance",
-                  "AI study assistant (ask anything)",
-                  "Priority support",
+                  "Everything in Starter",
+                  "Unlimited subjects + roadmap rebuilds",
+                  "Unlimited AI-marked questions",
+                  "Unlimited mock papers + examiner feedback",
+                  "Unlimited notes — every topic",
+                  "Photo upload: AI marks your handwriting",
+                  "Multiple active exams + urgency timers",
+                  "AI tutor — 200 messages / day",
                 ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
                 ))}
               </ul>
-              <Link to="/auth?mode=signup"><Button className="btn-primary w-full">Start free, upgrade anytime →</Button></Link>
+              <Link to="/auth?mode=signup"><Button className="btn-primary w-full">Go Pro</Button></Link>
+            </div>
+
+            {/* Advanced */}
+            <div className="surface p-7 flex flex-col">
+              <div className="text-xs uppercase tracking-wider text-accent font-mono mb-1">Advanced</div>
+              <div className="text-4xl font-extrabold mb-1">£29<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-xs text-muted-foreground mb-6">For top-grade hunters</div>
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                {[
+                  "Everything in Pro",
+                  "Unlimited AI tutor — no caps",
+                  "Deep-dive notes (more worked examples)",
+                  "Adaptive mocks tuned to weak spots",
+                  "Predicted-paper generator",
+                  "1-on-1 strategy plan from diagnostic",
+                  "Early access to new features",
+                ].map(x => (
+                  <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup"><Button variant="outline" className="w-full">Go Advanced</Button></Link>
             </div>
           </div>
         </div>
