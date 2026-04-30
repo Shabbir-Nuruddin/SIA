@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, X,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 
@@ -30,10 +31,17 @@ const subjectColor: Record<SubjectCode, string> = {
   physics: "hsl(var(--subject-physics))",
 };
 
-export const AppSidebar = () => {
+interface ProfileLite {
+  first_name: string | null;
+  last_name: string | null;
+  current_streak: number;
+  exam_board: string | null;
+}
+
+const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
-  const [profile, setProfile] = useState<{ first_name: string | null; last_name: string | null; current_streak: number; exam_board: string | null } | null>(null);
+  const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [subjects, setSubjects] = useState<SubjectCode[]>([]);
 
   useEffect(() => {
@@ -51,17 +59,23 @@ export const AppSidebar = () => {
   const board = (profile?.exam_board || "edexcel").toUpperCase();
 
   return (
-    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-3 sticky self-start" style={{ top: 52, height: "calc(100vh - 52px)" }}>
+    <div className="flex h-full flex-col p-3">
       <div className="px-2 py-3 mb-4"><ApexLogo /></div>
 
-      <nav className="flex-1 space-y-0.5">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto">
         {items.map(it => {
           const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
           return (
-            <NavLink key={it.to} to={it.to}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-colors ${active
-                ? "bg-primary/15 text-primary font-semibold"
-                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"}`}>
+            <NavLink
+              key={it.to}
+              to={it.to}
+              onClick={onNavigate}
+              className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-colors ${
+                active
+                  ? "bg-primary/15 text-primary font-semibold"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+              }`}
+            >
               <it.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{it.label}</span>
             </NavLink>
@@ -87,6 +101,44 @@ export const AppSidebar = () => {
           <LogOut className="h-3.5 w-3.5 mr-2" />Sign out
         </Button>
       </div>
-    </aside>
+    </div>
+  );
+};
+
+export const AppSidebar = () => {
+  const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  // Auto-close drawer on route change
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  return (
+    <>
+      {/* Mobile / tablet hamburger trigger — fixed top-left, visible below lg */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <button
+            aria-label="Open menu"
+            className="lg:hidden fixed top-2 left-2 z-50 h-10 w-10 rounded-md bg-card/95 border border-border backdrop-blur flex items-center justify-center shadow-md hover:bg-secondary transition-colors"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </SheetTrigger>
+        <SheetContent
+          side="left"
+          className="p-0 w-[280px] bg-sidebar border-r border-sidebar-border"
+        >
+          <SidebarBody onNavigate={() => setOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop static sidebar */}
+      <aside
+        className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start"
+        style={{ top: 52, height: "calc(100vh - 52px)" }}
+      >
+        <SidebarBody />
+      </aside>
+    </>
   );
 };
