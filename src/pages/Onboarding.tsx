@@ -145,6 +145,7 @@ const Onboarding = () => {
         onboarded: true,
         exam_board: board,
         hours_per_day: hoursPerDay,
+        theme,
       };
       if (firstName.trim()) profileUpdates.first_name = firstName.trim();
       const { error: e2 } = await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
