@@ -268,21 +268,25 @@ const Dashboard = () => {
 
           {/* Right column — Sticky widgets */}
           <aside className="space-y-4 lg:sticky lg:top-14 self-start">
-            {/* Readiness gauge */}
-            <div className="surface p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Exam readiness</div>
+            {/* Urgency gauge */}
+            <div className="surface p-5" data-tutorial="urgency-gauge">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</div>
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
                   <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
-                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={readyColor} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={126} strokeDashoffset={126 * (1 - readiness / 100)} />
+                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={urgency.colorVar} strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={126} strokeDashoffset={126 * (1 - urgency.score / 100)}
+                    style={{ transition: "stroke-dashoffset 800ms ease-out, stroke 400ms ease-out" }} />
                 </svg>
                 <div>
-                  <div className="font-mono text-3xl font-bold tabular" style={{ color: readyColor }}>{readiness}</div>
+                  <div className="font-mono text-3xl font-bold tabular" style={{ color: urgency.colorVar }}>{urgency.score}</div>
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/ 100</div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{readyLine}</p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{urgency.message}</p>
+              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">
+                {urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}
+              </p>
             </div>
 
             {/* Today's stats */}
