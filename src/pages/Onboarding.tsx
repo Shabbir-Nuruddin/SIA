@@ -227,7 +227,7 @@ const Onboarding = () => {
                       <Checkbox checked={sel} className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
                     </div>
                     <div className="font-bold text-lg">{s.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">Edexcel A-Level · {s.spec}</div>
+                    <div className="text-xs text-muted-foreground mt-1 font-mono">{board === "cie" ? "Cambridge A-Level" : "Edexcel A-Level"} · {s.spec}</div>
                   </button>
                 );
               })}
