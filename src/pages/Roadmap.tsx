@@ -484,12 +484,13 @@ const RoadmapPage = () => {
 interface NodeCardProps {
   node: RoadmapNodeRow;
   isActive: boolean;
+  startStage?: "notes" | "elaboration";
   onActivate: () => void;
   onClose: () => void;
   onComplete: (scorePercent?: number) => Promise<void>;
 }
 
-const NodeCard = ({ node, isActive, onActivate, onClose, onComplete }: NodeCardProps) => {
+const NodeCard = ({ node, isActive, startStage = "notes", onActivate, onClose, onComplete }: NodeCardProps) => {
   const subjectMeta = node.subject ? SUBJECTS[node.subject as SubjectCode] : null;
   const accent = NODE_ACCENT[node.node_type];
   const bg = NODE_BG[node.node_type];
@@ -537,7 +538,7 @@ const NodeCard = ({ node, isActive, onActivate, onClose, onComplete }: NodeCardP
 
   // Active inline expansion (learn nodes only)
   if (isActive && node.node_type === "learn") {
-    return <LearnNodeFlow node={node} onClose={onClose} onComplete={onComplete} />;
+    return <LearnNodeFlow node={node} initialStage={startStage} onClose={onClose} onComplete={onComplete} />;
   }
 
   // === Compact unlocked card by type ===
