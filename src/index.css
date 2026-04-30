@@ -8,22 +8,22 @@
 
 @layer base {
   :root {
-    /* Surfaces */
-    --background: 215 28% 7%;            /* #0D1117 */
-    --background-elevated: 215 21% 10%;  /* #161B22 */
-    --foreground: 213 31% 95%;           /* #F0F6FC */
+    /* Surfaces — softer slate, lower contrast on bg, higher on text */
+    --background: 220 18% 11%;           /* warmer slate */
+    --background-elevated: 220 16% 14%;
+    --foreground: 210 22% 92%;           /* softer than pure white */
 
-    --card: 215 17% 13%;                 /* #1C2128 */
-    --card-hover: 215 14% 16%;           /* #21262D */
-    --card-foreground: 213 31% 95%;
+    --card: 220 15% 15%;
+    --card-hover: 220 14% 18%;
+    --card-foreground: 210 22% 92%;
 
-    --popover: 215 21% 10%;
-    --popover-foreground: 213 31% 95%;
+    --popover: 220 16% 14%;
+    --popover-foreground: 210 22% 92%;
 
-    /* Accent — electric blue */
-    --primary: 221 83% 53%;              /* #2563EB */
+    /* Accent — calmer indigo, less saturated */
+    --primary: 217 70% 58%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 60%;         /* #3B82F6 */
+    --primary-glow: 217 80% 65%;
 
     --secondary: 215 17% 16%;
     --secondary-foreground: 213 31% 95%;
