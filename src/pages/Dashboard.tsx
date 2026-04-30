@@ -10,6 +10,8 @@ import { ArrowRight, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } f
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
+import { computeUrgency } from "@/lib/urgency";
+import { TutorialOverlay } from "@/components/TutorialOverlay";
 
 interface SessionRow {
   id: string;
@@ -30,6 +32,8 @@ interface UnitRow {
   unit_number: number;
   unit_name: string;
   exam_date: string;
+  target_grade: string | null;
+  current_grade: string | null;
 }
 
 const subjectClass: Record<string, string> = {
@@ -71,7 +75,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
-  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
 
   const todayISO = getLocalDateString();
 
@@ -79,8 +83,8 @@ const Dashboard = () => {
     if (!user) return;
     const [s, u, p] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
-      supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("first_name,onboarded").eq("id", user.id).single(),
+      supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
+      supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
     if (u.data) setUnits(u.data as UnitRow[]);
@@ -108,14 +112,18 @@ const Dashboard = () => {
   const completedCount = sessions.filter(s => s.status === "complete").length;
   const allDone = sessions.length > 0 && pendingCount === 0;
 
-  // Compute readiness score (0-100)
-  const readiness = Math.max(0, Math.min(100, Math.round(
-    50 + (completedCount * 6) - Math.max(0, sessions.length - completedCount) * 3 - Math.max(0, 30 - days)
-  )));
-  const readyColor = readiness >= 70 ? "hsl(var(--success))" : readiness >= 40 ? "hsl(var(--accent))" : "hsl(var(--urgent))";
-  const readyLine = readiness >= 70 ? "You're on track. Keep the consistency."
-                  : readiness >= 40 ? "Getting there. Don't skip sessions."
-                  : "Urgency is high. Follow the plan closely.";
+  // Urgency score (recomputes whenever units/sessions change)
+  const urgency = computeUrgency(units);
+
+  // Re-tick at midnight so urgency refreshes daily without a reload.
+  useEffect(() => {
+    const ms = (() => {
+      const next = new Date(); next.setHours(24, 0, 5, 0);
+      return next.getTime() - Date.now();
+    })();
+    const t = setTimeout(() => load(), ms);
+    return () => clearTimeout(t);
+  }, [units.length]);
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("roadmap_sessions").update({
@@ -173,7 +181,7 @@ const Dashboard = () => {
               const isSkipped = s.status === "skipped";
 
               return (
-                <div key={s.id}>
+                <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
                   <div
                     className={`surface ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-primary/40" : ""}`}
                     style={isSkipped ? { borderLeftColor: "hsl(var(--accent))" } : {}}
@@ -210,7 +218,7 @@ const Dashboard = () => {
                       <div className="flex flex-wrap gap-2">
                         {s.subject && (
                           <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
-                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm">
+                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
                               <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />
                               {isInProgress ? "Continue" : "Start session"}
                             </Button>
@@ -260,21 +268,25 @@ const Dashboard = () => {
 
           {/* Right column — Sticky widgets */}
           <aside className="space-y-4 lg:sticky lg:top-14 self-start">
-            {/* Readiness gauge */}
-            <div className="surface p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Exam readiness</div>
+            {/* Urgency gauge */}
+            <div className="surface p-5" data-tutorial="urgency-gauge">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</div>
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
                   <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
-                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={readyColor} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={126} strokeDashoffset={126 * (1 - readiness / 100)} />
+                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={urgency.colorVar} strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={126} strokeDashoffset={126 * (1 - urgency.score / 100)}
+                    style={{ transition: "stroke-dashoffset 800ms ease-out, stroke 400ms ease-out" }} />
                 </svg>
                 <div>
-                  <div className="font-mono text-3xl font-bold tabular" style={{ color: readyColor }}>{readiness}</div>
+                  <div className="font-mono text-3xl font-bold tabular" style={{ color: urgency.colorVar }}>{urgency.score}</div>
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/ 100</div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{readyLine}</p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{urgency.message}</p>
+              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">
+                {urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}
+              </p>
             </div>
 
             {/* Today's stats */}
@@ -320,6 +332,16 @@ const Dashboard = () => {
           </aside>
         </div>
       </div>
+      {profile && !profile.tutorial_completed && sessions.length > 0 && (
+        <TutorialOverlay
+          firstName={profile.first_name || "Student"}
+          daysToExam={urgency.daysToNearest}
+          onFinish={async () => {
+            await supabase.from("profiles").update({ tutorial_completed: true }).eq("id", user!.id);
+            setProfile(p => p ? { ...p, tutorial_completed: true } : p);
+          }}
+        />
+      )}
     </AppLayout>
   );
 };

@@ -54,7 +54,7 @@ export const PomodoroPill = () => {
     return (
       <button
         onClick={toggleMin}
-        className="fixed bottom-20 right-5 z-40 h-10 w-10 rounded-full shadow-lg flex items-center justify-center text-white"
+        data-tutorial="pomodoro" className="fixed bottom-20 right-5 z-40 h-10 w-10 rounded-full shadow-lg flex items-center justify-center text-white"
         style={{ background: state.active ? (state.mode === "break" ? "hsl(var(--success))" : "hsl(var(--primary))") : "hsl(var(--secondary))" }}
         aria-label="Open Pomodoro"
         title={state.active ? `Pomodoro · ${formatMMSS(state.remainingSeconds)}` : "Start Pomodoro"}
@@ -72,7 +72,7 @@ export const PomodoroPill = () => {
   if (!state.active) {
     return (
       <div
-        className="fixed bottom-20 right-5 z-40 flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-full shadow-lg text-foreground border border-border bg-card"
+        data-tutorial="pomodoro" className="fixed bottom-20 right-5 z-40 flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-full shadow-lg text-foreground border border-border bg-card"
         style={{ minWidth: 170 }}
       >
         <Timer className="h-4 w-4 text-primary shrink-0" />
@@ -102,7 +102,7 @@ export const PomodoroPill = () => {
 
   return (
     <div
-      className="fixed bottom-20 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1 py-1.5 rounded-full shadow-lg text-white"
+      data-tutorial="pomodoro" className="fixed bottom-20 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1 py-1.5 rounded-full shadow-lg text-white"
       style={{ background: bg, minWidth: 200 }}
     >
       <span className="text-base leading-none">{isBreak ? "☕" : "🍅"}</span>

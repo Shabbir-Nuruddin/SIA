@@ -291,6 +291,7 @@ export type Database = {
           study_start_time: string
           theme: string
           tutor_message_count: number
+          tutorial_completed: boolean
           xp: number
         }
         Insert: {
@@ -316,6 +317,7 @@ export type Database = {
           study_start_time?: string
           theme?: string
           tutor_message_count?: number
+          tutorial_completed?: boolean
           xp?: number
         }
         Update: {
@@ -341,6 +343,7 @@ export type Database = {
           study_start_time?: string
           theme?: string
           tutor_message_count?: number
+          tutorial_completed?: boolean
           xp?: number
         }
         Relationships: []
