@@ -21,7 +21,7 @@ function timeAdd(start: string, minutes: number): string {
   const total = h * 60 + m + minutes;
   const nh = Math.floor(total / 60) % 24;
   const nm = total % 60;
-  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}:00`;
+  return `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
 }
 
 export async function generateAndPersistRoadmap(
