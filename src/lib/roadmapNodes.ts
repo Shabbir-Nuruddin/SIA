@@ -186,7 +186,7 @@ export function buildNodePlan(
       unit: u,
       daysToExam: days,
       urgency: urgencyScore(days),
-      topics: topicListFor(u.subject, u.unit_number, weakTopics),
+      topics: topicListFor(u.subject, u.unit_number, weakTopics, board),
       learned: [],
       learnNodeIndices: [],
     };
