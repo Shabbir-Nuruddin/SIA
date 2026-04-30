@@ -49,7 +49,7 @@ export const AppSidebar = () => {
   const board = (profile?.exam_board || "edexcel").toUpperCase();
 
   return (
-    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-3 sticky self-start" style={{ top: 48, height: "calc(100vh - 48px)" }}>
+    <aside className="hidden lg:flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar p-3 sticky self-start" style={{ top: 52, height: "calc(100vh - 52px)" }}>
       <div className="px-2 py-3 mb-4"><ApexLogo /></div>
 
       <nav className="flex-1 space-y-0.5">
