@@ -157,7 +157,30 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* Legacy aliases — keep older pages rendering correctly with new tokens */
+  .glass-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+  .glow-primary { box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4); }
+  .glow-amber { box-shadow: 0 0 0 1px hsl(var(--accent) / 0.4); }
+  .text-urgent-gradient {
+    background: linear-gradient(135deg, hsl(var(--urgent)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }
+
+@layer base {
+  :root {
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-urgent: linear-gradient(135deg, hsl(var(--urgent)), hsl(var(--accent)));
+    --gradient-hero: radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), transparent 60%), hsl(var(--background));
+    --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(215 17% 10%));
 
 @layer utilities {
   .animate-in-up { animation: in-up 0.5s var(--tx-spring) both; }
