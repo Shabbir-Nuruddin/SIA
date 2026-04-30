@@ -473,7 +473,7 @@ const RoadmapPage = () => {
         {/* Regenerate */}
         <div className="mt-12 pt-6 border-t border-border text-center">
           <button
-            onClick={handleGenerate}
+            onClick={() => handleGenerate()}
             className="text-xs text-muted-foreground hover:text-primary transition-colors font-mono uppercase tracking-wider"
           >
             Regenerate path
