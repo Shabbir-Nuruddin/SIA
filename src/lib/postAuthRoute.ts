@@ -13,7 +13,8 @@ export async function getPostAuthRoute(userId: string): Promise<string> {
     .eq("id", userId)
     .maybeSingle();
   if (!data) return "/diagnostic";
+  // Already-onboarded users predate the diagnostic — never bounce them back.
+  if (data.onboarded) return "/dashboard";
   if (!data.diagnostic_completed) return "/diagnostic";
-  if (!data.onboarded) return "/onboarding";
-  return "/dashboard";
+  return "/onboarding";
 }
