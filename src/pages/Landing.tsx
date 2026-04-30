@@ -225,7 +225,7 @@ const Landing = () => {
                   "Deep-dive notes (more worked examples)",
                   "Adaptive mocks tuned to weak spots",
                   "Predicted-paper generator",
-                  "1-on-1 strategy plan from diagnostic",
+                  "Full AI exam strategy report — personalised to your diagnostic, weak topics & target grade",
                   "Early access to new features",
                 ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
