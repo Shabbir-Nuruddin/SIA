@@ -145,11 +145,10 @@ serve(async (req) => {
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
 
 ABSOLUTE FORMATTING RULES:
-- Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math.
-- Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½, π, etc.
-- Write equations in plain text (e.g., rate = k[A]^m[B]^n).
+- For ALL mathematical expressions use LaTeX delimited with $...$ (inline) or $$...$$ (display). Examples: $x^2 + 5x + 6$, $\\frac{a}{b}$, $\\sqrt{x+1}$, $\\int_0^1 x\\,dx$, $H_2O$, $\\pi r^2$.
+- Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
+- Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
 - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
-- UK English. Use ${boardLabel} mark scheme phrasing.`;
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
     const mathsBoost = isMaths
