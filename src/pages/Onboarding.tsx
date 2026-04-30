@@ -35,7 +35,8 @@ const defaultDate = "2026-06-01";
 const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() =>
     SUBJECT_LIST.reduce((a, s) => ({
       ...a,
