@@ -73,6 +73,7 @@ const NewMockPaper = () => {
   const toggle = <T,>(arr: T[], v: T): T[] => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
 
   const handleGenerate = async () => {
+    if (!(await checkAndWarn("mock_papers"))) return;
     if (!user) return;
     if (selectedUnits.length === 0) return toast.error("Pick at least one unit.");
     if (selectedTopics.length === 0) return toast.error("Pick at least one topic.");
