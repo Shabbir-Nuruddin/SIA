@@ -65,11 +65,15 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
       <nav className="flex-1 space-y-0.5 overflow-y-auto">
         {items.map(it => {
           const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
+          const tutorialKey =
+            it.to === "/roadmap" ? "nav-roadmap" :
+            it.to === "/notes" ? "nav-notes" : undefined;
           return (
             <NavLink
               key={it.to}
               to={it.to}
               onClick={onNavigate}
+              {...(tutorialKey ? { "data-tutorial": tutorialKey } : {})}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-colors ${
                 active
                   ? "bg-primary/15 text-primary font-semibold"
