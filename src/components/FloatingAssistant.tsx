@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Sparkles, X, Send, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, Loader2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { fileToCompressedDataUrl } from "@/lib/imageUpload";
+import { toast } from "sonner";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
 
 interface AssistantContext {
   topic?: string;
@@ -23,10 +26,13 @@ export const FloatingAssistant = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [firstName, setFirstName] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Load board + first name from profile so the tutor can personalise
@@ -68,13 +74,36 @@ export const FloatingAssistant = () => {
     pathname.startsWith("/mock-papers/exam");
   if (hide) return null;
 
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImageBusy(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setPendingImage(dataUrl);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't read image");
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || streaming) return;
-    const userMsg: Msg = { role: "user", content: text };
+    if ((!text && !pendingImage) || streaming) return;
+
+    // Build OpenAI-style content (multimodal when image present)
+    const content: string | ContentPart[] = pendingImage
+      ? [
+          { type: "text", text: text || "Please look at this image and help me — if it's a question, solve it; if it's my working, mark it." },
+          { type: "image_url", image_url: { url: pendingImage } },
+        ]
+      : text;
+
+    const userMsg: Msg = { role: "user", content };
     const next = [...messages, userMsg];
     setMessages(next);
     setInput("");
+    setPendingImage(null);
     setStreaming(true);
 
     try {
@@ -131,6 +160,18 @@ export const FloatingAssistant = () => {
     }
   };
 
+  const renderUserContent = (content: Msg["content"]) => {
+    if (typeof content === "string") return content;
+    return (
+      <div className="space-y-2">
+        {content.map((part, i) => part.type === "image_url"
+          ? <img key={i} src={part.image_url.url} alt="upload" className="rounded-md max-h-40 object-contain" />
+          : <div key={i} className="whitespace-pre-wrap">{part.text}</div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       {/* Trigger */}
@@ -176,27 +217,62 @@ export const FloatingAssistant = () => {
                 )}
               </div>
             )}
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
-                    m.role === "user"
-                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                      : "bg-secondary text-foreground"
-                  }`}
-                >
-                  {m.role === "assistant" ? (
-                    m.content ? <MathMarkdown>{m.content}</MathMarkdown>
-                      : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : "")
-                  ) : m.content}
+            {messages.map((m, i) => {
+              const assistantText = m.role === "assistant" && typeof m.content === "string" ? m.content : "";
+              return (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                      m.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-foreground"
+                    }`}
+                  >
+                    {m.role === "assistant"
+                      ? (assistantText
+                          ? <MathMarkdown>{assistantText}</MathMarkdown>
+                          : (streaming && i === messages.length - 1 ? <Loader2 className="h-3 w-3 animate-spin" /> : null))
+                      : renderUserContent(m.content)}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Input */}
           <div className="p-3 border-t border-border">
+            {pendingImage && (
+              <div className="relative inline-block mb-2">
+                <img src={pendingImage} alt="attached" className="h-16 rounded-md border border-border" />
+                <button
+                  onClick={() => setPendingImage(null)}
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  aria-label="Remove image"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
             <div className="flex gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => { handleFile(e.target.files?.[0]); e.target.value = ""; }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileRef.current?.click()}
+                disabled={imageBusy || streaming}
+                className="self-end h-10 w-10 p-0 shrink-0"
+                aria-label="Attach image"
+                title="Attach a photo of your working or a question"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+              </Button>
               <Textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -206,11 +282,11 @@ export const FloatingAssistant = () => {
                     send();
                   }
                 }}
-                placeholder="Ask the tutor…"
+                placeholder={pendingImage ? "Add a note (optional)…" : "Ask the tutor…"}
                 className="min-h-[40px] max-h-[120px] text-sm resize-none flex-1"
                 rows={1}
               />
-              <Button onClick={send} disabled={!input.trim() || streaming} size="sm" className="btn-primary self-end h-10 w-10 p-0">
+              <Button onClick={send} disabled={(!input.trim() && !pendingImage) || streaming} size="sm" className="btn-primary self-end h-10 w-10 p-0">
                 {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>

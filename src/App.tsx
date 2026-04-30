@@ -22,6 +22,7 @@ import PastPapers from "./pages/PastPapers";
 import FAQ from "./pages/FAQ";
 import Settings from "./pages/Settings";
 import Exams from "./pages/Exams";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/faq" element={<FAQ />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/exams" element={<Exams />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
