@@ -94,6 +94,7 @@ function dayHeader(iso: string): string {
 const RoadmapPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -101,6 +102,7 @@ const RoadmapPage = () => {
   const [profile, setProfile] = useState<{ first_name: string | null; current_streak: number; notification_enabled: boolean; notification_prompted: boolean; notification_time: string } | null>(null);
   const [units, setUnits] = useState<{ subject: SubjectCode; unit_number: number; unit_name: string; exam_date: string }[]>([]);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
