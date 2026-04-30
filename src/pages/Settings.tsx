@@ -16,7 +16,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Palette, Trash2, Pencil } from "lucide-react";
+import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Palette, Trash2, Pencil, Check } from "lucide-react";
+import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
