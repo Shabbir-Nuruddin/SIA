@@ -78,6 +78,7 @@ const QuestionsPage = () => {
 
   const handleAnswerImage = async (file: File | undefined) => {
     if (!file) return;
+    if (!(await checkAndWarn("photo_upload"))) return;
     setImageBusy(true);
     try {
       const dataUrl = await fileToCompressedDataUrl(file);
