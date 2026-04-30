@@ -19,6 +19,7 @@ interface Q {
   feedback: string | null;
   model_answer: string | null;
   student_answer: string | null;
+  options: string[] | null;
   flagged: boolean;
 }
 
@@ -179,6 +180,27 @@ const MockResults = () => {
                     <div>
                       <div className="text-[10px] uppercase font-mono text-muted-foreground tracking-wider mb-1">Question</div>
                       <div className="text-sm" {...formattedHtmlProps(q.question_text)} />
+                      {q.options && q.options.length > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                          {q.options.map((opt, i) => {
+                            const letter = String.fromCharCode(65 + i);
+                            const isStudent = q.student_answer === opt;
+                            const isCorrect = (q.model_answer || "").trim() === letter || (q.model_answer || "").trim() === opt;
+                            return (
+                              <div key={i} className={`text-sm p-2 rounded border flex gap-2 ${
+                                isCorrect ? "border-success/40 bg-success/5" :
+                                isStudent ? "border-urgent/40 bg-urgent/5" :
+                                "border-border"
+                              }`}>
+                                <span className="font-mono text-xs text-muted-foreground">{letter}</span>
+                                <span className="flex-1">{opt}</span>
+                                {isCorrect && <span className="text-[10px] font-mono text-success">CORRECT</span>}
+                                {isStudent && !isCorrect && <span className="text-[10px] font-mono text-urgent">YOUR PICK</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>

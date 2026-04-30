@@ -119,10 +119,29 @@ Number questions sequentially starting at 1. Output via the tool.`;
 
     if (action === "mark") {
       const { subject, questions } = body;
-      const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. Mark each answer Edexcel-style: method marks for working, accuracy marks for correct values, banded marking for 6-mark extended responses (Band 1: 1-2 basic, Band 2: 3-4 good, Band 3: 5-6 comprehensive). Award marks for valid alternative wording. Be honest — do not inflate.`;
-      const user = `Mark these questions. Return one result per question with awarded_marks (integer, 0..marks) and 1-2 sentence feedback.
 
-${questions.map((q: any, i: number) => `Q${i + 1} [${q.marks} marks] (${q.question_type}):
+      // Pre-mark: any blank answer is automatically 0. Don't even send to AI.
+      const blanks: { question_index: number; awarded_marks: number; feedback: string }[] = [];
+      const toMark: any[] = [];
+      for (const q of questions) {
+        const ans = (q.student_answer ?? "").toString().trim();
+        if (!ans) {
+          blanks.push({
+            question_index: q.question_index,
+            awarded_marks: 0,
+            feedback: "No answer provided. 0 marks awarded. Always attempt every question — even partial working can earn method marks.",
+          });
+        } else {
+          toMark.push(q);
+        }
+      }
+
+      let aiResults: { question_index: number; awarded_marks: number; feedback: string }[] = [];
+      if (toMark.length > 0) {
+        const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. Mark each answer Edexcel-style: method marks for working, accuracy marks for correct values, banded marking for 6-mark extended responses (Band 1: 1-2 basic, Band 2: 3-4 good, Band 3: 5-6 comprehensive). Award marks for valid alternative wording. Be honest — do not inflate. CRITICAL: If a student answer is blank, empty, whitespace, or just says "(no answer)", award 0 marks — never award marks for non-answers.`;
+        const user = `Mark these questions. Return one result per question with awarded_marks (integer, 0..marks) and 1-2 sentence feedback.
+
+${toMark.map((q: any) => `Q${q.question_index + 1} [${q.marks} marks] (${q.question_type}):
 ${q.question_text}
 
 Mark scheme:
@@ -132,14 +151,18 @@ Model answer:
 ${q.model_answer}
 
 Student answer:
-${q.student_answer || "(no answer)"}
+${q.student_answer}
 `).join("\n---\n")}`;
-      const result = await callAI(
-        [{ role: "system", content: system }, { role: "user", content: user }],
-        [markPaperTool],
-        "mark_mock_paper",
-      );
-      return new Response(JSON.stringify(result), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const result = await callAI(
+          [{ role: "system", content: system }, { role: "user", content: user }],
+          [markPaperTool],
+          "mark_mock_paper",
+        );
+        aiResults = result.results || [];
+      }
+
+      const merged = [...blanks, ...aiResults].sort((a, b) => a.question_index - b.question_index);
+      return new Response(JSON.stringify({ results: merged }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
