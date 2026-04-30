@@ -298,23 +298,69 @@ const RoadmapTopicNotes = () => {
   );
 };
 
-const Flashcard = ({ q, a, index }: { q: string; a: string; index: number }) => {
+const FlashcardDeck = ({ cards }: { cards: { q: string; a: string }[] }) => {
+  const [idx, setIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const total = cards.length;
+  const card = cards[idx];
+
+  const go = (delta: number) => {
+    setRevealed(false);
+    setIdx(i => Math.max(0, Math.min(total - 1, i + delta)));
+  };
+
+  // keyboard nav
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") go(1);
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === " " || e.key === "Enter") { e.preventDefault(); setRevealed(r => !r); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [total]);
+
   return (
-    <div
-      className="surface p-5 cursor-pointer select-none transition-all hover:border-primary/40 min-h-[140px] flex flex-col"
-      onClick={() => setRevealed(r => !r)}
-    >
-      <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-between">
-        <span>Card {index}</span>
-        <span className="text-primary">{revealed ? "Answer" : "Question"} · tap to flip</span>
+    <section>
+      <div className="flex items-center justify-between mb-3 text-xs font-mono text-muted-foreground">
+        <span>Card {idx + 1} / {total}</span>
+        <button
+          onClick={() => { setIdx(0); setRevealed(false); }}
+          className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        >
+          <RotateCcw className="h-3 w-3" /> Restart
+        </button>
       </div>
-      {!revealed ? (
-        <div className="font-semibold text-[15px] flex-1 flex items-center animate-fade-in" {...formattedHtmlProps(q)} />
-      ) : (
-        <div className="text-sm flex-1 flex items-center text-foreground/90 animate-fade-in" {...formattedHtmlProps(a)} />
-      )}
-    </div>
+
+      <div
+        onClick={() => setRevealed(r => !r)}
+        className="surface cursor-pointer select-none p-8 md:p-12 min-h-[340px] md:min-h-[420px] flex flex-col items-center justify-center text-center transition-all hover:border-primary/40 relative overflow-hidden"
+      >
+        <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-4">
+          {revealed ? "Answer" : "Question"}
+        </div>
+        <div
+          key={`${idx}-${revealed}`}
+          className={`animate-fade-in max-w-2xl w-full ${revealed ? "text-base md:text-lg text-foreground/90" : "text-xl md:text-2xl font-semibold"}`}
+          {...formattedHtmlProps(revealed ? card.a : card.q)}
+        />
+        <div className="absolute bottom-3 left-0 right-0 text-[10px] font-mono text-muted-foreground/70">
+          Tap, press space or enter to {revealed ? "hide" : "reveal"}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mt-4 gap-3">
+        <Button variant="outline" onClick={() => go(-1)} disabled={idx === 0} className="h-10">
+          <ChevronLeft className="h-4 w-4 mr-1" /> Prev
+        </Button>
+        <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+          <div className="h-full bg-primary transition-all" style={{ width: `${((idx + 1) / total) * 100}%` }} />
+        </div>
+        <Button onClick={() => go(1)} disabled={idx === total - 1} className="btn-primary h-10">
+          Next <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+    </section>
   );
 };
 
