@@ -112,14 +112,18 @@ const Dashboard = () => {
   const completedCount = sessions.filter(s => s.status === "complete").length;
   const allDone = sessions.length > 0 && pendingCount === 0;
 
-  // Compute readiness score (0-100)
-  const readiness = Math.max(0, Math.min(100, Math.round(
-    50 + (completedCount * 6) - Math.max(0, sessions.length - completedCount) * 3 - Math.max(0, 30 - days)
-  )));
-  const readyColor = readiness >= 70 ? "hsl(var(--success))" : readiness >= 40 ? "hsl(var(--accent))" : "hsl(var(--urgent))";
-  const readyLine = readiness >= 70 ? "You're on track. Keep the consistency."
-                  : readiness >= 40 ? "Getting there. Don't skip sessions."
-                  : "Urgency is high. Follow the plan closely.";
+  // Urgency score (recomputes whenever units/sessions change)
+  const urgency = computeUrgency(units);
+
+  // Re-tick at midnight so urgency refreshes daily without a reload.
+  useEffect(() => {
+    const ms = (() => {
+      const next = new Date(); next.setHours(24, 0, 5, 0);
+      return next.getTime() - Date.now();
+    })();
+    const t = setTimeout(() => load(), ms);
+    return () => clearTimeout(t);
+  }, [units.length]);
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("roadmap_sessions").update({
