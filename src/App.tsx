@@ -22,6 +22,7 @@ import PastPapers from "./pages/PastPapers";
 import FAQ from "./pages/FAQ";
 import Settings from "./pages/Settings";
 import Exams from "./pages/Exams";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
