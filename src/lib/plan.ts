@@ -86,7 +86,8 @@ export async function getPlanState(): Promise<PlanState | null> {
     data.notes_week_reset_at = today;
   }
   if (Object.keys(updates).length) {
-    await supabase.from("profiles").update(updates).eq("id", user.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await supabase.from("profiles").update(updates as any).eq("id", user.id);
   }
   return data as PlanState;
 }
