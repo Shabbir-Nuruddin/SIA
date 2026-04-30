@@ -38,6 +38,7 @@ const QuestionsPage = () => {
   const initialTopic = params.get("topic") || "";
 
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const SUBJECTS = getSubjectsForBoard(board);
   const [subject, setSubject] = useState<SubjectCode>(initialSubject);
   const [topic, setTopic] = useState(initialTopic || SUBJECTS[initialSubject].units[0].topics[0]);
   const [difficulty, setDifficulty] = useState<Difficulty>("Standard");
