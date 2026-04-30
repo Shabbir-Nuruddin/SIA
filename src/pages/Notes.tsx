@@ -29,6 +29,8 @@ interface Annotation {
 const NotesPage = () => {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const SUBJECTS = getSubjectsForBoard(board);
   const [enrolled, setEnrolled] = useState<Array<{ subject: SubjectCode; unit_number: number; unit_name: string }>>([]);
   const [openSubject, setOpenSubject] = useState<SubjectCode | null>(null);
 
