@@ -74,13 +74,36 @@ export const FloatingAssistant = () => {
     pathname.startsWith("/mock-papers/exam");
   if (hide) return null;
 
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    setImageBusy(true);
+    try {
+      const dataUrl = await fileToCompressedDataUrl(file);
+      setPendingImage(dataUrl);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't read image");
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || streaming) return;
-    const userMsg: Msg = { role: "user", content: text };
+    if ((!text && !pendingImage) || streaming) return;
+
+    // Build OpenAI-style content (multimodal when image present)
+    const content: string | ContentPart[] = pendingImage
+      ? [
+          { type: "text", text: text || "Please look at this image and help me — if it's a question, solve it; if it's my working, mark it." },
+          { type: "image_url", image_url: { url: pendingImage } },
+        ]
+      : text;
+
+    const userMsg: Msg = { role: "user", content };
     const next = [...messages, userMsg];
     setMessages(next);
     setInput("");
+    setPendingImage(null);
     setStreaming(true);
 
     try {
@@ -135,6 +158,18 @@ export const FloatingAssistant = () => {
     } finally {
       setStreaming(false);
     }
+  };
+
+  const renderUserContent = (content: Msg["content"]) => {
+    if (typeof content === "string") return content;
+    return (
+      <div className="space-y-2">
+        {content.map((part, i) => part.type === "image_url"
+          ? <img key={i} src={part.image_url.url} alt="upload" className="rounded-md max-h-40 object-contain" />
+          : <div key={i} className="whitespace-pre-wrap">{part.text}</div>
+        )}
+      </div>
+    );
   };
 
   return (
