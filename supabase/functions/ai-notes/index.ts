@@ -151,14 +151,27 @@ ABSOLUTE FORMATTING RULES:
 - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
 - UK English. Use ${boardLabel} mark scheme phrasing.`;
 
+    const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
+    const mathsBoost = isMaths
+      ? `
+
+CRITICAL — THIS IS MATHEMATICS:
+- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, in plain text, with the algebra written explicitly (e.g. "x² + 5x + 6 = 0", "Let u = 2x + 1, then du/dx = 2"). Do NOT skip steps.
+- Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern (standard case, edge case, with substitution, applied/word problem, etc.).
+- Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure.
+- For equations, every worked_substitution must show the full numeric chain, not just the final answer.
+- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, etc.).`
+      : "";
+
     const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
 
 ${syllabus_context ? `Official syllabus content (your scope is limited to this):\n${syllabus_context}\n` : ""}
+${mathsBoost}
 
 Produce notes in this exact structure via the tool:
 1. OVERVIEW — 3–4 paragraphs of flowing prose. Conceptual, like a knowledgeable teacher introducing the topic. No bullets.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
-3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks.
+3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
 5. VISUAL SUMMARY — one diagram/table/flowchart in ASCII or simple HTML table markup that captures key relationships.
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
