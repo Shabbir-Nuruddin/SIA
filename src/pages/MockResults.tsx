@@ -19,6 +19,7 @@ interface Q {
   feedback: string | null;
   model_answer: string | null;
   student_answer: string | null;
+  options: string[] | null;
   flagged: boolean;
 }
 
