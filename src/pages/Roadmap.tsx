@@ -399,8 +399,21 @@ const RoadmapPage = () => {
                       <NodeCard
                         node={node}
                         isActive={activeNodeId === node.id}
-                        onActivate={() => setActiveNodeId(node.id)}
-                        onClose={() => setActiveNodeId(null)}
+                        startStage={activeNodeId === node.id ? activeStartStage : "notes"}
+                        onActivate={() => {
+                          // For learn nodes: route to full-screen notes page first.
+                          if (node.node_type === "learn") {
+                            // Set tutor context
+                            window.dispatchEvent(new CustomEvent("apex-assistant-context", {
+                              detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
+                            }));
+                            navigate(`/roadmap/topic/${node.id}/notes`);
+                            return;
+                          }
+                          setActiveNodeId(node.id);
+                          setActiveStartStage("notes");
+                        }}
+                        onClose={() => { setActiveNodeId(null); setActiveStartStage("notes"); }}
                         onComplete={async (scorePercent) => {
                           await updateNodeStatus(node.id, {
                             status: "complete",
@@ -408,7 +421,7 @@ const RoadmapPage = () => {
                             score_percent: scorePercent ?? null,
                           } as any);
                           setActiveNodeId(null);
-                          // Schedule extra practice if score < 60
+                          setActiveStartStage("notes");
                           if (scorePercent != null && scorePercent < 60 && user && node.subject && node.topic_name) {
                             const { localDateAtOffset } = await import("@/lib/dateLocal");
                             const tomorrow = localDateAtOffset(1);
