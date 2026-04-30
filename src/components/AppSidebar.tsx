@@ -62,7 +62,6 @@ export const AppSidebar = () => {
                 : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"}`}>
               <it.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{it.label}</span>
-              {it.pro && <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-primary/15 text-primary">Pro</span>}
             </NavLink>
           );
         })}
