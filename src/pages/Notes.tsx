@@ -375,7 +375,7 @@ const NotesPage = () => {
               <div className="glass-card rounded-2xl p-12 text-center">
                 <Loader2 className="h-8 w-8 text-primary mx-auto mb-4 animate-spin" />
                 <h3 className="text-xl font-bold mb-2">Generating your {topicParam} notes...</h3>
-                <p className="text-muted-foreground text-sm">Pulling Edexcel mark-scheme phrasing and worked examples.</p>
+                <p className="text-muted-foreground text-sm">Pulling {board === "cie" ? "Cambridge (CIE)" : "Edexcel"} mark-scheme phrasing and worked examples.</p>
               </div>
             ) : notes ? (
               <div className="glass-card rounded-2xl p-6 md:p-8 relative" ref={panelRef} onMouseUp={handleMouseUp}>
