@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ApexLogo } from "@/components/ApexLogo";
-import { SUBJECT_LIST, SubjectCode, GRADES, Grade, SUBJECTS, formatDuration } from "@/lib/subjects";
+import { SUBJECT_LIST as DEFAULT_SUBJECT_LIST, SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration, BOARD_LABEL } from "@/lib/subjects";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 
@@ -37,8 +37,13 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
-  const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() =>
-    SUBJECT_LIST.reduce((a, s) => ({
+
+  const SUBJECT_LIST = Object.values(getSubjectsForBoard(board));
+  const SUBJECTS = getSubjectsForBoard(board);
+
+  const buildInitialSubjects = (b: "edexcel-ial" | "cie"): Record<SubjectCode, SubjectInput> => {
+    const list = Object.values(getSubjectsForBoard(b));
+    return list.reduce((a, s) => ({
       ...a,
       [s.code]: {
         selected: false,
@@ -49,13 +54,21 @@ const Onboarding = () => {
           [unit.number]: { selected: !unit.aLevelOnly, exam_date: defaultDate }
         }), {} as Record<number, UnitInput>),
       }
-    }), {} as Record<SubjectCode, SubjectInput>)
-  );
+    }), {} as Record<SubjectCode, SubjectInput>);
+  };
+
+  const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() => buildInitialSubjects("edexcel-ial"));
   const [statIdx, setStatIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const selectedSubjects = SUBJECT_LIST.filter(s => subjects[s.code].selected);
+  // Rebuild unit selection when board changes (CIE has different unit numbers)
+  const handleBoardChange = (b: "edexcel-ial" | "cie") => {
+    setBoard(b);
+    setSubjects(buildInitialSubjects(b));
+  };
+
+  const selectedSubjects = SUBJECT_LIST.filter(s => subjects[s.code]?.selected);
   const selectedCount = selectedSubjects.length;
 
   const updateSubject = (code: SubjectCode, patch: Partial<SubjectInput>) =>
@@ -178,7 +191,7 @@ const Onboarding = () => {
               ]).map(b => {
                 const sel = board === b.id;
                 return (
-                  <button key={b.id} onClick={() => setBoard(b.id)}
+                  <button key={b.id} onClick={() => handleBoardChange(b.id)}
                     className={`glass-card rounded-2xl p-6 text-left transition-all duration-300 hover:-translate-y-0.5 ${sel ? "border-primary glow-primary" : "hover:border-primary/30"}`}>
                     <div className="flex items-start justify-between mb-3">
                       <div className="font-bold text-lg">{b.name}</div>
@@ -214,7 +227,7 @@ const Onboarding = () => {
                       <Checkbox checked={sel} className="pointer-events-none data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
                     </div>
                     <div className="font-bold text-lg">{s.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1 font-mono">Edexcel A-Level · {s.spec}</div>
+                    <div className="text-xs text-muted-foreground mt-1 font-mono">{board === "cie" ? "Cambridge A-Level" : "Edexcel A-Level"} · {s.spec}</div>
                   </button>
                 );
               })}
@@ -257,7 +270,7 @@ const Onboarding = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-baseline justify-between gap-3 flex-wrap">
                                 <div>
-                                  <span className="font-mono text-xs text-primary mr-2">UNIT {unit.number}</span>
+                                  <span className="font-mono text-xs text-primary mr-2">{unit.unitCode || `UNIT ${unit.number}`}</span>
                                   <span className="font-semibold">{unit.name}</span>
                                   {unit.aLevelOnly && <span className="ml-2 text-[10px] uppercase font-mono text-accent">A-Level only</span>}
                                 </div>

@@ -3,13 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { formattedHtmlProps, toPlainText } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download, ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 
 interface NoteContent {
   key_definitions: { term: string; definition: string }[];
@@ -28,6 +29,8 @@ interface Annotation {
 const NotesPage = () => {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const SUBJECTS = getSubjectsForBoard(board);
   const [enrolled, setEnrolled] = useState<Array<{ subject: SubjectCode; unit_number: number; unit_name: string }>>([]);
   const [openSubject, setOpenSubject] = useState<SubjectCode | null>(null);
 
@@ -46,9 +49,12 @@ const NotesPage = () => {
   const [draftNote, setDraftNote] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Load enrolled units
+  // Load enrolled units + board
   useEffect(() => {
     if (!user) return;
+    supabase.from("profiles").select("exam_board").eq("id", user.id).single().then(({ data }) => {
+      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+    });
     supabase.from("user_subjects").select("subject,unit_number,unit_name").eq("user_id", user.id).order("subject").order("unit_number")
       .then(({ data }) => {
         if (data) {
@@ -94,12 +100,14 @@ const NotesPage = () => {
         const subjMeta = SUBJECTS[subject];
         const unitMeta = subjMeta.units.find(u => u.number === unit);
         let syllabus_context: string | undefined;
-        if (subject === "chemistry") {
+        if (board === "cie") {
+          syllabus_context = buildCieSyllabusContext(subject, topic);
+        } else if (subject === "chemistry") {
           const t = findChemistryTopic(topic);
           if (t) syllabus_context = t.statements.map(s => `${s.ref} ${s.text}`).join("\n");
         }
         const { data, error } = await supabase.functions.invoke("ai-notes", {
-          body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context },
+          body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context, board },
         });
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
@@ -302,7 +310,7 @@ const NotesPage = () => {
             <Sparkles className="h-3 w-3" /> AI Revision Notes
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
-          <p className="text-muted-foreground mt-1">Pick any topic. We'll generate Edexcel-grade notes you can highlight, annotate, and export.</p>
+          <p className="text-muted-foreground mt-1">Pick any topic. We'll generate {board === "cie" ? "Cambridge (CIE)" : "Edexcel"}-grade notes you can highlight, annotate, and export.</p>
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-6">
@@ -367,7 +375,7 @@ const NotesPage = () => {
               <div className="glass-card rounded-2xl p-12 text-center">
                 <Loader2 className="h-8 w-8 text-primary mx-auto mb-4 animate-spin" />
                 <h3 className="text-xl font-bold mb-2">Generating your {topicParam} notes...</h3>
-                <p className="text-muted-foreground text-sm">Pulling Edexcel mark-scheme phrasing and worked examples.</p>
+                <p className="text-muted-foreground text-sm">Pulling {board === "cie" ? "Cambridge (CIE)" : "Edexcel"} mark-scheme phrasing and worked examples.</p>
               </div>
             ) : notes ? (
               <div className="glass-card rounded-2xl p-6 md:p-8 relative" ref={panelRef} onMouseUp={handleMouseUp}>

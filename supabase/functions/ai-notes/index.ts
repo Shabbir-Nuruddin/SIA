@@ -131,11 +131,18 @@ serve(async (req) => {
   }
   try {
     const { subject, unit_number, unit_name, topic, syllabus_context, board, level } = await req.json();
-    const boardLabel = board || "Edexcel IAL";
+    const isCie = board === "cie";
+    const boardLabel = isCie ? "Cambridge International (CIE) A Level" : (board || "Edexcel International A-Level");
     const levelLabel = level || "A-Level";
+    const specCode = isCie
+      ? (subject === "chemistry" ? "9701" : subject === "biology" ? "9700" : subject === "physics" ? "9702" : "9709")
+      : "Edexcel IAL";
 
-    const isChem = subject === "chemistry";
-    const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher. ${isChem && syllabus_context ? "You MUST stay strictly within the official Edexcel International A-Level Chemistry specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it." : ""}
+    const scopeNote = syllabus_context
+      ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it.`
+      : "";
+
+    const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
 
 ABSOLUTE FORMATTING RULES:
 - Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math.
@@ -144,7 +151,7 @@ ABSOLUTE FORMATTING RULES:
 - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
 - UK English. Use ${boardLabel} mark scheme phrasing.`;
 
-    const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject}.
+    const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
 
 ${syllabus_context ? `Official syllabus content (your scope is limited to this):\n${syllabus_context}\n` : ""}
 
@@ -154,7 +161,7 @@ Produce notes in this exact structure via the tool:
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks.
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
 5. VISUAL SUMMARY — one diagram/table/flowchart in ASCII or simple HTML table markup that captures key relationships.
-6. EXAMINER TIPS — minimum 5, each tied to a specific command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
+6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
     const res = await fetch(GATEWAY, {

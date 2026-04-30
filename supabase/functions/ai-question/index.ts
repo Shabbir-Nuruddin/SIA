@@ -90,8 +90,9 @@ For Multiple Choice, include 4 plausible options per question.`;
       tools = [generateTool];
       toolName = "create_exam_questions";
     } else if (action === "mark") {
-      const { subject, topic, questionText, markScheme, totalMarks, studentAnswer } = body;
-      const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point.`;
+      const { subject, topic, questionText, markScheme, totalMarks, studentAnswer, board } = body;
+      const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel A-Level";
+      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing.`;
       const user = `Question (worth ${totalMarks} marks):
 ${questionText}
 

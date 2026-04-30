@@ -3,8 +3,9 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain } from "lucide-react";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ const RoadmapTopicNotes = () => {
   const [notes, setNotes] = useState<Notes | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [node, setNode] = useState<any | null>(null);
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [readSec, setReadSec] = useState(0);
 
   // Read time gate per spec — minimum 60 seconds before "I've read this" enables.
@@ -55,6 +57,11 @@ const RoadmapTopicNotes = () => {
       if (!user || !nodeId) return;
       setLoading(true);
       try {
+        // Load board
+        const { data: prof } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+        const userBoard: "edexcel-ial" | "cie" = prof?.exam_board === "cie" ? "cie" : "edexcel-ial";
+        setBoard(userBoard);
+
         const { data: nd, error: ne } = await supabase.from("roadmap_nodes").select("*").eq("id", nodeId).maybeSingle();
         if (ne) throw ne;
         if (!nd) { toast.error("Node not found"); navigate("/roadmap"); return; }
@@ -62,7 +69,7 @@ const RoadmapTopicNotes = () => {
 
         // Set tutor context
         window.dispatchEvent(new CustomEvent("apex-assistant-context", {
-          detail: { topic: nd.topic_name, subject: nd.subject, unit_name: nd.unit_name },
+          detail: { topic: nd.topic_name, subject: nd.subject, unit_name: nd.unit_name, board: userBoard },
         }));
 
         // Cache check
@@ -79,12 +86,14 @@ const RoadmapTopicNotes = () => {
           setNotes(cached.content as Notes);
         } else {
           let syllabus_context: string | undefined;
-          if (nd.subject === "chemistry" && nd.topic_name) {
+          if (userBoard === "cie" && nd.subject && nd.topic_name) {
+            syllabus_context = buildCieSyllabusContext(nd.subject as SubjectCode, nd.topic_name);
+          } else if (nd.subject === "chemistry" && nd.topic_name) {
             const t = findChemistryTopic(nd.topic_name);
             if (t) syllabus_context = `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\nOfficial assessment statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
           }
           const { data, error } = await supabase.functions.invoke("ai-notes", {
-            body: { subject: nd.subject, unit_number: nd.unit_number, unit_name: nd.unit_name, topic: nd.topic_name, syllabus_context },
+            body: { subject: nd.subject, unit_number: nd.unit_number, unit_name: nd.unit_name, topic: nd.topic_name, syllabus_context, board: userBoard },
           });
           if (error) throw error;
           if ((data as any)?.error) throw new Error((data as any).error);
@@ -101,6 +110,7 @@ const RoadmapTopicNotes = () => {
     })();
   }, [user, nodeId]);
 
+  const SUBJECTS = getSubjectsForBoard(board);
   const subjectMeta = node?.subject ? SUBJECTS[node.subject as SubjectCode] : null;
   const minRead = 60;
   const canContinue = readSec >= minRead && !loading;

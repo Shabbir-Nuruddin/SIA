@@ -7,7 +7,7 @@
 // - All dates use getLocalDateString() — never UTC
 
 import { supabase } from "@/integrations/supabase/client";
-import { SUBJECTS, SubjectCode, Grade, gradeGap } from "./subjects";
+import { SUBJECTS, SubjectCode, Grade, gradeGap, getSubjectsForBoard } from "./subjects";
 import { ROADMAP_TOPICS, isFoundationalTopic } from "./roadmapTopics";
 import { getLocalDateString, addDaysLocal, parseLocalDate, daysBetweenLocal } from "./dateLocal";
 
@@ -116,11 +116,12 @@ function whyNowBreak(): string {
   return `Your hippocampus consolidates memory during rest. This break is part of learning.`;
 }
 
-function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[]): string[] {
-  const fromSpec = ROADMAP_TOPICS[subject]?.[unitNumber];
+function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[], board: "edexcel-ial" | "cie" = "edexcel-ial"): string[] {
+  const SUBJ = getSubjectsForBoard(board);
+  const fromSpec = board === "edexcel-ial" ? ROADMAP_TOPICS[subject]?.[unitNumber] : undefined;
   const list = fromSpec && fromSpec.length > 0
     ? [...fromSpec]
-    : (SUBJECTS[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
+    : (SUBJ[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
 
   // Sort: foundational first, then weak topics bumped to front, then by spec order.
   const weakSet = new Set(
@@ -145,6 +146,7 @@ export interface BuildOpts {
   restDays?: number[]; // 0=Sun … 6=Sat
   weakTopics?: WeakTopic[];
   preserveBefore?: PlanNode[];
+  board?: "edexcel-ial" | "cie";
 }
 
 /**
@@ -161,6 +163,8 @@ export function buildNodePlan(
   const sessionsPerDay = Math.max(1, Math.floor((hoursPerDay * 60) / 25));
   const restDays = new Set(opts.restDays ?? []);
   const weakTopics = opts.weakTopics ?? [];
+  const board = opts.board ?? "edexcel-ial";
+  const SUBJ = getSubjectsForBoard(board);
 
   // Filter out exams that have already passed.
   const liveUnits = units.filter(u => daysBetweenLocal(todayIso, u.exam_date) > 0);
@@ -182,7 +186,7 @@ export function buildNodePlan(
       unit: u,
       daysToExam: days,
       urgency: urgencyScore(days),
-      topics: topicListFor(u.subject, u.unit_number, weakTopics),
+      topics: topicListFor(u.subject, u.unit_number, weakTopics, board),
       learned: [],
       learnNodeIndices: [],
     };
@@ -305,7 +309,7 @@ export function buildNodePlan(
       scheduled_date: slotIso,
       status: "locked",
       science_method: science,
-      why_now_text: whyNowLearn(item.topic, SUBJECTS[u.subject].name, states[item.unitIdx].daysToExam - curOffset),
+      why_now_text: whyNowLearn(item.topic, SUBJ[u.subject].name, states[item.unitIdx].daysToExam - curOffset),
       unlocks_after_order: order - 2,
     };
     nodes.push(learnNode);
@@ -595,7 +599,7 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
 export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {}) {
   const [{ data: subjectsRows, error: e1 }, { data: profile }, { data: weak }, { data: completed }] = await Promise.all([
     supabase.from("user_subjects").select("subject, unit_number, unit_name, exam_date, target_grade, current_grade, paper_duration_minutes").eq("user_id", userId),
-    supabase.from("profiles").select("hours_per_day, rest_days").eq("id", userId).single(),
+    supabase.from("profiles").select("hours_per_day, rest_days, exam_board").eq("id", userId).single(),
     supabase.from("topic_progress").select("subject, unit_number, topic_name, last_score_percent").eq("user_id", userId).eq("weak_flag", true),
     supabase.from("roadmap_nodes").select("*").eq("user_id", userId).eq("status", "complete").order("node_order"),
   ]);
@@ -604,6 +608,7 @@ export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {
 
   const hoursPerDay = (profile as any)?.hours_per_day ?? 2;
   const restDays = ((profile as any)?.rest_days ?? []) as number[];
+  const board: "edexcel-ial" | "cie" = (profile as any)?.exam_board === "cie" ? "cie" : "edexcel-ial";
   const preserveBefore = (completed ?? []).map((c: any) => ({ ...c })) as PlanNode[];
 
   const plan = buildNodePlan(userId, subjectsRows as UnitInput[], {
@@ -611,6 +616,7 @@ export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {
     restDays,
     weakTopics: (weak ?? []) as WeakTopic[],
     preserveBefore,
+    board,
     ...opts,
   });
   return persistNodePlan(userId, plan);

@@ -11,6 +11,7 @@ interface AssistantContext {
   topic?: string;
   subject?: string;
   unit_name?: string;
+  board?: "edexcel-ial" | "cie";
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
@@ -22,7 +23,18 @@ export const FloatingAssistant = () => {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Load board from profile so the tutor adapts to Edexcel vs CIE
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+    })();
+  }, []);
 
   // Listen for context updates from any page (e.g. Roadmap setting current node)
   useEffect(() => {
@@ -69,7 +81,7 @@ export const FloatingAssistant = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, context }),
+        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board } }),
       });
       if (!resp.ok || !resp.body) throw new Error("Tutor unavailable");
 

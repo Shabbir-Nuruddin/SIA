@@ -5,8 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { formattedHtmlProps } from "@/lib/formatText";
 import { Brain, Loader2, RefreshCw, Sparkles, CheckCircle2, ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ const QuestionsPage = () => {
   const initialTopic = params.get("topic") || "";
 
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const SUBJECTS = getSubjectsForBoard(board);
   const [subject, setSubject] = useState<SubjectCode>(initialSubject);
   const [topic, setTopic] = useState(initialTopic || SUBJECTS[initialSubject].units[0].topics[0]);
   const [difficulty, setDifficulty] = useState<Difficulty>("Standard");
@@ -69,9 +71,11 @@ const QuestionsPage = () => {
     setBatch([]); setAnswers([]); setMarks([]); setIdx(0);
     try {
       let syllabus_context: string | undefined;
-      if (subject === "chemistry") {
+      if (board === "cie") {
+        syllabus_context = buildCieSyllabusContext(subject, topic);
+      } else if (subject === "chemistry") {
         const t = findChemistryTopic(topic);
-        if (t) syllabus_context = `${board === "cie" ? "Cambridge (CIE)" : "Edexcel IAL"} Chemistry — Topic: ${t.name}\nSpec statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
+        if (t) syllabus_context = `Edexcel IAL Chemistry — Topic: ${t.name}\nSpec statements:\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
       }
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: { action: "generate", subject, topic, difficulty, questionType: qType, syllabus_context, count: BATCH_SIZE, board },
@@ -104,7 +108,7 @@ const QuestionsPage = () => {
     try {
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: {
-          action: "mark", subject, topic,
+          action: "mark", subject, topic, board,
           questionText: current.question_text, markScheme: current.mark_scheme,
           totalMarks: current.marks, studentAnswer: currentAnswer,
         },
