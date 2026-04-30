@@ -11,6 +11,8 @@ import { Slider } from "@/components/ui/slider";
 import { SUBJECTS, SubjectCode, SUBJECT_LIST, formatDuration, minutesPerMark } from "@/lib/subjects";
 import { Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 type Difficulty = "foundation" | "mixed" | "challenge";
 
