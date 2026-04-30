@@ -229,7 +229,9 @@ export type Database = {
           daily_reminder_enabled: boolean
           daily_reminder_time: string
           display_name: string | null
+          exam_board: string
           first_name: string | null
+          hours_per_day: number
           id: string
           last_name: string | null
           last_session_date: string | null
@@ -237,6 +239,7 @@ export type Database = {
           pomodoro_break_minutes: number
           pomodoro_work_minutes: number
           rest_days: number[]
+          study_start_time: string
           theme: string
           xp: number
         }
@@ -246,7 +249,9 @@ export type Database = {
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
           display_name?: string | null
+          exam_board?: string
           first_name?: string | null
+          hours_per_day?: number
           id: string
           last_name?: string | null
           last_session_date?: string | null
@@ -254,6 +259,7 @@ export type Database = {
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
           rest_days?: number[]
+          study_start_time?: string
           theme?: string
           xp?: number
         }
@@ -263,7 +269,9 @@ export type Database = {
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
           display_name?: string | null
+          exam_board?: string
           first_name?: string | null
+          hours_per_day?: number
           id?: string
           last_name?: string | null
           last_session_date?: string | null
@@ -271,8 +279,60 @@ export type Database = {
           pomodoro_break_minutes?: number
           pomodoro_work_minutes?: number
           rest_days?: number[]
+          study_start_time?: string
           theme?: string
           xp?: number
+        }
+        Relationships: []
+      }
+      roadmap_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          method: string
+          order_index: number
+          session_date: string
+          start_time: string | null
+          status: string
+          subject: string | null
+          topic_name: string | null
+          unit_number: number | null
+          user_id: string
+          why_now_text: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          method?: string
+          order_index?: number
+          session_date: string
+          start_time?: string | null
+          status?: string
+          subject?: string | null
+          topic_name?: string | null
+          unit_number?: number | null
+          user_id: string
+          why_now_text?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          method?: string
+          order_index?: number
+          session_date?: string
+          start_time?: string | null
+          status?: string
+          subject?: string | null
+          topic_name?: string | null
+          unit_number?: number | null
+          user_id?: string
+          why_now_text?: string | null
         }
         Relationships: []
       }
