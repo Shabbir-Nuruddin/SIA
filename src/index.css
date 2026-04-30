@@ -99,7 +99,8 @@
 
   html.theme-midnight { /* uses :root tokens */ }
 
-  html.theme-ocean {
+  html.theme-ocean,
+  :root.theme-ocean {
     --background: 196 45% 8%;
     --background-elevated: 196 38% 12%;
     --card: 196 35% 13%;
