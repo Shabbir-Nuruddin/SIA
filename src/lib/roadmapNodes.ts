@@ -156,6 +156,9 @@ export interface BuildOpts {
   weakTopics?: WeakTopic[];
   preserveBefore?: PlanNode[];
   board?: "edexcel-ial" | "cie";
+  /** If set, replace every unit's exam_date with today + this many days.
+   *  Used for the "just revising — no exam date" flow. */
+  overrideHorizonDays?: number;
 }
 
 /**
