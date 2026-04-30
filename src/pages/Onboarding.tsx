@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ApexLogo } from "@/components/ApexLogo";
-import { SUBJECT_LIST, SubjectCode, GRADES, Grade, SUBJECTS, formatDuration } from "@/lib/subjects";
+import { SUBJECT_LIST as DEFAULT_SUBJECT_LIST, SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration, BOARD_LABEL } from "@/lib/subjects";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 
