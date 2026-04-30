@@ -159,7 +159,7 @@ const RoadmapPage = () => {
     // eslint-disable-next-line
   }, [loading, nodes.length]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (overrideHorizonDays?: number) => {
     if (!user) return;
     setGenerating(true);
     setGenStep(0);
@@ -172,10 +172,17 @@ const RoadmapPage = () => {
     ];
     const tick = setInterval(() => setGenStep(s => Math.min(s + 1, steps.length - 1)), 700);
     try {
-      const res = await generateRoadmapForUser(user.id);
+      const res = await generateRoadmapForUser(user.id, overrideHorizonDays ? { overrideHorizonDays } : {});
       if (res.inserted === 0) {
-        toast.error("No subjects found. Complete onboarding first.");
-        navigate("/onboarding");
+        // Two distinct cases:
+        if (units.length === 0) {
+          toast.error("No subjects found. Complete onboarding first.");
+          navigate("/onboarding");
+        } else {
+          // Subjects exist but no live exam dates — keep user on this page so
+          // they can pick "just revising" or update an exam date.
+          toast.error("No future exam dates. Pick an option below to continue.");
+        }
         return;
       }
       await load();
