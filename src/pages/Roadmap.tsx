@@ -642,9 +642,9 @@ interface NotesContent {
   examiner_tips?: string[];
 }
 
-const LearnNodeFlow = ({ node, onClose, onComplete }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void> }) => {
+const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void>; initialStage?: FlowStage }) => {
   const subjectMeta = node.subject ? SUBJECTS[node.subject as SubjectCode] : null;
-  const [stage, setStage] = useState<FlowStage>("notes");
+  const [stage, setStage] = useState<FlowStage>(initialStage);
   const [notes, setNotes] = useState<NotesContent | null>(null);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [readSeconds, setReadSeconds] = useState(0);
