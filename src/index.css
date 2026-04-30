@@ -181,6 +181,8 @@
     --gradient-urgent: linear-gradient(135deg, hsl(var(--urgent)), hsl(var(--accent)));
     --gradient-hero: radial-gradient(ellipse at top, hsl(var(--primary) / 0.15), transparent 60%), hsl(var(--background));
     --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(215 17% 10%));
+  }
+}
 
 @layer utilities {
   .animate-in-up { animation: in-up 0.5s var(--tx-spring) both; }
