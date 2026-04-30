@@ -87,8 +87,8 @@ const Landing = () => {
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground max-w-[560px] mb-9 leading-relaxed">
-              Most students burn weeks on the wrong topics. Apex builds a day-by-day plan from your exam date
-              backwards — sequenced by science, prioritised by your weak spots. You just open it and follow.
+              Most students burn weeks on the wrong topics. Apex builds a day by day plan from your exam date
+              backwards, sequenced by science , prioritised by your weak spots. You just open it and follow.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
