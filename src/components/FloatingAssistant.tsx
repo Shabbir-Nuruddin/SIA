@@ -159,6 +159,8 @@ export const FloatingAssistant = () => {
           }
         }
       }
+      // Successful tutor message — bump lifetime counter for free users
+      if (planState?.plan === "free") await incrementUsage("tutor_messages");
     } catch (err) {
       setMessages(m => [...m, { role: "assistant", content: "Sorry — tutor unavailable just now. Try again in a moment." }]);
     } finally {
