@@ -48,6 +48,8 @@ export function applyTheme(name: string | null | undefined) {
   html.classList.add(`theme-${theme}`);
   if (THEMES.find(t => t.name === theme)?.isLight) html.classList.add("light");
   try { localStorage.setItem(STORAGE_KEY, theme); } catch {}
+  // eslint-disable-next-line no-console
+  console.log("[theme] applied", theme, "html.class=", html.className, "--background=", getComputedStyle(html).getPropertyValue("--background"));
 }
 
 export function getStoredTheme(): ThemeName {
