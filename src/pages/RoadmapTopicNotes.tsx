@@ -113,6 +113,7 @@ const RoadmapTopicNotes = () => {
 
   const SUBJECTS = getSubjectsForBoard(board);
   const subjectMeta = node?.subject ? SUBJECTS[node.subject as SubjectCode] : null;
+  const isMaths = node?.subject === "mathematics" || node?.subject === "maths" || node?.subject === "math";
   const minRead = 60;
   const canContinue = readSec >= minRead && !loading;
 
