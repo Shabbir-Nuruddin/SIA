@@ -256,12 +256,48 @@ const QuestionsPage = () => {
                     ))}
                   </div>
                 ) : (
-                  <Textarea value={currentAnswer} onChange={e => setCurrentAnswer(e.target.value)}
-                    placeholder="Write your answer here. Show your working."
-                    className="min-h-[180px] mb-4 font-mono text-sm" />
+                  <>
+                    <Textarea value={currentAnswer} onChange={e => setCurrentAnswer(e.target.value)}
+                      placeholder="Write your answer here. Show your working — or upload a photo of your handwritten work below."
+                      className="min-h-[180px] mb-3 font-mono text-sm" />
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={e => { handleAnswerImage(e.target.files?.[0]); e.target.value = ""; }}
+                    />
+                    {currentImage ? (
+                      <div className="relative inline-block mb-4">
+                        <img src={currentImage} alt="your working" className="max-h-48 rounded-md border border-border" />
+                        <button
+                          onClick={() => setCurrentImage(null)}
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground"
+                          aria-label="Remove image"
+                          type="button"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileRef.current?.click()}
+                        disabled={imageBusy}
+                        className="mb-4"
+                      >
+                        {imageBusy
+                          ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Reading…</>
+                          : <><ImagePlus className="h-3.5 w-3.5 mr-1.5" /> Upload photo of working</>}
+                      </Button>
+                    )}
+                  </>
                 )}
                 <div className="flex gap-3">
-                  <Button onClick={submit} disabled={loadingMark || !currentAnswer.trim()} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                  <Button onClick={submit} disabled={loadingMark || (!currentAnswer.trim() && !currentImage)} className="bg-accent hover:bg-accent/90 text-accent-foreground">
                     {loadingMark ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Marking…</> : "Submit answer"}
                   </Button>
                   <Button variant="outline" onClick={goNext} disabled={idx === batch.length - 1}>
