@@ -159,7 +159,9 @@ CRITICAL — THIS IS MATHEMATICS:
 - Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern (standard case, edge case, with substitution, applied/word problem, etc.).
 - Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure. Use $$...$$ for any equation that should be centred on its own line.
 - For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
-- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.`
+- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.
+- For key_definitions, set "plain_english" to an empty string "" — maths notes show the formal definition only.
+- For overview, keep it short and conceptual (1 paragraph max) — students want to see worked examples, not prose.`
       : "";
 
     const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
