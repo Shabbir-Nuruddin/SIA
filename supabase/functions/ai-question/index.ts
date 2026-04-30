@@ -90,20 +90,22 @@ For Multiple Choice, include 4 plausible options per question.`;
       tools = [generateTool];
       toolName = "create_exam_questions";
     } else if (action === "mark") {
-      const { subject, topic, questionText, markScheme, totalMarks, studentAnswer, board } = body;
+      const { subject, topic, questionText, markScheme, totalMarks, studentAnswer, studentAnswerImage, board } = body;
       const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel A-Level";
-      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing.`;
-      const user = `Question (worth ${totalMarks} marks):
+      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing.${studentAnswerImage ? " The student answer is provided as a photo of handwritten working — read it carefully, transcribe what you can, and mark generously where intent is clear despite handwriting." : ""}`;
+      const userText = `Question (worth ${totalMarks} marks):
 ${questionText}
 
 Mark scheme:
 ${markScheme}
 
-Student answer:
-${studentAnswer}
+${studentAnswer ? `Student answer (typed):\n${studentAnswer}\n` : ""}${studentAnswerImage ? "Student answer is in the attached image." : ""}
 
 Mark this answer. Be fair: award marks for any valid alternative wording. Be strict: don't award marks for missing key terms or incorrect calculations. Provide examiner feedback that helps the student improve.`;
-      messages = [{ role: "system", content: system }, { role: "user", content: user }];
+      const userContent: any = studentAnswerImage
+        ? [{ type: "text", text: userText }, { type: "image_url", image_url: { url: studentAnswerImage } }]
+        : userText;
+      messages = [{ role: "system", content: system }, { role: "user", content: userContent }];
       tools = [markTool];
       toolName = "mark_student_answer";
     } else {
