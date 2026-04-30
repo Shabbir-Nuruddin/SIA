@@ -116,11 +116,12 @@ function whyNowBreak(): string {
   return `Your hippocampus consolidates memory during rest. This break is part of learning.`;
 }
 
-function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[]): string[] {
-  const fromSpec = ROADMAP_TOPICS[subject]?.[unitNumber];
+function topicListFor(subject: SubjectCode, unitNumber: number, weakTopics: WeakTopic[], board: "edexcel-ial" | "cie" = "edexcel-ial"): string[] {
+  const SUBJ = getSubjectsForBoard(board);
+  const fromSpec = board === "edexcel-ial" ? ROADMAP_TOPICS[subject]?.[unitNumber] : undefined;
   const list = fromSpec && fromSpec.length > 0
     ? [...fromSpec]
-    : (SUBJECTS[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
+    : (SUBJ[subject].units.find(u => u.number === unitNumber)?.topics ?? []).slice();
 
   // Sort: foundational first, then weak topics bumped to front, then by spec order.
   const weakSet = new Set(
