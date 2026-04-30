@@ -105,6 +105,7 @@ const QuestionsPage = () => {
       if (!qs.length) throw new Error("No questions returned. Try again.");
       setBatch(qs);
       setAnswers(new Array(qs.length).fill(""));
+      setAnswerImages(new Array(qs.length).fill(null));
       setMarks(new Array(qs.length).fill(null));
 
       if (user) {
