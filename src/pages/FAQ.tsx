@@ -4,7 +4,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EXAM_FAQS, type Board } from "@/lib/examFaqs";
 import { SUBJECTS, type SubjectCode } from "@/lib/subjects";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, FileText, Loader2, AlertCircle } from "lucide-react";
+import { formattedHtmlProps } from "@/lib/formatText";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+
+interface ExamQ {
+  question_text: string;
+  marks: number;
+  mark_scheme: string;
+}
+interface TopicQState {
+  loading: boolean;
+  error: boolean;
+  questions: ExamQ[] | null;
+  expanded: Set<number>;
+}
+const cacheKey = (board: Board, subject: SubjectCode, topic: string) =>
+  `apex.faq.q.${board}.${subject}.${topic}`;
 
 const BOARD_LABEL: Record<Board, string> = {
   "edexcel-ial": "Edexcel IAL",
