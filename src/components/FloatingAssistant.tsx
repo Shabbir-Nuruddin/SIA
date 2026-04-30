@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Sparkles, X, Send, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, Loader2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { MathMarkdown } from "@/components/MathMarkdown";
+import { fileToCompressedDataUrl } from "@/lib/imageUpload";
+import { toast } from "sonner";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
 
 interface AssistantContext {
   topic?: string;
