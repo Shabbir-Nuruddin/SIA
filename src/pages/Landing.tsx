@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
 import {
   ArrowRight, Map as MapIcon, Zap, FileText, BookOpen,
-  CheckCircle2, XCircle, Star, StarHalf
+  CheckCircle2, Star, StarHalf
 } from "lucide-react";
 
 // Hosted on Unsplash — no upload needed.
