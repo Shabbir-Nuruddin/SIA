@@ -156,6 +156,9 @@ export interface BuildOpts {
   weakTopics?: WeakTopic[];
   preserveBefore?: PlanNode[];
   board?: "edexcel-ial" | "cie";
+  /** If set, replace every unit's exam_date with today + this many days.
+   *  Used for the "just revising — no exam date" flow. */
+  overrideHorizonDays?: number;
 }
 
 /**
@@ -175,8 +178,20 @@ export function buildNodePlan(
   const board = opts.board ?? "edexcel-ial";
   const SUBJ = getSubjectsForBoard(board);
 
+  // If caller asked for an override horizon, rewrite every unit's exam date
+  // to today + N days so the planner schedules a generic revision plan
+  // even when no real exam date is set / all dates have passed.
+  const workingUnits: UnitInput[] = opts.overrideHorizonDays
+    ? units.map(u => {
+        const d = new Date(today);
+        d.setDate(d.getDate() + opts.overrideHorizonDays!);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        return { ...u, exam_date: iso };
+      })
+    : units;
+
   // Filter out exams that have already passed.
-  const liveUnits = units.filter(u => daysBetweenLocal(todayIso, u.exam_date) > 0);
+  const liveUnits = workingUnits.filter(u => daysBetweenLocal(todayIso, u.exam_date) > 0);
   if (liveUnits.length === 0) return [];
 
   // Per-unit metadata

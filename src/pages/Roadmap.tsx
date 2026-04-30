@@ -159,7 +159,7 @@ const RoadmapPage = () => {
     // eslint-disable-next-line
   }, [loading, nodes.length]);
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (overrideHorizonDays?: number) => {
     if (!user) return;
     setGenerating(true);
     setGenStep(0);
@@ -172,10 +172,17 @@ const RoadmapPage = () => {
     ];
     const tick = setInterval(() => setGenStep(s => Math.min(s + 1, steps.length - 1)), 700);
     try {
-      const res = await generateRoadmapForUser(user.id);
+      const res = await generateRoadmapForUser(user.id, overrideHorizonDays ? { overrideHorizonDays } : {});
       if (res.inserted === 0) {
-        toast.error("No subjects found. Complete onboarding first.");
-        navigate("/onboarding");
+        // Two distinct cases:
+        if (units.length === 0) {
+          toast.error("No subjects found. Complete onboarding first.");
+          navigate("/onboarding");
+        } else {
+          // Subjects exist but no live exam dates — keep user on this page so
+          // they can pick "just revising" or update an exam date.
+          toast.error("No future exam dates. Pick an option below to continue.");
+        }
         return;
       }
       await load();
@@ -284,17 +291,64 @@ const RoadmapPage = () => {
         </AppLayout>
       );
     }
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const hasFutureExam = units.some(u => parseISO(u.exam_date).getTime() > todayStart.getTime());
+    const subjectNames = Array.from(new Set(units.map(u => SUBJECTS[u.subject].name))).join(", ");
+
     return (
       <AppLayout>
-        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8">
-          <div className="surface p-10 max-w-lg">
+        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+          <div className="surface p-8 md:p-10 max-w-lg w-full">
             <Sparkles className="h-8 w-8 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Build your revision path</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              {hasFutureExam ? "Build your revision path" : "How should we plan your revision?"}
+            </h2>
             <p className="text-muted-foreground text-sm mb-6">
-              We'll sequence your topics by exam urgency, interleave subjects, and auto-schedule
-              spaced reviews and mock papers — built on five evidence-based study techniques.
+              {hasFutureExam ? (
+                <>We'll sequence your topics by exam urgency, interleave subjects, and auto-schedule
+                spaced reviews and mock papers — built on five evidence-based study techniques.</>
+              ) : (
+                <>You're set up for <span className="text-foreground font-medium">{subjectNames}</span>,
+                but you don't have a future exam date. Pick how you'd like to plan.</>
+              )}
             </p>
-            <Button onClick={handleGenerate} className="btn-primary">Generate my roadmap</Button>
+
+            {hasFutureExam ? (
+              <Button onClick={() => handleGenerate()} className="btn-primary">Generate my roadmap</Button>
+            ) : (
+              <div className="space-y-3 text-left">
+                <button
+                  onClick={() => navigate("/onboarding")}
+                  className="surface surface-hover p-4 w-full flex items-start gap-3 text-left"
+                >
+                  <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">📅</div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm">Set my exam date</div>
+                    <div className="text-xs text-muted-foreground">Recommended — schedules urgency, mocks and reviews against your real exam.</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                </button>
+
+                {[
+                  { days: 28, label: "4-week sprint", sub: "Tight, intense — for quick brush-up." },
+                  { days: 56, label: "8-week revision plan", sub: "Balanced pace across all your topics." },
+                  { days: 84, label: "12-week deep plan", sub: "Slower, with more spaced reviews." },
+                ].map(opt => (
+                  <button
+                    key={opt.days}
+                    onClick={() => handleGenerate(opt.days)}
+                    className="surface surface-hover p-4 w-full flex items-start gap-3 text-left"
+                  >
+                    <div className="h-8 w-8 rounded-md bg-secondary text-foreground flex items-center justify-center shrink-0">📚</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm">{opt.label}</div>
+                      <div className="text-xs text-muted-foreground">{opt.sub}</div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </AppLayout>
@@ -466,7 +520,7 @@ const RoadmapPage = () => {
         {/* Regenerate */}
         <div className="mt-12 pt-6 border-t border-border text-center">
           <button
-            onClick={handleGenerate}
+            onClick={() => handleGenerate()}
             className="text-xs text-muted-foreground hover:text-primary transition-colors font-mono uppercase tracking-wider"
           >
             Regenerate path
