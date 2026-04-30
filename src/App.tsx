@@ -24,6 +24,7 @@ import Settings from "./pages/Settings";
 import Exams from "./pages/Exams";
 import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
+import { Terms, Privacy, Refund } from "./pages/Legal";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,9 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/exams" element={<Exams />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/refund" element={<Refund />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

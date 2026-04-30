@@ -285,10 +285,13 @@ const Landing = () => {
       <footer className="border-t border-border/50 py-10">
         <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
           <ApexLogo size={24} />
-          <p className="text-xs text-muted-foreground">© 2026 Apex · Supports Edexcel, AQA, CIE, IB</p>
-          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Supports Edexcel, AQA, CIE, IB</p>
+          <div className="flex items-center gap-5 text-xs text-muted-foreground flex-wrap justify-center">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
+            <Link to="/terms" className="hover:text-foreground transition">Terms</Link>
+            <Link to="/privacy" className="hover:text-foreground transition">Privacy</Link>
+            <Link to="/refund" className="hover:text-foreground transition">Refunds</Link>
             <Link to="/auth?mode=signup" className="hover:text-foreground transition">Sign up</Link>
           </div>
         </div>
