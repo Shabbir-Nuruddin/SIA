@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApexLogo } from "@/components/ApexLogo";
+import { getPostAuthRoute } from "@/lib/postAuthRoute";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
@@ -52,9 +53,10 @@ const AuthPage = () => {
         toast.success(`Welcome to Apex, ${fn}. Let's set up your revision plan.`);
         navigate("/diagnostic");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/dashboard");
+        const route = data.user ? await getPostAuthRoute(data.user.id) : "/dashboard";
+        navigate(route);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";

@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
+import { useAuth } from "@/contexts/AuthContext";
+import { getPostAuthRoute } from "@/lib/postAuthRoute";
 import {
   ArrowRight, Map as MapIcon, Zap, FileText, BookOpen,
   CheckCircle2, XCircle, Star, StarHalf
@@ -32,6 +35,19 @@ const Avatar = ({ name }: { name: string }) => {
 };
 
 const Landing = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // If a signed-in user lands here (e.g. after Google OAuth redirect), route them onward.
+  useEffect(() => {
+    if (loading || !user) return;
+    let cancelled = false;
+    getPostAuthRoute(user.id).then((route) => {
+      if (!cancelled) navigate(route, { replace: true });
+    });
+    return () => { cancelled = true; };
+  }, [user, loading, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -61,18 +77,18 @@ const Landing = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
               </span>
-              Built for IGCSE, AS & A Level students
+              For students who don't want to waste another hour
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.0] mb-6">
-              Your exams are coming.<br />
-              <span className="text-gradient">Stop guessing what to study.</span><br />
-              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">We build your revision plan. You just follow it.</span>
+              Study less.<br />
+              <span className="text-gradient">Score higher.</span><br />
+              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">Stop guessing what to revise — we tell you, every single day.</span>
             </h1>
 
             <p className="text-base md:text-lg text-muted-foreground max-w-[560px] mb-9 leading-relaxed">
-              Enter your exam dates. Tell us your subjects. Get a day-by-day study roadmap built around
-              your syllabus, your weaknesses, and the time you have left. Powered by AI. Backed by science.
+              Most students burn weeks on the wrong topics. Apex builds a day-by-day plan from your exam date
+              backwards — sequenced by science, prioritised by your weak spots. You just open it and follow.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
