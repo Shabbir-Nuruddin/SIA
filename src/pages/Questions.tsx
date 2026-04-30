@@ -91,6 +91,7 @@ const QuestionsPage = () => {
   };
 
   const generateBatch = async () => {
+    if (!(await checkAndWarn("questions_per_day"))) return;
     setLoadingGen(true);
     setBatch([]); setAnswers([]); setAnswerImages([]); setMarks([]); setIdx(0);
     try {
