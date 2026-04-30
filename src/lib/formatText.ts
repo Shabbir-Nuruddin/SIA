@@ -30,38 +30,78 @@ const escapeHtml = (s: string) =>
 /*  so plain "x^2", "sqrt(2)", "1/2", "\frac{a}{b}", "H_2O" render.    */
 /* ------------------------------------------------------------------ */
 
+// Match a balanced {...} block starting at index i (i points at '{').
+// Returns end index (exclusive) or -1 if unbalanced.
+const matchBraces = (s: string, i: number): number => {
+  if (s[i] !== "{") return -1;
+  let depth = 0;
+  for (let j = i; j < s.length; j++) {
+    if (s[j] === "{") depth++;
+    else if (s[j] === "}") {
+      depth--;
+      if (depth === 0) return j + 1;
+    }
+  }
+  return -1;
+};
+
+// Find spans of \frac{...}{...} or \sqrt[..]{...} with proper brace nesting.
+const wrapBalancedMacro = (text: string, macro: "frac" | "sqrt"): string => {
+  const needle = "\\" + macro;
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const k = text.indexOf(needle, i);
+    if (k === -1) { out += text.slice(i); break; }
+    out += text.slice(i, k);
+    let p = k + needle.length;
+    // optional [..] for sqrt
+    if (macro === "sqrt" && text[p] === "[") {
+      const close = text.indexOf("]", p);
+      if (close === -1) { out += text.slice(k); break; }
+      p = close + 1;
+    }
+    // skip whitespace
+    while (text[p] === " ") p++;
+    if (text[p] !== "{") { out += text.slice(k, p); i = p; continue; }
+    const end1 = matchBraces(text, p);
+    if (end1 === -1) { out += text.slice(k); break; }
+    let end = end1;
+    if (macro === "frac") {
+      let q = end1;
+      while (text[q] === " ") q++;
+      if (text[q] !== "{") { out += text.slice(k, end1); i = end1; continue; }
+      const end2 = matchBraces(text, q);
+      if (end2 === -1) { out += text.slice(k); break; }
+      end = end2;
+    }
+    out += `$${text.slice(k, end)}$`;
+    i = end;
+  }
+  return out;
+};
+
 const autoWrapMath = (text: string): string => {
-  // Skip already-delimited math segments — handled later.
-  // We split on existing math markers so we only transform prose.
   const segments = text.split(
     /(\$\$[\s\S]+?\$\$|\$[^\n$]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g
   );
   return segments
     .map((seg, i) => {
-      if (i % 2 === 1) return seg; // already math
+      if (i % 2 === 1) return seg;
       let s = seg;
-
-      // \frac{...}{...} → wrap as inline math
-      s = s.replace(/\\frac\s*\{[^{}]+\}\s*\{[^{}]+\}/g, (m) => `$${m}$`);
-
-      // \sqrt{...} or \sqrt[n]{...}
-      s = s.replace(/\\sqrt(?:\[[^\]]+\])?\s*\{[^{}]+\}/g, (m) => `$${m}$`);
-
-      // sqrt(...)  →  $\sqrt{...}$
+      s = wrapBalancedMacro(s, "frac");
+      s = wrapBalancedMacro(s, "sqrt");
+      // sqrt(...) → $\sqrt{...}$
       s = s.replace(/\bsqrt\s*\(([^()]+)\)/gi, (_m, inner) => `$\\sqrt{${inner}}$`);
-
-      // a^b, a^{...}, a_b, a_{...}  (single token)
+      // a^b / a^{..} / a_b / a_{..}
       s = s.replace(
         /\b([A-Za-z0-9])(\^|_)(\{[^}]+\}|[A-Za-z0-9+\-]+)/g,
         (_m, base, op, exp) => `$${base}${op}${exp}$`
       );
-
-      // Greek/symbol macros standing alone (\pi, \theta, \alpha, \Delta, etc.)
       s = s.replace(
         /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ)\b/g,
         (m) => `$${m}$`
       );
-
       return s;
     })
     .join("");
