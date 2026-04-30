@@ -26,10 +26,13 @@ export const FloatingAssistant = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [imageBusy, setImageBusy] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [firstName, setFirstName] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Load board + first name from profile so the tutor can personalise
