@@ -3,71 +3,130 @@ export type SubjectCode = "mathematics" | "biology" | "chemistry" | "physics";
 export interface UnitMeta {
   number: number;
   name: string;
-  paperLabel: string;        // e.g. "Paper 1, no calculator, 2 hrs"
-  durationMinutes: number;   // hardcoded paper duration
+  paperLabel: string;
+  durationMinutes: number;
   topics: string[];
   aLevelOnly?: boolean;
-  section?: string;          // optional sub-section header (e.g. Statistics / Mechanics)
+  section?: string;
+  unitCode?: string; // Display code e.g. "P1", "U4", "M2"
 }
 
 export interface SubjectMeta {
   code: SubjectCode;
   name: string;
   emoji: string;
-  spec: string;              // e.g. "9MA0"
+  spec: string;
   units: UnitMeta[];
 }
 
-const PURE_TOPICS = [
-  "Proof",
-  "Algebra and Functions",
-  "Coordinate Geometry in the (x,y) plane",
-  "Sequences and Series",
-  "Trigonometry",
-  "Exponentials and Logarithms",
-  "Differentiation",
-  "Integration",
-  "Vectors",
-];
-
+// === EDEXCEL IAL MATHS — full eight-paper structure (P1-P4, M1-M2, S1-S2) ===
 export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
   mathematics: {
     code: "mathematics",
     name: "Mathematics",
     emoji: "∑",
-    spec: "9MA0",
+    spec: "WMA / YMA",
     units: [
       {
-        number: 1,
-        name: "Pure Mathematics 1",
-        paperLabel: "Paper 1 · no calculator · 2 hrs",
-        durationMinutes: 120,
-        topics: PURE_TOPICS,
-      },
-      {
-        number: 2,
-        name: "Pure Mathematics 2 (application of Pure topics)",
-        paperLabel: "Paper 2 · calculator · 2 hrs",
-        durationMinutes: 120,
-        topics: PURE_TOPICS,
-      },
-      {
-        number: 3,
-        name: "Statistics and Mechanics",
-        paperLabel: "Paper 3 · calculator · 2 hrs",
-        durationMinutes: 120,
+        number: 1, unitCode: "P1", name: "Pure Mathematics 1",
+        paperLabel: "P1 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
         topics: [
-          // Statistics
-          "Statistical Sampling",
-          "Data Presentation and Interpretation",
-          "Probability",
-          "Statistical Distributions (Binomial, Normal)",
-          "Statistical Hypothesis Testing",
-          // Mechanics
-          "Quantities, Units and Numerical Work",
-          "Kinematics",
-          "Forces and Newton's Laws",
+          "Algebra and Functions",
+          "Coordinate Geometry",
+          "Differentiation",
+          "Integration",
+          "Trigonometry",
+          "Exponentials and Logarithms",
+          "Vectors",
+        ],
+      },
+      {
+        number: 2, unitCode: "P2", name: "Pure Mathematics 2",
+        paperLabel: "P2 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        topics: [
+          "Further Algebra",
+          "Further Coordinate Geometry",
+          "Sequences and Series",
+          "Further Trigonometry",
+          "Further Calculus",
+          "Numerical Methods",
+        ],
+      },
+      {
+        number: 3, unitCode: "P3", name: "Pure Mathematics 3",
+        paperLabel: "P3 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        aLevelOnly: true,
+        topics: [
+          "Algebra and Functions (advanced)",
+          "Further Trigonometry",
+          "Differential Equations",
+          "Further Vectors",
+          "Complex Numbers",
+        ],
+      },
+      {
+        number: 4, unitCode: "P4", name: "Pure Mathematics 4",
+        paperLabel: "P4 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        aLevelOnly: true,
+        topics: [
+          "Proof",
+          "Further Algebra",
+          "Polar Coordinates",
+          "Hyperbolic Functions",
+          "Further Differentiation and Integration",
+          "Further Vectors",
+        ],
+      },
+      {
+        number: 5, unitCode: "M1", name: "Mechanics 1",
+        paperLabel: "M1 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        topics: [
+          "Kinematics in One Dimension",
+          "Kinematics in Two Dimensions",
+          "Dynamics — Newton's Laws",
+          "Statics and Equilibrium",
           "Moments",
+        ],
+      },
+      {
+        number: 6, unitCode: "M2", name: "Mechanics 2",
+        paperLabel: "M2 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        aLevelOnly: true,
+        topics: [
+          "Projectile Motion",
+          "Rigid Bodies and Moments",
+          "Elastic Strings and Springs",
+          "Further Dynamics",
+        ],
+      },
+      {
+        number: 7, unitCode: "S1", name: "Statistics 1",
+        paperLabel: "S1 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        topics: [
+          "Representation and Summary of Data",
+          "Probability",
+          "Correlation and Regression",
+          "Discrete Random Variables",
+          "Normal Distribution",
+        ],
+      },
+      {
+        number: 8, unitCode: "S2", name: "Statistics 2",
+        paperLabel: "S2 · 1hr 30min · 75 marks",
+        durationMinutes: 90,
+        aLevelOnly: true,
+        topics: [
+          "Binomial Distribution",
+          "Poisson Distribution",
+          "Continuous Random Variables",
+          "Hypothesis Testing",
         ],
       },
     ],
@@ -77,85 +136,31 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
     code: "biology",
     name: "Biology",
     emoji: "🧬",
-    spec: "9BI0",
+    spec: "YBI / WBI",
     units: [
-      {
-        number: 1,
-        name: "Lifestyle, Transport, Genes and Health",
-        paperLabel: "Paper 1 · 1hr 45min",
-        durationMinutes: 105,
-        topics: [
-          "Cholesterol and heart disease",
-          "Lifestyle factors and health",
-          "Blood vessels and the cardiac cycle",
-          "Transport in animals (haemoglobin, oxygen dissociation)",
-          "DNA structure, protein synthesis, genetic disorders",
-          "Cell structure and microscopy",
-          "Biological molecules",
-        ],
+      { number: 1, unitCode: "U1", name: "Lifestyle, Transport, Genes and Health",
+        paperLabel: "Unit 1 · 1hr 30min", durationMinutes: 90,
+        topics: ["Lifestyle and Health", "Genes and Health"],
       },
-      {
-        number: 2,
-        name: "Development, Plants and the Environment",
-        paperLabel: "Paper 2 · 1hr 45min",
-        durationMinutes: 105,
-        topics: [
-          "Cell division (mitosis, meiosis)",
-          "Genetics and inheritance",
-          "Plant biology (photosynthesis, water transport)",
-          "Ecosystems and populations",
-          "Biodiversity",
-        ],
+      { number: 2, unitCode: "U2", name: "Development, Plants and the Environment",
+        paperLabel: "Unit 2 · 1hr 30min", durationMinutes: 90,
+        topics: ["Voice of the Genome", "Biodiversity and Natural Resources"],
       },
-      {
-        number: 3,
-        name: "Unified Biology",
-        paperLabel: "Paper 3 · 1hr 45min",
-        durationMinutes: 105,
-        topics: [
-          "Synoptic content from Units 1 and 2",
-          "Experimental skills and data analysis",
-          "Extended response questions",
-        ],
+      { number: 3, unitCode: "U3", name: "Practical Skills in Biology I",
+        paperLabel: "Unit 3 · 1hr 20min", durationMinutes: 80,
+        topics: ["On the Wild Side", "Immunity Infection and Forensics"],
       },
-      {
-        number: 4,
-        name: "Energy, Exercise and Coordination",
-        paperLabel: "Paper 4 · A-Level only · 1hr 45min",
-        durationMinutes: 105,
-        aLevelOnly: true,
-        topics: [
-          "Muscles and exercise physiology",
-          "The nervous system and coordination",
-          "Homeostasis (blood glucose, thermoregulation)",
-          "Sensory receptors",
-        ],
+      { number: 4, unitCode: "U4", name: "Energy, Environment, Microbiology and Immunity",
+        paperLabel: "Unit 4 · A2 · 1hr 45min", durationMinutes: 105, aLevelOnly: true,
+        topics: ["Run for Your Life", "Grey Matter"],
       },
-      {
-        number: 5,
-        name: "Genetics, Evolution and Ecosystems",
-        paperLabel: "Paper 5 · A-Level only · 1hr 45min",
-        durationMinutes: 105,
-        aLevelOnly: true,
-        topics: [
-          "Genetics: linkage, epistasis, chi-squared",
-          "Population genetics and evolution",
-          "Ecosystems: nutrient cycles, succession",
-          "Gene technologies (PCR, electrophoresis, genetic engineering)",
-        ],
+      { number: 5, unitCode: "U5", name: "Respiration, Internal Environment, Coordination and Gene Technology",
+        paperLabel: "Unit 5 · A2 · 1hr 45min", durationMinutes: 105, aLevelOnly: true,
+        topics: ["Microbiology and Pathogens", "Genetics and Gene Expression"],
       },
-      {
-        number: 6,
-        name: "Practical Biology and Research Skills",
-        paperLabel: "Paper 6 · A-Level only · 1hr 20min",
-        durationMinutes: 80,
-        aLevelOnly: true,
-        topics: [
-          "Planning, implementing, and analysing experiments",
-          "Statistical tests",
-          "Evaluation and conclusions",
-          "Research skills",
-        ],
+      { number: 6, unitCode: "U6", name: "Practical Skills in Biology II",
+        paperLabel: "Unit 6 · A2 · 1hr 20min", durationMinutes: 80, aLevelOnly: true,
+        topics: ["Practical Skills Assessment"],
       },
     ],
   },
@@ -164,81 +169,65 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
     code: "chemistry",
     name: "Chemistry",
     emoji: "⚗",
-    spec: "YCH11",
+    spec: "YCH / WCH",
     units: [
-      {
-        number: 1,
-        name: "Structure, Bonding and Introduction to Organic Chemistry",
-        paperLabel: "Unit 1 · IAS · 1hr 30min · 80 marks",
-        durationMinutes: 90,
+      { number: 1, unitCode: "U1", name: "Structure, Bonding and Introduction to Organic Chemistry",
+        paperLabel: "Unit 1 · IAS · 1hr 30min · 80 marks", durationMinutes: 90,
         topics: [
-          "Topic 1: Formulae, Equations and Amount of Substance",
-          "Topic 2: Atomic Structure and the Periodic Table",
-          "Topic 3: Bonding and Structure",
-          "Topic 4: Introductory Organic Chemistry and Alkanes",
-          "Topic 5: Alkenes",
+          "Formulae, Equations and Amount of Substance",
+          "Atomic Structure and the Periodic Table",
+          "Bonding and Structure",
+          "Introductory Organic Chemistry and Alkanes",
+          "Alkenes",
         ],
       },
-      {
-        number: 2,
-        name: "Energetics, Group Chemistry, Halogenoalkanes and Alcohols",
-        paperLabel: "Unit 2 · IAS · 1hr 30min · 80 marks",
-        durationMinutes: 90,
+      { number: 2, unitCode: "U2", name: "Energetics, Group Chemistry, Halogenoalkanes and Alcohols",
+        paperLabel: "Unit 2 · IAS · 1hr 30min · 80 marks", durationMinutes: 90,
         topics: [
-          "Topic 6: Energetics",
-          "Topic 7: Intermolecular Forces",
-          "Topic 8: Redox Chemistry and Groups 1, 2 and 7",
-          "Topic 9: Introduction to Kinetics and Equilibria",
-          "Topic 10: Organic Chemistry: Halogenoalkanes, Alcohols and Spectra",
+          "Energetics",
+          "Intermolecular Forces",
+          "Redox Chemistry and Groups 1, 2 and 7",
+          "Introduction to Kinetics and Equilibria",
+          "Halogenoalkanes, Alcohols and Spectra",
         ],
       },
-      {
-        number: 3,
-        name: "Practical Skills in Chemistry I",
-        paperLabel: "Unit 3 · IAS · 1hr 20min · 50 marks",
-        durationMinutes: 80,
+      { number: 3, unitCode: "U3", name: "Practical Skills in Chemistry I",
+        paperLabel: "Unit 3 · IAS · 1hr 20min · 50 marks", durationMinutes: 80,
         topics: [
-          "Practical techniques covered in Units 1 and 2",
+          "Practical techniques (Units 1 & 2)",
           "Data analysis, uncertainties and evaluation",
           "Tests for ions, gases and organic functional groups",
         ],
       },
-      {
-        number: 4,
-        name: "Rates, Equilibria and Further Organic Chemistry",
-        paperLabel: "Unit 4 · IA2 · 1hr 45min · 90 marks",
-        durationMinutes: 105,
-        aLevelOnly: true,
+      { number: 4, unitCode: "U4", name: "Rates, Equilibria and Further Organic Chemistry",
+        paperLabel: "Unit 4 · IA2 · 1hr 45min · 90 marks", durationMinutes: 105, aLevelOnly: true,
         topics: [
-          "Topic 11: Kinetics",
-          "Topic 12: Entropy and Energetics",
-          "Topic 13: Chemical Equilibria",
-          "Topic 14: Acid-base Equilibria",
-          "Topic 15: Organic Chemistry: Carbonyls, Carboxylic Acids and Chirality",
+          "Kinetics",
+          "Entropy and Energetics",
+          "Chemical Equilibria",
+          "Acid-base Equilibria",
+          "Electrochemistry",
+          "Transition Metals",
+          "Reactions of Inorganic Compounds in Aqueous Solution",
         ],
       },
-      {
-        number: 5,
-        name: "Transition Metals and Organic Nitrogen Chemistry",
-        paperLabel: "Unit 5 · IA2 · 1hr 45min · 90 marks",
-        durationMinutes: 105,
-        aLevelOnly: true,
+      { number: 5, unitCode: "U5", name: "Transition Metals and Organic Nitrogen Chemistry",
+        paperLabel: "Unit 5 · IA2 · 1hr 45min · 90 marks", durationMinutes: 105, aLevelOnly: true,
         topics: [
-          "Topic 16: Redox Equilibria, Transition Metals and Inorganic Chemistry",
-          "Topic 17: Organic Nitrogen Chemistry: Amines, Amides, Amino Acids and Proteins",
-          "Topic 18: Organic Synthesis, Aromatic Chemistry and Modern Analytical Techniques",
+          "Arenes",
+          "Aldehydes and Ketones",
+          "Carboxylic Acids and Derivatives",
+          "Nitrogen Compounds",
+          "Polymerisation",
+          "Chemical Analysis and Detection",
         ],
       },
-      {
-        number: 6,
-        name: "Practical Skills in Chemistry II",
-        paperLabel: "Unit 6 · IA2 · 1hr 20min · 50 marks",
-        durationMinutes: 80,
-        aLevelOnly: true,
+      { number: 6, unitCode: "U6", name: "Practical Skills in Chemistry II",
+        paperLabel: "Unit 6 · IA2 · 1hr 20min · 50 marks", durationMinutes: 80, aLevelOnly: true,
         topics: [
-          "Practical techniques covered in Units 4 and 5",
-          "Quantitative analysis and evaluation",
-          "Planning and research skills",
+          "Planning, Implementing and Safety",
+          "Analysis and Evaluation",
+          "Experimental Techniques",
         ],
       },
     ],
@@ -248,80 +237,31 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
     code: "physics",
     name: "Physics",
     emoji: "⚛",
-    spec: "9PH0",
+    spec: "YPH / WPH",
     units: [
-      {
-        number: 1,
-        name: "Mechanics and Materials",
-        paperLabel: "Paper 1 · 1hr 45min",
-        durationMinutes: 105,
-        topics: [
-          "Working as a Physicist (SI units, errors, sig figs)",
-          "Mechanics (scalars/vectors, SUVAT, projectiles, Newton's laws)",
-          "Materials (stress, strain, Young's modulus, elastic/plastic)",
-          "Further Mechanics (momentum, collisions, circular motion)",
-        ],
+      { number: 1, unitCode: "U1", name: "Mechanics and Materials",
+        paperLabel: "Unit 1 · 1hr 30min", durationMinutes: 90,
+        topics: ["Mechanics", "Electric Circuits"],
       },
-      {
-        number: 2,
-        name: "Waves and Electricity",
-        paperLabel: "Paper 2 · 1hr 45min",
-        durationMinutes: 105,
-        topics: [
-          "Waves (transverse, longitudinal, superposition, diffraction)",
-          "Particle nature of light (photoelectric effect, de Broglie)",
-          "Electric circuits (Ohm's law, EMF, internal resistance, power, potential dividers)",
-          "Capacitors (charge/discharge, time constants)",
-        ],
+      { number: 2, unitCode: "U2", name: "Waves and Electricity",
+        paperLabel: "Unit 2 · 1hr 30min", durationMinutes: 90,
+        topics: ["Waves and the Particle Nature of Light"],
       },
-      {
-        number: 3,
-        name: "Practical Physics",
-        paperLabel: "Paper 3 · AS only · 1hr 30min",
-        durationMinutes: 90,
-        topics: [
-          "Experimental design, data collection",
-          "Graph analysis, uncertainties, conclusions",
-        ],
+      { number: 3, unitCode: "U3", name: "Practical Skills in Physics I",
+        paperLabel: "Unit 3 · 1hr 20min", durationMinutes: 80,
+        topics: ["Practical Assessment"],
       },
-      {
-        number: 4,
-        name: "Further Mechanics, Fields and Particles",
-        paperLabel: "Paper 4 · A-Level only · 1hr 45min",
-        durationMinutes: 105,
-        aLevelOnly: true,
-        topics: [
-          "Further Mechanics (simple harmonic motion, resonance)",
-          "Electric and magnetic fields (Coulomb's law, capacitors in fields, magnetic force, electromagnetic induction, transformers)",
-          "Nuclear and particle physics (radioactive decay, nuclear energy, particle accelerators, the Standard Model)",
-        ],
+      { number: 4, unitCode: "U4", name: "Further Mechanics, Fields and Particles",
+        paperLabel: "Unit 4 · A2 · 1hr 45min", durationMinutes: 105, aLevelOnly: true,
+        topics: ["Further Mechanics", "Electric and Magnetic Fields", "Nuclear and Particle Physics"],
       },
-      {
-        number: 5,
-        name: "Thermodynamics, Radiation, Oscillations and Cosmology",
-        paperLabel: "Paper 5 · A-Level only · 1hr 45min",
-        durationMinutes: 105,
-        aLevelOnly: true,
-        topics: [
-          "Thermodynamics (Boltzmann constant, ideal gases, specific heat)",
-          "Radiation (blackbody radiation, Wien's law, Stefan-Boltzmann)",
-          "Gravitational fields (Newton's law, orbital motion, escape velocity)",
-          "Oscillations (SHM equations, damping, forced oscillations)",
-          "Space and cosmology (Hubble's law, Big Bang, stellar evolution)",
-        ],
+      { number: 5, unitCode: "U5", name: "Thermodynamics, Radiation, Oscillations and Cosmology",
+        paperLabel: "Unit 5 · A2 · 1hr 45min", durationMinutes: 105, aLevelOnly: true,
+        topics: ["Thermodynamics", "Nuclear Radiation", "Oscillations and Cosmology"],
       },
-      {
-        number: 6,
-        name: "Practical Physics and Research Skills",
-        paperLabel: "Paper 6 · A-Level only · 1hr 20min",
-        durationMinutes: 80,
-        aLevelOnly: true,
-        topics: [
-          "Planning investigations",
-          "Implementing and recording results",
-          "Analysing and evaluating",
-          "Research skills and scientific communication",
-        ],
+      { number: 6, unitCode: "U6", name: "Practical Skills in Physics II",
+        paperLabel: "Unit 6 · A2 · 1hr 20min", durationMinutes: 80, aLevelOnly: true,
+        topics: ["Practical Assessment"],
       },
     ],
   },
@@ -335,6 +275,19 @@ export type Grade = typeof GRADES[number];
 export const gradeGap = (target: Grade, current: Grade): number => {
   const idx = (g: Grade) => GRADES.indexOf(g);
   return Math.max(0, idx(current) - idx(target));
+};
+
+// Helper: short unit label like "Maths P1" or "Chemistry U4"
+export const unitShortLabel = (subject: SubjectCode, unit_number: number | null | undefined): string => {
+  const meta = SUBJECTS[subject];
+  if (!meta || unit_number == null) return meta?.name ?? "";
+  const u = meta.units.find(x => x.number === unit_number);
+  const code = u?.unitCode ?? `U${unit_number}`;
+  const subShort = subject === "mathematics" ? "Maths"
+                 : subject === "biology" ? "Biology"
+                 : subject === "chemistry" ? "Chemistry"
+                 : "Physics";
+  return `${subShort} ${code}`;
 };
 
 export const urgencyScore = (gap: number, daysToExam: number): { value: number; level: "urgent" | "moderate" | "track"; color: string } => {
@@ -354,33 +307,28 @@ export const formatDuration = (mins: number): string => {
   return `${m}m`;
 };
 
-// Grade boundaries — indicative, recent Edexcel data
+// Edexcel IAL grade boundaries — indicative, recent data.
 export interface GradeBoundary { grade: string; minPercent: number; }
 export const GRADE_BOUNDARIES: Record<SubjectCode, GradeBoundary[]> = {
   mathematics: [
-    { grade: "A*", minPercent: 75 },
-    { grade: "A", minPercent: 65 },
-    { grade: "B", minPercent: 55 },
-    { grade: "C", minPercent: 45 },
-    { grade: "D", minPercent: 35 },
+    { grade: "A*", minPercent: 90 },
+    { grade: "A", minPercent: 80 },
+    { grade: "B", minPercent: 70 },
+    { grade: "C", minPercent: 60 },
+    { grade: "D", minPercent: 50 },
+    { grade: "E", minPercent: 40 },
   ],
   biology: [
-    { grade: "A", minPercent: 69 },
-    { grade: "B", minPercent: 59 },
-    { grade: "C", minPercent: 49 },
-    { grade: "D", minPercent: 40 },
+    { grade: "A*", minPercent: 90 }, { grade: "A", minPercent: 80 }, { grade: "B", minPercent: 70 },
+    { grade: "C", minPercent: 60 }, { grade: "D", minPercent: 50 }, { grade: "E", minPercent: 40 },
   ],
   chemistry: [
-    { grade: "A", minPercent: 70 },
-    { grade: "B", minPercent: 60 },
-    { grade: "C", minPercent: 50 },
-    { grade: "D", minPercent: 41 },
+    { grade: "A*", minPercent: 90 }, { grade: "A", minPercent: 80 }, { grade: "B", minPercent: 70 },
+    { grade: "C", minPercent: 60 }, { grade: "D", minPercent: 50 }, { grade: "E", minPercent: 40 },
   ],
   physics: [
-    { grade: "A", minPercent: 68 },
-    { grade: "B", minPercent: 58 },
-    { grade: "C", minPercent: 48 },
-    { grade: "D", minPercent: 39 },
+    { grade: "A*", minPercent: 90 }, { grade: "A", minPercent: 80 }, { grade: "B", minPercent: 70 },
+    { grade: "C", minPercent: 60 }, { grade: "D", minPercent: 50 }, { grade: "E", minPercent: 40 },
   ],
 };
 
@@ -394,14 +342,13 @@ export const estimateGrade = (subject: SubjectCode, awarded: number, total: numb
 
 export const gradeColor = (grade: string): string => {
   switch (grade) {
-    case "A*": return "hsl(45 95% 55%)";    // gold
-    case "A":  return "hsl(152 76% 48%)";   // green
-    case "B":  return "hsl(210 90% 60%)";   // blue
-    case "C":  return "hsl(36 92% 55%)";    // amber
-    default:   return "hsl(230 12% 60%)";   // grey
+    case "A*": return "hsl(45 95% 55%)";
+    case "A":  return "hsl(152 76% 48%)";
+    case "B":  return "hsl(210 90% 60%)";
+    case "C":  return "hsl(36 92% 55%)";
+    default:   return "hsl(230 12% 60%)";
   }
 };
 
-// Recommended timing per subject
 export const minutesPerMark = (subject: SubjectCode): number =>
   subject === "mathematics" ? 1.4 : 1.2;

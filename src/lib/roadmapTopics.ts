@@ -1,5 +1,5 @@
-// Hardcoded roadmap topic lists per the spec (Edexcel IAL — fully supported).
-// These supersede the topic lists in src/lib/subjects.ts when generating the roadmap.
+// Hardcoded roadmap topic lists per the spec — Edexcel IAL fully supported.
+// These supersede topic lists in src/lib/subjects.ts when generating the roadmap.
 
 import type { SubjectCode } from "./subjects";
 
@@ -53,27 +53,29 @@ export const ROADMAP_TOPICS: Record<SubjectCode, Record<number, string[]>> = {
     2: ["Voice of the Genome", "Biodiversity and Natural Resources"],
     3: ["On the Wild Side", "Immunity Infection and Forensics"],
     4: ["Run for Your Life", "Grey Matter"],
-    5: ["Batty About Bacteria (Microbiology)", "Cystic Fibrosis Gene Therapy"],
-    6: ["Practical Skills"],
+    5: ["Microbiology and Pathogens", "Genetics and Gene Expression"],
+    6: ["Practical Skills Assessment"],
   },
 
   physics: {
     1: ["Mechanics", "Electric Circuits"],
     2: ["Waves and the Particle Nature of Light"],
-    3: ["Practical"],
+    3: ["Practical Assessment"],
     4: ["Further Mechanics", "Electric and Magnetic Fields", "Nuclear and Particle Physics"],
     5: ["Thermodynamics", "Nuclear Radiation", "Oscillations and Cosmology"],
-    6: ["Practical"],
+    6: ["Practical Assessment"],
   },
 
-  // For Maths we use unit numbers 1..8 to map P1..P4, M1..M2, S1..S2.
-  // The subjects.ts spec only defines P1, P2, P3 as units 1/2/3, so when a user has those units,
-  // we serve the spec topic list; otherwise we fall back to the existing topics list.
+  // Maths — units 1..8 = P1, P2, P3, P4, M1, M2, S1, S2.
   mathematics: {
     1: ["Algebra and Functions", "Coordinate Geometry", "Differentiation", "Integration", "Trigonometry", "Exponentials and Logarithms", "Vectors"],
-    2: ["Further Algebra", "Series", "Further Calculus", "Further Trigonometry", "Numerical Methods"],
-    3: ["Functions", "Further Trigonometry", "Differential Equations", "Vectors (3D)", "Complex Numbers"],
-    4: ["Proof", "Polar Coordinates", "Hyperbolic Functions", "Further Differentiation", "Further Integration", "Further Vectors"],
+    2: ["Further Algebra", "Further Coordinate Geometry", "Sequences and Series", "Further Trigonometry", "Further Calculus", "Numerical Methods"],
+    3: ["Algebra and Functions (advanced)", "Further Trigonometry", "Differential Equations", "Further Vectors", "Complex Numbers"],
+    4: ["Proof", "Further Algebra", "Polar Coordinates", "Hyperbolic Functions", "Further Differentiation and Integration", "Further Vectors"],
+    5: ["Kinematics in One Dimension", "Kinematics in Two Dimensions", "Dynamics — Newton's Laws", "Statics and Equilibrium", "Moments"],
+    6: ["Projectile Motion", "Rigid Bodies and Moments", "Elastic Strings and Springs", "Further Dynamics"],
+    7: ["Representation and Summary of Data", "Probability", "Correlation and Regression", "Discrete Random Variables", "Normal Distribution"],
+    8: ["Binomial Distribution", "Poisson Distribution", "Continuous Random Variables", "Hypothesis Testing"],
   },
 };
 
@@ -86,6 +88,8 @@ const FOUNDATIONAL_KEYWORDS = [
   "mechanics",
   "lifestyle",
   "genes and health",
+  "kinematics in one dimension",
+  "representation and summary",
 ];
 
 export function isFoundationalTopic(topic: string): boolean {
