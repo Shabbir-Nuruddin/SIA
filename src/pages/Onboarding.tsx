@@ -99,6 +99,26 @@ const Onboarding = () => {
       const { error: e2 } = await supabase.from("profiles").update({ onboarded: true }).eq("id", user.id);
       if (e2) throw e2;
 
+      // Persist the generated roadmap so Today's Plan has sessions to render
+      try {
+        const { generateAndPersistRoadmap } = await import("@/lib/persistRoadmap");
+        await generateAndPersistRoadmap(
+          user.id,
+          rows.map(r => ({
+            subject: r.subject,
+            unit_number: r.unit_number,
+            unit_name: r.unit_name,
+            exam_date: r.exam_date,
+            target_grade: r.target_grade,
+            current_grade: r.current_grade,
+          })),
+          { weeklyMinutes: 14 * 60, studyStartTime: "16:00" }
+        );
+      } catch (rmErr) {
+        console.error("Roadmap persistence failed", rmErr);
+        // non-fatal — user can regenerate from Settings/Roadmap
+      }
+
       setStep(4);
       const interval = setInterval(() => {
         setProgress(p => {
