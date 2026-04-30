@@ -270,7 +270,7 @@ const Onboarding = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-baseline justify-between gap-3 flex-wrap">
                                 <div>
-                                  <span className="font-mono text-xs text-primary mr-2">UNIT {unit.number}</span>
+                                  <span className="font-mono text-xs text-primary mr-2">{unit.unitCode || `UNIT ${unit.number}`}</span>
                                   <span className="font-semibold">{unit.name}</span>
                                   {unit.aLevelOnly && <span className="ml-2 text-[10px] uppercase font-mono text-accent">A-Level only</span>}
                                 </div>
