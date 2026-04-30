@@ -479,6 +479,35 @@ export const CIE_MATHS_TOPICS: CIESyllabusTopic[] = [
     { ref: "8.1", text: "integration as reverse of differentiation; ∫x^n dx" },
     { ref: "8.2", text: "definite integrals; areas under curves; volumes of revolution about x and y axes" },
   ]},
+  // Pure 2 (Paper 2 — AS extension, also feeds into A2)
+  { number: 28, unit: 2, name: "Algebra (P2)", statements: [
+    { ref: "P2.1.1", text: "modulus function |x|; graphs of y = |ax + b|; solve equations and inequalities involving the modulus" },
+    { ref: "P2.1.2", text: "polynomial division; factor and remainder theorems for polynomials up to degree 4" },
+    { ref: "P2.1.3", text: "sketch graphs of polynomial functions and locate roots" },
+  ]},
+  { number: 29, unit: 2, name: "Logarithmic & exponential functions (P2)", statements: [
+    { ref: "P2.2.1", text: "definitions and properties of e^x and ln x; graphs and inverse relationship" },
+    { ref: "P2.2.2", text: "laws of logarithms; solving equations of form a^x = b and reducing relations to linear form (e.g. y = kx^n, y = ka^x)" },
+  ]},
+  { number: 30, unit: 2, name: "Trigonometry (P2)", statements: [
+    { ref: "P2.3.1", text: "secant, cosecant, cotangent and their graphs" },
+    { ref: "P2.3.2", text: "identities 1 + tan²x = sec²x and 1 + cot²x = cosec²x" },
+    { ref: "P2.3.3", text: "expansions of sin(A ± B), cos(A ± B), tan(A ± B); double angle formulae" },
+    { ref: "P2.3.4", text: "expressions of the form a sinθ + b cosθ as R sin(θ ± α) or R cos(θ ± α); solving trig equations" },
+  ]},
+  { number: 31, unit: 2, name: "Differentiation (P2)", statements: [
+    { ref: "P2.4.1", text: "differentiate e^x, ln x, sin x, cos x, tan x and combinations using chain, product and quotient rules" },
+    { ref: "P2.4.2", text: "applications: tangents, normals, stationary points, increasing/decreasing functions, connected rates of change" },
+  ]},
+  { number: 32, unit: 2, name: "Integration (P2)", statements: [
+    { ref: "P2.5.1", text: "integrate e^(ax + b), 1/(ax + b), sin(ax + b), cos(ax + b), sec²(ax + b)" },
+    { ref: "P2.5.2", text: "definite integrals; areas under and between curves" },
+    { ref: "P2.5.3", text: "trapezium rule; estimate areas and recognise over- or under-estimates from concavity" },
+  ]},
+  { number: 33, unit: 2, name: "Numerical solution of equations (P2)", statements: [
+    { ref: "P2.6.1", text: "locate a root by sign change; understand limitations" },
+    { ref: "P2.6.2", text: "rearrange f(x) = 0 to x = F(x); use iterative formula x_{n+1} = F(x_n); convergence and divergence behaviour" },
+  ]},
   // Pure 3 (Paper 3 — A2)
   { number: 9, unit: 3, name: "Algebra (P3)", statements: [
     { ref: "9.1", text: "modulus inequalities; |x − a| < b" },
