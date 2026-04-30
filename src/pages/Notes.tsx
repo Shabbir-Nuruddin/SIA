@@ -420,10 +420,10 @@ const NotesPage = () => {
                   <div className="rounded-lg bg-secondary/40 p-4 text-sm space-y-3">
                     <div>
                       <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1">Problem</div>
-                      <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.worked_example.problem)) }} />
+                      <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.worked_example?.problem ?? "")) }} />
                     </div>
                     <ol className="space-y-2 list-decimal pl-5">
-                      {notes.worked_example.steps.map((s, i) => (
+                      {(notes.worked_example?.steps ?? []).map((s, i) => (
                         <li key={i}>
                           <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(s.step)) }} />
                           <div className="text-xs text-muted-foreground mt-0.5" dangerouslySetInnerHTML={{ __html: formatToHtml(s.reason) }} />
@@ -432,7 +432,7 @@ const NotesPage = () => {
                     </ol>
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-mono text-success mr-2">Answer</span>
-                      <span className="font-mono font-bold" dangerouslySetInnerHTML={{ __html: formatToHtml(notes.worked_example.answer) }} />
+                      <span className="font-mono font-bold" dangerouslySetInnerHTML={{ __html: formatToHtml(notes.worked_example?.answer ?? "") }} />
                     </div>
                   </div>
                 </Section>
