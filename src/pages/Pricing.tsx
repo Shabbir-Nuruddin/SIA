@@ -21,7 +21,7 @@ const TIERS: Tier[] = [
     id: "free",
     name: "Starter",
     tagline: "Get a real taste of Apex.",
-    price: "£0",
+    price: "AED 0",
     cadence: "forever",
     Icon: Sparkles,
     features: [
@@ -38,7 +38,7 @@ const TIERS: Tier[] = [
     id: "pro",
     name: "Pro",
     tagline: "The plan most students pick. Built for exam season.",
-    price: "£9",
+    price: "AED 39",
     cadence: "/ month",
     Icon: Zap,
     highlight: true,
@@ -61,7 +61,7 @@ const TIERS: Tier[] = [
     id: "advanced",
     name: "Advanced",
     tagline: "For top-grade hunters and full-on offer holders.",
-    price: "£29",
+    price: "AED 129",
     cadence: "/ month",
     Icon: Crown,
     features: [
@@ -156,7 +156,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. UK VAT included. Pause your subscription during holidays.
+          Cancel anytime. VAT included. Pause your subscription during holidays.
         </div>
       </div>
     </AppLayout>
