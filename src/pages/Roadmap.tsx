@@ -384,7 +384,8 @@ const RoadmapPage = () => {
                           setActiveNodeId(null);
                           // Schedule extra practice if score < 60
                           if (scorePercent != null && scorePercent < 60 && user && node.subject && node.topic_name) {
-                            const tomorrow = format(new Date(Date.now() + 86400000), "yyyy-MM-dd");
+                            const { localDateAtOffset } = await import("@/lib/dateLocal");
+                            const tomorrow = localDateAtOffset(1);
                             const maxOrder = Math.max(...nodes.map(n => n.node_order));
                             await supabase.from("roadmap_nodes").insert({
                               user_id: user.id,
