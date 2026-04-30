@@ -3,8 +3,9 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
+import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain } from "lucide-react";
 import { toast } from "sonner";
 
