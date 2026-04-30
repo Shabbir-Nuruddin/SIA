@@ -10,6 +10,8 @@ import { ArrowRight, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } f
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
+import { computeUrgency } from "@/lib/urgency";
+import { TutorialOverlay } from "@/components/TutorialOverlay";
 
 interface SessionRow {
   id: string;
