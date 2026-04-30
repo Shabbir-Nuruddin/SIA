@@ -11,6 +11,7 @@ interface AssistantContext {
   topic?: string;
   subject?: string;
   unit_name?: string;
+  board?: "edexcel-ial" | "cie";
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
