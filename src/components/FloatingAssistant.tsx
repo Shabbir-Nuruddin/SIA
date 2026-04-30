@@ -23,7 +23,18 @@ export const FloatingAssistant = () => {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Load board from profile so the tutor adapts to Edexcel vs CIE
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+    })();
+  }, []);
 
   // Listen for context updates from any page (e.g. Roadmap setting current node)
   useEffect(() => {
