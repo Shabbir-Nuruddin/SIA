@@ -1,4 +1,5 @@
 export type SubjectCode = "mathematics" | "biology" | "chemistry" | "physics";
+export type Board = "edexcel-ial" | "cie";
 
 export interface UnitMeta {
   number: number;
@@ -19,7 +20,7 @@ export interface SubjectMeta {
   units: UnitMeta[];
 }
 
-// === EDEXCEL IAL MATHS — full eight-paper structure (P1-P4, M1-M2, S1-S2) ===
+// === EDEXCEL IAL — full default catalogue (Maths P1–4/M1–2/S1–2, Sciences U1–6) ===
 export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
   mathematics: {
     code: "mathematics",
