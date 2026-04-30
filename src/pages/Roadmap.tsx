@@ -142,6 +142,23 @@ const RoadmapPage = () => {
     }
   }, [loading]);
 
+  // Handle ?continue=<nodeId> — when returning from full-screen notes,
+  // open that node inline starting at the elaboration stage.
+  useEffect(() => {
+    if (loading || nodes.length === 0) return;
+    const continueId = searchParams.get("continue");
+    if (!continueId) return;
+    const target = nodes.find(n => n.id === continueId);
+    if (target && target.node_type === "learn" && (target.status === "unlocked" || target.status === "in_progress")) {
+      setActiveNodeId(continueId);
+      setActiveStartStage("elaboration");
+      setTimeout(() => nodeRefs.current[continueId]?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+    }
+    searchParams.delete("continue");
+    setSearchParams(searchParams, { replace: true });
+    // eslint-disable-next-line
+  }, [loading, nodes.length]);
+
   const handleGenerate = async () => {
     if (!user) return;
     setGenerating(true);
