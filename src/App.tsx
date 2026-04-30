@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
+import Diagnostic from "./pages/Diagnostic";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Questions from "./pages/Questions";
@@ -14,6 +15,7 @@ import NewMockPaper from "./pages/NewMockPaper";
 import MockExam from "./pages/MockExam";
 import MockResults from "./pages/MockResults";
 import Roadmap from "./pages/Roadmap";
+import RoadmapTopicNotes from "./pages/RoadmapTopicNotes";
 import { StubPage } from "./components/StubPage";
 import Notes from "./pages/Notes";
 import Settings from "./pages/Settings";
@@ -31,6 +33,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/diagnostic" element={<Diagnostic />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<Questions />} />
@@ -39,6 +42,7 @@ const App = () => (
             <Route path="/mock-papers/exam/:id" element={<MockExam />} />
             <Route path="/mock-papers/:id/results" element={<MockResults />} />
             <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/papers" element={<StubPage title="Past Papers" subtitle="Edexcel papers, mark schemes, and grade boundaries." />} />
             <Route path="/settings" element={<Settings />} />
