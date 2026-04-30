@@ -252,3 +252,23 @@ export const toFormattedHtml = (input: string): string => {
 export const formattedHtmlProps = (input: string) => ({
   dangerouslySetInnerHTML: { __html: toFormattedHtml(input) },
 });
+
+/**
+ * Replace $$...$$ and $...$ inside an arbitrary string (HTML or plain text)
+ * with KaTeX-rendered HTML, leaving the surrounding markup untouched. Use for
+ * AI-generated tables / ASCII diagrams that already contain HTML structure
+ * but embed LaTeX fragments.
+ */
+export const renderMathInString = (input: string): string => {
+  if (!input) return "";
+  let s = autoWrapMath(input);
+  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => renderMath(tex, true));
+  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => renderMath(tex, true));
+  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => renderMath(tex, false));
+  s = s.replace(/\$([^\n$]+?)\$/g, (_m, tex) => renderMath(tex, false));
+  return s;
+};
+
+export const renderedMathHtmlProps = (input: string) => ({
+  dangerouslySetInnerHTML: { __html: renderMathInString(input) },
+});
