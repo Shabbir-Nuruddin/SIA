@@ -193,7 +193,9 @@ const RoadmapTopicNotes = () => {
                     <div className="font-bold text-base mb-2" {...formattedHtmlProps(d.term)} />
                     <div className="text-sm space-y-2">
                       <div><span className="text-[11px] uppercase font-mono text-primary tracking-wider">Mark scheme</span><div className="mt-1" {...formattedHtmlProps(d.mark_scheme)} /></div>
-                      <div><span className="text-[11px] uppercase font-mono text-success tracking-wider">Plain English</span><div className="mt-1 text-muted-foreground" {...formattedHtmlProps(d.plain_english)} /></div>
+                      {!isMaths && (
+                        <div><span className="text-[11px] uppercase font-mono text-success tracking-wider">Plain English</span><div className="mt-1 text-muted-foreground" {...formattedHtmlProps(d.plain_english)} /></div>
+                      )}
                       <div><span className="text-[11px] uppercase font-mono text-accent tracking-wider">Common mistake</span><div className="mt-1 text-muted-foreground italic" {...formattedHtmlProps(d.common_mistake)} /></div>
                     </div>
                   </div>
