@@ -479,6 +479,48 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_progress: {
+        Row: {
+          created_at: string
+          id: string
+          last_score_percent: number | null
+          questions_attempted: number
+          questions_correct: number
+          subject: string
+          topic_name: string
+          unit_number: number | null
+          updated_at: string
+          user_id: string
+          weak_flag: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_score_percent?: number | null
+          questions_attempted?: number
+          questions_correct?: number
+          subject: string
+          topic_name: string
+          unit_number?: number | null
+          updated_at?: string
+          user_id: string
+          weak_flag?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_score_percent?: number | null
+          questions_attempted?: number
+          questions_correct?: number
+          subject?: string
+          topic_name?: string
+          unit_number?: number | null
+          updated_at?: string
+          user_id?: string
+          weak_flag?: boolean
+        }
+        Relationships: []
+      }
       user_subjects: {
         Row: {
           created_at: string
