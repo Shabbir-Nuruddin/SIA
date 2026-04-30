@@ -212,6 +212,22 @@ const Onboarding = () => {
 
         {step === 0 && (
           <div className="animate-in-up">
+            {needsName && (
+              <div className="glass-card rounded-2xl p-6 mb-8 max-w-md">
+                <Label htmlFor="ob_name" className="text-sm font-semibold">What should we call you?</Label>
+                <p className="text-xs text-muted-foreground mt-1 mb-3">We'll use this name when your tutor talks to you.</p>
+                <Input
+                  id="ob_name"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                  placeholder="e.g. Alex"
+                  maxLength={40}
+                  pattern="^[A-Za-z][A-Za-z'\- ]*$"
+                  className="h-11"
+                  autoFocus
+                />
+              </div>
+            )}
             <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which exam board?</h1>
             <p className="text-muted-foreground mb-10">We tailor every question, mark scheme and tip to your board.</p>
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
@@ -233,7 +249,18 @@ const Onboarding = () => {
                 );
               })}
             </div>
-            <Button size="lg" onClick={() => setStep(1)} className="bg-primary hover:bg-primary/90 h-12 px-8">
+            <Button
+              size="lg"
+              disabled={needsName && !firstName.trim()}
+              onClick={() => {
+                if (needsName && !/^[A-Za-z][A-Za-z'\- ]*$/.test(firstName.trim())) {
+                  toast.error("Please enter a name (letters only).");
+                  return;
+                }
+                setStep(1);
+              }}
+              className="bg-primary hover:bg-primary/90 h-12 px-8"
+            >
               Continue with {board === "edexcel-ial" ? "Edexcel IAL" : "Cambridge"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
