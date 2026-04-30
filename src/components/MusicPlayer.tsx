@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Music, Play, Pause, SkipForward, X, Volume2, VolumeX } from "lucide-react";
+import { Music, Play, Pause, SkipForward, X, Volume2, VolumeX, Loader2 } from "lucide-react";
 
 /**
  * Floating focus-music player.
- *  - Built-in lofi/ambient/brown-noise tracks (royalty-free, streamable URLs)
- *  - Optional Spotify playlist embed (paste any Spotify playlist URL)
- *  - Persists open/volume/track state across navigation via localStorage
- *  - Hidden during exams
+ *
+ * Persistence model
+ * -----------------
+ * The HTMLAudioElement lives in a *module-level singleton* (created outside React)
+ * so playback continues uninterrupted across:
+ *   - route changes (React Router navigation)
+ *   - tab switches inside the app
+ *   - re-mounts of <AppLayout/> (e.g. after auth state changes)
+ * Volume / track / open state are mirrored to localStorage so the UI rehydrates
+ * on hard reloads.
  */
 
 interface Track {
@@ -17,30 +23,31 @@ interface Track {
   url: string;
 }
 
+// Royalty-free MP3s with permissive CORS — verified streamable.
 const TRACKS: Track[] = [
   {
     id: "lofi-study",
     title: "Lofi Study Beats",
     vibe: "Chill · Focus",
-    url: "https://stream.zeno.fm/0r0xa792kwzuv",
+    url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
   },
   {
     id: "ambient",
     title: "Deep Ambient",
     vibe: "Calm · Long sessions",
-    url: "https://stream.zeno.fm/f3wvbbqmdg8uv",
+    url: "https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3",
   },
   {
     id: "brown-noise",
     title: "Brown Noise",
     vibe: "No melody · Pure focus",
-    url: "https://stream.zeno.fm/n53wq0t2u98uv",
+    url: "https://cdn.pixabay.com/audio/2022/10/30/audio_347111d564.mp3",
   },
   {
     id: "classical",
     title: "Classical for Focus",
     vibe: "Baroque · Study",
-    url: "https://stream.zeno.fm/zr3sfvhntthvv",
+    url: "https://cdn.pixabay.com/audio/2024/02/22/audio_f213ddb6b7.mp3",
   },
 ];
 
@@ -55,21 +62,45 @@ interface SavedState {
   source: "tracks" | "spotify";
 }
 
+const DEFAULT_STATE: SavedState = {
+  open: false,
+  trackId: TRACKS[0].id,
+  volume: 0.5,
+  playing: false,
+  spotifyUrl: "",
+  source: "tracks",
+};
+
 function loadState(): SavedState {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return { open: false, playing: false, ...JSON.parse(raw) };
+    if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) };
   } catch {}
-  return { open: false, trackId: TRACKS[0].id, volume: 0.5, playing: false, spotifyUrl: "", source: "tracks" };
+  return DEFAULT_STATE;
 }
 
 function saveState(s: SavedState) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {}
 }
 
+// ---- Module-level audio singleton (survives React unmounts) ----
+let audioEl: HTMLAudioElement | null = null;
+function getAudio(): HTMLAudioElement {
+  if (audioEl) return audioEl;
+  const a = new Audio();
+  a.loop = true;
+  a.preload = "auto";
+  a.crossOrigin = "anonymous";
+  audioEl = a;
+  return a;
+}
+
+// Subscribers so multiple mounts (or none) stay in sync with audio events.
+type Listener = () => void;
+const listeners = new Set<Listener>();
+function notify() { listeners.forEach(l => l()); }
+
 function toSpotifyEmbed(url: string): string | null {
-  // Convert any spotify URL to embed form
-  // playlist: https://open.spotify.com/playlist/{id}?...
   const m = url.match(/open\.spotify\.com\/(playlist|album|track|episode|show)\/([a-zA-Z0-9]+)/);
   if (!m) return null;
   return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=apex`;
@@ -79,7 +110,8 @@ export const MusicPlayer = () => {
   const { pathname } = useLocation();
   const [state, setState] = useState<SavedState>(() => loadState());
   const [muted, setMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const lastSrcRef = useRef<string>("");
 
   const update = (patch: Partial<SavedState>) => {
     setState(prev => {
@@ -89,16 +121,51 @@ export const MusicPlayer = () => {
     });
   };
 
-  // Apply playback state to audio element
+  // Subscribe to module-level audio events so loading/playing reflect reality.
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audio = getAudio();
+    const onPlay = () => { setLoading(false); };
+    const onWaiting = () => setLoading(true);
+    const onPlaying = () => setLoading(false);
+    const onError = () => { setLoading(false); update({ playing: false }); };
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("waiting", onWaiting);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("error", onError);
+    return () => {
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("error", onError);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Drive the singleton audio from React state.
+  useEffect(() => {
+    const audio = getAudio();
     audio.volume = muted ? 0 : state.volume;
-    if (state.source === "tracks" && state.playing) {
-      audio.play().catch(() => update({ playing: false }));
+
+    if (state.source !== "tracks") {
+      audio.pause();
+      return;
+    }
+
+    const track = TRACKS.find(t => t.id === state.trackId) ?? TRACKS[0];
+    if (lastSrcRef.current !== track.url) {
+      audio.src = track.url;
+      lastSrcRef.current = track.url;
+    }
+
+    if (state.playing) {
+      setLoading(true);
+      audio.play()
+        .then(() => setLoading(false))
+        .catch(() => { setLoading(false); update({ playing: false }); });
     } else {
       audio.pause();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.playing, state.trackId, state.volume, state.source, muted]);
 
   const hide =
@@ -115,15 +182,11 @@ export const MusicPlayer = () => {
   const skipTrack = () => {
     const idx = TRACKS.findIndex(t => t.id === state.trackId);
     const next = TRACKS[(idx + 1) % TRACKS.length];
-    update({ trackId: next.id });
+    update({ trackId: next.id, playing: true });
   };
 
   return (
     <>
-      {/* Hidden audio element (only for built-in tracks) */}
-      <audio ref={audioRef} src={currentTrack.url} loop preload="none" />
-
-      {/* Trigger pill (when collapsed) */}
       {!state.open && (
         <button
           onClick={() => update({ open: true })}
@@ -138,7 +201,6 @@ export const MusicPlayer = () => {
         </button>
       )}
 
-      {/* Expanded panel */}
       {state.open && (
         <div className="fixed bottom-5 right-20 z-40 w-[320px] max-w-[calc(100vw-2rem)] surface flex flex-col shadow-2xl animate-fade-in overflow-hidden">
           <div className="flex items-center justify-between p-3 border-b border-border">
@@ -151,7 +213,6 @@ export const MusicPlayer = () => {
             </button>
           </div>
 
-          {/* Source tabs */}
           <div className="flex border-b border-border text-xs">
             <button
               onClick={() => update({ source: "tracks" })}
@@ -169,7 +230,6 @@ export const MusicPlayer = () => {
 
           {state.source === "tracks" && (
             <div className="p-3">
-              {/* Track list */}
               <div className="space-y-1 mb-3 max-h-[180px] overflow-y-auto">
                 {TRACKS.map(t => {
                   const active = t.id === state.trackId;
@@ -179,21 +239,24 @@ export const MusicPlayer = () => {
                       onClick={() => update({ trackId: t.id, playing: true })}
                       className={`w-full text-left p-2 rounded-md text-xs transition-colors ${active ? "bg-primary/15 text-primary" : "hover:bg-secondary text-foreground"}`}
                     >
-                      <div className="font-semibold">{t.title}</div>
+                      <div className="font-semibold flex items-center gap-2">
+                        {t.title}
+                        {active && loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                        {active && state.playing && !loading && <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
+                      </div>
                       <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-0.5">{t.vibe}</div>
                     </button>
                   );
                 })}
               </div>
 
-              {/* Controls */}
               <div className="flex items-center gap-2 pt-2 border-t border-border">
                 <button
                   onClick={() => update({ playing: !state.playing })}
                   className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform shrink-0"
                   aria-label={state.playing ? "Pause" : "Play"}
                 >
-                  {state.playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : state.playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
                 </button>
                 <button
                   onClick={skipTrack}
@@ -216,6 +279,10 @@ export const MusicPlayer = () => {
                     className="flex-1 accent-primary"
                   />
                 </div>
+              </div>
+
+              <div className="text-[10px] text-muted-foreground mt-2 truncate">
+                Now: <span className="text-foreground">{currentTrack.title}</span>
               </div>
             </div>
           )}
