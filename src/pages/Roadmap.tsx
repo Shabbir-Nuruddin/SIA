@@ -75,6 +75,13 @@ const SCIENCE_BADGES = [
     body: "Explaining a concept in your own words doubles retention vs reading alone. Takes 30 seconds before each test.",
     cite: "Dunlosky et al., 2013",
   },
+  {
+    key: "dual_coding",
+    label: "Dual Coding",
+    icon: Eye,
+    body: "Combining text with diagrams, tables, or worked visuals doubles understanding vs text alone. Every notes page includes a Visual tab.",
+    cite: "Paivio, 1971",
+  },
 ];
 
 function dayHeader(iso: string): string {
