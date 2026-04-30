@@ -155,11 +155,14 @@ const MockExam = () => {
       for (const r of results) {
         const q = payload.find((p: any) => p.question_index === r.question_index);
         if (!q) continue;
-        const awarded = Math.max(0, Math.min(q.marks, r.awarded_marks));
+        const studentAns = (q.student_answer ?? "").toString().trim();
+        // Hard guard: blank answers always get 0, regardless of what the AI returned.
+        const rawAwarded = studentAns ? r.awarded_marks : 0;
+        const awarded = Math.max(0, Math.min(q.marks, rawAwarded));
         total += awarded;
         await supabase.from("mock_paper_questions").update({
           awarded_marks: awarded,
-          feedback: r.feedback,
+          feedback: studentAns ? r.feedback : "No answer provided. 0 marks awarded.",
         }).eq("id", q.id);
       }
       const grade = estimateGrade(paper.subject, total, paper.total_marks);
