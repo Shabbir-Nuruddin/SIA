@@ -14,6 +14,9 @@ import {
 import { toast } from "sonner";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { incrementUsage } from "@/lib/plan";
 
 /* ────────────────────────────────────────────────────────────
    UNIFIED NOTE MODEL
