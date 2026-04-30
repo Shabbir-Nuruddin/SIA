@@ -9,8 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
 import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from "@/lib/subjects";
+import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { toast } from "sonner";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Check } from "lucide-react";
 
 interface UnitInput {
   selected: boolean;
