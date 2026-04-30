@@ -123,14 +123,17 @@ const QuestionsPage = () => {
   };
 
   const submit = async () => {
-    if (!current || !currentAnswer.trim()) return;
+    if (!current) return;
+    if (!currentAnswer.trim() && !currentImage) return;
     setLoadingMark(true);
     try {
       const { data, error } = await supabase.functions.invoke("ai-question", {
         body: {
           action: "mark", subject, topic, board,
           questionText: current.question_text, markScheme: current.mark_scheme,
-          totalMarks: current.marks, studentAnswer: currentAnswer,
+          totalMarks: current.marks,
+          studentAnswer: currentAnswer || undefined,
+          studentAnswerImage: currentImage || undefined,
         },
       });
       if (error) throw error;
