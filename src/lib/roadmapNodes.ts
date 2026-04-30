@@ -7,7 +7,7 @@
 // - All dates use getLocalDateString() — never UTC
 
 import { supabase } from "@/integrations/supabase/client";
-import { SUBJECTS, SubjectCode, Grade, gradeGap } from "./subjects";
+import { SUBJECTS, SubjectCode, Grade, gradeGap, getSubjectsForBoard } from "./subjects";
 import { ROADMAP_TOPICS, isFoundationalTopic } from "./roadmapTopics";
 import { getLocalDateString, addDaysLocal, parseLocalDate, daysBetweenLocal } from "./dateLocal";
 
