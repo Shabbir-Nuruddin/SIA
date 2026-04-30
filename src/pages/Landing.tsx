@@ -194,15 +194,16 @@ const Landing = () => {
               </div>
               <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
               <div className="text-4xl font-extrabold mb-1">AED 39.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-xs text-muted-foreground mb-1">or AED 299/year <span className="text-success font-semibold">· save 38%</span></div>
               <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
                   "Everything in Starter",
+                  "Photo upload: AI marks your handwriting",
                   "Unlimited subjects + roadmap rebuilds",
                   "Unlimited AI-marked questions",
                   "Unlimited mock papers + examiner feedback",
                   "Unlimited notes — every topic",
-                  "Photo upload: AI marks your handwriting",
                   "Multiple active exams + urgency timers",
                   "AI tutor — 200 messages / day",
                 ].map(x => (
