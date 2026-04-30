@@ -8,6 +8,7 @@ import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain } from "lucide-react";
 import { toast } from "sonner";
+import { formattedHtmlProps } from "@/lib/formatText";
 
 // Full-screen Notes route consuming the structured ai-notes JSON.
 // Tabs: Overview / Definitions / Worked Examples / Equations / Visual / Tips / Flashcards.
@@ -179,7 +180,7 @@ const RoadmapTopicNotes = () => {
             {tab === "overview" && (
               <section className="space-y-4">
                 {notes.overview?.split(/\n\n+/).map((p, i) => (
-                  <p key={i} className="text-foreground/90">{p}</p>
+                  <p key={i} className="text-foreground/90" {...formattedHtmlProps(p)} />
                 ))}
               </section>
             )}
@@ -188,11 +189,11 @@ const RoadmapTopicNotes = () => {
               <section className="space-y-4">
                 {notes.key_definitions?.map((d, i) => (
                   <div key={i} className="surface p-4">
-                    <div className="font-bold text-base mb-2">{d.term}</div>
+                    <div className="font-bold text-base mb-2" {...formattedHtmlProps(d.term)} />
                     <div className="text-sm space-y-2">
-                      <div><span className="text-[11px] uppercase font-mono text-primary tracking-wider">Mark scheme</span><div className="mt-1">{d.mark_scheme}</div></div>
-                      <div><span className="text-[11px] uppercase font-mono text-success tracking-wider">Plain English</span><div className="mt-1 text-muted-foreground">{d.plain_english}</div></div>
-                      <div><span className="text-[11px] uppercase font-mono text-accent tracking-wider">Common mistake</span><div className="mt-1 text-muted-foreground italic">{d.common_mistake}</div></div>
+                      <div><span className="text-[11px] uppercase font-mono text-primary tracking-wider">Mark scheme</span><div className="mt-1" {...formattedHtmlProps(d.mark_scheme)} /></div>
+                      <div><span className="text-[11px] uppercase font-mono text-success tracking-wider">Plain English</span><div className="mt-1 text-muted-foreground" {...formattedHtmlProps(d.plain_english)} /></div>
+                      <div><span className="text-[11px] uppercase font-mono text-accent tracking-wider">Common mistake</span><div className="mt-1 text-muted-foreground italic" {...formattedHtmlProps(d.common_mistake)} /></div>
                     </div>
                   </div>
                 ))}
@@ -204,17 +205,17 @@ const RoadmapTopicNotes = () => {
                 {notes.core_content?.map((c, i) => (
                   <div key={i} className="surface p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="font-semibold flex-1">{c.statement}</div>
+                      <div className="font-semibold flex-1" {...formattedHtmlProps(c.statement)} />
                       <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">{c.typical_marks} marks</span>
                     </div>
                     <div className="text-sm space-y-3">
                       <div>
                         <div className="text-[11px] uppercase font-mono text-success tracking-wider mb-1.5">Worked example</div>
-                        <pre className="whitespace-pre-wrap font-mono text-[13px] bg-secondary rounded-md p-3">{c.worked_example}</pre>
+                        <div className="text-[13px] bg-secondary rounded-md p-3 leading-relaxed" {...formattedHtmlProps(c.worked_example)} />
                       </div>
                       <div>
                         <div className="text-[11px] uppercase font-mono text-urgent tracking-wider mb-1.5">Wrong approach</div>
-                        <p className="text-muted-foreground text-[13px]">{c.wrong_approach}</p>
+                        <div className="text-muted-foreground text-[13px]" {...formattedHtmlProps(c.wrong_approach)} />
                       </div>
                     </div>
                   </div>
@@ -228,18 +229,18 @@ const RoadmapTopicNotes = () => {
                   <p className="text-muted-foreground text-sm italic">No equations for this topic.</p>
                 ) : notes.equations?.map((e, i) => (
                   <div key={i} className="surface p-5">
-                    <pre className="font-mono text-base font-bold text-primary mb-3 whitespace-pre-wrap">{e.equation}</pre>
+                    <div className="text-base font-bold text-primary mb-3" {...formattedHtmlProps(e.equation)} />
                     <div className="grid sm:grid-cols-2 gap-2 text-sm mb-3">
                       {e.variables.map((v, j) => (
                         <div key={j} className="flex items-baseline gap-2">
-                          <span className="font-mono font-bold text-primary">{v.symbol}</span>
+                          <span className="font-bold text-primary" {...formattedHtmlProps(v.symbol)} />
                           <span className="text-muted-foreground text-[13px]">{v.meaning}</span>
                           <span className="font-mono text-[11px] text-success ml-auto">{v.unit}</span>
                         </div>
                       ))}
                     </div>
                     <div className="text-[11px] uppercase font-mono text-success tracking-wider mb-1.5">Worked substitution</div>
-                    <pre className="whitespace-pre-wrap font-mono text-[13px] bg-secondary rounded-md p-3">{e.worked_substitution}</pre>
+                    <div className="text-[13px] bg-secondary rounded-md p-3 leading-relaxed" {...formattedHtmlProps(e.worked_substitution)} />
                   </div>
                 ))}
               </section>
@@ -265,7 +266,7 @@ const RoadmapTopicNotes = () => {
                 {notes.examiner_tips?.map((t, i) => (
                   <div key={i} className="surface p-4">
                     <span className="text-[11px] uppercase font-mono px-2 py-0.5 rounded-full bg-success/10 text-success">{t.command_word}</span>
-                    <p className="mt-2 text-sm">{t.tip}</p>
+                    <div className="mt-2 text-sm" {...formattedHtmlProps(t.tip)} />
                   </div>
                 ))}
               </section>
@@ -310,9 +311,9 @@ const Flashcard = ({ q, a, index }: { q: string; a: string; index: number }) => 
         <span className="text-primary">{revealed ? "Answer" : "Question"} · tap to flip</span>
       </div>
       {!revealed ? (
-        <div className="font-semibold text-[15px] flex-1 flex items-center animate-fade-in">{q}</div>
+        <div className="font-semibold text-[15px] flex-1 flex items-center animate-fade-in" {...formattedHtmlProps(q)} />
       ) : (
-        <div className="text-sm flex-1 flex items-center text-foreground/90 animate-fade-in">{a}</div>
+        <div className="text-sm flex-1 flex items-center text-foreground/90 animate-fade-in" {...formattedHtmlProps(a)} />
       )}
     </div>
   );
