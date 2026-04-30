@@ -310,7 +310,7 @@ const NotesPage = () => {
             <Sparkles className="h-3 w-3" /> AI Revision Notes
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
-          <p className="text-muted-foreground mt-1">Pick any topic. We'll generate Edexcel-grade notes you can highlight, annotate, and export.</p>
+          <p className="text-muted-foreground mt-1">Pick any topic. We'll generate {board === "cie" ? "Cambridge (CIE)" : "Edexcel"}-grade notes you can highlight, annotate, and export.</p>
         </div>
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-6">
