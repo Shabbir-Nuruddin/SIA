@@ -167,39 +167,32 @@ export const toPlainText = (input: string): string => {
 /*  Main HTML formatter (math → KaTeX, prose → markdown-lite)          */
 /* ------------------------------------------------------------------ */
 
-// Replace all math segments with KaTeX HTML; leaves prose untouched.
-const renderMathSegments = (text: string): string => {
-  // Order matters: handle display math first, then inline.
+// Render math, replacing each KaTeX HTML chunk with a placeholder token,
+// so subsequent HTML-escaping of prose can't corrupt KaTeX markup.
+const PLACEHOLDER_RE = /\uE000(\d+)\uE001/g;
+const renderMathWithPlaceholders = (text: string): { text: string; store: string[] } => {
+  const store: string[] = [];
+  const push = (html: string) => {
+    const i = store.length;
+    store.push(html);
+    return `\uE000${i}\uE001`;
+  };
   let s = text;
-
-  // $$...$$
-  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => renderMath(tex, true));
-  // \[...\]
-  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => renderMath(tex, true));
-  // \(...\)
-  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => renderMath(tex, false));
-  // $...$  (single line, non-greedy)
-  s = s.replace(/\$([^\n$]+?)\$/g, (_m, tex) => renderMath(tex, false));
-
-  return s;
+  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => push(renderMath(tex, true)));
+  s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => push(renderMath(tex, true)));
+  s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => push(renderMath(tex, false)));
+  s = s.replace(/\$([^\n$]+?)\$/g, (_m, tex) => push(renderMath(tex, false)));
+  return { text: s, store };
 };
 
-// Markdown-lite for inline runs. Math is rendered first, so the resulting
-// KaTeX HTML is preserved (we only escape & < > on the *prose* segments).
-const inlineFormat = (raw: string): string => {
-  // Split on KaTeX spans so we don't escape their HTML.
-  const parts = raw.split(/(<span class="katex[\s\S]*?<\/span>)/g);
-  return parts
-    .map((part) => {
-      if (part.startsWith('<span class="katex')) return part;
-      let s = escapeHtml(part);
-      s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-      s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
-      s = s.replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
-      s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-      return s;
-    })
-    .join("");
+const inlineFormat = (raw: string, store: string[]): string => {
+  let s = escapeHtml(raw);
+  s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
+  s = s.replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(PLACEHOLDER_RE, (_m, n) => store[parseInt(n, 10)] ?? "");
+  return s;
 };
 
 export const toFormattedHtml = (input: string): string => {
