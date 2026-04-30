@@ -116,6 +116,7 @@ export const CountdownOverlay = () => {
   return (
     <>
       <div
+        data-tutorial="countdown-bar"
         className="fixed top-0 inset-x-0 z-50 select-none"
         style={{
           height: 44,
