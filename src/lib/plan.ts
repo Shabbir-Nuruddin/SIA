@@ -134,5 +134,6 @@ export async function incrementUsage(key: Exclude<LimitKey, "mock_papers" | "sub
     "notes_week_count";
   const { data } = await supabase.from("profiles").select(column).eq("id", user.id).single();
   const current = (data as Record<string, number> | null)?.[column] ?? 0;
-  await supabase.from("profiles").update({ [column]: current + 1 }).eq("id", user.id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await supabase.from("profiles").update({ [column]: current + 1 } as any).eq("id", user.id);
 }
