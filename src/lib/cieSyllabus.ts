@@ -479,6 +479,35 @@ export const CIE_MATHS_TOPICS: CIESyllabusTopic[] = [
     { ref: "8.1", text: "integration as reverse of differentiation; ∫x^n dx" },
     { ref: "8.2", text: "definite integrals; areas under curves; volumes of revolution about x and y axes" },
   ]},
+  // Pure 2 (Paper 2 — AS extension, also feeds into A2)
+  { number: 28, unit: 2, name: "Algebra (P2)", statements: [
+    { ref: "P2.1.1", text: "modulus function |x|; graphs of y = |ax + b|; solve equations and inequalities involving the modulus" },
+    { ref: "P2.1.2", text: "polynomial division; factor and remainder theorems for polynomials up to degree 4" },
+    { ref: "P2.1.3", text: "sketch graphs of polynomial functions and locate roots" },
+  ]},
+  { number: 29, unit: 2, name: "Logarithmic & exponential functions (P2)", statements: [
+    { ref: "P2.2.1", text: "definitions and properties of e^x and ln x; graphs and inverse relationship" },
+    { ref: "P2.2.2", text: "laws of logarithms; solving equations of form a^x = b and reducing relations to linear form (e.g. y = kx^n, y = ka^x)" },
+  ]},
+  { number: 30, unit: 2, name: "Trigonometry (P2)", statements: [
+    { ref: "P2.3.1", text: "secant, cosecant, cotangent and their graphs" },
+    { ref: "P2.3.2", text: "identities 1 + tan²x = sec²x and 1 + cot²x = cosec²x" },
+    { ref: "P2.3.3", text: "expansions of sin(A ± B), cos(A ± B), tan(A ± B); double angle formulae" },
+    { ref: "P2.3.4", text: "expressions of the form a sinθ + b cosθ as R sin(θ ± α) or R cos(θ ± α); solving trig equations" },
+  ]},
+  { number: 31, unit: 2, name: "Differentiation (P2)", statements: [
+    { ref: "P2.4.1", text: "differentiate e^x, ln x, sin x, cos x, tan x and combinations using chain, product and quotient rules" },
+    { ref: "P2.4.2", text: "applications: tangents, normals, stationary points, increasing/decreasing functions, connected rates of change" },
+  ]},
+  { number: 32, unit: 2, name: "Integration (P2)", statements: [
+    { ref: "P2.5.1", text: "integrate e^(ax + b), 1/(ax + b), sin(ax + b), cos(ax + b), sec²(ax + b)" },
+    { ref: "P2.5.2", text: "definite integrals; areas under and between curves" },
+    { ref: "P2.5.3", text: "trapezium rule; estimate areas and recognise over- or under-estimates from concavity" },
+  ]},
+  { number: 33, unit: 2, name: "Numerical solution of equations (P2)", statements: [
+    { ref: "P2.6.1", text: "locate a root by sign change; understand limitations" },
+    { ref: "P2.6.2", text: "rearrange f(x) = 0 to x = F(x); use iterative formula x_{n+1} = F(x_n); convergence and divergence behaviour" },
+  ]},
   // Pure 3 (Paper 3 — A2)
   { number: 9, unit: 3, name: "Algebra (P3)", statements: [
     { ref: "9.1", text: "modulus inequalities; |x − a| < b" },
@@ -556,6 +585,34 @@ export const CIE_MATHS_TOPICS: CIESyllabusTopic[] = [
     { ref: "27.1", text: "use of standardised normal tables; standardising X to Z" },
     { ref: "27.2", text: "approximation to binomial when np > 5 and n(1−p) > 5; continuity correction" },
   ]},
+  // Probability & Statistics 2 (Paper 6 option — A2)
+  { number: 34, unit: 6, name: "The Poisson distribution (S2)", statements: [
+    { ref: "S2.1.1", text: "Poisson distribution as a model; mean and variance both equal to λ" },
+    { ref: "S2.1.2", text: "calculate P(X = r), P(X ≤ r) using the Poisson formula and tables" },
+    { ref: "S2.1.3", text: "Poisson as an approximation to the binomial when n is large and p is small (np < 5)" },
+    { ref: "S2.1.4", text: "normal approximation to Poisson when λ > 15; continuity correction" },
+  ]},
+  { number: 35, unit: 6, name: "Linear combinations of random variables (S2)", statements: [
+    { ref: "S2.2.1", text: "E(aX + b) = aE(X) + b; Var(aX + b) = a²Var(X)" },
+    { ref: "S2.2.2", text: "for independent X and Y: E(aX + bY) = aE(X) + bE(Y); Var(aX + bY) = a²Var(X) + b²Var(Y)" },
+    { ref: "S2.2.3", text: "linear combinations of independent normal variables are normal; sums and differences of independent Poisson variables are Poisson" },
+  ]},
+  { number: 36, unit: 6, name: "Continuous random variables (S2)", statements: [
+    { ref: "S2.3.1", text: "probability density functions f(x); ∫f(x) dx = 1; P(a ≤ X ≤ b) = ∫_a^b f(x) dx" },
+    { ref: "S2.3.2", text: "median (P(X ≤ m) = 0.5), mean E(X) = ∫x f(x) dx, variance Var(X) = E(X²) − [E(X)]²" },
+    { ref: "S2.3.3", text: "use of the cumulative distribution function F(x)" },
+  ]},
+  { number: 37, unit: 6, name: "Sampling and estimation (S2)", statements: [
+    { ref: "S2.4.1", text: "concept of a random sample; population vs sample; need for randomness" },
+    { ref: "S2.4.2", text: "distribution of the sample mean X̄ ~ N(μ, σ²/n) by the Central Limit Theorem for large n" },
+    { ref: "S2.4.3", text: "unbiased estimates of population mean and variance from a sample (use of n − 1 divisor for s²)" },
+    { ref: "S2.4.4", text: "confidence intervals for a population mean (σ known and unknown for large samples) and for a population proportion" },
+  ]},
+  { number: 38, unit: 6, name: "Hypothesis testing (S2)", statements: [
+    { ref: "S2.5.1", text: "null and alternative hypotheses; one- and two-tailed tests; significance level; critical region; Type I and Type II errors" },
+    { ref: "S2.5.2", text: "hypothesis tests for the mean of a normal distribution (σ known) and for a population proportion using the binomial distribution" },
+    { ref: "S2.5.3", text: "hypothesis tests using the Poisson distribution and using the normal approximation to the binomial or Poisson" },
+  ]},
 ];
 
 // === Subject metas for the CIE board ===
@@ -566,6 +623,9 @@ export const CIE_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
       { number: 1, unitCode: "P1", name: "Pure Mathematics 1", paperLabel: "Paper 1 · 1hr 50min · 75 marks", durationMinutes: 110,
         topics: ["Quadratics", "Functions", "Coordinate geometry", "Circular measure", "Trigonometry", "Series", "Differentiation", "Integration"],
       },
+      { number: 2, unitCode: "P2", name: "Pure Mathematics 2", paperLabel: "Paper 2 · 1hr 15min · 50 marks", durationMinutes: 75,
+        topics: ["Algebra (P2)", "Logarithmic & exponential functions (P2)", "Trigonometry (P2)", "Differentiation (P2)", "Integration (P2)", "Numerical solution of equations (P2)"],
+      },
       { number: 3, unitCode: "P3", name: "Pure Mathematics 3", paperLabel: "Paper 3 · 1hr 50min · 75 marks", durationMinutes: 110, aLevelOnly: true,
         topics: ["Algebra (P3)", "Logarithmic & exponential functions", "Trigonometry (P3)", "Differentiation (P3)", "Integration (P3)", "Numerical solution of equations", "Vectors (P3)", "Differential equations", "Complex numbers"],
       },
@@ -574,6 +634,9 @@ export const CIE_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
       },
       { number: 5, unitCode: "S1", name: "Probability & Statistics 1", paperLabel: "Paper 5 · 1hr 15min · 50 marks", durationMinutes: 75, aLevelOnly: true,
         topics: ["Representation of data", "Permutations & combinations", "Probability", "Discrete random variables", "Normal distribution"],
+      },
+      { number: 6, unitCode: "S2", name: "Probability & Statistics 2", paperLabel: "Paper 6 · 1hr 15min · 50 marks", durationMinutes: 75, aLevelOnly: true,
+        topics: ["The Poisson distribution (S2)", "Linear combinations of random variables (S2)", "Continuous random variables (S2)", "Sampling and estimation (S2)", "Hypothesis testing (S2)"],
       },
     ],
   },
