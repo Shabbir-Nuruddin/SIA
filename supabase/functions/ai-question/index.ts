@@ -85,7 +85,15 @@ FORMATTING: Render ALL mathematical expressions in LaTeX using $...$ for inline 
 - Short Answer: 2-4 marks
 - Extended Response: 5-9 marks
 - Calculation: 3-6 marks
-For Multiple Choice, include 4 plausible options per question.`;
+
+CRITICAL RULES ABOUT QUESTION PHRASING:
+${questionType === "Multiple Choice"
+  ? `- Every question MUST include exactly 4 plausible options in the "options" array. Never omit options.
+- Options should be distinct, realistic distractors of similar length.`
+  : `- This is a ${questionType} question. DO NOT phrase it as a multiple-choice question.
+- FORBIDDEN phrasings: "Which of the following...", "Which one of the following...", "Select the correct statement...", "Identify which statement...", "Choose the option that...", or any wording that implies the student is picking from a list.
+- The question must be answerable as free-form written work (calculation, explanation, derivation, description). It must NOT reference unseen options, statements, or choices.
+- Do NOT include the "options" field for these questions.`}`;
       messages = [{ role: "system", content: system }, { role: "user", content: user }];
       tools = [generateTool];
       toolName = "create_exam_questions";
