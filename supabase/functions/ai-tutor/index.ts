@@ -1,0 +1,48 @@
+// Streaming AI tutor with optional roadmap-node context.
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const MODEL = "google/gemini-3-flash-preview";
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (!LOVABLE_API_KEY) {
+    return new Response(JSON.stringify({ error: "AI not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+  try {
+    const { messages, context } = await req.json();
+    const ctxLine = context
+      ? `The student is currently on the topic: "${context.topic}" — ${context.subject ?? ""} ${context.unit_name ?? ""}. Tailor your help to that topic when relevant.`
+      : "";
+    const system = `You are Apex Tutor — a calm, encouraging A-Level / IGCSE study coach.
+You help students understand concepts, work through problems step-by-step, and stay motivated.
+Plain text only. No LaTeX. Use Unicode for symbols (Δ, →, ⇌, ², ³, etc.).
+Keep replies under 150 words unless the student asks for depth.
+${ctxLine}`;
+
+    const res = await fetch(GATEWAY, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [{ role: "system", content: system }, ...messages],
+        stream: true,
+      }),
+    });
+    if (!res.ok) {
+      const status = res.status;
+      const error = status === 429 ? "Rate limit hit. Try again shortly." : status === 402 ? "AI credits exhausted." : "Tutor unavailable.";
+      return new Response(JSON.stringify({ error }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    return new Response(res.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});

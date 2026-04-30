@@ -50,7 +50,7 @@ const AuthPage = () => {
         });
         if (error) throw error;
         toast.success(`Welcome to Apex, ${fn}. Let's set up your revision plan.`);
-        navigate("/onboarding");
+        navigate("/diagnostic");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;

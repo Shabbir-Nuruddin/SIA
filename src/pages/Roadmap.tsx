@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
@@ -13,7 +13,7 @@ import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/li
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye
 } from "lucide-react";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
@@ -75,6 +75,13 @@ const SCIENCE_BADGES = [
     body: "Explaining a concept in your own words doubles retention vs reading alone. Takes 30 seconds before each test.",
     cite: "Dunlosky et al., 2013",
   },
+  {
+    key: "dual_coding",
+    label: "Dual Coding",
+    icon: Eye,
+    body: "Combining text with diagrams, tables, or worked visuals doubles understanding vs text alone. Every notes page includes a Visual tab.",
+    cite: "Paivio, 1971",
+  },
 ];
 
 function dayHeader(iso: string): string {
@@ -87,6 +94,7 @@ function dayHeader(iso: string): string {
 const RoadmapPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [genStep, setGenStep] = useState(0);
@@ -94,6 +102,7 @@ const RoadmapPage = () => {
   const [profile, setProfile] = useState<{ first_name: string | null; current_streak: number; notification_enabled: boolean; notification_prompted: boolean; notification_time: string } | null>(null);
   const [units, setUnits] = useState<{ subject: SubjectCode; unit_number: number; unit_name: string; exam_date: string }[]>([]);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -132,6 +141,23 @@ const RoadmapPage = () => {
       }, 250);
     }
   }, [loading]);
+
+  // Handle ?continue=<nodeId> — when returning from full-screen notes,
+  // open that node inline starting at the elaboration stage.
+  useEffect(() => {
+    if (loading || nodes.length === 0) return;
+    const continueId = searchParams.get("continue");
+    if (!continueId) return;
+    const target = nodes.find(n => n.id === continueId);
+    if (target && target.node_type === "learn" && (target.status === "unlocked" || target.status === "in_progress")) {
+      setActiveNodeId(continueId);
+      setActiveStartStage("elaboration");
+      setTimeout(() => nodeRefs.current[continueId]?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+    }
+    searchParams.delete("continue");
+    setSearchParams(searchParams, { replace: true });
+    // eslint-disable-next-line
+  }, [loading, nodes.length]);
 
   const handleGenerate = async () => {
     if (!user) return;
@@ -373,8 +399,21 @@ const RoadmapPage = () => {
                       <NodeCard
                         node={node}
                         isActive={activeNodeId === node.id}
-                        onActivate={() => setActiveNodeId(node.id)}
-                        onClose={() => setActiveNodeId(null)}
+                        startStage={activeNodeId === node.id ? activeStartStage : "notes"}
+                        onActivate={() => {
+                          // For learn nodes: route to full-screen notes page first.
+                          if (node.node_type === "learn") {
+                            // Set tutor context
+                            window.dispatchEvent(new CustomEvent("apex-assistant-context", {
+                              detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
+                            }));
+                            navigate(`/roadmap/topic/${node.id}/notes`);
+                            return;
+                          }
+                          setActiveNodeId(node.id);
+                          setActiveStartStage("notes");
+                        }}
+                        onClose={() => { setActiveNodeId(null); setActiveStartStage("notes"); }}
                         onComplete={async (scorePercent) => {
                           await updateNodeStatus(node.id, {
                             status: "complete",
@@ -382,7 +421,7 @@ const RoadmapPage = () => {
                             score_percent: scorePercent ?? null,
                           } as any);
                           setActiveNodeId(null);
-                          // Schedule extra practice if score < 60
+                          setActiveStartStage("notes");
                           if (scorePercent != null && scorePercent < 60 && user && node.subject && node.topic_name) {
                             const { localDateAtOffset } = await import("@/lib/dateLocal");
                             const tomorrow = localDateAtOffset(1);
@@ -445,12 +484,13 @@ const RoadmapPage = () => {
 interface NodeCardProps {
   node: RoadmapNodeRow;
   isActive: boolean;
+  startStage?: "notes" | "elaboration";
   onActivate: () => void;
   onClose: () => void;
   onComplete: (scorePercent?: number) => Promise<void>;
 }
 
-const NodeCard = ({ node, isActive, onActivate, onClose, onComplete }: NodeCardProps) => {
+const NodeCard = ({ node, isActive, startStage = "notes", onActivate, onClose, onComplete }: NodeCardProps) => {
   const subjectMeta = node.subject ? SUBJECTS[node.subject as SubjectCode] : null;
   const accent = NODE_ACCENT[node.node_type];
   const bg = NODE_BG[node.node_type];
@@ -498,7 +538,7 @@ const NodeCard = ({ node, isActive, onActivate, onClose, onComplete }: NodeCardP
 
   // Active inline expansion (learn nodes only)
   if (isActive && node.node_type === "learn") {
-    return <LearnNodeFlow node={node} onClose={onClose} onComplete={onComplete} />;
+    return <LearnNodeFlow node={node} initialStage={startStage} onClose={onClose} onComplete={onComplete} />;
   }
 
   // === Compact unlocked card by type ===
@@ -602,9 +642,9 @@ interface NotesContent {
   examiner_tips?: string[];
 }
 
-const LearnNodeFlow = ({ node, onClose, onComplete }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void> }) => {
+const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void>; initialStage?: FlowStage }) => {
   const subjectMeta = node.subject ? SUBJECTS[node.subject as SubjectCode] : null;
-  const [stage, setStage] = useState<FlowStage>("notes");
+  const [stage, setStage] = useState<FlowStage>(initialStage);
   const [notes, setNotes] = useState<NotesContent | null>(null);
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [readSeconds, setReadSeconds] = useState(0);

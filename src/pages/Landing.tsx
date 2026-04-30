@@ -61,7 +61,7 @@ const Landing = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
               </span>
-              Built for A-Level students
+              Built for IGCSE, AS & A Level students
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.0] mb-6">
@@ -87,7 +87,7 @@ const Landing = () => {
             </div>
 
             <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-              Supports Edexcel · AQA · CIE · IB
+              Supports Edexcel · AQA · CIE · IB · IGCSE · AS · A Level
             </p>
           </div>
         </div>
