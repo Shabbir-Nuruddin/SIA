@@ -49,9 +49,12 @@ const NotesPage = () => {
   const [draftNote, setDraftNote] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Load enrolled units
+  // Load enrolled units + board
   useEffect(() => {
     if (!user) return;
+    supabase.from("profiles").select("exam_board").eq("id", user.id).single().then(({ data }) => {
+      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+    });
     supabase.from("user_subjects").select("subject,unit_number,unit_name").eq("user_id", user.id).order("subject").order("unit_number")
       .then(({ data }) => {
         if (data) {
