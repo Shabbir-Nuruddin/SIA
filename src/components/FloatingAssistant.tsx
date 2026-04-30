@@ -301,6 +301,14 @@ export const FloatingAssistant = () => {
           </div>
         </div>
       )}
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </>
   );
 };
