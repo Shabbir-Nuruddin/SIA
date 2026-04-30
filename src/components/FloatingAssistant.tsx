@@ -13,6 +13,7 @@ interface AssistantContext {
   subject?: string;
   unit_name?: string;
   board?: "edexcel-ial" | "cie";
+  first_name?: string;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
@@ -25,15 +26,17 @@ export const FloatingAssistant = () => {
   const [streaming, setStreaming] = useState(false);
   const [context, setContext] = useState<AssistantContext | undefined>(undefined);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const [firstName, setFirstName] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Load board from profile so the tutor adapts to Edexcel vs CIE
+  // Load board + first name from profile so the tutor can personalise
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+      const { data } = await supabase.from("profiles").select("exam_board,first_name").eq("id", user.id).single();
       if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+      if (data?.first_name) setFirstName(data.first_name);
     })();
   }, []);
 
@@ -82,7 +85,7 @@ export const FloatingAssistant = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board } }),
+        body: JSON.stringify({ messages: next, context: { ...(context || {}), board: context?.board || board, first_name: context?.first_name || firstName || undefined } }),
       });
       if (!resp.ok || !resp.body) throw new Error("Tutor unavailable");
 
