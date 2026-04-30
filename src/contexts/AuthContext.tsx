@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           supabase.from("profiles").select("theme").eq("id", s.user.id).single()
             .then(({ data }) => {
-              if (data?.theme) document.documentElement.classList.toggle("light", data.theme === "light");
+              if (data?.theme) applyTheme(data.theme);
             });
         }, 0);
       }
