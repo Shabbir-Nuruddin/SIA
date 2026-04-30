@@ -316,13 +316,32 @@ const SettingsPage = () => {
 
         {/* Section 5 — Appearance */}
         <SettingsSection icon={Palette} title="Appearance">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Light mode</Label>
-              <p className="text-xs text-muted-foreground mt-0.5">Apex is built dark. Toggle if you must.</p>
+          <div>
+            <Label>Theme</Label>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-3">Pick the look that helps you focus.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {THEMES.map(t => {
+                const active = (profile.theme || "midnight") === t.name
+                  || (profile.theme === "dark" && t.name === "midnight");
+                return (
+                  <button
+                    key={t.name}
+                    onClick={() => updatePref("theme", t.name)}
+                    className={`relative rounded-lg border-2 p-2.5 text-left transition-all ${active ? "border-primary" : "border-border hover:border-foreground/30"}`}
+                  >
+                    <div className="flex gap-1 mb-2">
+                      {t.swatches.map((c, i) => (
+                        <div key={i} className="h-6 flex-1 rounded-sm" style={{ background: c }} />
+                      ))}
+                    </div>
+                    <div className="text-xs font-semibold flex items-center justify-between">
+                      <span>{t.label}</span>
+                      {active && <Check className="h-3.5 w-3.5 text-primary" />}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-            <Switch checked={profile.theme === "light"}
-              onCheckedChange={v => updatePref("theme", v ? "light" : "dark")} />
           </div>
         </SettingsSection>
 
