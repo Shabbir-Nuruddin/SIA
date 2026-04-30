@@ -733,6 +733,14 @@ const NotesPage = () => {
         }
         .apex-annotation:hover { background: hsl(var(--accent) / 0.18); }
       `}</style>
+      <UpgradeModal
+        open={upgrade.open}
+        onClose={closeUpgrade}
+        limitKey={upgrade.key}
+        plan={planState?.plan ?? "free"}
+        used={upgrade.used}
+        limit={upgrade.limit}
+      />
     </AppLayout>
   );
 };
