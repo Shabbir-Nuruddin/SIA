@@ -409,7 +409,7 @@ const NotesPage = () => {
 
                 <Section title="Common exam mistakes">
                   <ul className="space-y-2 text-sm">
-                    {notes.common_mistakes.map((m, i) => (
+                    {(notes.common_mistakes ?? []).map((m, i) => (
                       <li key={i} className="pl-3 border-l-2 border-urgent/60"
                           dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(m)) }} />
                     ))}
