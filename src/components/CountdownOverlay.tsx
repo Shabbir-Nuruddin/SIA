@@ -13,28 +13,24 @@ interface UnitRow {
 }
 
 const subjectDot: Record<SubjectCode, string> = {
-  mathematics: "hsl(var(--subject-maths))",
-  biology: "hsl(var(--subject-biology))",
-  chemistry: "hsl(var(--subject-chemistry))",
-  physics: "hsl(var(--subject-physics))",
+  mathematics: "#3B82F6",
+  biology: "#16A34A",
+  chemistry: "#9333EA",
+  physics: "#F97316",
 };
 
-function urgencyColor(days: number, hours: number) {
-  if (days < 1) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: true };
-  if (days < 3) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: false };
-  if (days < 7) return { bg: "hsl(var(--urgent))", text: "#fff", pulse: false };
-  if (days < 15) return { bg: "hsl(var(--accent))", text: "#fff", pulse: false };
-  if (days < 30) return { bg: "hsl(32 94% 38%)", text: "#fff", pulse: false };
-  return { bg: "hsl(var(--primary))", text: "#fff", pulse: false };
+function urgencyMessage(days: number): { text: string; color: string; pulse: boolean } {
+  if (days < 3) return { text: "Final stretch.", color: "#DC2626", pulse: true };
+  if (days < 7) return { text: "No days off.", color: "#DC2626", pulse: false };
+  if (days < 15) return { text: "Every session counts.", color: "#D97706", pulse: false };
+  if (days < 30) return { text: "Stay on plan.", color: "#D97706", pulse: false };
+  return { text: "", color: "rgba(240,246,252,0.6)", pulse: false };
 }
 
-function urgencyLine(unitName: string, days: number) {
-  if (days < 1) return `${unitName} — exam day. Final review only.`;
-  if (days < 3) return `${unitName} — ${days} days. Revise everything.`;
-  if (days < 7) return `${unitName} — ${days} days left. No days off.`;
-  if (days < 15) return `${unitName} — ${days} days. Every session counts.`;
-  if (days < 30) return `${unitName} — ${days} days. Stay on plan.`;
-  return `${unitName} — ${days} days away`;
+function formatExamDate(iso: string) {
+  return new Date(iso + "T09:00:00").toLocaleDateString("en-GB", {
+    weekday: "short", day: "numeric", month: "short",
+  });
 }
 
 export const CountdownOverlay = () => {
@@ -55,7 +51,6 @@ export const CountdownOverlay = () => {
       .then(({ data }) => { if (data) setUnits(data as UnitRow[]); });
   }, [user, pathname]);
 
-  // Re-render every minute so days/hours stay live
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 60_000);
     return () => clearInterval(id);
@@ -78,25 +73,49 @@ export const CountdownOverlay = () => {
   if (upcoming.length === 0) return null;
   const next = upcoming[0];
   const meta = SUBJECTS[next.subject];
-  const c = urgencyColor(next.days, next.hours);
-  const label = `${meta.name} U${next.unit_number}`;
+  const msg = urgencyMessage(next.days);
+  const unitLabel = `${meta.name} ${meta.units.find(u => u.number === next.unit_number)?.name ?? `Unit ${next.unit_number}`}`;
 
   return (
     <>
       <div
-        className={`fixed top-0 inset-x-0 z-50 select-none ${c.pulse ? "animate-slow-pulse" : ""}`}
-        style={{ height: 40, background: c.bg, color: c.text, borderBottom: "1px solid rgba(0,0,0,0.2)" }}
+        className="fixed top-0 inset-x-0 z-50 select-none"
+        style={{
+          height: 44,
+          background: "#161B22",
+          borderBottom: "1px solid #30363D",
+          color: "rgba(240,246,252,0.8)",
+        }}
       >
         <button
           onClick={() => setOpen(o => !o)}
-          className="w-full h-full flex items-center justify-center gap-2.5 text-[13px] font-medium hover:brightness-110 transition px-4"
+          className="w-full h-full flex items-center justify-between px-4 md:px-6 hover:bg-[#1C2128] transition-colors"
         >
-          <span className="h-2 w-2 rounded-full shrink-0" style={{ background: subjectDot[next.subject], boxShadow: "0 0 0 2px rgba(255,255,255,0.2)" }} />
-          <span className="truncate">{urgencyLine(label, next.days)}</span>
-          <span className="font-mono font-bold tabular tracking-tight whitespace-nowrap">
-            {next.days}d {next.hours}h
-          </span>
-          <ChevronDown className={`h-3.5 w-3.5 opacity-70 transition-transform ${open ? "rotate-180" : ""}`} />
+          <div className="flex items-center gap-2.5 min-w-0 text-[13px] font-medium">
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${msg.pulse ? "animate-slow-pulse" : ""}`}
+              style={{ background: subjectDot[next.subject] }}
+            />
+            <span className="truncate" style={{ color: "rgba(240,246,252,0.8)" }}>
+              {unitLabel}
+            </span>
+            <span className="opacity-50 shrink-0">—</span>
+            <span className="font-mono tabular shrink-0" style={{ color: "rgba(240,246,252,0.8)" }}>
+              {next.days}d {next.hours}h
+            </span>
+            {msg.text && (
+              <>
+                <span className="opacity-50 shrink-0 hidden sm:inline">·</span>
+                <span className="hidden sm:inline shrink-0" style={{ color: msg.color }}>
+                  {msg.text}
+                </span>
+              </>
+            )}
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 transition-transform shrink-0 ml-2 ${open ? "rotate-180" : ""}`}
+            style={{ color: "rgba(240,246,252,0.6)" }}
+          />
         </button>
       </div>
 
@@ -104,28 +123,46 @@ export const CountdownOverlay = () => {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="fixed top-10 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,560px)] surface shadow-2xl animate-in-up overflow-hidden"
-            style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+            className="fixed left-0 right-0 z-50 animate-in-up"
+            style={{
+              top: 44,
+              background: "#161B22",
+              borderBottom: "1px solid #30363D",
+              borderLeft: "1px solid #30363D",
+              borderRight: "1px solid #30363D",
+            }}
           >
-            <div className="px-4 py-2 text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
-              All upcoming exams
-            </div>
-            <div className="divide-y divide-border max-h-[60vh] overflow-y-auto">
-              {upcoming.map(u => {
-                const m = SUBJECTS[u.subject];
-                return (
-                  <div key={`${u.subject}-${u.unit_number}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-card-hover">
-                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: subjectDot[u.subject] }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-foreground truncate">{m.name} · Unit {u.unit_number}</div>
-                      <div className="text-xs text-muted-foreground truncate">{u.unit_name}</div>
+            <div className="max-w-3xl mx-auto">
+              <div className="px-5 py-2.5 text-[10px] uppercase tracking-widest" style={{ color: "rgba(240,246,252,0.5)" }}>
+                All upcoming exams
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto" style={{ borderTop: "1px solid #30363D" }}>
+                {upcoming.map(u => {
+                  const m = SUBJECTS[u.subject];
+                  const uMsg = urgencyMessage(u.days);
+                  const uName = m.units.find(x => x.number === u.unit_number)?.name ?? `Unit ${u.unit_number}`;
+                  return (
+                    <div
+                      key={`${u.subject}-${u.unit_number}`}
+                      className="flex items-center gap-3 px-5 py-3 text-[13px] hover:bg-[#1C2128] transition-colors"
+                      style={{ borderBottom: "1px solid #21262D" }}
+                    >
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: subjectDot[u.subject] }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate" style={{ color: "#F0F6FC" }}>
+                          {m.name} · {uName}
+                        </div>
+                        <div className="text-[11px] mt-0.5" style={{ color: "rgba(240,246,252,0.5)" }}>
+                          {formatExamDate(u.exam_date)}
+                        </div>
+                      </div>
+                      <div className="font-mono text-[13px] tabular font-semibold shrink-0" style={{ color: uMsg.color === "rgba(240,246,252,0.6)" ? "rgba(240,246,252,0.8)" : uMsg.color }}>
+                        {u.days}d {u.hours}h
+                      </div>
                     </div>
-                    <div className="font-mono text-sm font-bold tabular shrink-0" style={{ color: u.days < 30 ? "hsl(var(--accent))" : "hsl(var(--foreground))" }}>
-                      {u.days}d {u.hours}h
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </>
