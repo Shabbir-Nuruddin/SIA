@@ -79,7 +79,7 @@ serve(async (req) => {
       const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
       const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
-FORMATTING: Output plain text only. No LaTeX, no dollar signs, no backslash math. Use Unicode for symbols (Δ, →, ⇌, ×, ², ³, ⁻¹). Write x squared or use ² superscript — never "x^2". Write fractions as a/b.${syllabus_context ? `\n\nSCOPE — your questions MUST stay strictly within these specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
+FORMATTING: Render ALL mathematical expressions in LaTeX using $...$ for inline (e.g. $x^2 + 5x + 6$, $\\frac{dy}{dx}$, $\\sqrt{x^2+1}$, $\\int_0^1 f(x)\\,dx$, $H_2O$) and $$...$$ for display equations. Use \\frac, \\sqrt, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot. Outside math, use Unicode for standalone symbols (→, ⇌, °C). UK English.${syllabus_context ? `\n\nSCOPE — your questions MUST stay strictly within these specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
       const user = `Generate ${n} DISTINCT ${difficulty} difficulty ${questionType} questions on the topic "${topic}" for ${boardLabel} ${subject}. Each question must test a different sub-skill or angle of the topic — no near-duplicates. Mark allocation should be realistic for the type:
 - Multiple Choice: 1 mark
 - Short Answer: 2-4 marks
@@ -92,7 +92,7 @@ For Multiple Choice, include 4 plausible options per question.`;
     } else if (action === "mark") {
       const { subject, topic, questionText, markScheme, totalMarks, studentAnswer, studentAnswerImage, board } = body;
       const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel A-Level";
-      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing.${studentAnswerImage ? " The student answer is provided as a photo of handwritten working — read it carefully, transcribe what you can, and mark generously where intent is clear despite handwriting." : ""}`;
+      const system = `You are a strict but fair ${boardLabel} ${subject} examiner. You mark answers against the official mark scheme rubric, awarding marks point-by-point using ${boardLabel} mark-scheme phrasing. In your model_answer and feedback, render ALL mathematical expressions in LaTeX using $...$ inline (e.g. $x^2$, $\\frac{a}{b}$, $\\sqrt{x+1}$) and $$...$$ for display equations. Use \\frac, \\sqrt, ^{...}, _{...}.${studentAnswerImage ? " The student answer is provided as a photo of handwritten working — read it carefully, transcribe what you can, and mark generously where intent is clear despite handwriting." : ""}`;
       const userText = `Question (worth ${totalMarks} marks):
 ${questionText}
 

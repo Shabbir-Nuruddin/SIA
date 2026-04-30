@@ -145,22 +145,21 @@ serve(async (req) => {
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
 
 ABSOLUTE FORMATTING RULES:
-- Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math.
-- Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½, π, etc.
-- Write equations in plain text (e.g., rate = k[A]^m[B]^n).
-- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
-- UK English. Use ${boardLabel} mark scheme phrasing.`;
+- For ALL mathematical expressions use LaTeX delimited with $...$ (inline) or $$...$$ (display). Examples: $x^2 + 5x + 6$, $\\frac{a}{b}$, $\\sqrt{x+1}$, $\\int_0^1 x\\,dx$, $H_2O$, $\\pi r^2$.
+- Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
+- Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
+- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.`;
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
     const mathsBoost = isMaths
       ? `
 
 CRITICAL — THIS IS MATHEMATICS:
-- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, in plain text, with the algebra written explicitly (e.g. "x² + 5x + 6 = 0", "Let u = 2x + 1, then du/dx = 2"). Do NOT skip steps.
+- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, written in LaTeX (e.g. "$x^2 + 5x + 6 = 0$", "Let $u = 2x + 1$, then $\\frac{du}{dx} = 2$"). Do NOT skip steps.
 - Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern (standard case, edge case, with substitution, applied/word problem, etc.).
-- Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure.
-- For equations, every worked_substitution must show the full numeric chain, not just the final answer.
-- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, etc.).`
+- Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure. Use $$...$$ for any equation that should be centred on its own line.
+- For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
+- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.`
       : "";
 
     const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
