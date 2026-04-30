@@ -37,8 +37,13 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
-  const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() =>
-    SUBJECT_LIST.reduce((a, s) => ({
+
+  const SUBJECT_LIST = Object.values(getSubjectsForBoard(board));
+  const SUBJECTS = getSubjectsForBoard(board);
+
+  const buildInitialSubjects = (b: "edexcel-ial" | "cie"): Record<SubjectCode, SubjectInput> => {
+    const list = Object.values(getSubjectsForBoard(b));
+    return list.reduce((a, s) => ({
       ...a,
       [s.code]: {
         selected: false,
@@ -49,13 +54,21 @@ const Onboarding = () => {
           [unit.number]: { selected: !unit.aLevelOnly, exam_date: defaultDate }
         }), {} as Record<number, UnitInput>),
       }
-    }), {} as Record<SubjectCode, SubjectInput>)
-  );
+    }), {} as Record<SubjectCode, SubjectInput>);
+  };
+
+  const [subjects, setSubjects] = useState<Record<SubjectCode, SubjectInput>>(() => buildInitialSubjects("edexcel-ial"));
   const [statIdx, setStatIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const selectedSubjects = SUBJECT_LIST.filter(s => subjects[s.code].selected);
+  // Rebuild unit selection when board changes (CIE has different unit numbers)
+  const handleBoardChange = (b: "edexcel-ial" | "cie") => {
+    setBoard(b);
+    setSubjects(buildInitialSubjects(b));
+  };
+
+  const selectedSubjects = SUBJECT_LIST.filter(s => subjects[s.code]?.selected);
   const selectedCount = selectedSubjects.length;
 
   const updateSubject = (code: SubjectCode, patch: Partial<SubjectInput>) =>
