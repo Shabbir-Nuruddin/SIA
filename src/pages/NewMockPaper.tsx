@@ -23,6 +23,7 @@ const NewMockPaper = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
 
   const [subject, setSubject] = useState<SubjectCode>((params.get("subject") as SubjectCode) || "mathematics");
   const [enrolledUnits, setEnrolledUnits] = useState<number[]>([]);
