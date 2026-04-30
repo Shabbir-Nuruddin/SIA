@@ -1,24 +1,27 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Pause, Play, X } from "lucide-react";
+import { Pause, Play, X, Timer, ChevronDown, ChevronUp } from "lucide-react";
 import {
   formatMMSS,
   getPomoState,
   pausePomodoro,
   resumePomodoro,
+  startPomodoro,
   stopPomodoro,
 } from "@/lib/pomodoro";
 
-// Floating Pomodoro pill — visible on every page except active mock exam.
-// Reads timer state from localStorage on every render — survives navigation.
+// Floating Pomodoro pill — always visible (except active mock exam).
+// When idle, shows a compact "Start focus" pill. When running, shows countdown.
+// User can minimise to a tiny icon, or pause / end.
+
+const MIN_KEY = "apex_pomo_minimised";
 
 export const PomodoroPill = () => {
   const { pathname } = useLocation();
   const [state, setState] = useState(() => getPomoState());
+  const [minimised, setMinimised] = useState<boolean>(() => localStorage.getItem(MIN_KEY) === "1");
 
-  // Recompute every 250ms while a session is active
   useEffect(() => {
-    let raf: number;
     const tick = () => {
       const s = getPomoState();
       setState(s);
@@ -32,12 +35,66 @@ export const PomodoroPill = () => {
     const onChange = () => setState(getPomoState());
     window.addEventListener("apex-pomo-change", onChange);
     window.addEventListener("focus", onChange);
-    return () => { clearInterval(id); cancelAnimationFrame(raf); window.removeEventListener("apex-pomo-change", onChange); window.removeEventListener("focus", onChange); };
+    return () => { clearInterval(id); window.removeEventListener("apex-pomo-change", onChange); window.removeEventListener("focus", onChange); };
   }, []);
 
-  const hideOnExam = pathname.startsWith("/mock-papers/exam");
-  if (hideOnExam || !state.active) return null;
+  const toggleMin = () => {
+    setMinimised(m => {
+      const next = !m;
+      localStorage.setItem(MIN_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
 
+  const hideOnExam = pathname.startsWith("/mock-papers/exam");
+  if (hideOnExam) return null;
+
+  // Minimised — tiny round icon
+  if (minimised) {
+    return (
+      <button
+        onClick={toggleMin}
+        className="fixed bottom-20 right-5 z-40 h-10 w-10 rounded-full shadow-lg flex items-center justify-center text-white"
+        style={{ background: state.active ? (state.mode === "break" ? "hsl(var(--success))" : "hsl(var(--primary))") : "hsl(var(--secondary))" }}
+        aria-label="Open Pomodoro"
+        title={state.active ? `Pomodoro · ${formatMMSS(state.remainingSeconds)}` : "Start Pomodoro"}
+      >
+        {state.active ? (
+          <span className="text-[10px] font-mono font-bold">{formatMMSS(state.remainingSeconds)}</span>
+        ) : (
+          <Timer className="h-4 w-4" />
+        )}
+      </button>
+    );
+  }
+
+  // Idle — start button
+  if (!state.active) {
+    return (
+      <div
+        className="fixed bottom-20 right-5 z-40 flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-full shadow-lg text-foreground border border-border bg-card"
+        style={{ minWidth: 170 }}
+      >
+        <Timer className="h-4 w-4 text-primary shrink-0" />
+        <button
+          onClick={() => startPomodoro({ mode: "focus", minutes: 25 })}
+          className="flex-1 text-left text-sm font-medium hover:text-primary transition-colors px-1"
+        >
+          Start focus · 25m
+        </button>
+        <button
+          onClick={toggleMin}
+          className="p-1 rounded-full hover:bg-secondary transition"
+          aria-label="Minimise"
+          title="Minimise"
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  // Active — countdown
   const ratio = state.totalSeconds === 0 ? 0 : (state.totalSeconds - state.remainingSeconds) / state.totalSeconds;
   const C = 2 * Math.PI * 14;
   const isBreak = state.mode === "break";
@@ -45,13 +102,13 @@ export const PomodoroPill = () => {
 
   return (
     <div
-      className="fixed bottom-20 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1.5 py-1.5 rounded-full shadow-lg text-white"
-      style={{ background: bg, minWidth: 180 }}
+      className="fixed bottom-20 right-5 z-40 flex items-center gap-2 pl-2.5 pr-1 py-1.5 rounded-full shadow-lg text-white"
+      style={{ background: bg, minWidth: 200 }}
     >
       <span className="text-base leading-none">{isBreak ? "☕" : "🍅"}</span>
       <div className="flex-1 min-w-0">
         <div className="text-[10px] font-medium uppercase tracking-wider opacity-80 leading-tight">
-          {isBreak ? "Break" : "Focus"}
+          {isBreak ? "Break" : "Focus"}{state.paused ? " · paused" : ""}
         </div>
         <div className="font-mono font-bold tabular text-sm leading-tight">
           {formatMMSS(state.remainingSeconds)}
@@ -75,6 +132,14 @@ export const PomodoroPill = () => {
         aria-label="End"
       >
         <X className="h-3.5 w-3.5" />
+      </button>
+      <button
+        onClick={toggleMin}
+        className="p-1 rounded-full hover:bg-white/20 transition"
+        aria-label="Minimise"
+        title="Minimise"
+      >
+        <ChevronUp className="h-3.5 w-3.5" />
       </button>
     </div>
   );
