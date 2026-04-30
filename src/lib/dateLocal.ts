@@ -19,15 +19,21 @@ export function localDateAtOffset(n: number, base: Date = new Date()): string {
   return getLocalDateString(addDaysLocal(base, n));
 }
 
-// Parse 'YYYY-MM-DD' as a local date (midnight local), not UTC.
+// Parse 'YYYY-MM-DD' (or a full ISO timestamp) as a local date at midnight,
+// so day-difference math is timezone-stable across stored formats.
 export function parseLocalDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
+  if (!iso) return new Date(NaN);
+  // Only the calendar date matters — strip any time/zone suffix.
+  const datePart = iso.slice(0, 10);
+  const [y, m, d] = datePart.split("-").map(Number);
+  if (!y || !m || !d) return new Date(NaN);
+  return new Date(y, m - 1, d);
 }
 
 export function daysBetweenLocal(fromIso: string, toIso: string): number {
   const a = parseLocalDate(fromIso);
   const b = parseLocalDate(toIso);
+  if (isNaN(+a) || isNaN(+b)) return 0;
   return Math.round((+b - +a) / 86400000);
 }
 
