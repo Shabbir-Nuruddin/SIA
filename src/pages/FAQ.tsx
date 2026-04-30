@@ -149,36 +149,107 @@ const FAQPage = () => {
 
         <div className="text-xs text-muted-foreground mb-3 font-mono">{filtered.length} questions · {BOARD_LABEL[board]}</div>
 
-        {Object.entries(grouped).map(([group, items]) => (
-          <section key={group} className="mb-6">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">{group}</h2>
-            <div className="space-y-2">
-              {items.map(f => {
-                const open = openId === f.id;
-                return (
-                  <div key={f.id} className="surface overflow-hidden">
-                    <button onClick={() => setOpenId(open ? null : f.id)} className="w-full flex items-start gap-3 p-4 text-left hover:bg-card-hover transition-colors">
-                      <ChevronDown className={`h-4 w-4 mt-0.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
-                      <span className="font-semibold flex-1 text-[15px]">{f.question}</span>
-                    </button>
-                    {open && (
-                      <div className="px-4 pb-4 pl-11 space-y-3 text-sm animate-fade-in">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest font-mono text-success mb-1">Mark-scheme answer</div>
-                          <p>{f.answer}</p>
+        {Object.entries(grouped).map(([group, items]) => {
+          const sample = items[0];
+          const subj = sample.subject;
+          const topic = sample.topic;
+          const qkey = `${board}|${subj}|${topic}`;
+          const qs = topicQs[qkey];
+          return (
+            <section key={group} className="mb-8">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">{group}</h2>
+              <div className="space-y-2">
+                {items.map(f => {
+                  const open = openId === f.id;
+                  return (
+                    <div key={f.id} className="surface overflow-hidden">
+                      <button onClick={() => setOpenId(open ? null : f.id)} className="w-full flex items-start gap-3 p-4 text-left hover:bg-card-hover transition-colors">
+                        <ChevronDown className={`h-4 w-4 mt-0.5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                        <span className="font-semibold flex-1 text-[15px]">{f.question}</span>
+                      </button>
+                      {open && (
+                        <div className="px-4 pb-4 pl-11 space-y-3 text-sm animate-fade-in">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-widest font-mono text-success mb-1">Mark-scheme answer</div>
+                            <p>{f.answer}</p>
+                          </div>
+                          <div>
+                            <div className="text-[10px] uppercase tracking-widest font-mono text-accent mb-1">Examiner note</div>
+                            <p className="text-muted-foreground italic">{f.examiner_note}</p>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest font-mono text-accent mb-1">Examiner note</div>
-                          <p className="text-muted-foreground italic">{f.examiner_note}</p>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Exam Questions */}
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                    <FileText className="h-3 w-3" /> Exam questions
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        ))}
+                  {!qs?.questions && !qs?.loading && (
+                    <Button size="sm" variant="outline" onClick={() => loadTopicQuestions(qkey, subj, topic)} className="h-7 text-xs">
+                      Load 3 questions
+                    </Button>
+                  )}
+                  {qs?.questions && (
+                    <Button size="sm" variant="ghost" onClick={() => loadTopicQuestions(qkey, subj, topic)} className="h-7 text-xs text-muted-foreground">
+                      Regenerate
+                    </Button>
+                  )}
+                </div>
+
+                {qs?.loading && (
+                  <div className="surface p-6 flex items-center gap-3 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    Generating exam questions for {topic}…
+                  </div>
+                )}
+
+                {qs?.error && (
+                  <div className="surface p-5 text-sm">
+                    <div className="flex items-center gap-2 text-urgent mb-2"><AlertCircle className="h-4 w-4" /> Couldn't load questions.</div>
+                    <p className="text-muted-foreground text-xs mb-3">This is on our end, not yours.</p>
+                    <Button size="sm" variant="outline" onClick={() => loadTopicQuestions(qkey, subj, topic)}>Try again →</Button>
+                  </div>
+                )}
+
+                {qs?.questions && (
+                  <div className="space-y-2">
+                    {qs.questions.map((q, i) => {
+                      const ex = qs.expanded.has(i);
+                      return (
+                        <div key={i} className="surface overflow-hidden">
+                          <button onClick={() => toggleExpand(qkey, i)} className="w-full flex items-start gap-3 p-4 text-left hover:bg-card-hover transition-colors">
+                            <ChevronDown className={`h-4 w-4 mt-0.5 shrink-0 transition-transform ${ex ? "rotate-180" : ""}`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[15px]" {...formattedHtmlProps(q.question_text)} />
+                            </div>
+                            <span className="font-mono text-[11px] bg-primary/15 text-primary px-2 py-0.5 rounded shrink-0">{q.marks} marks</span>
+                          </button>
+                          {ex && (
+                            <div className="px-4 pb-4 pl-11 space-y-3 text-sm animate-fade-in">
+                              <div>
+                                <div className="text-[10px] uppercase tracking-widest font-mono text-success mb-1.5">Mark scheme</div>
+                                <div className="rounded-md border-l-2 border-success bg-success/5 p-3 text-[13px] leading-relaxed" {...formattedHtmlProps(q.mark_scheme)} />
+                              </div>
+                              <p className="text-[11px] text-muted-foreground/70 italic">
+                                Each (1) above marks one awarded point. Match your answer line-by-line.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </section>
+          );
+        })}
 
         {filtered.length === 0 && (
           <div className="surface p-8 text-center text-sm text-muted-foreground">No matches. Try a different subject or search term.</div>
