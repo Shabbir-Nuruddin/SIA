@@ -228,6 +228,7 @@ export type Database = {
           current_streak: number
           daily_reminder_enabled: boolean
           daily_reminder_time: string
+          diagnostic_completed: boolean
           display_name: string | null
           exam_board: string
           first_name: string | null
@@ -251,6 +252,7 @@ export type Database = {
           current_streak?: number
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
+          diagnostic_completed?: boolean
           display_name?: string | null
           exam_board?: string
           first_name?: string | null
@@ -274,6 +276,7 @@ export type Database = {
           current_streak?: number
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
+          diagnostic_completed?: boolean
           display_name?: string | null
           exam_board?: string
           first_name?: string | null
