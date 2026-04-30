@@ -87,7 +87,7 @@ const Landing = () => {
             </div>
 
             <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-              Supports Edexcel · AQA · CIE · IB · Maths · Sciences · and more
+              Supports Edexcel · AQA · CIE · IB
             </p>
           </div>
         </div>

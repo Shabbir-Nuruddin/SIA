@@ -15,8 +15,8 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
 
   const isExam = pathname.startsWith("/mock-papers/exam");
   const chromeHidden = hideChrome || isExam;
-  // 40px countdown + 8px progress bar = 48px top offset
-  const topOffset = chromeHidden ? 0 : 48;
+  // 44px countdown + 8px progress bar = 52px top offset
+  const topOffset = chromeHidden ? 0 : 52;
 
   return (
     <div className="min-h-screen flex bg-background" style={{ paddingTop: topOffset }}>

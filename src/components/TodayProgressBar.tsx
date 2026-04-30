@@ -38,7 +38,7 @@ export const TodayProgressBar = () => {
   return (
     <div
       className="fixed left-0 right-0 z-40 group"
-      style={{ top: 40, height: 8, background: "hsl(var(--background-elevated))" }}
+      style={{ top: 44, height: 8, background: "hsl(var(--background-elevated))" }}
       title={`${done} of ${total} tasks complete today`}
     >
       <div
