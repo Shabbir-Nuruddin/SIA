@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { MathMarkdown } from "@/components/MathMarkdown";
 import { fileToCompressedDataUrl } from "@/lib/imageUpload";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradeModal } from "@/components/UpgradeModal";
+import { incrementUsage } from "@/lib/plan";
 
 type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
