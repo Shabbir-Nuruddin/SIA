@@ -33,7 +33,8 @@ export async function generateAndPersistRoadmap(
   const roadmap = buildRoadmap(units, { weeklyMinutes: opts.weeklyMinutes });
 
   // Wipe existing future sessions (don't touch completed history)
-  const today = new Date().toISOString().slice(0, 10);
+  const { getLocalDateString } = await import("./dateLocal");
+  const today = getLocalDateString();
   await supabase
     .from("roadmap_sessions")
     .delete()

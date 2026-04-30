@@ -5,10 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
-import { differenceInDays, parseISO, format } from "date-fns";
+import { format } from "date-fns";
 import { ArrowRight, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } from "lucide-react";
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
+import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
 
 interface SessionRow {
   id: string;
@@ -72,7 +73,7 @@ const Dashboard = () => {
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean } | null>(null);
 
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const todayISO = getLocalDateString();
 
   const load = async () => {
     if (!user) return;
@@ -94,7 +95,7 @@ const Dashboard = () => {
   if (units.length === 0) return <Navigate to="/onboarding" replace />;
 
   const nearest = units[0];
-  const days = differenceInDays(parseISO(nearest.exam_date), new Date());
+  const days = daysFromTodayLocal(nearest.exam_date);
   const hr = new Date().getHours();
   const greet = hr < 12 ? "Morning" : hr < 18 ? "Afternoon" : "Evening";
   const name = profile?.first_name || "Student";
@@ -298,7 +299,7 @@ const Dashboard = () => {
               <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Upcoming exams</div>
               <div className="space-y-2.5">
                 {units.slice(0, 4).map(u => {
-                  const d = differenceInDays(parseISO(u.exam_date), new Date());
+                  const d = daysFromTodayLocal(u.exam_date);
                   return (
                     <div key={`${u.subject}-${u.unit_number}`} className="flex items-center gap-2.5 text-sm">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { ChevronDown } from "lucide-react";
+import { parseLocalDate } from "@/lib/dateLocal";
 
 interface UnitRow {
   subject: SubjectCode;
@@ -28,7 +29,7 @@ function urgencyMessage(days: number): { text: string; color: string; pulse: boo
 }
 
 function formatExamDate(iso: string) {
-  return new Date(iso + "T09:00:00").toLocaleDateString("en-GB", {
+  return parseLocalDate(iso).toLocaleDateString("en-GB", {
     weekday: "short", day: "numeric", month: "short",
   });
 }
@@ -61,7 +62,10 @@ export const CountdownOverlay = () => {
   const now = Date.now();
   const upcoming = units
     .map(u => {
-      const ms = new Date(u.exam_date + "T09:00:00").getTime() - now;
+      // Anchor exam at 09:00 local on the exam date
+      const examLocal = parseLocalDate(u.exam_date);
+      examLocal.setHours(9, 0, 0, 0);
+      const ms = examLocal.getTime() - now;
       const totalH = Math.max(0, Math.floor(ms / 3_600_000));
       const days = Math.floor(totalH / 24);
       const hours = totalH % 24;
