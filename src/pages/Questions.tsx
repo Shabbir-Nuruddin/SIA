@@ -121,6 +121,9 @@ const QuestionsPage = () => {
         }));
         await supabase.from("ai_questions").insert(rows);
       }
+      // Count this batch toward the daily question limit (free = 10/day)
+      if (planState?.plan === "free") {
+        for (let i = 0; i < BATCH_SIZE; i++) await incrementUsage("questions_per_day");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't generate. Try again.");
     } finally {
