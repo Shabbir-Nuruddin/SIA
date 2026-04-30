@@ -43,6 +43,7 @@ const RoadmapTopicNotes = () => {
   const [notes, setNotes] = useState<Notes | null>(null);
   const [tab, setTab] = useState<Tab>("overview");
   const [node, setNode] = useState<any | null>(null);
+  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
   const [readSec, setReadSec] = useState(0);
 
   // Read time gate per spec — minimum 60 seconds before "I've read this" enables.
