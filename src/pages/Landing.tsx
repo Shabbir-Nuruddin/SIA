@@ -177,7 +177,7 @@ const Landing = () => {
                   "Roadmap for 1 subject",
                   "10 AI-marked questions / day",
                   "Notes for 3 topics / week",
-                  "AI tutor — 20 messages / day",
+                  "AI tutor — 5 messages total (try it out)",
                   "Built-in focus music + Pomodoro",
                 ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
@@ -194,15 +194,16 @@ const Landing = () => {
               </div>
               <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
               <div className="text-4xl font-extrabold mb-1">AED 39.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-xs text-muted-foreground mb-1">or AED 299/year <span className="text-success font-semibold">· save 38%</span></div>
               <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
                   "Everything in Starter",
+                  "Photo upload: AI marks your handwriting",
                   "Unlimited subjects + roadmap rebuilds",
                   "Unlimited AI-marked questions",
                   "Unlimited mock papers + examiner feedback",
                   "Unlimited notes — every topic",
-                  "Photo upload: AI marks your handwriting",
                   "Multiple active exams + urgency timers",
                   "AI tutor — 200 messages / day",
                 ].map(x => (
@@ -224,7 +225,7 @@ const Landing = () => {
                   "Deep-dive notes (more worked examples)",
                   "Adaptive mocks tuned to weak spots",
                   "Predicted-paper generator",
-                  "1-on-1 strategy plan from diagnostic",
+                  "Full AI exam strategy report — personalised to your diagnostic, weak topics & target grade",
                   "Early access to new features",
                 ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>

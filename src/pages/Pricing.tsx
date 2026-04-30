@@ -1,14 +1,33 @@
+import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
 import { toast } from "sonner";
 
+type Currency = "AED" | "GBP" | "USD";
+
+// Conversion rates relative to AED (approximate, for display).
+const RATES: Record<Currency, { symbol: string; rate: number; code: string }> = {
+  AED: { symbol: "AED", rate: 1, code: "AED" },
+  GBP: { symbol: "£", rate: 0.2126, code: "GBP" }, // 39.99 AED ≈ £8.50
+  USD: { symbol: "$", rate: 0.2723, code: "USD" }, // 39.99 AED ≈ $10.89
+};
+
+const formatPrice = (aed: number, currency: Currency) => {
+  const { symbol, rate } = RATES[currency];
+  if (aed === 0) return `${currency === "AED" ? "AED " : symbol}0`;
+  const v = aed * rate;
+  // Round nicely: GBP/USD show .XX, AED keeps .99 style
+  const rounded = currency === "AED" ? v.toFixed(2) : (Math.round(v * 100) / 100).toFixed(2);
+  return currency === "AED" ? `AED ${rounded}` : `${symbol}${rounded}`;
+};
+
 interface Tier {
   id: "free" | "pro" | "advanced";
   name: string;
   tagline: string;
-  price: string;
-  cadence: string;
+  monthlyAED: number;
+  annualAED?: number;
   Icon: typeof Sparkles;
   highlight?: boolean;
   badge?: string;
@@ -21,13 +40,12 @@ const TIERS: Tier[] = [
     id: "free",
     name: "Starter",
     tagline: "Get a real taste of Apex.",
-    price: "AED 0",
-    cadence: "forever",
+    monthlyAED: 0,
     Icon: Sparkles,
     features: [
       "Roadmap for 1 subject",
       "10 AI-marked topical questions / day",
-      "AI tutor — 20 messages / day",
+      "AI tutor — 5 messages total (try it out)",
       "Notes for 3 topics / week",
       "Built-in focus music",
       "Pomodoro + streaks",
@@ -38,19 +56,19 @@ const TIERS: Tier[] = [
     id: "pro",
     name: "Pro",
     tagline: "The plan most students pick. Built for exam season.",
-    price: "AED 39.99",
-    cadence: "/ month",
+    monthlyAED: 39.99,
+    annualAED: 299,
     Icon: Zap,
     highlight: true,
     badge: "Most popular",
     features: [
       "Everything in Starter",
+      "Photo upload: AI marks your handwritten working",
       "Unlimited subjects + roadmap rebuilds",
       "Unlimited AI-marked topical questions",
       "Unlimited mock papers with examiner feedback",
       "Unlimited notes — every topic, every unit",
       "AI tutor — 200 messages / day",
-      "Photo upload: AI marks your handwritten working",
       "Spotify focus playlists",
       "Multiple active exams + urgency timer",
       "Priority response speed",
@@ -61,8 +79,7 @@ const TIERS: Tier[] = [
     id: "advanced",
     name: "Advanced",
     tagline: "For top-grade hunters and full-on offer holders.",
-    price: "AED 129.99",
-    cadence: "/ month",
+    monthlyAED: 129.99,
     Icon: Crown,
     features: [
       "Everything in Pro",
@@ -70,16 +87,18 @@ const TIERS: Tier[] = [
       "Deep-dive notes (longer, more worked examples)",
       "Adaptive mock papers tuned to your weak spots",
       "Predicted-paper generator (exam-season exclusive)",
-      "1-on-1 strategy plan from your diagnostic",
+      "Full AI exam strategy report — personalised to your diagnostic results, weak topics, and target grade",
       "Early access to every new feature",
-      "Direct line to the Apex team",
     ],
     cta: "Go Advanced",
   },
 ];
 
-const TierCard = ({ tier }: { tier: Tier }) => {
+const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
   const { Icon } = tier;
+  const priceLabel = formatPrice(tier.monthlyAED, currency);
+  const annualLabel = tier.annualAED ? formatPrice(tier.annualAED, currency) : null;
+
   return (
     <div
       className={`relative surface p-6 md:p-8 flex flex-col h-full transition-transform hover:-translate-y-0.5 ${
@@ -104,10 +123,22 @@ const TierCard = ({ tier }: { tier: Tier }) => {
         <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">{tier.name}</div>
       </div>
       <h3 className="text-2xl font-extrabold mt-2">{tier.tagline}</h3>
-      <div className="mt-5 flex items-baseline gap-1.5">
-        <div className="text-5xl font-extrabold tabular">{tier.price}</div>
-        <div className="text-sm text-muted-foreground">{tier.cadence}</div>
+      <div className="mt-5 flex items-baseline gap-1.5 flex-wrap">
+        <div className="text-5xl font-extrabold tabular">{priceLabel}</div>
+        <div className="text-sm text-muted-foreground">
+          {tier.monthlyAED === 0 ? "forever" : "/ month"}
+        </div>
       </div>
+      {annualLabel && (
+        <div className="mt-2 text-sm">
+          <span className="text-muted-foreground">or</span>{" "}
+          <span className="font-semibold text-foreground">{annualLabel}</span>{" "}
+          <span className="text-muted-foreground">/ year</span>{" "}
+          <span className="ml-1 inline-block px-1.5 py-0.5 rounded bg-success/15 text-success text-[10px] font-bold uppercase tracking-wider">
+            Save 38%
+          </span>
+        </div>
+      )}
 
       <ul className="mt-6 space-y-2.5 flex-1">
         {tier.features.map((f, i) => (
@@ -137,22 +168,53 @@ const TierCard = ({ tier }: { tier: Tier }) => {
   );
 };
 
+const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: (c: Currency) => void }) => {
+  const options: Currency[] = ["AED", "GBP", "USD"];
+  return (
+    <div className="inline-flex items-center rounded-lg border border-border bg-card p-1">
+      {options.map((c) => (
+        <button
+          key={c}
+          onClick={() => onChange(c)}
+          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition ${
+            currency === c
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {c}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 const Pricing = () => {
+  const [currency, setCurrency] = useState<Currency>("AED");
+
   return (
     <AppLayout>
       <div className="px-6 md:px-10 py-10 md:py-14 max-w-6xl mx-auto animate-fade-in">
-        <div className="text-center mb-10 md:mb-14">
-          <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3 inline-flex items-center gap-2">
-            <Sparkles className="h-3 w-3" /> Plans &amp; Pricing
+        <div className="relative mb-10 md:mb-14">
+          <div className="absolute right-0 top-0 hidden md:block">
+            <CurrencyToggle currency={currency} onChange={setCurrency} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Pick the plan that matches your run-up.</h1>
-          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-            All plans include the roadmap, the AI tutor, and your daily focus loop. Upgrade when you're ready to go unlimited.
-          </p>
+          <div className="text-center">
+            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3 inline-flex items-center gap-2">
+              <Sparkles className="h-3 w-3" /> Plans &amp; Pricing
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Pick the plan that matches your run-up.</h1>
+            <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+              SaveMyExams gives you notes and questions. APEX gives you a complete daily plan, AI marking, and a roadmap that thinks for you.
+            </p>
+            <div className="mt-5 md:hidden flex justify-center">
+              <CurrencyToggle currency={currency} onChange={setCurrency} />
+            </div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
-          {TIERS.map(t => <TierCard key={t.id} tier={t} />)}
+          {TIERS.map(t => <TierCard key={t.id} tier={t} currency={currency} />)}
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
