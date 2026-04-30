@@ -3,6 +3,8 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { CountdownOverlay } from "@/components/CountdownOverlay";
+import { TodayProgressBar } from "@/components/TodayProgressBar";
+import { PomodoroPill } from "@/components/PomodoroPill";
 import { Loader2 } from "lucide-react";
 
 export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideChrome?: boolean }) => {
@@ -13,12 +15,16 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
 
   const isExam = pathname.startsWith("/mock-papers/exam");
   const chromeHidden = hideChrome || isExam;
+  // 40px countdown + 8px progress bar = 48px top offset
+  const topOffset = chromeHidden ? 0 : 48;
 
   return (
-    <div className="min-h-screen flex bg-background" style={{ paddingTop: chromeHidden ? 0 : 36 }}>
+    <div className="min-h-screen flex bg-background" style={{ paddingTop: topOffset }}>
       {!chromeHidden && <CountdownOverlay />}
+      {!chromeHidden && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar />}
-      <main className="flex-1 overflow-x-hidden">{children}</main>
+      <main className="flex-1 overflow-x-hidden min-w-0">{children}</main>
+      <PomodoroPill />
     </div>
   );
 };
