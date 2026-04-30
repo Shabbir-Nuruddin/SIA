@@ -47,6 +47,10 @@ const Onboarding = () => {
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [firstName, setFirstName] = useState("");
   const [needsName, setNeedsName] = useState(false);
+  const [theme, setTheme] = useState<ThemeName>(() => getStoredTheme());
+
+  // Live-apply theme as the user picks during onboarding
+  useEffect(() => { applyTheme(theme); }, [theme]);
 
   // If the user signed in via Google (no first_name on profile), prompt for it.
   useEffect(() => {
