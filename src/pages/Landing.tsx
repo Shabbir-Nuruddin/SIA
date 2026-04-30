@@ -177,7 +177,7 @@ const Landing = () => {
                   "Roadmap for 1 subject",
                   "10 AI-marked questions / day",
                   "Notes for 3 topics / week",
-                  "AI tutor — 20 messages / day",
+                  "AI tutor — 5 messages total (try it out)",
                   "Built-in focus music + Pomodoro",
                 ].map(x => (
                   <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
