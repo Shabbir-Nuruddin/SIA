@@ -383,7 +383,7 @@ const NotesPage = () => {
 
                 <Section title="Key definitions">
                   <dl className="space-y-2">
-                    {notes.key_definitions.map((d, i) => (
+                    {(notes.key_definitions ?? []).map((d, i) => (
                       <div key={i} className="flex flex-col sm:flex-row sm:gap-3 text-sm">
                         <dt className="font-semibold text-primary sm:w-1/3 shrink-0" {...formattedHtmlProps(d.term)} />
                         <dd className="text-foreground/90" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(d.definition)) }} />
@@ -394,11 +394,11 @@ const NotesPage = () => {
 
                 <Section title="Core concepts">
                   <div className="space-y-4">
-                    {notes.core_concepts.map((c, i) => (
+                    {(notes.core_concepts ?? []).map((c, i) => (
                       <div key={i}>
                         <div className="font-semibold text-sm mb-1.5" {...formattedHtmlProps(c.cluster)} />
                         <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {c.bullets.map((b, j) => (
+                          {(c.bullets ?? []).map((b, j) => (
                             <li key={j} dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(b)) }} />
                           ))}
                         </ul>
@@ -409,7 +409,7 @@ const NotesPage = () => {
 
                 <Section title="Common exam mistakes">
                   <ul className="space-y-2 text-sm">
-                    {notes.common_mistakes.map((m, i) => (
+                    {(notes.common_mistakes ?? []).map((m, i) => (
                       <li key={i} className="pl-3 border-l-2 border-urgent/60"
                           dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(m)) }} />
                     ))}
@@ -420,10 +420,10 @@ const NotesPage = () => {
                   <div className="rounded-lg bg-secondary/40 p-4 text-sm space-y-3">
                     <div>
                       <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground mb-1">Problem</div>
-                      <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.worked_example.problem)) }} />
+                      <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.worked_example?.problem ?? "")) }} />
                     </div>
                     <ol className="space-y-2 list-decimal pl-5">
-                      {notes.worked_example.steps.map((s, i) => (
+                      {(notes.worked_example?.steps ?? []).map((s, i) => (
                         <li key={i}>
                           <div dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(s.step)) }} />
                           <div className="text-xs text-muted-foreground mt-0.5" dangerouslySetInnerHTML={{ __html: formatToHtml(s.reason) }} />
@@ -432,14 +432,14 @@ const NotesPage = () => {
                     </ol>
                     <div>
                       <span className="text-[10px] uppercase tracking-wider font-mono text-success mr-2">Answer</span>
-                      <span className="font-mono font-bold" dangerouslySetInnerHTML={{ __html: formatToHtml(notes.worked_example.answer) }} />
+                      <span className="font-mono font-bold" dangerouslySetInnerHTML={{ __html: formatToHtml(notes.worked_example?.answer ?? "") }} />
                     </div>
                   </div>
                 </Section>
 
                 <Section title="Examiner tips">
                   <ul className="space-y-2 text-sm">
-                    {notes.examiner_tips.map((t, i) => (
+                    {(notes.examiner_tips ?? []).map((t, i) => (
                       <li key={i} className="flex gap-2">
                         <span className="text-accent shrink-0">→</span>
                         <span dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(t)) }} />
