@@ -147,6 +147,22 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
     }
     const args = JSON.parse(toolCall.function.arguments);
 
+    // Post-filter: for non-MCQ actions, drop questions that look like MCQs without options.
+    if (action === "generate" && body.questionType !== "Multiple Choice" && Array.isArray(args?.questions)) {
+      const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+      args.questions = args.questions.filter((q: any) => {
+        const t = String(q?.question_text || "");
+        const looksMcq = mcqPattern.test(t);
+        const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
+        // Drop if it sounds like MCQ but has no options provided
+        if (looksMcq && !hasOptions) return false;
+        return true;
+      });
+    } else if (action === "generate" && body.questionType === "Multiple Choice" && Array.isArray(args?.questions)) {
+      // Drop MCQs missing options
+      args.questions = args.questions.filter((q: any) => Array.isArray(q?.options) && q.options.length >= 2);
+    }
+
     return new Response(JSON.stringify(args), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("ai-question error", err);
