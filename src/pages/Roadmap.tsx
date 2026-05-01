@@ -431,8 +431,9 @@ const RoadmapPage = () => {
 
         {/* Path */}
         <div className="space-y-8">
-          {grouped.map(([date, dayNodes]) => {
+          {grouped.map(([date, dayNodes], dayIdx) => {
             const allDone = dayNodes.every(n => n.status === "complete" || n.status === "skipped");
+            const lockedForFree = !subLoading && !isPro && dayIdx >= 3;
             return (
               <section key={date}>
                 <div className="text-[11px] uppercase tracking-widest font-mono text-muted-foreground mb-3 flex items-center gap-2">
