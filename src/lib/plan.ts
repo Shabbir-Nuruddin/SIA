@@ -10,18 +10,15 @@ export type LimitKey =
   | "subjects"            // free=1
   | "photo_upload";       // pro-only
 
-// 🔒 GATING DISABLED FOR TESTING — everyone gets unlimited access.
-// To re-enable free-tier limits, restore the original `free` values:
-//   free: { tutor_messages: 5, questions_per_day: 10, notes_per_week: 3,
-//           mock_papers: 0, subjects: 1, photo_upload: 0 }
+// Real free-tier limits (used once Paddle is live).
 export const LIMITS: Record<Plan, Record<LimitKey, number>> = {
   free: {
-    tutor_messages: Infinity,
-    questions_per_day: Infinity,
+    tutor_messages: 0,        // Pro-only
+    questions_per_day: 10,
     notes_per_week: Infinity,
-    mock_papers: Infinity,
-    subjects: Infinity,
-    photo_upload: Infinity,
+    mock_papers: 0,           // Pro-only (1/week tracked client-side too)
+    subjects: 1,
+    photo_upload: 0,          // Pro-only
   },
   pro: {
     tutor_messages: Infinity,
