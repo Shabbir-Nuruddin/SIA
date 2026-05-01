@@ -13,8 +13,9 @@ import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/li
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown
 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
 
@@ -93,6 +94,7 @@ function dayHeader(iso: string): string {
 
 const RoadmapPage = () => {
   const { user } = useAuth();
+  const { isPro, loading: subLoading, refresh: refreshSub, upgrade } = useSubscription();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -429,92 +431,128 @@ const RoadmapPage = () => {
 
         {/* Path */}
         <div className="space-y-8">
-          {grouped.map(([date, dayNodes]) => {
-            const allDone = dayNodes.every(n => n.status === "complete" || n.status === "skipped");
+          {(() => {
+            const visibleDays = (!subLoading && !isPro) ? grouped.slice(0, 3) : grouped;
+            const hiddenCount = grouped.length - visibleDays.length;
             return (
-              <section key={date}>
-                <div className="text-[11px] uppercase tracking-widest font-mono text-muted-foreground mb-3 flex items-center gap-2">
-                  {dayHeader(date)}
-                  {allDone && <CheckCircle2 className="h-3 w-3 text-success" />}
-                </div>
-                <div className="relative pl-6 space-y-3">
-                  {/* Vertical timeline line */}
-                  <div className="absolute left-2 top-2 bottom-2 w-px bg-border" />
-                  {dayNodes.map(node => (
-                    <div key={node.id} ref={el => nodeRefs.current[node.id] = el} className="relative">
-                      {/* Timeline dot */}
-                      <div className="absolute -left-[18px] top-5 h-2 w-2 rounded-full"
-                        style={{
-                          background: node.status === "complete" ? "hsl(var(--success))" :
-                            node.status === "locked" ? "hsl(var(--border))" :
-                            NODE_ACCENT[node.node_type],
+              <>
+                {visibleDays.map(([date, dayNodes]) => {
+                  const allDone = dayNodes.every(n => n.status === "complete" || n.status === "skipped");
+                  return (
+                    <section key={date}>
+                      <div className="text-[11px] uppercase tracking-widest font-mono text-muted-foreground mb-3 flex items-center gap-2">
+                        {dayHeader(date)}
+                        {allDone && <CheckCircle2 className="h-3 w-3 text-success" />}
+                      </div>
+                      <div className="relative pl-6 space-y-3">
+                        <div className="absolute left-2 top-2 bottom-2 w-px bg-border" />
+                        {dayNodes.map(node => (
+                          <div key={node.id} ref={el => nodeRefs.current[node.id] = el} className="relative">
+                            <div className="absolute -left-[18px] top-5 h-2 w-2 rounded-full"
+                              style={{
+                                background: node.status === "complete" ? "hsl(var(--success))" :
+                                  node.status === "locked" ? "hsl(var(--border))" :
+                                  NODE_ACCENT[node.node_type],
+                              }}
+                            />
+                            <NodeCard
+                              node={node}
+                              isActive={activeNodeId === node.id}
+                              startStage={activeNodeId === node.id ? activeStartStage : "notes"}
+                              onActivate={() => {
+                                if (node.node_type === "learn") {
+                                  window.dispatchEvent(new CustomEvent("apex-assistant-context", {
+                                    detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
+                                  }));
+                                  navigate(`/roadmap/topic/${node.id}/notes`);
+                                  return;
+                                }
+                                setActiveNodeId(node.id);
+                                setActiveStartStage("notes");
+                              }}
+                              onClose={() => { setActiveNodeId(null); setActiveStartStage("notes"); }}
+                              onComplete={async (scorePercent) => {
+                                await updateNodeStatus(node.id, {
+                                  status: "complete",
+                                  completed_at: new Date().toISOString(),
+                                  score_percent: scorePercent ?? null,
+                                } as any);
+                                setActiveNodeId(null);
+                                setActiveStartStage("notes");
+                                if (scorePercent != null && scorePercent < 60 && user && node.subject && node.topic_name) {
+                                  const { localDateAtOffset } = await import("@/lib/dateLocal");
+                                  const tomorrow = localDateAtOffset(1);
+                                  const maxOrder = Math.max(...nodes.map(n => n.node_order));
+                                  await supabase.from("roadmap_nodes").insert({
+                                    user_id: user.id,
+                                    subject: node.subject,
+                                    unit_code: node.unit_code,
+                                    unit_number: node.unit_number,
+                                    unit_name: node.unit_name,
+                                    topic_name: node.topic_name,
+                                    node_type: "review",
+                                    node_order: maxOrder + 1,
+                                    scheduled_date: tomorrow,
+                                    status: "unlocked",
+                                    science_method: "spaced_repetition",
+                                    why_now_text: `You scored ${scorePercent}% on ${node.topic_name}. Extra practice tomorrow will fix it.`,
+                                    source_node_id: node.id,
+                                  });
+                                  toast.info(`Extra practice scheduled for tomorrow on ${node.topic_name}.`);
+                                  await load();
+                                }
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {allDone && isToday(parseISO(date)) && (
+                        <div className="mt-4 ml-6 surface p-4 text-sm">
+                          <p className="font-medium">Today's plan: complete.</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {daysToNearest} days to {nearestExam ? SUBJECTS[nearestExam.subject].name : "your exam"}.
+                          </p>
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
+                {hiddenCount > 0 && (
+                  <section className="relative">
+                    <div className="surface p-8 text-center border-dashed">
+                      <div className="mx-auto h-12 w-12 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-4">
+                        <Crown className="h-5 w-5" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{hiddenCount} more days locked</h3>
+                      <p className="text-sm text-muted-foreground mb-5 max-w-md mx-auto">
+                        Free plan shows your first 3 days. Upgrade to Pro to unlock your full personalised roadmap, unlimited mock papers, AI tutor and more.
+                      </p>
+                      <Button
+                        size="lg"
+                        className="btn-primary"
+                        onClick={async () => {
+                          try { await upgrade(); } catch { toast.error("Couldn't open checkout."); }
                         }}
-                      />
-                      <NodeCard
-                        node={node}
-                        isActive={activeNodeId === node.id}
-                        startStage={activeNodeId === node.id ? activeStartStage : "notes"}
-                        onActivate={() => {
-                          // For learn nodes: route to full-screen notes page first.
-                          if (node.node_type === "learn") {
-                            // Set tutor context
-                            window.dispatchEvent(new CustomEvent("apex-assistant-context", {
-                              detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
-                            }));
-                            navigate(`/roadmap/topic/${node.id}/notes`);
-                            return;
-                          }
-                          setActiveNodeId(node.id);
-                          setActiveStartStage("notes");
-                        }}
-                        onClose={() => { setActiveNodeId(null); setActiveStartStage("notes"); }}
-                        onComplete={async (scorePercent) => {
-                          await updateNodeStatus(node.id, {
-                            status: "complete",
-                            completed_at: new Date().toISOString(),
-                            score_percent: scorePercent ?? null,
-                          } as any);
-                          setActiveNodeId(null);
-                          setActiveStartStage("notes");
-                          if (scorePercent != null && scorePercent < 60 && user && node.subject && node.topic_name) {
-                            const { localDateAtOffset } = await import("@/lib/dateLocal");
-                            const tomorrow = localDateAtOffset(1);
-                            const maxOrder = Math.max(...nodes.map(n => n.node_order));
-                            await supabase.from("roadmap_nodes").insert({
-                              user_id: user.id,
-                              subject: node.subject,
-                              unit_code: node.unit_code,
-                              unit_number: node.unit_number,
-                              unit_name: node.unit_name,
-                              topic_name: node.topic_name,
-                              node_type: "review",
-                              node_order: maxOrder + 1,
-                              scheduled_date: tomorrow,
-                              status: "unlocked",
-                              science_method: "spaced_repetition",
-                              why_now_text: `You scored ${scorePercent}% on ${node.topic_name}. Extra practice tomorrow will fix it.`,
-                              source_node_id: node.id,
-                            });
-                            toast.info(`Extra practice scheduled for tomorrow on ${node.topic_name}.`);
-                            await load();
-                          }
-                        }}
-                      />
+                      >
+                        <Crown className="h-4 w-4 mr-2" /> Upgrade to Pro
+                      </Button>
+                      <div className="mt-4">
+                        <button
+                          onClick={async () => {
+                            await refreshSub();
+                            toast.success("Subscription refreshed");
+                          }}
+                          className="text-xs text-muted-foreground hover:text-primary underline underline-offset-4"
+                        >
+                          Already subscribed? Restore access
+                        </button>
+                      </div>
                     </div>
-                  ))}
-                </div>
-
-                {allDone && isToday(parseISO(date)) && (
-                  <div className="mt-4 ml-6 surface p-4 text-sm">
-                    <p className="font-medium">Today's plan: complete.</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {daysToNearest} days to {nearestExam ? SUBJECTS[nearestExam.subject].name : "your exam"}.
-                    </p>
-                  </div>
+                  </section>
                 )}
-              </section>
+              </>
             );
-          })}
+          })()}
         </div>
 
         {/* Regenerate */}

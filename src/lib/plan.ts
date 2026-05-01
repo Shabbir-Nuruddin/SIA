@@ -10,18 +10,15 @@ export type LimitKey =
   | "subjects"            // free=1
   | "photo_upload";       // pro-only
 
-// 🔒 GATING DISABLED FOR TESTING — everyone gets unlimited access.
-// To re-enable free-tier limits, restore the original `free` values:
-//   free: { tutor_messages: 5, questions_per_day: 10, notes_per_week: 3,
-//           mock_papers: 0, subjects: 1, photo_upload: 0 }
+// Real free-tier limits (used once Paddle is live).
 export const LIMITS: Record<Plan, Record<LimitKey, number>> = {
   free: {
-    tutor_messages: Infinity,
-    questions_per_day: Infinity,
+    tutor_messages: 0,        // Pro-only
+    questions_per_day: 10,
     notes_per_week: Infinity,
-    mock_papers: Infinity,
-    subjects: Infinity,
-    photo_upload: Infinity,
+    mock_papers: 0,           // Pro-only (1/week tracked client-side too)
+    subjects: 1,
+    photo_upload: 0,          // Pro-only
   },
   pro: {
     tutor_messages: Infinity,
@@ -93,6 +90,20 @@ export async function getPlanState(): Promise<PlanState | null> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await supabase.from("profiles").update(updates as any).eq("id", user.id);
   }
+
+  // Cross-reference subscriptions table — Paddle-paying users override profile.plan
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sub } = await (supabase.from("subscriptions") as any)
+      .select("plan,status,expires_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (sub?.plan === "pro" && sub?.status !== "cancelled") {
+      const exp = sub.expires_at ? new Date(sub.expires_at).getTime() : 0;
+      if (!exp || exp > Date.now()) (data as PlanState).plan = "pro";
+    }
+  } catch { /* table may not exist yet — ignore */ }
+
   return data as PlanState;
 }
 

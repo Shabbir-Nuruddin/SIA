@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIMIT_LABELS, type LimitKey, type Plan } from "@/lib/plan";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -18,7 +21,23 @@ interface UpgradeModalProps {
 
 export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title, body }: UpgradeModalProps) => {
   const navigate = useNavigate();
+  const { upgrade } = useSubscription();
+  const [busy, setBusy] = useState(false);
   if (!open) return null;
+
+  const handleUpgrade = async () => {
+    setBusy(true);
+    try {
+      await upgrade();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error("Couldn't open checkout.");
+      navigate("/pricing");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const proOnly = limit === 0;
   const label = LIMIT_LABELS[limitKey];
@@ -81,12 +100,10 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
           </Button>
           <Button
             className="flex-1"
-            onClick={() => {
-              onClose();
-              navigate("/pricing");
-            }}
+            disabled={busy}
+            onClick={handleUpgrade}
           >
-            Upgrade to Pro
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade to Pro"}
           </Button>
         </div>
       </div>
