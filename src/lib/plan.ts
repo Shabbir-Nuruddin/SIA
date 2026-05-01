@@ -90,6 +90,20 @@ export async function getPlanState(): Promise<PlanState | null> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await supabase.from("profiles").update(updates as any).eq("id", user.id);
   }
+
+  // Cross-reference subscriptions table — Paddle-paying users override profile.plan
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sub } = await (supabase.from("subscriptions") as any)
+      .select("plan,status,expires_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (sub?.plan === "pro" && sub?.status !== "cancelled") {
+      const exp = sub.expires_at ? new Date(sub.expires_at).getTime() : 0;
+      if (!exp || exp > Date.now()) (data as PlanState).plan = "pro";
+    }
+  } catch { /* table may not exist yet — ignore */ }
+
   return data as PlanState;
 }
 
