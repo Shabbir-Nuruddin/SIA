@@ -3,6 +3,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 type Currency = "AED" | "GBP" | "USD";
 
@@ -96,6 +98,29 @@ const TIERS: Tier[] = [
 
 const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
   const { Icon } = tier;
+  const { isPro, upgrade } = useSubscription();
+  const navigate = useNavigate();
+
+  const handleClick = async () => {
+    if (tier.id === "free") {
+      navigate("/dashboard");
+      return;
+    }
+    if (tier.id === "pro") {
+      if (isPro) {
+        toast.success("You're already on Pro 🎉");
+        return;
+      }
+      try {
+        await upgrade();
+      } catch (err) {
+        toast.error("Couldn't open checkout. Please try again.");
+        console.error(err);
+      }
+      return;
+    }
+    toast.info("Advanced launches soon — you're on early access.");
+  };
   const priceLabel = formatPrice(tier.monthlyAED, currency);
   const annualLabel = tier.annualAED ? formatPrice(tier.annualAED, currency) : null;
 
@@ -152,14 +177,14 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
       </ul>
 
       <Button
-        onClick={() => toast.info("Plans launch soon — you're on early access.")}
+        onClick={handleClick}
         className={`mt-7 w-full ${
           tier.highlight ? "btn-primary" : tier.id === "advanced" ? "bg-foreground text-background hover:bg-foreground/90" : ""
         }`}
         variant={tier.highlight || tier.id === "advanced" ? "default" : "outline"}
         size="lg"
       >
-        {tier.cta}
+        {tier.id === "pro" && isPro ? "Current plan" : tier.cta}
       </Button>
       {tier.id === "free" && (
         <div className="mt-3 text-[11px] text-center text-muted-foreground">No card. No catch.</div>
