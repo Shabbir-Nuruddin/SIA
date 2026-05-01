@@ -94,6 +94,7 @@ function dayHeader(iso: string): string {
 
 const RoadmapPage = () => {
   const { user } = useAuth();
+  const { isPro, loading: subLoading, refresh: refreshSub, upgrade } = useSubscription();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
