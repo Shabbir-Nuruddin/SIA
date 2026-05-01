@@ -320,8 +320,10 @@ export const FloatingAssistant = () => {
               <Button onClick={send} disabled={(!input.trim() && !pendingImage) || streaming} size="sm" className="btn-primary self-end h-10 w-10 p-0">
                 {streaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
-            </div>
-          </div>
+             </div>
+           </div>
+          </>
+          )}
         </div>
       )}
       <UpgradeModal
