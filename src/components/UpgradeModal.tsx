@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIMIT_LABELS, type LimitKey, type Plan } from "@/lib/plan";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 interface UpgradeModalProps {
   open: boolean;
