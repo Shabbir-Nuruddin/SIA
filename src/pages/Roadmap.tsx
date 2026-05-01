@@ -13,8 +13,9 @@ import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/li
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown
 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
 
