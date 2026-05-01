@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Lock, Crown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 type Msg = { role: "user" | "assistant"; content: string | ContentPart[] };
