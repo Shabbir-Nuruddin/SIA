@@ -237,8 +237,8 @@ const RoadmapTopicNotes = () => {
                       {e.variables.map((v, j) => (
                         <div key={j} className="flex items-baseline gap-2">
                           <span className="font-bold text-primary" {...formattedHtmlProps(v.symbol)} />
-                          <span className="text-muted-foreground text-[13px]">{v.meaning}</span>
-                          <span className="font-mono text-[11px] text-success ml-auto">{v.unit}</span>
+                          <span className="text-muted-foreground text-[13px]" {...formattedHtmlProps(v.meaning)} />
+                          <span className="font-mono text-[11px] text-success ml-auto" {...formattedHtmlProps(v.unit)} />
                         </div>
                       ))}
                     </div>

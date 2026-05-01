@@ -106,10 +106,39 @@ const autoWrapMath = (text: string): string => {
         /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|nu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ|ominus|oplus|otimes|partial|nabla|hbar|prime|ell|sum|prod|int)\b/g,
         (m) => `$${m}$`
       );
-      // Last-resort: if the segment STILL contains any unwrapped LaTeX command,
-      // wrap the whole segment in $...$ so KaTeX gets a chance to render it.
-      if (LATEX_CMD_RE.test(s) && !s.includes("$")) {
-        s = `$${s}$`;
+      // Wrap bare \text{...}, \mathrm{...}, \mathbf{...} etc. with balanced braces
+      for (const macro of ["text", "mathrm", "mathbf", "mathit", "operatorname"]) {
+        const needle = "\\" + macro + "{";
+        let out = "";
+        let i = 0;
+        while (i < s.length) {
+          const k = s.indexOf(needle, i);
+          if (k === -1) { out += s.slice(i); break; }
+          // Skip if already inside $...$
+          const before = s.slice(0, k);
+          const dollarsBefore = (before.match(/\$/g) || []).length;
+          const braceStart = k + needle.length - 1;
+          const end = matchBraces(s, braceStart);
+          if (end === -1) { out += s.slice(i); break; }
+          if (dollarsBefore % 2 === 1) {
+            out += s.slice(i, end);
+          } else {
+            out += s.slice(i, k) + `$${s.slice(k, end)}$`;
+          }
+          i = end;
+        }
+        s = out;
+      }
+      // Last-resort: if the segment STILL contains any unwrapped LaTeX command
+      // outside of $...$, wrap each bare run that contains LaTeX.
+      if (LATEX_CMD_RE.test(s)) {
+        const parts = s.split(/(\$[^\n$]+?\$|\$\$[\s\S]+?\$\$)/g);
+        s = parts
+          .map((p, idx) => {
+            if (idx % 2 === 1) return p;
+            return LATEX_CMD_RE.test(p) ? `$${p}$` : p;
+          })
+          .join("");
       }
       return s;
     })
