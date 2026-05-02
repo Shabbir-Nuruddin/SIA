@@ -53,7 +53,7 @@ const Landing = () => {
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
-          <ApexLogo />
+          <ApexLogo showTagline />
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
             <a href="#features" className="hover:text-foreground transition">Features</a>
