@@ -13,7 +13,7 @@ export type LimitKey =
 // Real free-tier limits (used once Paddle is live).
 export const LIMITS: Record<Plan, Record<LimitKey, number>> = {
   free: {
-    tutor_messages: 0,        // Pro-only
+    tutor_messages: 5,        // 5 total messages on free plan
     questions_per_day: 10,
     notes_per_week: Infinity,
     mock_papers: 0,           // Pro-only (1/week tracked client-side too)
