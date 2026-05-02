@@ -218,25 +218,6 @@ export const FloatingAssistant = () => {
             </button>
           </div>
 
-          {!isPro ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="h-12 w-12 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-4">
-                <Lock className="h-5 w-5" />
-              </div>
-              <div className="text-base font-bold mb-1">AI Study Assistant is a Pro feature</div>
-              <p className="text-xs text-muted-foreground mb-5 leading-relaxed">
-                Unlock unlimited AI tutor messages, photo upload marking and more.
-              </p>
-              <Button
-                className="btn-primary w-full"
-                onClick={async () => {
-                  try { await paddleUpgrade(); } catch { /* noop */ }
-                }}
-              >
-                <Crown className="h-4 w-4 mr-2" /> Upgrade to Pro
-              </Button>
-            </div>
-          ) : (
           <>
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -323,7 +304,6 @@ export const FloatingAssistant = () => {
              </div>
            </div>
           </>
-          )}
         </div>
       )}
       <UpgradeModal

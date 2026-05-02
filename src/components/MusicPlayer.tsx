@@ -90,7 +90,8 @@ function getAudio(): HTMLAudioElement {
   const a = new Audio();
   a.loop = true;
   a.preload = "auto";
-  a.crossOrigin = "anonymous";
+  // Note: do NOT set crossOrigin — Pixabay CDN doesn't return CORS headers,
+  // which causes the audio element to silently fail to load when crossOrigin is set.
   audioEl = a;
   return a;
 }
