@@ -347,26 +347,38 @@ const Dashboard = () => {
 
             {/* Upcoming exams */}
             <div className="surface p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Upcoming exams</div>
-              <div className="space-y-2.5">
-                {units.slice(0, 4).map(u => {
-                  const d = daysFromTodayLocal(u.exam_date);
-                  return (
-                    <div key={`${u.subject}-${u.unit_number}`} className="flex items-center gap-2.5 text-sm">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{
-                        background: u.subject === "mathematics" ? "hsl(var(--subject-maths))"
-                          : u.subject === "biology" ? "hsl(var(--subject-biology))"
-                          : u.subject === "chemistry" ? "hsl(var(--subject-chemistry))"
-                          : "hsl(var(--subject-physics))"
-                      }} />
-                      <div className="flex-1 min-w-0 truncate text-xs">{SUBJECTS[u.subject].name} U{u.unit_number}</div>
-                      <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
-                        {d}d
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">Upcoming exams</div>
+                <Link to="/exams" className="text-[10px] text-primary hover:underline">Manage</Link>
               </div>
+              {hasExams ? (
+                <div className="space-y-2.5">
+                  {exams.slice(0, 5).map(ex => {
+                    const d = daysFromTodayLocal(ex.exam_date);
+                    const sc = ex.subject;
+                    return (
+                      <div key={ex.id} className="flex items-center gap-2.5 text-sm">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{
+                          background: sc === "mathematics" ? "hsl(var(--subject-maths))"
+                            : sc === "biology" ? "hsl(var(--subject-biology))"
+                            : sc === "chemistry" ? "hsl(var(--subject-chemistry))"
+                            : sc === "physics" ? "hsl(var(--subject-physics))"
+                            : "hsl(var(--muted-foreground))"
+                        }} />
+                        <div className="flex-1 min-w-0 truncate text-xs">{ex.name}</div>
+                        <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
+                          {d}d
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground space-y-2">
+                  <p>No exam dates yet.</p>
+                  <Link to="/exams"><Button size="sm" variant="outline" className="w-full"><CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates</Button></Link>
+                </div>
+              )}
             </div>
           </aside>
         </div>
