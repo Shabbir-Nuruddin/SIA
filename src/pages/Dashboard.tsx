@@ -70,32 +70,42 @@ function endTime(start: string | null, mins: number) {
   return formatTime(`${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}:00`);
 }
 
+interface ExamRow {
+  id: string;
+  name: string;
+  exam_date: string;
+  subject: SubjectCode | null;
+  is_active: boolean;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
+  const [exams, setExams] = useState<ExamRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
 
   const todayISO = getLocalDateString();
 
   const load = async () => {
     if (!user) return;
-    const [s, u, p] = await Promise.all([
+    const [s, u, p, e] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
       supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
+      supabase.from("exams").select("id,name,exam_date,subject,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
     if (u.data) setUnits(u.data as UnitRow[]);
     if (p.data) setProfile(p.data as any);
+    if (e.data) setExams(e.data as ExamRow[]);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [user]);
 
   // Re-tick at midnight so urgency refreshes daily without a reload.
-  // MUST be declared before any early returns to keep hook order stable.
   useEffect(() => {
     if (units.length === 0) return;
     const ms = (() => {
@@ -110,22 +120,37 @@ const Dashboard = () => {
   if (profile && !profile.onboarded) return <Navigate to="/onboarding" replace />;
   if (units.length === 0) return <Navigate to="/onboarding" replace />;
 
-  const nearest = units[0];
-  const days = daysFromTodayLocal(nearest.exam_date);
+  const hasExams = exams.length > 0;
+  const nearestExam = hasExams ? exams[0] : null;
+  // Map exams onto the matching user_subjects row (for grade gap context),
+  // falling back to the first unit if no subject match.
+  const unitForNearest = nearestExam
+    ? units.find(u => u.subject === nearestExam.subject) ?? units[0]
+    : units[0];
+  const days = nearestExam ? daysFromTodayLocal(nearestExam.exam_date) : null;
   const hr = new Date().getHours();
   const greet = hr < 12 ? "Morning" : hr < 18 ? "Afternoon" : "Evening";
   const name = profile?.first_name || "Student";
-  const greetTail =
-    hr < 12 ? `${SUBJECTS[nearest.subject].name} ${nearest.unit_name} is in ${days} days.`
-    : hr < 18 ? `${days} days to ${nearest.unit_name}. Here's today's plan.`
-    : `${days} days left. Even tonight matters.`;
+  const greetTail = !nearestExam
+    ? "No exam dates set yet — add them so we can pace your plan."
+    : hr < 12 ? `${nearestExam.name} is in ${days} days.`
+    : hr < 18 ? `${days} days to ${nearestExam.name}. Here's today's plan.`
+    : `${days} days left until ${nearestExam.name}. Even tonight matters.`;
 
   const pendingCount = sessions.filter(s => s.status === "pending").length;
   const completedCount = sessions.filter(s => s.status === "complete").length;
   const allDone = sessions.length > 0 && pendingCount === 0;
 
-  // Urgency score (recomputes whenever units/sessions change)
-  const urgency = computeUrgency(units);
+  // Urgency score uses real exams when present; otherwise zero.
+  const urgency = hasExams
+    ? computeUrgency(exams.map(ex => ({
+        exam_date: ex.exam_date,
+        target_grade: unitForNearest?.target_grade ?? null,
+        current_grade: unitForNearest?.current_grade ?? null,
+      })))
+    : { score: 0, daysToNearest: 0, gradeGap: 0, level: "calm" as const,
+        message: "Add an exam date to start the urgency clock.",
+        colorVar: "hsl(var(--muted-foreground))" };
 
 
   const updateStatus = async (id: string, status: string) => {
