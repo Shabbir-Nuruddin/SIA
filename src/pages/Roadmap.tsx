@@ -1014,7 +1014,9 @@ const QuestionsRunner = ({ node, onFinished }: { node: RoadmapNodeRow; onFinishe
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      setQuestion(data as any);
+      const first = Array.isArray((data as any)?.questions) ? (data as any).questions[0] : (data as any);
+      if (!first?.question_text) throw new Error("No question returned");
+      setQuestion(first);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Question generation failed");
     } finally {
