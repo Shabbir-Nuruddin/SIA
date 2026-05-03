@@ -51,7 +51,9 @@ export const CountdownOverlay = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      // 1) Prefer the user's scheduled exams (active only)
+      // Only show countdowns for exams the user has explicitly scheduled.
+      // We do NOT fall back to user_subjects placeholder dates — those are
+      // sentinel "1 year out" values from onboarding and would lie to the user.
       const { data: exams } = await supabase
         .from("exams")
         .select("id, name, exam_type, subject, unit_numbers, exam_date, is_active")
@@ -59,18 +61,7 @@ export const CountdownOverlay = () => {
         .eq("is_active", true)
         .order("exam_date");
 
-      if (exams && exams.length > 0) {
-        setItems(exams as any);
-        return;
-      }
-
-      // 2) Fall back to user_subjects exam_dates (legacy, in case user hasn't added an Exam yet)
-      const { data: subs } = await supabase
-        .from("user_subjects")
-        .select("subject,unit_number,unit_name,exam_date")
-        .eq("user_id", user.id)
-        .order("exam_date");
-      setItems((subs ?? []).map(s => ({ ...s, name: undefined, exam_type: undefined })));
+      setItems((exams ?? []) as any);
     })();
   }, [user, pathname]);
 
