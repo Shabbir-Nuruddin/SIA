@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { format } from "date-fns";
-import { ArrowRight, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } from "lucide-react";
+import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } from "lucide-react";
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
@@ -70,32 +70,42 @@ function endTime(start: string | null, mins: number) {
   return formatTime(`${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}:00`);
 }
 
+interface ExamRow {
+  id: string;
+  name: string;
+  exam_date: string;
+  subject: SubjectCode | null;
+  is_active: boolean;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
+  const [exams, setExams] = useState<ExamRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
 
   const todayISO = getLocalDateString();
 
   const load = async () => {
     if (!user) return;
-    const [s, u, p] = await Promise.all([
+    const [s, u, p, e] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
       supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
+      supabase.from("exams").select("id,name,exam_date,subject,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
     if (u.data) setUnits(u.data as UnitRow[]);
     if (p.data) setProfile(p.data as any);
+    if (e.data) setExams(e.data as ExamRow[]);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, [user]);
 
   // Re-tick at midnight so urgency refreshes daily without a reload.
-  // MUST be declared before any early returns to keep hook order stable.
   useEffect(() => {
     if (units.length === 0) return;
     const ms = (() => {
@@ -110,22 +120,37 @@ const Dashboard = () => {
   if (profile && !profile.onboarded) return <Navigate to="/onboarding" replace />;
   if (units.length === 0) return <Navigate to="/onboarding" replace />;
 
-  const nearest = units[0];
-  const days = daysFromTodayLocal(nearest.exam_date);
+  const hasExams = exams.length > 0;
+  const nearestExam = hasExams ? exams[0] : null;
+  // Map exams onto the matching user_subjects row (for grade gap context),
+  // falling back to the first unit if no subject match.
+  const unitForNearest = nearestExam
+    ? units.find(u => u.subject === nearestExam.subject) ?? units[0]
+    : units[0];
+  const days = nearestExam ? daysFromTodayLocal(nearestExam.exam_date) : null;
   const hr = new Date().getHours();
   const greet = hr < 12 ? "Morning" : hr < 18 ? "Afternoon" : "Evening";
   const name = profile?.first_name || "Student";
-  const greetTail =
-    hr < 12 ? `${SUBJECTS[nearest.subject].name} ${nearest.unit_name} is in ${days} days.`
-    : hr < 18 ? `${days} days to ${nearest.unit_name}. Here's today's plan.`
-    : `${days} days left. Even tonight matters.`;
+  const greetTail = !nearestExam
+    ? "No exam dates set yet — add them so we can pace your plan."
+    : hr < 12 ? `${nearestExam.name} is in ${days} days.`
+    : hr < 18 ? `${days} days to ${nearestExam.name}. Here's today's plan.`
+    : `${days} days left until ${nearestExam.name}. Even tonight matters.`;
 
   const pendingCount = sessions.filter(s => s.status === "pending").length;
   const completedCount = sessions.filter(s => s.status === "complete").length;
   const allDone = sessions.length > 0 && pendingCount === 0;
 
-  // Urgency score (recomputes whenever units/sessions change)
-  const urgency = computeUrgency(units);
+  // Urgency score uses real exams when present; otherwise zero.
+  const urgency = hasExams
+    ? computeUrgency(exams.map(ex => ({
+        exam_date: ex.exam_date,
+        target_grade: unitForNearest?.target_grade ?? null,
+        current_grade: unitForNearest?.current_grade ?? null,
+      })))
+    : { score: 0, daysToNearest: 0, gradeGap: 0, level: "calm" as const,
+        message: "Add an exam date to start the urgency clock.",
+        colorVar: "hsl(var(--muted-foreground))" };
 
 
   const updateStatus = async (id: string, status: string) => {
@@ -157,6 +182,17 @@ const Dashboard = () => {
           </h1>
           <p className="text-muted-foreground mt-1 text-[15px]">{greetTail}</p>
         </div>
+
+        {!hasExams && (
+          <div className="surface p-4 mb-5 flex flex-wrap items-center gap-3 border-l-4" style={{ borderLeftColor: "hsl(var(--accent))" }}>
+            <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
+            <div className="flex-1 min-w-[200px] text-sm">
+              <div className="font-semibold">No exam dates set yet.</div>
+              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score, and countdowns reflect what actually matters.</div>
+            </div>
+            <Link to="/exams"><Button size="sm" className="btn-primary">Add exam dates</Button></Link>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left column — Today's plan */}
@@ -260,7 +296,7 @@ const Dashboard = () => {
                 </div>
                 <p className="text-[15px] mb-1">{name}, you finished today's sessions.</p>
                 <p className="text-muted-foreground text-sm">
-                  {days} days remaining until {SUBJECTS[nearest.subject].name} {nearest.unit_name}.
+                  {nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}
                 </p>
                 <Link to="/roadmap" className="inline-block mt-4">
                   <Button variant="outline" size="sm">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
@@ -311,26 +347,38 @@ const Dashboard = () => {
 
             {/* Upcoming exams */}
             <div className="surface p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Upcoming exams</div>
-              <div className="space-y-2.5">
-                {units.slice(0, 4).map(u => {
-                  const d = daysFromTodayLocal(u.exam_date);
-                  return (
-                    <div key={`${u.subject}-${u.unit_number}`} className="flex items-center gap-2.5 text-sm">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{
-                        background: u.subject === "mathematics" ? "hsl(var(--subject-maths))"
-                          : u.subject === "biology" ? "hsl(var(--subject-biology))"
-                          : u.subject === "chemistry" ? "hsl(var(--subject-chemistry))"
-                          : "hsl(var(--subject-physics))"
-                      }} />
-                      <div className="flex-1 min-w-0 truncate text-xs">{SUBJECTS[u.subject].name} U{u.unit_number}</div>
-                      <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
-                        {d}d
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">Upcoming exams</div>
+                <Link to="/exams" className="text-[10px] text-primary hover:underline">Manage</Link>
               </div>
+              {hasExams ? (
+                <div className="space-y-2.5">
+                  {exams.slice(0, 5).map(ex => {
+                    const d = daysFromTodayLocal(ex.exam_date);
+                    const sc = ex.subject;
+                    return (
+                      <div key={ex.id} className="flex items-center gap-2.5 text-sm">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{
+                          background: sc === "mathematics" ? "hsl(var(--subject-maths))"
+                            : sc === "biology" ? "hsl(var(--subject-biology))"
+                            : sc === "chemistry" ? "hsl(var(--subject-chemistry))"
+                            : sc === "physics" ? "hsl(var(--subject-physics))"
+                            : "hsl(var(--muted-foreground))"
+                        }} />
+                        <div className="flex-1 min-w-0 truncate text-xs">{ex.name}</div>
+                        <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
+                          {d}d
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground space-y-2">
+                  <p>No exam dates yet.</p>
+                  <Link to="/exams"><Button size="sm" variant="outline" className="w-full"><CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates</Button></Link>
+                </div>
+              )}
             </div>
           </aside>
         </div>

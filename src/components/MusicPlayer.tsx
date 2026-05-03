@@ -35,19 +35,19 @@ const TRACKS: Track[] = [
     id: "ambient",
     title: "Deep Ambient",
     vibe: "Calm · Long sessions",
-    url: "https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3",
+    url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3",
   },
   {
-    id: "brown-noise",
-    title: "Brown Noise",
-    vibe: "No melody · Pure focus",
-    url: "https://cdn.pixabay.com/audio/2022/10/30/audio_347111d564.mp3",
+    id: "piano-focus",
+    title: "Piano for Focus",
+    vibe: "Soft · Study",
+    url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3",
   },
   {
-    id: "classical",
-    title: "Classical for Focus",
-    vibe: "Baroque · Study",
-    url: "https://cdn.pixabay.com/audio/2024/02/22/audio_f213ddb6b7.mp3",
+    id: "cinematic",
+    title: "Cinematic Calm",
+    vibe: "Atmospheric · Deep work",
+    url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3",
   },
 ];
 
