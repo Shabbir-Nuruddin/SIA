@@ -183,6 +183,17 @@ const Dashboard = () => {
           <p className="text-muted-foreground mt-1 text-[15px]">{greetTail}</p>
         </div>
 
+        {!hasExams && (
+          <div className="surface p-4 mb-5 flex flex-wrap items-center gap-3 border-l-4" style={{ borderLeftColor: "hsl(var(--accent))" }}>
+            <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
+            <div className="flex-1 min-w-[200px] text-sm">
+              <div className="font-semibold">No exam dates set yet.</div>
+              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score, and countdowns reflect what actually matters.</div>
+            </div>
+            <Link to="/exams"><Button size="sm" className="btn-primary">Add exam dates</Button></Link>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left column — Today's plan */}
           <div className="lg:col-span-2 space-y-3">
