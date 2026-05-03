@@ -296,7 +296,7 @@ const Dashboard = () => {
                 </div>
                 <p className="text-[15px] mb-1">{name}, you finished today's sessions.</p>
                 <p className="text-muted-foreground text-sm">
-                  {days} days remaining until {SUBJECTS[nearest.subject].name} {nearest.unit_name}.
+                  {nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}
                 </p>
                 <Link to="/roadmap" className="inline-block mt-4">
                   <Button variant="outline" size="sm">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
