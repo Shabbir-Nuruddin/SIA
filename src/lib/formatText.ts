@@ -85,64 +85,63 @@ const wrapBalancedMacro = (text: string, macro: "frac" | "sqrt"): string => {
 const LATEX_CMDS = "alpha|beta|gamma|delta|Delta|epsilon|varepsilon|zeta|eta|theta|Theta|iota|kappa|lambda|Lambda|mu|nu|xi|Xi|pi|Pi|rho|sigma|Sigma|tau|upsilon|phi|Phi|chi|psi|Psi|omega|Omega|infty|partial|nabla|hbar|ell|aleph|forall|exists|in|notin|subset|supset|cup|cap|emptyset|pm|mp|times|div|cdot|ast|approx|equiv|neq|leq|geq|ll|gg|sim|propto|to|rightarrow|leftarrow|Rightarrow|Leftarrow|Leftrightarrow|mapsto|degree|circ|prime|ominus|oplus|otimes|odot|sum|prod|int|oint|lim|log|ln|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|sinh|cosh|tanh|exp|min|max|sqrt|frac|binom|text|mathrm|mathbf|mathit|left|right|cdots|ldots|dots|vec|hat|bar|tilde|dot|ddot|overline|underline|begin|end";
 const LATEX_CMD_RE = new RegExp(`\\\\(?:${LATEX_CMDS})\\b`);
 
+// Split a string into [outside, math, outside, math, ...] segments based on
+// any of the supported math delimiters. Even indices = prose, odd = math.
+const splitOnMath = (text: string): string[] =>
+  text.split(/(\$\$[\s\S]+?\$\$|\$[^\n$]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g);
+
+// Apply a transform only to the prose (even-index) segments, then rejoin.
+const transformOutside = (text: string, fn: (s: string) => string): string =>
+  splitOnMath(text).map((seg, i) => (i % 2 === 1 ? seg : fn(seg))).join("");
+
 const autoWrapMath = (text: string): string => {
-  const segments = text.split(
-    /(\$\$[\s\S]+?\$\$|\$[^\n$]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g
-  );
-  return segments
-    .map((seg, i) => {
-      if (i % 2 === 1) return seg;
-      let s = seg;
-      s = wrapBalancedMacro(s, "frac");
-      s = wrapBalancedMacro(s, "sqrt");
-      // sqrt(...) → $\sqrt{...}$
-      s = s.replace(/\bsqrt\s*\(([^()]+)\)/gi, (_m, inner) => `$\\sqrt{${inner}}$`);
-      // a^b / a^{..} / a_b / a_{..}
-      s = s.replace(
-        /\b([A-Za-z0-9])(\^|_)(\{[^}]+\}|[A-Za-z0-9+\-]+)/g,
-        (_m, base, op, exp) => `$${base}${op}${exp}$`
-      );
-      s = s.replace(
-        /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|nu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ|ominus|oplus|otimes|partial|nabla|hbar|prime|ell|sum|prod|int)\b/g,
-        (m) => `$${m}$`
-      );
-      // Wrap bare \text{...}, \mathrm{...}, \mathbf{...} etc. with balanced braces
-      for (const macro of ["text", "mathrm", "mathbf", "mathit", "operatorname"]) {
-        const needle = "\\" + macro + "{";
-        let out = "";
-        let i = 0;
-        while (i < s.length) {
-          const k = s.indexOf(needle, i);
-          if (k === -1) { out += s.slice(i); break; }
-          // Skip if already inside $...$
-          const before = s.slice(0, k);
-          const dollarsBefore = (before.match(/\$/g) || []).length;
-          const braceStart = k + needle.length - 1;
-          const end = matchBraces(s, braceStart);
-          if (end === -1) { out += s.slice(i); break; }
-          if (dollarsBefore % 2 === 1) {
-            out += s.slice(i, end);
-          } else {
-            out += s.slice(i, k) + `$${s.slice(k, end)}$`;
-          }
-          i = end;
-        }
-        s = out;
+  // Each pass operates ONLY on prose between existing math delimiters.
+  // After each pass, we re-split so newly added $...$ are treated as math
+  // and never get re-wrapped (which previously produced nested $$).
+
+  // 1. Balanced \frac{...}{...} and \sqrt[..]{...}
+  let s = transformOutside(text, seg => wrapBalancedMacro(seg, "frac"));
+  s = transformOutside(s, seg => wrapBalancedMacro(seg, "sqrt"));
+
+  // 2. sqrt(...) → $\sqrt{...}$
+  s = transformOutside(s, seg => seg.replace(/\bsqrt\s*\(([^()]+)\)/gi, (_m, inner) => `$\\sqrt{${inner}}$`));
+
+  // 3. a^b / a^{..} / a_b / a_{..}
+  s = transformOutside(s, seg => seg.replace(
+    /\b([A-Za-z0-9])(\^|_)(\{[^}]+\}|[A-Za-z0-9+\-]+)/g,
+    (_m, base, op, exp) => `$${base}${op}${exp}$`,
+  ));
+
+  // 4. Bare greek/operator macros
+  s = transformOutside(s, seg => seg.replace(
+    /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|nu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ|ominus|oplus|otimes|partial|nabla|hbar|prime|ell|sum|prod|int)\b/g,
+    (m) => `$${m}$`,
+  ));
+
+  // 5. Bare \text{...}, \mathrm{...}, etc. with balanced braces
+  for (const macro of ["text", "mathrm", "mathbf", "mathit", "operatorname"]) {
+    s = transformOutside(s, seg => {
+      const needle = "\\" + macro + "{";
+      let out = "";
+      let i = 0;
+      while (i < seg.length) {
+        const k = seg.indexOf(needle, i);
+        if (k === -1) { out += seg.slice(i); break; }
+        const braceStart = k + needle.length - 1;
+        const end = matchBraces(seg, braceStart);
+        if (end === -1) { out += seg.slice(i); break; }
+        out += seg.slice(i, k) + `$${seg.slice(k, end)}$`;
+        i = end;
       }
-      // Last-resort: if the segment STILL contains any unwrapped LaTeX command
-      // outside of $...$, wrap each bare run that contains LaTeX.
-      if (LATEX_CMD_RE.test(s)) {
-        const parts = s.split(/(\$[^\n$]+?\$|\$\$[\s\S]+?\$\$)/g);
-        s = parts
-          .map((p, idx) => {
-            if (idx % 2 === 1) return p;
-            return LATEX_CMD_RE.test(p) ? `$${p}$` : p;
-          })
-          .join("");
-      }
-      return s;
-    })
-    .join("");
+      return out;
+    });
+  }
+
+  // 6. Last-resort: any prose segment STILL containing a bare LaTeX command
+  // gets wrapped wholesale.
+  s = transformOutside(s, seg => (LATEX_CMD_RE.test(seg) ? `$${seg}$` : seg));
+
+  return s;
 };
 
 /* ------------------------------------------------------------------ */
