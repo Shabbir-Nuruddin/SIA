@@ -25,6 +25,8 @@ interface Q {
   options: string[] | null;
   student_answer: string | null;
   flagged: boolean;
+  mark_scheme: string | null;
+  model_answer: string | null;
 }
 
 interface Paper {
