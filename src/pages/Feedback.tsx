@@ -315,6 +315,27 @@ const Feedback = () => {
           </div>
         </div>
       </div>
+
+      <Dialog open={!!ticketTarget} onOpenChange={(o) => !o && setTicketTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Open ticket with {ticketTarget?.email}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Subject" value={ticketSubject} onChange={(e) => setTicketSubject(e.target.value)} />
+            <Textarea placeholder="Message to user..." rows={5} value={ticketMessage} onChange={(e) => setTicketMessage(e.target.value)} />
+            <p className="text-xs text-muted-foreground">
+              This creates a support thread in the user's Feedback inbox. They can reply and you'll see it here.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTicketTarget(null)}>Cancel</Button>
+            <Button onClick={sendAdminTicket} disabled={sendingTicket}>
+              {sendingTicket ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
