@@ -257,7 +257,7 @@ const Pricing = () => {
             Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Pro is <span className="font-semibold text-foreground">AED 39.99/month before VAT</span>; VAT is added separately at checkout.
+            Pro is <span className="font-semibold text-foreground">AED 39.99/month before VAT</span>. <span className="font-semibold text-foreground">5-day free trial</span> — you are only charged after the trial ends, and you can cancel anytime before then.
           </div>
         </div>
 
@@ -266,7 +266,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. AED 39.99/month before VAT. Pause your subscription during holidays.
+          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period. Pause your subscription during holidays.
         </div>
       </div>
     </AppLayout>

@@ -104,7 +104,11 @@ Deno.serve(async (req) => {
         metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency: "AED" },
         allowed_payment_method_types: ["credit", "debit"],
         billing_currency: "AED",
-        subscription_data: { on_demand: { mandate_only: false, product_currency: "AED", product_price: 3999 } },
+        subscription_data: {
+          trial_period_days: 5,
+          product_currency: "AED",
+          product_price: 3999,
+        },
         feature_flags: {
           allow_currency_selection: false,
           allow_discount_code: true,
@@ -112,7 +116,9 @@ Deno.serve(async (req) => {
           allow_customer_editing_country: true,
           allow_customer_editing_zipcode: true,
         },
-        customization: { pay_button_text: "Start Pro" },
+        customization: {
+          pay_button_text: "Start 5-day free trial",
+        },
       };
       if (includeDiscount && discount_code) payload.discount_code = discount_code;
       return payload;
