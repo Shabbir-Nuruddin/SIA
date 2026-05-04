@@ -50,6 +50,10 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Launch promo bar */}
+      <div className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground text-center text-xs md:text-sm font-semibold py-2 px-4">
+        🔥 Launch offer — use code <span className="font-mono font-extrabold tracking-wider mx-1 bg-background/25 px-2 py-0.5 rounded">REVISE50</span> for 50% off your first month. First 100 users only.
+      </div>
       {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
@@ -236,12 +240,14 @@ const Landing = () => {
           </div>
 
           {/* REVISE50 promo */}
-          <div className="mt-8 max-w-2xl mx-auto rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
-            <div className="text-xs uppercase tracking-widest font-mono text-primary mb-1">Launch offer</div>
-            <div className="text-sm">
-              Use code <span className="font-mono font-bold text-primary">REVISE50</span> at checkout —
-              <span className="font-semibold"> 50% off your first month.</span> First 100 users only.
+          <div className="mt-8 max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-primary/60 bg-gradient-to-br from-primary/15 via-accent/10 to-primary/15 p-6 text-center relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
+            <div className="text-[11px] uppercase tracking-widest font-mono text-primary font-bold mb-2">🔥 Launch offer — first 100 users only</div>
+            <div className="text-2xl md:text-3xl font-extrabold mb-1">50% off your first month</div>
+            <div className="text-sm text-muted-foreground mb-1">
+              Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
             </div>
+            <div className="text-[11px] text-muted-foreground">First month from AED 19.99 · cancel anytime</div>
           </div>
         </div>
       </section>

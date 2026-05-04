@@ -15,20 +15,20 @@ export interface CIESyllabusTopic {
 
 // === CHEMISTRY 9701 ===
 export const CIE_CHEMISTRY_TOPICS: CIESyllabusTopic[] = [
-  { number: 1, unit: 1, name: "Atomic structure", statements: [
-    { ref: "1.1", text: "particles in the atom: relative mass and charge of protons, neutrons and electrons; nuclide notation; isotopes" },
-    { ref: "1.2", text: "behaviour of protons, neutrons and electrons in electric fields" },
-    { ref: "1.3", text: "electronic configuration: shells, subshells (s, p, d) and orbitals; filling order; electrons-in-boxes" },
-    { ref: "1.4", text: "shapes of s and p orbitals; relative energies of subshells in a shell" },
-    { ref: "1.5", text: "ionisation energies: definition of 1st, 2nd, successive; trends across periods 2 and 3 and down a group; evidence for shell and subshell structure" },
+  { number: 1, unit: 1, name: "Atoms, molecules and stoichiometry", statements: [
+    { ref: "1.1", text: "relative atomic, isotopic, molecular and formula masses on the 12C scale" },
+    { ref: "1.2", text: "use of mass spectra to determine relative isotopic and atomic masses; analyse Cl2/Br2 spectra" },
+    { ref: "1.3", text: "the mole, Avogadro constant; mole calculations including reacting masses, gas volumes (using molar gas volume), solution concentrations" },
+    { ref: "1.4", text: "use of pV = nRT for ideal gases" },
+    { ref: "1.5", text: "empirical and molecular formulae from composition data" },
+    { ref: "1.6", text: "balanced full and ionic equations including state symbols; reacting quantities calculations including limiting reagent and percentage yield" },
   ]},
-  { number: 2, unit: 1, name: "Atoms, molecules and stoichiometry", statements: [
-    { ref: "2.1", text: "relative atomic, isotopic, molecular and formula masses on the 12C scale" },
-    { ref: "2.2", text: "use of mass spectra to determine relative isotopic and atomic masses; analyse Cl2/Br2 spectra" },
-    { ref: "2.3", text: "the mole, Avogadro constant; mole calculations including reacting masses, gas volumes (using molar gas volume), solution concentrations" },
-    { ref: "2.4", text: "use of pV = nRT for ideal gases" },
-    { ref: "2.5", text: "empirical and molecular formulae from composition data" },
-    { ref: "2.6", text: "balanced full and ionic equations including state symbols; reacting quantities calculations including limiting reagent and percentage yield" },
+  { number: 2, unit: 1, name: "Atomic structure", statements: [
+    { ref: "2.1", text: "particles in the atom: relative mass and charge of protons, neutrons and electrons; nuclide notation; isotopes" },
+    { ref: "2.2", text: "behaviour of protons, neutrons and electrons in electric fields" },
+    { ref: "2.3", text: "electronic configuration: shells, subshells (s, p, d) and orbitals; filling order; electrons-in-boxes" },
+    { ref: "2.4", text: "shapes of s and p orbitals; relative energies of subshells in a shell" },
+    { ref: "2.5", text: "ionisation energies: definition of 1st, 2nd, successive; trends across periods 2 and 3 and down a group; evidence for shell and subshell structure" },
   ]},
   { number: 3, unit: 1, name: "Chemical bonding", statements: [
     { ref: "3.1", text: "ionic bonding: lattice formation, factors affecting strength (charge, ionic radius)" },
@@ -629,10 +629,10 @@ export const CIE_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
       { number: 3, unitCode: "P3", name: "Pure Mathematics 3", paperLabel: "Paper 3 · 1hr 50min · 75 marks", durationMinutes: 110, aLevelOnly: true,
         topics: ["Algebra (P3)", "Logarithmic & exponential functions", "Trigonometry (P3)", "Differentiation (P3)", "Integration (P3)", "Numerical solution of equations", "Vectors (P3)", "Differential equations", "Complex numbers"],
       },
-      { number: 4, unitCode: "M1", name: "Mechanics", paperLabel: "Paper 4 · 1hr 15min · 50 marks", durationMinutes: 75, aLevelOnly: true,
+      { number: 4, unitCode: "M1", name: "Mechanics", paperLabel: "Paper 4 · 1hr 15min · 50 marks", durationMinutes: 75,
         topics: ["Forces & equilibrium", "Kinematics (M1)", "Newton's laws", "Energy, work & power", "Momentum"],
       },
-      { number: 5, unitCode: "S1", name: "Probability & Statistics 1", paperLabel: "Paper 5 · 1hr 15min · 50 marks", durationMinutes: 75, aLevelOnly: true,
+      { number: 5, unitCode: "S1", name: "Probability & Statistics 1", paperLabel: "Paper 5 · 1hr 15min · 50 marks", durationMinutes: 75,
         topics: ["Representation of data", "Permutations & combinations", "Probability", "Discrete random variables", "Normal distribution"],
       },
       { number: 6, unitCode: "S2", name: "Probability & Statistics 2", paperLabel: "Paper 6 · 1hr 15min · 50 marks", durationMinutes: 75, aLevelOnly: true,
@@ -655,7 +655,7 @@ export const CIE_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
     code: "chemistry", name: "Chemistry", emoji: "⚗", spec: "9701",
     units: [
       { number: 1, unitCode: "P1/2", name: "AS Chemistry (Papers 1, 2 & 3)", paperLabel: "AS · MCQ + structured + practical", durationMinutes: 230,
-        topics: ["Atomic structure", "Atoms, molecules and stoichiometry", "Chemical bonding", "States of matter", "Chemical energetics", "Electrochemistry", "Equilibria", "Reaction kinetics (AS)", "Periodic Table — chemical periodicity", "Group 2 chemistry", "Group 17 chemistry", "Nitrogen and sulfur", "Introduction to organic chemistry", "Hydrocarbons (alkanes & alkenes)", "Halogenoalkanes", "Hydroxy compounds (alcohols)", "Carbonyl compounds — aldehydes & ketones", "Carboxylic acids and derivatives", "Nitrogen compounds (AS scope)", "Polymerisation", "Organic synthesis & analysis (AS)"],
+        topics: ["Atoms, molecules and stoichiometry", "Atomic structure", "Chemical bonding", "States of matter", "Chemical energetics", "Electrochemistry", "Equilibria", "Reaction kinetics (AS)", "Periodic Table — chemical periodicity", "Group 2 chemistry", "Group 17 chemistry", "Nitrogen and sulfur", "Introduction to organic chemistry", "Hydrocarbons (alkanes & alkenes)", "Halogenoalkanes", "Hydroxy compounds (alcohols)", "Carbonyl compounds — aldehydes & ketones", "Carboxylic acids and derivatives", "Nitrogen compounds (AS scope)", "Polymerisation", "Organic synthesis & analysis (AS)"],
       },
       { number: 4, unitCode: "P4/5", name: "A2 Chemistry (Papers 4 & 5)", paperLabel: "A2 · Structured + practical planning", durationMinutes: 195, aLevelOnly: true,
         topics: ["Chemical energetics II", "Electrochemistry II", "Equilibria II — Kp, ionic, buffers", "Reaction kinetics II", "Group 2 and transition elements (A2)", "Hydrocarbons & arenes (A2)", "Organic nitrogen compounds (A2)", "Polymerisation II & analysis"],
