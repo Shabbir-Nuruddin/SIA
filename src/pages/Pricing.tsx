@@ -323,6 +323,28 @@ const Pricing = () => {
           </div>
         )}
 
+        <div className="mt-16">
+          <div className="text-xs text-primary font-mono uppercase tracking-widest mb-2 text-center">FAQs</div>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-6">Quick answers before you upgrade.</h2>
+          <Accordion type="single" collapsible className="max-w-3xl mx-auto surface px-5">
+            {[
+              { q: "How does the 5-day free trial work?", a: "When you start Pro, you get full Pro access for 5 days. You are not charged during the trial. Cancel anytime before day 5 and you pay nothing." },
+              { q: "How much is Pro after the trial?", a: "AED 39.99 per month before VAT. VAT is added at checkout based on your country. Annual is AED 299/year (saves about 38%)." },
+              { q: "Can I cancel anytime?", a: "Yes — open this page (or Settings) once you are on Pro and use the Cancel button. Your Pro access stays until the end of the current billing period, and you will not be charged again." },
+              { q: "What happens if I cancel and come back later?", a: "Your free trial only applies once. If you cancel and re-subscribe later, you will be charged immediately when you resubscribe — no second free trial." },
+              { q: "Is the AI tutor really unlimited on Pro?", a: "Pro includes 200 AI tutor messages per day, unlimited AI-marked topical questions, unlimited mock papers, and unlimited notes. Free is capped (5 tutor messages total, 10 questions/day, 3 notes/week)." },
+              { q: "Do you support my exam board?", a: "Yes — Edexcel IAL and Cambridge (CIE) for A-Level Biology, Chemistry, Physics and Maths. More boards rolling out." },
+              { q: "What payment methods do you accept?", a: "Credit and debit cards via our secure payment provider. We do not store your card details." },
+              { q: "I had a card error at checkout — what now?", a: "If your card was declined or had insufficient funds, no money was taken. Try another card, or contact your bank if it keeps happening, then click Retry on the pricing page." },
+            ].map(({ q, a }, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border-border last:border-0">
+                <AccordionTrigger className="text-left font-semibold text-[15px]">{q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground leading-relaxed">{a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
           Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period.
         </div>
