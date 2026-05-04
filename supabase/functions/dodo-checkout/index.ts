@@ -90,6 +90,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // If the user previously subscribed (and likely cancelled), skip the
+    // 5-day trial on re-subscribe and charge immediately.
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("dodo_customer_id, dodo_subscription_id, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle();
+    const hasSubscribedBefore = Boolean(
+      (profile as any)?.dodo_customer_id ||
+      (profile as any)?.dodo_subscription_id ||
+      (profile as any)?.subscription_status,
+    );
+    const trialDays = hasSubscribedBefore ? 0 : 5;
+
     const createPayload = (host: string, includeDiscount = true): Record<string, unknown> => {
       const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
       const payload: Record<string, unknown> = {
@@ -105,7 +123,7 @@ Deno.serve(async (req) => {
         allowed_payment_method_types: ["credit", "debit"],
         billing_currency: "AED",
         subscription_data: {
-          trial_period_days: 5,
+          trial_period_days: trialDays,
           product_currency: "AED",
           product_price: 3999,
         },
@@ -117,7 +135,7 @@ Deno.serve(async (req) => {
           allow_customer_editing_zipcode: true,
         },
         customization: {
-          pay_button_text: "Start 5-day free trial",
+          pay_button_text: trialDays > 0 ? "Start 5-day free trial" : "Subscribe to Pro",
         },
       };
       if (includeDiscount && discount_code) payload.discount_code = discount_code;
