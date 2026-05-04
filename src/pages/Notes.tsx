@@ -594,17 +594,28 @@ const NotesPage = () => {
                     <div className="space-y-3">
                       {notes.equations.map((e, i) => (
                         <div key={i} className="rounded-md border border-border/60 p-3">
-                          <div className="font-mono text-base font-bold text-primary mb-2" {...formattedHtmlProps(e.equation)} />
+                          <div className="text-base font-bold text-primary mb-2" dangerouslySetInnerHTML={{ __html: renderMathInString(
+                            (() => {
+                              const eq = String(e.equation ?? "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
+                              if (!eq) return "";
+                              if (/\$/.test(eq)) return eq;
+                              return `$${eq}$`;
+                            })()
+                          ) }} />
                           {e.variables.length > 0 && (
                             <div className="text-xs space-y-0.5 mb-2">
-                              {e.variables.map((v, j) => (
-                                <div key={j} className="flex gap-2">
-                                  <span className="font-mono font-semibold text-accent" {...formattedHtmlProps(v.symbol)} />
-                                  <span className="text-muted-foreground">=</span>
-                                  <span {...formattedHtmlProps(v.meaning)} />
-                                  {v.unit && <span className="text-muted-foreground">({v.unit})</span>}
-                                </div>
-                              ))}
+                              {e.variables.map((v, j) => {
+                                const cleanMeaning = String(v.meaning ?? "").replace(/\{?\s*meaning\s*:?\s*\}?/gi, "").trim();
+                                const cleanUnit = String(v.unit ?? "").replace(/^[\s({]+|[\s)}]+$/g, "").trim();
+                                return (
+                                  <div key={j} className="flex gap-2 items-baseline flex-wrap">
+                                    <span className="font-mono font-semibold text-accent" dangerouslySetInnerHTML={{ __html: renderMathInString(v.symbol) }} />
+                                    <span className="text-muted-foreground">=</span>
+                                    <span dangerouslySetInnerHTML={{ __html: renderMathInString(cleanMeaning) }} />
+                                    {cleanUnit && <span className="text-muted-foreground">(<span dangerouslySetInnerHTML={{ __html: renderMathInString(cleanUnit) }} />)</span>}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           {e.worked_substitution && (
