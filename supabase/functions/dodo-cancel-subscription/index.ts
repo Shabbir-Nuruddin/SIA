@@ -6,6 +6,7 @@ const corsHeaders = {
 };
 
 const DODO_SECRET_KEY = Deno.env.get("DODO_SECRET_KEY") ?? "";
+const DODO_TEST_PRODUCT_ID = Deno.env.get("DODO_TEST_PRODUCT_ID") ?? "";
 const IS_TEST_KEY = DODO_SECRET_KEY.toLowerCase().includes("test");
 const DODO_LIVE = "https://live.dodopayments.com";
 const DODO_TEST = "https://test.dodopayments.com";
@@ -66,7 +67,8 @@ Deno.serve(async (req) => {
     if (!subscriptionId) {
       const body = await req.json().catch(() => ({}));
       const params = new URLSearchParams({ page_size: "20", page_number: "0", status: "active" });
-      if (body.product_id) params.set("product_id", body.product_id);
+      const productId = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : body.product_id;
+      if (productId) params.set("product_id", productId);
       const listRes = await dodoFetch(host, `/subscriptions?${params.toString()}`);
       const list = listRes.ok ? await listRes.json() : { items: [] };
       const match = (list.items ?? []).find((item: any) => {
@@ -78,7 +80,7 @@ Deno.serve(async (req) => {
     }
 
     if (!subscriptionId) {
-      await adminClient.from("profiles").update({ is_pro: false, plan: "free", subscription_status: "cancelled" } as any).eq("id", user.id);
+      await adminClient.from("profiles").update({ is_pro: false, plan: "free", subscription_status: "cancelled", trial_start_date: null } as any).eq("id", user.id);
       return new Response(JSON.stringify({ message: "No active subscription was found. You will not be charged again." }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -101,8 +103,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    await adminClient.from("profiles").update({ subscription_status: "cancelled" } as any).eq("id", user.id);
-    return new Response(JSON.stringify({ message: "Cancellation requested. You will not be charged again after this billing period or trial." }), {
+    await adminClient.from("profiles").update({ is_pro: false, plan: "free", subscription_status: "cancelled", trial_start_date: null } as any).eq("id", user.id);
+    return new Response(JSON.stringify({ message: "Cancelled. You will not be charged again." }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
