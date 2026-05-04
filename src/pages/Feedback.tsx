@@ -40,18 +40,58 @@ const Feedback = () => {
   const [creating, setCreating] = useState(false);
   const [composing, setComposing] = useState(false);
 
+  // Admin users panel
+  const [adminStats, setAdminStats] = useState<{ total: number; pro: number } | null>(null);
+  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string; display_name: string | null; is_pro: boolean }>>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [ticketTarget, setTicketTarget] = useState<{ id: string; email: string } | null>(null);
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketMessage, setTicketMessage] = useState("");
+  const [sendingTicket, setSendingTicket] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     (async () => {
       const { data: prof } = await supabase.from("profiles")
         .select("is_admin").eq("id", user.id).maybeSingle();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setIsAdmin(Boolean((prof as any)?.is_admin));
+      const admin = Boolean((prof as any)?.is_admin);
+      setIsAdmin(admin);
       await loadTickets();
+      if (admin) await loadAdminUsers();
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const loadAdminUsers = async () => {
+    const { data, error } = await supabase.functions.invoke("admin-list-users");
+    if (error) { console.error(error); return; }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d = data as any;
+    setAdminStats({ total: d.total ?? 0, pro: d.pro ?? 0 });
+    setAdminUsers(d.users ?? []);
+  };
+
+  const sendAdminTicket = async () => {
+    if (!ticketTarget || !ticketSubject.trim() || !ticketMessage.trim()) {
+      toast.error("Subject and message required.");
+      return;
+    }
+    setSendingTicket(true);
+    const { error } = await supabase.functions.invoke("admin-create-ticket", {
+      body: {
+        target_user_id: ticketTarget.id,
+        subject: ticketSubject.trim(),
+        message: ticketMessage.trim(),
+      },
+    });
+    setSendingTicket(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Ticket sent to ${ticketTarget.email}`);
+    setTicketTarget(null); setTicketSubject(""); setTicketMessage("");
+    await loadTickets();
+  };
 
   const loadTickets = async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
