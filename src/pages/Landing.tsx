@@ -38,6 +38,12 @@ const Avatar = ({ name }: { name: string }) => {
 const Landing = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const currency = useMemo(() => detectDefaultCurrency(), []);
+  const priceFree = formatCurrency(0, currency);
+  const pricePro = formatCurrency(39.99, currency);
+  const priceProAnnual = formatCurrency(299, currency);
+  const priceAdvanced = formatCurrency(129.99, currency);
+  const pricePromo = formatCurrency(19.99, currency);
 
   // If a signed-in user lands here (e.g. after Google OAuth redirect), route them onward.
   useEffect(() => {
