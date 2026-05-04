@@ -111,92 +111,75 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Helper: locally revoke Pro so user is no longer charged on our side.
-    const localRevoke = async () => {
+    // Mark profile as cancelled locally AFTER Dodo confirms cancellation.
+    // We keep is_pro = true until the period ends — Dodo's webhook
+    // (subscription.cancelled / expired) will flip is_pro to false.
+    const markPendingCancel = async (extra: Record<string, unknown> = {}) => {
       await adminClient
         .from("profiles")
         .update({
-          is_pro: false,
-          plan: "free",
           subscription_status: "cancelled",
-          trial_start_date: null,
+          ...extra,
         } as any)
         .eq("id", user.id);
     };
 
     if (!subscriptionId) {
-      // Nothing to cancel on Dodo's side — just revoke locally so the user is not Pro.
-      await localRevoke();
+      // We have no subscription ID to cancel on Dodo's side. Do NOT silently
+      // mark the user cancelled — surface this so support can investigate.
+      console.warn("[dodo-cancel-subscription] no subscription id for user", user.id);
       return new Response(JSON.stringify({
-        message: "Your Pro access has been turned off and no further payments will be taken.",
+        error: "We could not find an active subscription on file. Please contact support so we can cancel it for you.",
       }), {
-        status: 200,
+        status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Stop future billing immediately. Dodo keeps access until the period end,
-    // but no new charges will be made.
-    const cancelRes = await dodoFetch(host, `/subscriptions/${subscriptionId}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        cancel_at_next_billing_date: true,
-        cancellation_comment: "Cancelled from Make Me Revise account settings",
-      }),
+    // Stop future billing on Dodo. Access continues until period end; the
+    // webhook will revoke Pro when the subscription actually ends.
+    const cancelBody = JSON.stringify({
+      cancel_at_next_billing_date: true,
+      cancellation_comment: "Cancelled from Make Me Revise account settings",
     });
-    const text = await cancelRes.text();
+    let cancelRes = await dodoFetch(host, `/subscriptions/${subscriptionId}`, {
+      method: "PATCH",
+      body: cancelBody,
+    });
+    let text = await cancelRes.text();
+
+    // Test/live mismatch — retry on the other host.
+    if ((cancelRes.status === 401 || cancelRes.status === 403 || cancelRes.status === 404)) {
+      const altHost = host === DODO_LIVE ? DODO_TEST : DODO_LIVE;
+      const retry = await dodoFetch(altHost, `/subscriptions/${subscriptionId}`, {
+        method: "PATCH",
+        body: cancelBody,
+      });
+      if (retry.ok) {
+        cancelRes = retry;
+        text = await retry.text();
+      } else {
+        // keep original response/text for error reporting if retry also fails
+        const retryText = await retry.text().catch(() => "");
+        console.error("[dodo-cancel-subscription] retry on alt host failed", altHost, retry.status, retryText);
+      }
+    }
 
     if (!cancelRes.ok) {
       console.error("[dodo-cancel-subscription] dodo error", cancelRes.status, text);
-      const lower = text.toLowerCase();
-      // Already gone — treat as success.
-      if (lower.includes("not_found") || lower.includes("not found") || cancelRes.status === 404) {
-        await localRevoke();
-        return new Response(JSON.stringify({
-          message: "Your Pro access has been turned off and no further payments will be taken.",
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      // For auth errors try the OTHER host (test/live mismatch can cause 401).
-      if (cancelRes.status === 401 || cancelRes.status === 403) {
-        const altHost = host === DODO_LIVE ? DODO_TEST : DODO_LIVE;
-        const retry = await dodoFetch(altHost, `/subscriptions/${subscriptionId}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            cancel_at_next_billing_date: true,
-            cancellation_comment: "Cancelled from Make Me Revise account settings",
-          }),
-        });
-        if (retry.ok) {
-          await localRevoke();
-          return new Response(JSON.stringify({
-            message: "Cancelled. No further payments will be taken from your card.",
-          }), {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        await localRevoke();
-        return new Response(JSON.stringify({
-          message: "Your Pro access has been turned off and no further payments will be taken.",
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       return new Response(JSON.stringify({
-        error: "We could not cancel your subscription right now. Please try again in a minute.",
+        error: "We could not cancel your subscription on the payment provider right now. Your card has NOT been changed. Please try again in a minute or contact support.",
       }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    await localRevoke();
+    // Dodo confirmed cancellation. Mark status locally; webhook will flip is_pro
+    // when the billing period ends.
+    await markPendingCancel();
     return new Response(JSON.stringify({
-      message: "Cancelled. No further payments will be taken from your card.",
+      message: "Cancelled with the payment provider. You will keep Pro until the end of your current billing period, and no further payments will be taken.",
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
