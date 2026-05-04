@@ -1,5 +1,6 @@
 // Creates a Dodo Payments hosted checkout session and returns the URL.
-// Frontend redirects (or opens in popup) to that URL. Success → /dashboard?checkout=success.
+// Auto-detects test vs live mode (tries live first, falls back to test on 401),
+// so the same function works with either a live or test DODO_SECRET_KEY.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -9,8 +10,19 @@ const corsHeaders = {
 };
 
 const DODO_SECRET_KEY = Deno.env.get("DODO_SECRET_KEY");
-// Dodo live API; switch host to "test.dodopayments.com" for sandbox.
-const DODO_API = "https://live.dodopayments.com";
+const DODO_LIVE = "https://live.dodopayments.com";
+const DODO_TEST = "https://test.dodopayments.com";
+
+async function callDodo(host: string, payload: unknown) {
+  return await fetch(`${host}/subscriptions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${DODO_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -22,14 +34,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { product_id, return_url } = await req.json();
+    const { product_id, return_url, discount_code } = await req.json();
     if (!product_id) {
       return new Response(JSON.stringify({ error: "product_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Auth — derive user from JWT
     const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -43,37 +54,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a subscription checkout session via Dodo's API
-    const payload = {
+    const payload: Record<string, unknown> = {
       product_id,
       quantity: 1,
       payment_link: true,
       return_url: return_url || `${new URL(req.url).origin}/dashboard?checkout=success`,
-      customer: { email: user.email, name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email },
-      billing: {
-        city: "",
-        country: "US",
-        state: "",
-        street: "",
-        zipcode: "",
+      customer: {
+        email: user.email,
+        name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
       },
+      billing: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
       metadata: { user_id: user.id, user_email: user.email ?? "" },
       allowed_payment_method_types: ["credit", "debit"],
-      billing_currency: "USD",
+      billing_currency: "AED",
+      // Surfaces the coupon/discount input on Dodo's hosted checkout
+      show_discount_code_field: true,
     };
+    if (discount_code) payload.discount_code = discount_code;
 
-    const res = await fetch(`${DODO_API}/subscriptions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${DODO_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    // Try live first, fall back to test on 401 (key/mode mismatch)
+    let res = await callDodo(DODO_LIVE, payload);
+    let usedHost = DODO_LIVE;
+    if (res.status === 401) {
+      console.warn("[dodo-checkout] live returned 401, retrying on test host");
+      res = await callDodo(DODO_TEST, payload);
+      usedHost = DODO_TEST;
+    }
 
     const text = await res.text();
     if (!res.ok) {
-      console.error("[dodo-checkout] error", res.status, text);
+      console.error("[dodo-checkout] error", usedHost, res.status, text);
       return new Response(JSON.stringify({ error: "Dodo checkout failed", detail: text }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -86,7 +96,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ url }), {
+    return new Response(JSON.stringify({ url, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

@@ -10,10 +10,10 @@ export const DODO_PRODUCT_ID =
  * Server creates the session (with discount code field enabled by Dodo by default),
  * then we redirect the user to the hosted URL.
  */
-export async function openProCheckout(): Promise<void> {
+export async function openProCheckout(discountCode?: string): Promise<void> {
   const returnUrl = `${window.location.origin}/dashboard?checkout=success`;
   const { data, error } = await supabase.functions.invoke("dodo-checkout", {
-    body: { product_id: DODO_PRODUCT_ID, return_url: returnUrl },
+    body: { product_id: DODO_PRODUCT_ID, return_url: returnUrl, discount_code: discountCode },
   });
   if (error || !data?.url) {
     throw new Error(error?.message || "Failed to start checkout");
