@@ -339,6 +339,32 @@ const MockExam = () => {
                   placeholder="Write your answer. Show your working."
                   className="min-h-[120px] font-mono text-sm" />
               )}
+
+              {paper.subject === "mathematics" && (q.mark_scheme || q.model_answer) && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <button onClick={() => toggleReveal(q.id)}
+                    className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-primary flex items-center gap-1.5 transition-colors">
+                    {revealed[q.id] ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {revealed[q.id] ? "Hide" : "Show"} mark scheme & model answer
+                  </button>
+                  {revealed[q.id] && (
+                    <div className="mt-3 grid md:grid-cols-2 gap-3 animate-fade-in">
+                      {q.model_answer && (
+                        <div className="p-3 rounded-lg bg-success/5 border border-success/20">
+                          <div className="text-[10px] uppercase font-mono text-success tracking-wider mb-1.5">Model answer</div>
+                          <div className="text-sm" {...formattedHtmlProps(q.model_answer)} />
+                        </div>
+                      )}
+                      {q.mark_scheme && (
+                        <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                          <div className="text-[10px] uppercase font-mono text-accent tracking-wider mb-1.5">Mark scheme</div>
+                          <div className="text-sm whitespace-pre-wrap">{q.mark_scheme}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
 
