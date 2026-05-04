@@ -155,20 +155,30 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
     }
     const args = JSON.parse(toolCall.function.arguments);
 
-    // Post-filter: for non-MCQ actions, drop questions that look like MCQs without options.
-    if (action === "generate" && body.questionType !== "Multiple Choice" && Array.isArray(args?.questions)) {
-      const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+    // Post-filter: drop drawing/sketching questions and clean malformed math.
+    const drawPattern = /\b(draw|sketch|plot (a|the) graph|label (the|a) diagram|complete the (diagram|structure)|construct (the|a) (diagram|graph)|curly[- ]arrow mechanism)\b/i;
+    const cleanMath = (s: string) => String(s || "")
+      .replace(/\$\$\s*\$\$/g, "")           // empty $$$$
+      .replace(/(\$\$)\s*,/g, "$1")          // stray $$,
+      .replace(/\\text\{\s*\}/g, "")
+      .trim();
+
+    if (action === "generate" && Array.isArray(args?.questions)) {
       args.questions = args.questions.filter((q: any) => {
         const t = String(q?.question_text || "");
-        const looksMcq = mcqPattern.test(t);
-        const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
-        // Drop if it sounds like MCQ but has no options provided
-        if (looksMcq && !hasOptions) return false;
+        if (drawPattern.test(t)) return false;
+        if (body.questionType !== "Multiple Choice") {
+          const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+          const looksMcq = mcqPattern.test(t);
+          const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
+          if (looksMcq && !hasOptions) return false;
+        } else {
+          if (!Array.isArray(q?.options) || q.options.length < 2) return false;
+        }
+        q.question_text = cleanMath(t);
+        if (q.mark_scheme) q.mark_scheme = cleanMath(q.mark_scheme);
         return true;
       });
-    } else if (action === "generate" && body.questionType === "Multiple Choice" && Array.isArray(args?.questions)) {
-      // Drop MCQs missing options
-      args.questions = args.questions.filter((q: any) => Array.isArray(q?.options) && q.options.length >= 2);
     }
 
     return new Response(JSON.stringify(args), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
