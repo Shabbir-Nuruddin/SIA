@@ -11,13 +11,6 @@ const IS_TEST_KEY = DODO_SECRET_KEY.toLowerCase().includes("test");
 const DODO_LIVE = "https://live.dodopayments.com";
 const DODO_TEST = "https://test.dodopayments.com";
 
-function friendlyCancelError(status: number, text: string) {
-  const lower = text.toLowerCase();
-  if (lower.includes("not_found") || lower.includes("not found")) return "We could not find an active subscription for this account. If you already cancelled, you will not be charged again.";
-  if (status === 401 || status === 403) return "Payment settings need to be checked before cancellation can be completed.";
-  return "We could not cancel your subscription right now. Please try again in a minute.";
-}
-
 async function dodoFetch(host: string, path: string, init?: RequestInit) {
   return fetch(`${host}${path}`, {
     ...init,
@@ -29,12 +22,49 @@ async function dodoFetch(host: string, path: string, init?: RequestInit) {
   });
 }
 
+async function findSubscriptionId(host: string, opts: { userId: string; email?: string; customerId?: string; productId?: string }): Promise<string | undefined> {
+  const tryListWith = async (params: URLSearchParams) => {
+    const r = await dodoFetch(host, `/subscriptions?${params.toString()}`);
+    if (!r.ok) return [] as any[];
+    const j = await r.json().catch(() => ({}));
+    return (j.items ?? j.data ?? []) as any[];
+  };
+
+  // Search active subs (paginated, broad).
+  const baseParams = new URLSearchParams({ page_size: "50", page_number: "0" });
+  if (opts.productId) baseParams.set("product_id", opts.productId);
+
+  // 1. By customer_id if we have one
+  if (opts.customerId) {
+    const params = new URLSearchParams(baseParams);
+    params.set("customer_id", opts.customerId);
+    const items = await tryListWith(params);
+    const match = items.find((it) => ["active", "trialing", "on_hold"].includes(String(it.status ?? "").toLowerCase()));
+    if (match) return match.subscription_id ?? match.id;
+  }
+
+  // 2. By scanning recent subs and matching metadata / email
+  const items = await tryListWith(baseParams);
+  const lcEmail = opts.email?.toLowerCase();
+  const match = items.find((it) => {
+    const meta = it.metadata ?? {};
+    const customerEmail = (it.customer?.email ?? it.customer_email ?? "").toLowerCase();
+    const status = String(it.status ?? "").toLowerCase();
+    const isOpen = ["active", "trialing", "on_hold", "pending"].includes(status);
+    return isOpen && (
+      meta.user_id === opts.userId ||
+      (lcEmail && (meta.user_email?.toLowerCase() === lcEmail || customerEmail === lcEmail))
+    );
+  });
+  return match?.subscription_id ?? match?.id;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     if (!DODO_SECRET_KEY) {
-      return new Response(JSON.stringify({ error: "Payments are not configured yet." }), {
+      return new Response(JSON.stringify({ error: "Payments are not configured yet. Please contact support." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -48,7 +78,7 @@ Deno.serve(async (req) => {
     );
     const { data: { user } } = await userClient.auth.getUser();
     if (!user) {
-      return new Response(JSON.stringify({ error: "Please sign in again before cancelling." }), {
+      return new Response(JSON.stringify({ error: "Please sign in again to cancel your subscription." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -57,31 +87,49 @@ Deno.serve(async (req) => {
     const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("dodo_subscription_id")
+      .select("dodo_subscription_id, dodo_customer_id")
       .eq("id", user.id)
       .maybeSingle();
 
     const host = IS_TEST_KEY ? DODO_TEST : DODO_LIVE;
-    let subscriptionId = (profile as any)?.dodo_subscription_id as string | undefined;
+    const body = await req.json().catch(() => ({} as any));
+    const productId = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : body.product_id;
+
+    let subscriptionId: string | undefined = (profile as any)?.dodo_subscription_id ?? undefined;
+    const customerId: string | undefined = (profile as any)?.dodo_customer_id ?? undefined;
 
     if (!subscriptionId) {
-      const body = await req.json().catch(() => ({}));
-      const params = new URLSearchParams({ page_size: "20", page_number: "0", status: "active" });
-      const productId = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : body.product_id;
-      if (productId) params.set("product_id", productId);
-      const listRes = await dodoFetch(host, `/subscriptions?${params.toString()}`);
-      const list = listRes.ok ? await listRes.json() : { items: [] };
-      const match = (list.items ?? []).find((item: any) => {
-        const meta = item.metadata ?? {};
-        const customerEmail = item.customer?.email ?? item.customer_email;
-        return meta.user_id === user.id || meta.user_email === user.email || customerEmail === user.email;
-      });
-      subscriptionId = match?.subscription_id ?? match?.id;
+      try {
+        subscriptionId = await findSubscriptionId(host, {
+          userId: user.id,
+          email: user.email ?? undefined,
+          customerId,
+          productId,
+        });
+      } catch (e) {
+        console.warn("[dodo-cancel-subscription] lookup failed", e);
+      }
     }
 
+    // Helper: locally revoke Pro so user is no longer charged on our side.
+    const localRevoke = async () => {
+      await adminClient
+        .from("profiles")
+        .update({
+          is_pro: false,
+          plan: "free",
+          subscription_status: "cancelled",
+          trial_start_date: null,
+        } as any)
+        .eq("id", user.id);
+    };
+
     if (!subscriptionId) {
-      await adminClient.from("profiles").update({ is_pro: false, plan: "free", subscription_status: "cancelled", trial_start_date: null } as any).eq("id", user.id);
-      return new Response(JSON.stringify({ message: "No active subscription was found. You will not be charged again." }), {
+      // Nothing to cancel on Dodo's side — just revoke locally so the user is not Pro.
+      await localRevoke();
+      return new Response(JSON.stringify({
+        message: "Your Pro access has been turned off. If a payment was already scheduled, please email support to confirm — we will not charge you again.",
+      }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -95,22 +143,50 @@ Deno.serve(async (req) => {
       }),
     });
     const text = await cancelRes.text();
+
     if (!cancelRes.ok) {
-      console.error("[dodo-cancel-subscription]", cancelRes.status, text);
-      return new Response(JSON.stringify({ error: friendlyCancelError(cancelRes.status, text) }), {
-        status: 500,
+      console.error("[dodo-cancel-subscription] dodo error", cancelRes.status, text);
+      // If Dodo says "not found" the sub is already gone — treat as success and revoke locally.
+      const lower = text.toLowerCase();
+      if (lower.includes("not_found") || lower.includes("not found") || cancelRes.status === 404) {
+        await localRevoke();
+        return new Response(JSON.stringify({
+          message: "No active subscription was found on our payment provider. Your Pro access has been turned off and you will not be charged.",
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // For real auth/permission errors, still revoke locally so the user is not Pro from our side, and tell them clearly.
+      if (cancelRes.status === 401 || cancelRes.status === 403) {
+        await localRevoke();
+        return new Response(JSON.stringify({
+          message: "Your Pro access has been turned off on Make Me Revise. We could not reach the payment provider — please email support if you see another charge.",
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({
+        error: "We could not cancel your subscription right now. Please try again in a minute, or email support if it keeps failing.",
+      }), {
+        status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    await adminClient.from("profiles").update({ is_pro: false, plan: "free", subscription_status: "cancelled", trial_start_date: null } as any).eq("id", user.id);
-    return new Response(JSON.stringify({ message: "Cancelled. You will not be charged again." }), {
+    await localRevoke();
+    return new Response(JSON.stringify({
+      message: "Cancelled. You will not be charged again.",
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("[dodo-cancel-subscription]", err);
-    return new Response(JSON.stringify({ error: "We could not cancel your subscription right now. Please try again in a minute." }), {
+    console.error("[dodo-cancel-subscription] unhandled", err);
+    return new Response(JSON.stringify({
+      error: "We could not cancel your subscription right now. Please try again in a minute.",
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
