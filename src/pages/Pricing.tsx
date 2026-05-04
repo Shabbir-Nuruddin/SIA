@@ -238,6 +238,14 @@ const Pricing = () => {
           </div>
         </div>
 
+        <div className="mb-6 max-w-2xl mx-auto rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
+          <div className="text-xs uppercase tracking-widest font-mono text-primary mb-1">Launch offer</div>
+          <div className="text-sm">
+            Use code <span className="font-mono font-bold text-primary">REVISE50</span> at checkout —
+            <span className="font-semibold"> 50% off your first month.</span> First 100 users only.
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
           {TIERS.map(t => <TierCard key={t.id} tier={t} currency={currency} />)}
         </div>
