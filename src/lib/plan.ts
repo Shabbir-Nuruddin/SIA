@@ -105,7 +105,7 @@ export async function getPlanState(): Promise<PlanState | null> {
     else if (x?.trial_start_date) {
       const started = new Date(x.trial_start_date).getTime();
       const days = (Date.now() - started) / 86400000;
-      if (days < 5) (data as PlanState).plan = "pro";
+      if (days < 3) (data as PlanState).plan = "pro";
     }
   } catch { /* ignore */ }
 

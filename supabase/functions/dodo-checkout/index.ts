@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       (profile as any)?.dodo_subscription_id ||
       (profile as any)?.subscription_status,
     );
-    const trialDays = hasSubscribedBefore ? 0 : 5;
+    const trialDays = hasSubscribedBefore ? 0 : 3;
 
     const createPayload = (host: string, includeDiscount = true): Record<string, unknown> => {
       const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
