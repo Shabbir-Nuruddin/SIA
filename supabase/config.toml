@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.dodo-checkout]
 verify_jwt = false
+
+[functions.dodo-sync-subscription]
+verify_jwt = false
+
+[functions.dodo-cancel-subscription]
+verify_jwt = false
