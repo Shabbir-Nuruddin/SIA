@@ -71,7 +71,7 @@ const TIERS: Tier[] = [
       "Unlimited mock papers with examiner feedback",
       "Unlimited notes — every topic, every unit",
       "AI tutor — 200 messages / day",
-      "Spotify focus playlists",
+      "Expanded built-in focus & lofi library",
       "Multiple active exams + urgency timer",
       "Priority response speed",
     ],

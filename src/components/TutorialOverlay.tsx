@@ -45,6 +45,36 @@ const buildSteps = (firstName: string, days: number): Step[] => [
     position: "right",
   },
   {
+    selector: "nav-mocks",
+    title: "Full mock papers, AI-marked",
+    body: "Generate timed mock papers built to your board's spec. Sit them under exam conditions — our AI marks every answer with examiner-style feedback.",
+    position: "right",
+  },
+  {
+    selector: "nav-questions",
+    title: "Topical practice questions",
+    body: "Drill any topic with exam-style questions. Get a mark, a model answer, and a breakdown of exactly why you lost marks.",
+    position: "right",
+  },
+  {
+    selector: "ai-tutor",
+    title: "Your 24/7 AI tutor",
+    body: "Stuck on a step? Tap the spark button to ask. You can even snap a photo of your working and it'll mark it for you.",
+    position: "above",
+  },
+  {
+    selector: "music",
+    title: "Built-in focus music",
+    body: "Lofi, ambient, piano, rain — all royalty-free, all in one click. Plays in the background as you study.",
+    position: "above",
+  },
+  {
+    selector: "nav-feedback",
+    title: "Tell us what's broken",
+    body: "Bug, idea, feature request? Drop it in Feedback — it goes straight to the team and we reply in-app.",
+    position: "right",
+  },
+  {
     title: `You're ready, ${firstName}.`,
     body: `Your revision path is built. Your plan is waiting. ${days} days to your exam. Let's get to work.`,
   },

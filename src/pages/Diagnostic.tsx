@@ -91,15 +91,21 @@ const QUESTIONS: Q[] = [
 ];
 
 const Diagnostic = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0); // 0..QUESTIONS.length, last = result
   const [answers, setAnswers] = useState<Record<string, { value: number; tag?: string }>>({});
 
-  // If no user, send to auth.
+  // Wait for the auth session to hydrate before deciding to redirect — otherwise
+  // a fresh login bounces straight back to /auth.
   useEffect(() => {
+    if (loading) return;
     if (!user) navigate("/auth?mode=signup");
-  }, [user]);
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground text-sm">Loading…</div>;
+  }
 
   const handlePick = (q: Q, opt: Q["options"][number]) => {
     setAnswers(a => ({ ...a, [q.id]: { value: opt.value, tag: opt.tag } }));

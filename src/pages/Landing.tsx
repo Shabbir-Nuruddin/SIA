@@ -103,7 +103,7 @@ const Landing = () => {
             </div>
 
             <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-              Supports Edexcel · AQA · CIE · IB
+              Supports Edexcel IAL · CIE A-Level
             </p>
           </div>
         </div>
@@ -285,7 +285,7 @@ const Landing = () => {
       <footer className="border-t border-border/50 py-10">
         <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
           <ApexLogo size={24} />
-          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Supports Edexcel, AQA, CIE, IB</p>
+          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Supports Edexcel IAL & CIE A-Level</p>
           <div className="flex items-center gap-5 text-xs text-muted-foreground flex-wrap justify-center">
             <a href="#how" className="hover:text-foreground transition">How it works</a>
             <a href="#pricing" className="hover:text-foreground transition">Pricing</a>

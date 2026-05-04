@@ -189,6 +189,7 @@ export const FloatingAssistant = () => {
       {!open && (
         <button
           onClick={() => setOpen(true)}
+          data-tutorial="ai-tutor"
           className="fixed bottom-5 right-5 z-40 h-12 w-12 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-105"
           style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
           aria-label="Open AI tutor"

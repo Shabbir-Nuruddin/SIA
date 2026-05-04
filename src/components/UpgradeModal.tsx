@@ -84,7 +84,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
 
         <p className="text-sm text-muted-foreground mb-5">{description}</p>
 
-        <div className="rounded-lg bg-muted/50 p-3 mb-5 text-sm">
+        <div className="rounded-lg bg-muted/50 p-3 mb-4 text-sm">
           <div className="font-medium mb-1">Pro includes</div>
           <ul className="space-y-1 text-muted-foreground text-xs">
             <li>• Unlimited AI tutor + photo upload marking</li>
@@ -92,6 +92,15 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
             <li>• Mock papers with AI marking</li>
             <li>• Multi-subject roadmaps</li>
           </ul>
+        </div>
+
+        <div className="rounded-lg border border-primary/40 bg-primary/10 p-3 mb-5 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <div className="font-bold text-primary">Use code <span className="font-mono">REVISE50</span></div>
+              <div className="text-muted-foreground">50% off your first month — first 100 users only.</div>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-2">
