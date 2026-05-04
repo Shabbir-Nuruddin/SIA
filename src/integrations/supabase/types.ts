@@ -110,6 +110,71 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_replies: {
+        Row: {
+          author_id: string
+          created_at: string
+          id: string
+          is_admin_reply: boolean
+          message: string
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          message: string
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean
+          message?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mock_paper_questions: {
         Row: {
           awarded_marks: number | null
@@ -279,6 +344,8 @@ export type Database = {
           first_name: string | null
           hours_per_day: number
           id: string
+          is_admin: boolean
+          is_pro: boolean
           last_name: string | null
           last_session_date: string | null
           notes_week_count: number
@@ -295,6 +362,7 @@ export type Database = {
           rest_days: number[]
           study_start_time: string
           theme: string
+          trial_start_date: string | null
           tutor_message_count: number
           tutorial_completed: boolean
           xp: number
@@ -310,6 +378,8 @@ export type Database = {
           first_name?: string | null
           hours_per_day?: number
           id: string
+          is_admin?: boolean
+          is_pro?: boolean
           last_name?: string | null
           last_session_date?: string | null
           notes_week_count?: number
@@ -326,6 +396,7 @@ export type Database = {
           rest_days?: number[]
           study_start_time?: string
           theme?: string
+          trial_start_date?: string | null
           tutor_message_count?: number
           tutorial_completed?: boolean
           xp?: number
@@ -341,6 +412,8 @@ export type Database = {
           first_name?: string | null
           hours_per_day?: number
           id?: string
+          is_admin?: boolean
+          is_pro?: boolean
           last_name?: string | null
           last_session_date?: string | null
           notes_week_count?: number
@@ -357,6 +430,7 @@ export type Database = {
           rest_days?: number[]
           study_start_time?: string
           theme?: string
+          trial_start_date?: string | null
           tutor_message_count?: number
           tutorial_completed?: boolean
           xp?: number
@@ -515,45 +589,6 @@ export type Database = {
         }
         Relationships: []
       }
-      subscriptions: {
-        Row: {
-          created_at: string
-          expires_at: string | null
-          id: string
-          paddle_customer_id: string | null
-          paddle_subscription_id: string | null
-          plan: string
-          started_at: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
-          plan?: string
-          started_at?: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
-          plan?: string
-          started_at?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       topic_notes: {
         Row: {
           content: Json
@@ -629,6 +664,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subjects: {
         Row: {
           created_at: string
@@ -673,9 +729,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user"
       grade_level: "A*" | "A" | "B" | "C" | "D" | "E" | "U"
       plan_tier: "free" | "pro" | "advanced"
       subject_code: "mathematics" | "biology" | "chemistry" | "physics"
@@ -806,6 +869,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       grade_level: ["A*", "A", "B", "C", "D", "E", "U"],
       plan_tier: ["free", "pro", "advanced"],
       subject_code: ["mathematics", "biology", "chemistry", "physics"],
