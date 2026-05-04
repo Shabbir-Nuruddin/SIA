@@ -745,9 +745,13 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
 
-  // Start pomodoro on mount
+  // Start pomodoro on mount — but only if one isn't already running.
+  // (Previously, opening a topic re-started the timer and reset any in-progress focus session.)
   useEffect(() => {
-    startPomodoro({ mode: "focus", minutes: 25, topic: node.topic_name || undefined });
+    const existing = localStorage.getItem("apex_pomo_start");
+    if (!existing) {
+      startPomodoro({ mode: "focus", minutes: 25, topic: node.topic_name || undefined });
+    }
     containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     supabase.from("roadmap_nodes").update({ status: "in_progress" }).eq("id", node.id);
   }, [node.id]);
