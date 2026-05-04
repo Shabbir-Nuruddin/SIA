@@ -19,7 +19,7 @@ export const RequirePro = ({ children, featureName }: { children: ReactNode; fea
   }
   if (!isPro) {
     toast.error(`${featureName} is a Pro feature.`, {
-      description: "Start your 5-day free trial to unlock it. You won't be charged during the trial.",
+      description: "Start your 3-day free trial to unlock it. You won't be charged during the trial.",
     });
     return <Navigate to="/pricing" replace />;
   }

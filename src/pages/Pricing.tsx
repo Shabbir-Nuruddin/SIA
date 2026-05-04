@@ -296,7 +296,7 @@ const Pricing = () => {
             Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Pro is <span className="font-semibold text-foreground">AED 39.99/month before VAT</span>. <span className="font-semibold text-foreground">5-day free trial</span> — you are only charged after the trial ends, and you can cancel anytime before then.
+            Pro is <span className="font-semibold text-foreground">AED 39.99/month before VAT</span>. <span className="font-semibold text-foreground">3-day free trial</span> — you are only charged after the trial ends, and you can cancel anytime before then.
           </div>
         </div>
 
@@ -309,7 +309,7 @@ const Pricing = () => {
             <div>
               <h2 className="font-bold">Manage your Pro plan</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                {inTrial ? "Cancel before the 5-day trial ends and no money will be deducted." : "Cancel anytime. Your subscription will stop renewing."}
+                {inTrial ? "Cancel before the 3-day trial ends and no money will be deducted." : "Cancel anytime. Your subscription will stop renewing."}
               </p>
             </div>
             <AlertDialog>
@@ -322,7 +322,7 @@ const Pricing = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cancel {inTrial ? "trial" : "subscription"}?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You will not be charged again. If you are in the 5-day trial, cancelling now stops it before any money is deducted.
+                    You will not be charged again. If you are in the 3-day trial, cancelling now stops it before any money is deducted.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -342,7 +342,7 @@ const Pricing = () => {
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-6">Quick answers before you upgrade.</h2>
           <Accordion type="single" collapsible className="max-w-3xl mx-auto surface px-5">
             {[
-              { q: "How does the 5-day free trial work?", a: "When you start Pro, you get full Pro access for 5 days. You are not charged during the trial. Cancel anytime before day 5 and you pay nothing." },
+              { q: "How does the 3-day free trial work?", a: "When you start Pro, you get full Pro access for 3 days. You are not charged during the trial. Cancel anytime before day 3 and you pay nothing." },
               { q: "How much is Pro after the trial?", a: "AED 39.99 per month before VAT. VAT is added at checkout based on your country. Annual is AED 299/year (saves about 38%)." },
               { q: "Can I cancel anytime?", a: "Yes — open this page (or Settings) once you are on Pro and use the Cancel button. Your Pro access stays until the end of the current billing period, and you will not be charged again." },
               { q: "What happens if I cancel and come back later?", a: "Your free trial only applies once. If you cancel and re-subscribe later, you will be charged immediately when you resubscribe — no second free trial." },
@@ -360,7 +360,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period.
+          Cancel anytime. AED 39.99/month before VAT. 3-day free trial — money is only deducted after the trial period.
         </div>
       </div>
     </AppLayout>

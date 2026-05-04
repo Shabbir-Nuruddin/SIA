@@ -86,7 +86,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
                   ? "bg-primary/15 text-primary font-semibold"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
               } ${locked ? "opacity-70" : ""}`}
-              title={locked ? "Pro feature — start your 5-day free trial to unlock." : undefined}
+              title={locked ? "Pro feature — start your 3-day free trial to unlock." : undefined}
             >
               <it.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{it.label}</span>

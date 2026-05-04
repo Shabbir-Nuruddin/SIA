@@ -262,7 +262,7 @@ const Landing = () => {
           <div className="space-y-3">
             {[
               { q: "Which exam boards do you support?", a: "Edexcel IAL and CIE A-Level for Maths, Biology, Chemistry and Physics." },
-              { q: "How does the free trial work?", a: "Start on Starter for free, no card. When you click Upgrade you enter your card and get 5 days of full Pro access. Cancel before day 5 and you pay nothing." },
+              { q: "How does the free trial work?", a: "Start on Starter for free, no card. When you click Upgrade you enter your card and get 3 days of full Pro access. Cancel before day 3 and you pay nothing." },
               { q: "Is the AI marking actually accurate?", a: "Yes — it follows the official mark-scheme phrasing for your board, awards mark-by-mark, and tells you exactly where you lost marks." },
               { q: "Can I cancel anytime?", a: "Yes. One click in Settings. No retention questions, no friction." },
               { q: "Do you store my work?", a: "Your roadmap, notes, mocks and questions are saved to your account so you can pick up where you left off on any device." },

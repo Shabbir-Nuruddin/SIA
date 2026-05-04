@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     }
 
     // If the user previously subscribed (and likely cancelled), skip the
-    // 5-day trial on re-subscribe and charge immediately.
+    // 3-day trial on re-subscribe and charge immediately.
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
           allow_customer_editing_zipcode: true,
         },
         customization: {
-          pay_button_text: trialDays > 0 ? "Start 5-day free trial" : "Subscribe to Pro",
+          pay_button_text: trialDays > 0 ? "Start 3-day free trial" : "Subscribe to Pro",
         },
       };
       if (includeDiscount && discount_code) payload.discount_code = discount_code;
