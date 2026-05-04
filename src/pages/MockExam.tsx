@@ -187,7 +187,7 @@ const MockExam = () => {
       const { size = 11, bold = false, gap = 4 } = opts;
       doc.setFont("helvetica", bold ? "bold" : "normal");
       doc.setFontSize(size);
-      const lines = doc.splitTextToSize(text || "", maxWidth);
+      const lines = doc.splitTextToSize(pdfSafe(text || ""), maxWidth);
       const lineHeight = size * 1.35;
       for (const line of lines) {
         ensureSpace(lineHeight);
