@@ -1,5 +1,5 @@
 // Dodo Payments webhook handler.
-// Verifies signature using DODO_SECRET_KEY (HMAC-SHA256 over raw body).
+// Verifies signature using DODO_WEBHOOK_SECRET when configured.
 // Updates profiles.is_pro based on event type.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, webhook-signature, dodo-signature",
 };
 
-const DODO_SECRET_KEY = Deno.env.get("DODO_SECRET_KEY") ?? "";
+const DODO_WEBHOOK_SECRET = Deno.env.get("DODO_WEBHOOK_SECRET") ?? "";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
@@ -17,11 +17,11 @@ const supabase = createClient(
 );
 
 async function verifySignature(rawBody: string, signature: string | null): Promise<boolean> {
-  if (!signature || !DODO_SECRET_KEY) return false;
+  if (!signature || !DODO_WEBHOOK_SECRET) return false;
   try {
     const enc = new TextEncoder();
     const key = await crypto.subtle.importKey(
-      "raw", enc.encode(DODO_SECRET_KEY),
+      "raw", enc.encode(DODO_WEBHOOK_SECRET),
       { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
     );
     const sig = await crypto.subtle.sign("HMAC", key, enc.encode(rawBody));
@@ -41,8 +41,8 @@ Deno.serve(async (req) => {
   const raw = await req.text();
   const signature = req.headers.get("webhook-signature") ?? req.headers.get("dodo-signature");
 
-  // Soft-verify: log warning but accept if no key set so dev/test works.
-  if (DODO_SECRET_KEY && signature) {
+  // Soft-verify: only enforce when the Dodo webhook signing secret is configured.
+  if (DODO_WEBHOOK_SECRET && signature) {
     const ok = await verifySignature(raw, signature);
     if (!ok) {
       console.warn("[dodo-webhook] signature mismatch");
