@@ -71,9 +71,9 @@ const SCIENCE_BADGES = [
   },
   {
     key: "elaboration",
-    label: "Elaboration",
+    label: "Key Learnings",
     icon: Lightbulb,
-    body: "Explaining a concept in your own words doubles retention vs reading alone. Takes 30 seconds before each test.",
+    body: "Writing the main points in your own words is science-backed: it strengthens memory by forcing your brain to retrieve, organise, and connect the idea instead of just recognising it.",
     cite: "Dunlosky et al., 2013",
   },
   {
@@ -666,7 +666,7 @@ const NodeCard = ({ node, isActive, startStage = "notes", onActivate, onClose, o
         {node.node_type === "learn" && (
           <div className="text-[13px] text-muted-foreground space-y-1 mb-3 border-l-2 border-border pl-3">
             <p><span className="text-foreground/80">1.</span> Read AI notes (~5 min)</p>
-            <p><span className="text-foreground/80">2.</span> Write a one-sentence explanation (1 min)</p>
+            <p><span className="text-foreground/80">2.</span> Write the key learnings in your own words (1 min)</p>
             <p><span className="text-foreground/80">3.</span> Answer 5 questions (~15 min)</p>
             <p className="text-[11px] mt-2 text-primary">Technique: Active Recall + Elaboration</p>
           </div>
@@ -824,7 +824,7 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
         <div className="flex items-center gap-2 mb-5 text-[11px] font-mono uppercase tracking-wider">
           <StageDot label="Notes" active={stage === "notes"} done={stage !== "notes"} />
           <ChevronRight className="h-3 w-3 text-muted-foreground" />
-          <StageDot label="Explain" active={stage === "elaboration"} done={stage === "questions" || stage === "done"} />
+          <StageDot label="Key parts" active={stage === "elaboration"} done={stage === "questions" || stage === "done"} />
           <ChevronRight className="h-3 w-3 text-muted-foreground" />
           <StageDot label="Test" active={stage === "questions"} done={stage === "done"} />
         </div>
@@ -914,14 +914,14 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
         {stage === "elaboration" && (
           <div className="space-y-3">
             <p className="text-sm">
-              <span className="font-semibold">Before we test you — write one sentence.</span><br />
-              <span className="text-muted-foreground">What is <strong className="text-foreground">{node.topic_name}</strong> in your own words?</span>
+              <span className="font-semibold">Before we test you — write the key learnings.</span><br />
+              <span className="text-muted-foreground">Science shows that writing the main points in your own words reinforces them in your brain. List the key parts of <strong className="text-foreground">{node.topic_name}</strong>.</span>
             </p>
             <Textarea
               autoFocus
               value={elaboration}
               onChange={e => setElaboration(e.target.value)}
-              placeholder="Type anything. There's no wrong answer."
+              placeholder="Main point 1… Main point 2… Main point 3…"
               className="min-h-[100px] text-sm"
             />
             <p className="text-[11px] text-muted-foreground font-mono">
