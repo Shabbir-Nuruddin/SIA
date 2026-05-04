@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SUBJECTS, SubjectCode, estimateGrade } from "@/lib/subjects";
-import { Loader2, Flag, Send } from "lucide-react";
+import { Loader2, Flag, Send, Eye, EyeOff, Download } from "lucide-react";
+import jsPDF from "jspdf";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -24,6 +25,8 @@ interface Q {
   options: string[] | null;
   student_answer: string | null;
   flagged: boolean;
+  mark_scheme: string | null;
+  model_answer: string | null;
 }
 
 interface Paper {
@@ -57,6 +60,7 @@ const MockExam = () => {
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [now, setNow] = useState(Date.now());
   const submittedRef = useRef(false);
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!user || !id) return;
@@ -117,6 +121,96 @@ const MockExam = () => {
 
   const setAnswer = (qid: string, v: string) => setAnswers(p => ({ ...p, [qid]: v }));
   const toggleFlag = (qid: string) => setFlags(p => ({ ...p, [qid]: !p[qid] }));
+  const toggleReveal = (qid: string) => setRevealed(p => ({ ...p, [qid]: !p[qid] }));
+
+  const stripHtml = (s: string) => {
+    const div = document.createElement("div");
+    div.innerHTML = s || "";
+    return (div.textContent || div.innerText || "").replace(/\s+\n/g, "\n").trim();
+  };
+
+  const downloadPdf = () => {
+    if (!paper) return;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 48;
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const ensureSpace = (h: number) => {
+      if (y + h > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    };
+
+    const writeWrapped = (text: string, opts: { size?: number; bold?: boolean; gap?: number } = {}) => {
+      const { size = 11, bold = false, gap = 4 } = opts;
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.setFontSize(size);
+      const lines = doc.splitTextToSize(text || "", maxWidth);
+      const lineHeight = size * 1.35;
+      for (const line of lines) {
+        ensureSpace(lineHeight);
+        doc.text(line, margin, y);
+        y += lineHeight;
+      }
+      y += gap;
+    };
+
+    // Title
+    writeWrapped(`${meta.name} — Mock Paper`, { size: 18, bold: true, gap: 6 });
+    writeWrapped(`${meta.spec} · Units ${paper.units.join(", ")} · ${paper.total_marks} marks · ${paper.time_limit_minutes} mins`, { size: 10, gap: 14 });
+
+    // Instructions
+    writeWrapped("Instructions:", { size: 11, bold: true, gap: 2 });
+    writeWrapped("• Answer all questions in the spaces provided (use separate paper if needed).", { size: 10, gap: 1 });
+    writeWrapped("• Show all working. Marks may be awarded for method.", { size: 10, gap: 1 });
+    writeWrapped("• Total marks shown in brackets [ ] at the end of each question.", { size: 10, gap: 14 });
+
+    // Questions
+    questions.forEach(q => {
+      ensureSpace(60);
+      writeWrapped(`Q${q.question_index + 1}.  (${q.topic} · ${q.question_type})   [${q.marks}]`, { size: 11, bold: true, gap: 4 });
+      writeWrapped(stripHtml(q.question_text), { size: 11, gap: 6 });
+      if (q.options && q.options.length > 0) {
+        q.options.forEach((opt, i) => {
+          writeWrapped(`   ${String.fromCharCode(65 + i)})  ${opt}`, { size: 11, gap: 2 });
+        });
+        y += 4;
+      } else {
+        // Blank answer space
+        const lines = Math.max(3, Math.min(10, Math.ceil(q.marks * 1.5)));
+        for (let i = 0; i < lines; i++) {
+          ensureSpace(18);
+          doc.setDrawColor(180);
+          doc.line(margin, y + 12, margin + maxWidth, y + 12);
+          y += 18;
+        }
+        y += 4;
+      }
+    });
+
+    // Mark scheme & model answers — always included so user can self-mark
+    doc.addPage();
+    y = margin;
+    writeWrapped("Mark Scheme & Model Answers", { size: 16, bold: true, gap: 12 });
+    questions.forEach(q => {
+      ensureSpace(40);
+      writeWrapped(`Q${q.question_index + 1}.   [${q.marks}]`, { size: 11, bold: true, gap: 2 });
+      if (q.model_answer) {
+        writeWrapped("Model answer:", { size: 10, bold: true, gap: 1 });
+        writeWrapped(stripHtml(q.model_answer), { size: 10, gap: 4 });
+      }
+      if (q.mark_scheme) {
+        writeWrapped("Mark scheme:", { size: 10, bold: true, gap: 1 });
+        writeWrapped(stripHtml(q.mark_scheme), { size: 10, gap: 8 });
+      }
+    });
+
+    doc.save(`${meta.name.replace(/\s+/g, "-")}-mock-${paper.units.join("-")}.pdf`);
+  };
 
   const handleSubmit = async (auto = false) => {
     if (!paper) return;
@@ -197,9 +291,15 @@ const MockExam = () => {
             <div className={`font-mono font-extrabold text-2xl md:text-3xl ${timerColor} ${timerPulse}`}>{formatTimer(remaining)}</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Time remaining</div>
           </div>
-          <div className="text-right">
-            <div className="font-mono text-xl font-extrabold">{paper.total_marks}<span className="text-xs text-muted-foreground"> marks</span></div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{totalAnswered}/{questions.length} answered</div>
+          <div className="text-right flex items-center gap-3">
+            <Button size="sm" variant="outline" onClick={downloadPdf} title="Download printable PDF">
+              <Download className="h-4 w-4 md:mr-1.5" />
+              <span className="hidden md:inline">PDF</span>
+            </Button>
+            <div>
+              <div className="font-mono text-xl font-extrabold">{paper.total_marks}<span className="text-xs text-muted-foreground"> marks</span></div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{totalAnswered}/{questions.length} answered</div>
+            </div>
           </div>
         </div>
       </header>
@@ -238,6 +338,32 @@ const MockExam = () => {
                 <Textarea value={answers[q.id] || ""} onChange={e => setAnswer(q.id, e.target.value)}
                   placeholder="Write your answer. Show your working."
                   className="min-h-[120px] font-mono text-sm" />
+              )}
+
+              {paper.subject === "mathematics" && (q.mark_scheme || q.model_answer) && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <button onClick={() => toggleReveal(q.id)}
+                    className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-primary flex items-center gap-1.5 transition-colors">
+                    {revealed[q.id] ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {revealed[q.id] ? "Hide" : "Show"} mark scheme & model answer
+                  </button>
+                  {revealed[q.id] && (
+                    <div className="mt-3 grid md:grid-cols-2 gap-3 animate-fade-in">
+                      {q.model_answer && (
+                        <div className="p-3 rounded-lg bg-success/5 border border-success/20">
+                          <div className="text-[10px] uppercase font-mono text-success tracking-wider mb-1.5">Model answer</div>
+                          <div className="text-sm" {...formattedHtmlProps(q.model_answer)} />
+                        </div>
+                      )}
+                      {q.mark_scheme && (
+                        <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                          <div className="text-[10px] uppercase font-mono text-accent tracking-wider mb-1.5">Mark scheme</div>
+                          <div className="text-sm whitespace-pre-wrap">{q.mark_scheme}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))}
