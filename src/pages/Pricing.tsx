@@ -114,8 +114,8 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
       try {
         await upgrade();
       } catch (err) {
-        toast.error("Couldn't open checkout. Please try again.");
         console.error(err);
+        toast.error(err instanceof Error ? err.message : "Checkout could not open right now. Please try again in a minute.");
       }
       return;
     }
@@ -245,6 +245,9 @@ const Pricing = () => {
           <div className="text-sm text-muted-foreground">
             Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
           </div>
+          <div className="mt-2 text-xs text-muted-foreground">
+            Pro is <span className="font-semibold text-foreground">AED 39.99/month before VAT</span>; VAT is added separately at checkout.
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
@@ -252,7 +255,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. VAT included. Pause your subscription during holidays.
+          Cancel anytime. AED 39.99/month before VAT. Pause your subscription during holidays.
         </div>
       </div>
     </AppLayout>
