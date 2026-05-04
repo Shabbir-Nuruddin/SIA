@@ -81,11 +81,11 @@ const notesTool = {
         },
         visual_summary: {
           type: "object",
-          description: "A diagram, table, or flowchart describing key relationships, rendered as ASCII or HTML table markup.",
+          description: "A diagram, table, flowchart, or inline SVG illustration that explains key relationships visually.",
           properties: {
-            kind: { type: "string", enum: ["table", "flowchart", "diagram"] },
+            kind: { type: "string", enum: ["table", "flowchart", "diagram", "svg"] },
             caption: { type: "string" },
-            content: { type: "string", description: "ASCII art, monospace table, or simple HTML <table>... markup." },
+            content: { type: "string", description: "Either: (a) an inline <svg>...</svg> illustration with viewBox=\"0 0 400 240\" using stroke=\"currentColor\" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) ASCII flowchart. Prefer SVG for spatial/process diagrams (energy profiles, electric fields, biological cycles, geometric proofs)." },
           },
           required: ["kind", "caption", "content"],
           additionalProperties: false,
