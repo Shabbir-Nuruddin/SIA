@@ -203,8 +203,7 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
 };
 
 const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: (c: Currency) => void }) => {
-  const options: Currency[] = ["AED", "GBP", "USD"];
-  return (
+  const options: Currency[] = CURRENCY_OPTIONS;
     <div className="inline-flex items-center rounded-lg border border-border bg-card p-1">
       {options.map((c) => (
         <button
