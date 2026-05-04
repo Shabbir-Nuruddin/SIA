@@ -184,6 +184,65 @@ const Feedback = () => {
           </div>
         )}
 
+        {isAdmin && (
+          <div className="surface p-4 mb-6">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2 font-semibold text-sm">
+                <Users className="h-4 w-4 text-primary" /> Users overview
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="px-2 py-1 rounded bg-muted/60">
+                  Total: <strong className="text-foreground">{adminStats?.total ?? "—"}</strong>
+                </span>
+                <span className="px-2 py-1 rounded bg-primary/10 text-primary flex items-center gap-1">
+                  <Crown className="h-3 w-3" /> Pro: <strong>{adminStats?.pro ?? "—"}</strong>
+                </span>
+              </div>
+            </div>
+            <div className="relative mb-3">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Search by email or name..."
+                className="pl-9"
+              />
+            </div>
+            <div className="max-h-72 overflow-y-auto divide-y divide-border rounded-md border border-border">
+              {adminUsers
+                .filter((u) => {
+                  const q = userSearch.toLowerCase().trim();
+                  if (!q) return true;
+                  return u.email.toLowerCase().includes(q) || (u.display_name ?? "").toLowerCase().includes(q);
+                })
+                .slice(0, 200)
+                .map((u) => (
+                  <div key={u.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <div className="truncate font-medium flex items-center gap-2">
+                        {u.email || "(no email)"}
+                        {u.is_pro && <Crown className="h-3 w-3 text-primary shrink-0" />}
+                      </div>
+                      {u.display_name && (
+                        <div className="text-xs text-muted-foreground truncate">{u.display_name}</div>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { setTicketTarget({ id: u.id, email: u.email }); setTicketSubject(""); setTicketMessage(""); }}
+                    >
+                      <MessageSquare className="h-3 w-3 mr-1" /> Open ticket
+                    </Button>
+                  </div>
+                ))}
+              {adminUsers.length === 0 && (
+                <div className="text-xs text-muted-foreground p-4 text-center">No users loaded.</div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-[320px_1fr] gap-4">
           <div className="space-y-2">
             {tickets.length === 0 && (
