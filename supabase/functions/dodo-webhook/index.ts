@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
         is_pro: isPro,
         plan: isPro ? "pro" : "free",
         subscription_status: status ?? (isPro ? "active" : "cancelled"),
+        ...(isPro ? { trial_start_date: new Date().toISOString() } : { trial_start_date: null }),
         ...(subscriptionId ? { dodo_subscription_id: subscriptionId } : {}),
         ...(customerId ? { dodo_customer_id: customerId } : {}),
       } as any)
