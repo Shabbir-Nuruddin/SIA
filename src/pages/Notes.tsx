@@ -594,7 +594,14 @@ const NotesPage = () => {
                     <div className="space-y-3">
                       {notes.equations.map((e, i) => (
                         <div key={i} className="rounded-md border border-border/60 p-3">
-                          <div className="font-mono text-base font-bold text-primary mb-2" {...formattedHtmlProps(e.equation)} />
+                          <div className="text-base font-bold text-primary mb-2" dangerouslySetInnerHTML={{ __html: renderMathInString(
+                            (() => {
+                              const eq = String(e.equation ?? "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
+                              if (!eq) return "";
+                              if (/\$/.test(eq)) return eq;
+                              return `$${eq}$`;
+                            })()
+                          ) }} />
                           {e.variables.length > 0 && (
                             <div className="text-xs space-y-0.5 mb-2">
                               {e.variables.map((v, j) => {
