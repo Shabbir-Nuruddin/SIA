@@ -136,12 +136,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Stop future billing on Dodo. Access continues until period end; the
-    // webhook will revoke Pro when the subscription actually ends.
-    const cancelBody = JSON.stringify({
-      cancel_at_next_billing_date: true,
-      cancellation_comment: "Cancelled from Make Me Revise account settings",
-    });
+    // Check whether the subscription is still in its trial period. If so, we
+    // must cancel immediately (not at period end) so no payment is collected,
+    // and drop the user back to Free right away.
+    let inTrial = false;
+    try {
+      const subRes = await dodoFetch(host, `/subscriptions/${subscriptionId}`, { method: "GET" });
+      let subJson: any = subRes.ok ? await subRes.json().catch(() => ({})) : {};
+      if (!subRes.ok) {
+        const altHost = host === DODO_LIVE ? DODO_TEST : DODO_LIVE;
+        const altRes = await dodoFetch(altHost, `/subscriptions/${subscriptionId}`, { method: "GET" });
+        if (altRes.ok) subJson = await altRes.json().catch(() => ({}));
+      }
+      const status = String(subJson?.status ?? "").toLowerCase();
+      const trialEnd = subJson?.trial_end_date ?? subJson?.trial_ends_at ?? subJson?.trial_end;
+      if (status === "trialing" || status === "trial") inTrial = true;
+      if (!inTrial && trialEnd) {
+        const endMs = new Date(trialEnd).getTime();
+        if (Number.isFinite(endMs) && endMs > Date.now()) inTrial = true;
+      }
+    } catch (e) {
+      console.warn("[dodo-cancel-subscription] trial lookup failed", e);
+    }
+
+    // Cancel on Dodo. During trial: cancel immediately so no charge is made.
+    // After trial: cancel at period end so the user keeps the time they paid for.
+    const cancelBody = JSON.stringify(
+      inTrial
+        ? {
+            status: "cancelled",
+            cancel_at_next_billing_date: false,
+            cancellation_comment: "Cancelled during free trial — no payment to be taken",
+          }
+        : {
+            cancel_at_next_billing_date: true,
+            cancellation_comment: "Cancelled from Make Me Revise account settings",
+          },
+    );
     let cancelRes = await dodoFetch(host, `/subscriptions/${subscriptionId}`, {
       method: "PATCH",
       body: cancelBody,
@@ -159,7 +190,6 @@ Deno.serve(async (req) => {
         cancelRes = retry;
         text = await retry.text();
       } else {
-        // keep original response/text for error reporting if retry also fails
         const retryText = await retry.text().catch(() => "");
         console.error("[dodo-cancel-subscription] retry on alt host failed", altHost, retry.status, retryText);
       }
@@ -168,15 +198,34 @@ Deno.serve(async (req) => {
     if (!cancelRes.ok) {
       console.error("[dodo-cancel-subscription] dodo error", cancelRes.status, text);
       return new Response(JSON.stringify({
-        error: "We could not cancel your subscription on the payment provider right now. Your card has NOT been changed. Please try again in a minute or contact support.",
+        error: "We could not cancel your subscription on the payment provider right now. Your card has NOT been charged. Please try again in a minute or contact support.",
       }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Dodo confirmed cancellation. Mark status locally; webhook will flip is_pro
-    // when the billing period ends.
+    // Dodo confirmed cancellation.
+    if (inTrial) {
+      // Drop to free immediately — no payment was taken.
+      await adminClient
+        .from("profiles")
+        .update({
+          is_pro: false,
+          plan: "free",
+          subscription_status: "cancelled",
+          trial_start_date: null,
+        } as any)
+        .eq("id", user.id);
+      return new Response(JSON.stringify({
+        message: "Cancelled during your free trial. You have not been charged and your account is back on the free Starter plan.",
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Post-trial: keep Pro until period end; webhook flips is_pro on expiry.
     await markPendingCancel();
     return new Response(JSON.stringify({
       message: "Cancelled with the payment provider. You will keep Pro until the end of your current billing period, and no further payments will be taken.",
