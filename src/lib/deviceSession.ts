@@ -32,7 +32,6 @@ export const claimDeviceSlot = async (userId: string): Promise<void> => {
   const user_agent = navigator.userAgent?.slice(0, 500) ?? null;
   await supabase
     .from("active_device_sessions")
-    // @ts-expect-error table not in generated types yet
     .upsert(
       { user_id: userId, device_type, device_id, user_agent, last_seen: new Date().toISOString() },
       { onConflict: "user_id,device_type" }
@@ -45,14 +44,12 @@ export const verifyDeviceSlot = async (userId: string): Promise<boolean> => {
   const device_id = getDeviceId();
   const { data, error } = await supabase
     .from("active_device_sessions")
-    // @ts-expect-error table not in generated types yet
     .select("device_id")
     .eq("user_id", userId)
     .eq("device_type", device_type)
     .maybeSingle();
   if (error) return true; // network/transient — don't kick the user
   if (!data) return false;
-  // @ts-expect-error untyped row
   return data.device_id === device_id;
 };
 
@@ -61,7 +58,6 @@ export const releaseDeviceSlot = async (userId: string): Promise<void> => {
   const device_id = getDeviceId();
   await supabase
     .from("active_device_sessions")
-    // @ts-expect-error table not in generated types yet
     .delete()
     .eq("user_id", userId)
     .eq("device_type", device_type)
