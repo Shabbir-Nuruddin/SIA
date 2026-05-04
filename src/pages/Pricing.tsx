@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { friendlyCheckoutError } from "@/lib/dodo";
 
 type Currency = "AED" | "GBP" | "USD";
 
@@ -115,7 +116,9 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
         await upgrade();
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "Checkout could not open right now. Please try again in a minute.");
+        toast.error(friendlyCheckoutError(err), {
+          action: { label: "Retry", onClick: () => void upgrade().catch((e) => toast.error(friendlyCheckoutError(e))) },
+        });
       }
       return;
     }
@@ -216,6 +219,14 @@ const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: 
 
 const Pricing = () => {
   const [currency, setCurrency] = useState<Currency>("AED");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("checkout") !== "retry") return;
+    toast.info("Payment was not completed. You can retry checkout here without starting over.");
+    searchParams.delete("checkout");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   return (
     <AppLayout>
