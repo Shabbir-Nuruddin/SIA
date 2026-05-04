@@ -167,7 +167,7 @@ function playChime() {
 function notify(text: string) {
   try {
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Apex", { body: text });
+      new Notification("Make Me Revise", { body: text });
     }
   } catch {}
 }

@@ -357,7 +357,7 @@ const NotesPage = () => {
     };
     const footer = () => {
       doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(120);
-      doc.text(`Apex · ${studentName} · ${sub?.name ?? ""} U${unitParam} — ${topicParam}`, margin, pageH - 24);
+      doc.text(`Make Me Revise · ${studentName} · ${sub?.name ?? ""} U${unitParam} — ${topicParam}`, margin, pageH - 24);
       doc.setTextColor(0);
     };
 
@@ -399,7 +399,7 @@ const NotesPage = () => {
     }
 
     footer();
-    doc.save(`Apex-${subjectParam}-U${unitParam}-${topicParam.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
+    doc.save(`MakeMeRevise-${subjectParam}-U${unitParam}-${topicParam.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
   };
 
   const getStudentName = async (): Promise<string> => {

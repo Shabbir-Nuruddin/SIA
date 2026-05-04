@@ -124,18 +124,18 @@ const Diagnostic = () => {
   }, [tags]);
 
   const PAIN_LABELS: Record<string, { headline: string; body: string }> = {
-    decision_paralysis: { headline: "You waste study time deciding what to study.", body: "Apex tells you exactly what to open every time you sit down. Decision removed." },
+    decision_paralysis: { headline: "You waste study time deciding what to study.", body: "Make Me Revise tells you exactly what to open every time you sit down. Decision removed." },
     no_plan: { headline: "You don't trust your current schedule.", body: "We build the schedule from your exam dates back. Every topic is covered, in order." },
-    passive_study: { headline: "Re-reading isn't sticking.", body: "Every Apex session ends with active recall — the single highest-impact study method." },
-    no_spacing: { headline: "You don't review what you've learned.", body: "Apex auto-schedules reviews at +3, +7, and +14 days so it actually stays in." },
+    passive_study: { headline: "Re-reading isn't sticking.", body: "every Make Me Revise session ends with active recall — the single highest-impact study method." },
+    no_spacing: { headline: "You don't review what you've learned.", body: "Make Me Revise auto-schedules reviews at +3, +7, and +14 days so it actually stays in." },
     anxiety: { headline: "Exams make you anxious.", body: "Anxiety drops when you have a clear, science-backed plan you trust. That's the whole product." },
     low_retention: { headline: "What you learn doesn't stick.", body: "Spaced repetition + active recall + interleaving — built into every node." },
-    avoidance: { headline: "You skip the hard topics.", body: "Apex sequences them so you can't avoid them — but never overwhelms you in one session." },
+    avoidance: { headline: "You skip the hard topics.", body: "Make Me Revise sequences them so you can't avoid them — but never overwhelms you in one session." },
     no_practice: { headline: "Not enough exam-condition practice.", body: "Mock papers are auto-scheduled in the 14 days before your exam. Real timing, real marking." },
-    no_feedback: { headline: "You don't know why you lose marks.", body: "Every Apex answer gets line-by-line examiner feedback, not just a tick or cross." },
-    no_tracking: { headline: "You don't know your weaknesses.", body: "Apex tracks every topic score and rebuilds your roadmap around the weakest ones." },
-    low_motivation: { headline: "Motivation is low right now.", body: "You don't need motivation. You need a path. Apex makes the next step impossible to miss." },
-    wants_guidance: { headline: "You want someone to just tell you what to do.", body: "That's exactly what Apex does. Open the app, follow the path. Repeat daily." },
+    no_feedback: { headline: "You don't know why you lose marks.", body: "every Make Me Revise answer gets line-by-line examiner feedback, not just a tick or cross." },
+    no_tracking: { headline: "You don't know your weaknesses.", body: "Make Me Revise tracks every topic score and rebuilds your roadmap around the weakest ones." },
+    low_motivation: { headline: "Motivation is low right now.", body: "You don't need motivation. You need a path. Make Me Revise makes the next step impossible to miss." },
+    wants_guidance: { headline: "You want someone to just tell you what to do.", body: "that's exactly what Make Me Revise does. Open the app, follow the path. Repeat daily." },
   };
 
   if (showResult) {
@@ -147,9 +147,9 @@ const Diagnostic = () => {
             <div className="text-[11px] uppercase tracking-widest text-primary font-mono mb-3">Your study profile</div>
             <h1 className="text-3xl md:text-4xl font-extrabold mb-3">
               {pct >= 70 ? "You're studying on hard mode." :
-               pct >= 50 ? "Your revision has gaps Apex was built for." :
-               pct >= 30 ? "You're doing OK — Apex closes the rest." :
-                            "You've got good habits. Apex makes them automatic."}
+               pct >= 50 ? "Your revision has gaps Make Me Revise was built for." :
+               pct >= 30 ? "You're doing OK — Make Me Revise closes the rest." :
+                            "You've got good habits. Make Me Revise makes them automatic."}
             </h1>
             <p className="text-muted-foreground text-sm">
               Pain score: <span className="font-mono font-bold text-foreground">{pct}/100</span>
@@ -159,7 +159,7 @@ const Diagnostic = () => {
           <div className="space-y-3 mb-8">
             {topPains.length === 0 ? (
               <div className="surface p-5 text-center text-muted-foreground text-sm">
-                You're already using strong habits — Apex will lock them into a daily plan.
+                You're already using strong habits — Make Me Revise will lock them into a daily plan.
               </div>
             ) : topPains.map(t => {
               const label = PAIN_LABELS[t];

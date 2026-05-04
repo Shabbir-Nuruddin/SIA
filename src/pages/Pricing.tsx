@@ -41,7 +41,7 @@ const TIERS: Tier[] = [
   {
     id: "free",
     name: "Starter",
-    tagline: "Get a real taste of Apex.",
+    tagline: "Get a real taste of Make Me Revise.",
     monthlyAED: 0,
     Icon: Sparkles,
     features: [
@@ -230,7 +230,7 @@ const Pricing = () => {
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Pick the plan that matches your run-up.</h1>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-              SaveMyExams gives you notes and questions. APEX gives you a complete daily plan, AI marking, and a roadmap that thinks for you.
+              SaveMyExams gives you notes and questions. Make Me Revise gives you a complete daily plan, AI marking, and a roadmap that thinks for you.
             </p>
             <div className="mt-5 md:hidden flex justify-center">
               <CurrencyToggle currency={currency} onChange={setCurrency} />

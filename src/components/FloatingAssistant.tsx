@@ -208,7 +208,7 @@ export const FloatingAssistant = () => {
                 <Sparkles className="h-3.5 w-3.5" />
               </div>
               <div>
-                <div className="text-sm font-bold leading-tight">Apex Tutor</div>
+                <div className="text-sm font-bold leading-tight">Make Me Revise Tutor</div>
                 <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider leading-tight">
                   {context?.topic ? `Re: ${context.topic}` : "Ask anything"}
                 </div>
