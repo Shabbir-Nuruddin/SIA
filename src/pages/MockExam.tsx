@@ -5,7 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SUBJECTS, SubjectCode, estimateGrade } from "@/lib/subjects";
-import { Loader2, Flag, Send } from "lucide-react";
+import { Loader2, Flag, Send, Eye, EyeOff, Download } from "lucide-react";
+import jsPDF from "jspdf";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
