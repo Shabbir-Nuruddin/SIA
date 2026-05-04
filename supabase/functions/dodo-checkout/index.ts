@@ -44,10 +44,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const return_url = body.return_url;
     const discount_code = body.discount_code;
-    // Use test product ID when running with a test key, if provided.
-    const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID
-      ? DODO_TEST_PRODUCT_ID
-      : body.product_id;
+    const liveProductId = body.product_id;
+    const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
     if (!product_id) {
       return new Response(JSON.stringify({ error: "product_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -67,32 +65,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    const payload: Record<string, unknown> = {
-      product_id,
-      quantity: 1,
-      payment_link: true,
-      return_url: return_url || `${new URL(req.url).origin}/dashboard?checkout=success`,
-      customer: {
-        email: user.email,
-        name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
-      },
-      billing: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
-      metadata: { user_id: user.id, user_email: user.email ?? "" },
-      allowed_payment_method_types: ["credit", "debit"],
-      billing_currency: "AED",
-      // Surfaces the coupon/discount input on Dodo's hosted checkout
-      show_discount_code_field: true,
+    const createPayload = (host: string): Record<string, unknown> => {
+      const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
+      const payload: Record<string, unknown> = {
+        product_id: selectedProductId,
+        quantity: 1,
+        payment_link: true,
+        return_url: return_url || `${new URL(req.url).origin}/dashboard?checkout=success`,
+        customer: {
+          email: user.email,
+          name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
+        },
+        billing: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
+        metadata: { user_id: user.id, user_email: user.email ?? "" },
+        allowed_payment_method_types: ["credit", "debit"],
+        billing_currency: "AED",
+        // Surfaces the coupon/discount input on Dodo's hosted checkout
+        show_discount_code_field: true,
+      };
+      if (discount_code) payload.discount_code = discount_code;
+      return payload;
     };
-    if (discount_code) payload.discount_code = discount_code;
 
     // Try the host that matches the key first, fall back on 401 (mode mismatch).
     const firstHost = IS_TEST_KEY ? DODO_TEST : DODO_LIVE;
     const secondHost = IS_TEST_KEY ? DODO_LIVE : DODO_TEST;
-    let res = await callDodo(firstHost, payload);
+    let res = await callDodo(firstHost, createPayload(firstHost));
     let usedHost = firstHost;
     if (res.status === 401) {
       console.warn("[dodo-checkout]", firstHost, "returned 401, retrying on", secondHost);
-      res = await callDodo(secondHost, payload);
+      res = await callDodo(secondHost, createPayload(secondHost));
       usedHost = secondHost;
     }
 
