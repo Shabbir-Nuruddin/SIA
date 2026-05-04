@@ -68,7 +68,10 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
           const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
           const tutorialKey =
             it.to === "/roadmap" ? "nav-roadmap" :
-            it.to === "/notes" ? "nav-notes" : undefined;
+            it.to === "/notes" ? "nav-notes" :
+            it.to === "/mock-papers" ? "nav-mocks" :
+            it.to === "/questions" ? "nav-questions" :
+            it.to === "/feedback" ? "nav-feedback" : undefined;
           return (
             <NavLink
               key={it.to}
