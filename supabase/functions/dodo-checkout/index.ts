@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const createPayload = (host: string): Record<string, unknown> => {
+    const createPayload = (host: string, includeDiscount = true): Record<string, unknown> => {
       const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
       const payload: Record<string, unknown> = {
         product_id: selectedProductId,
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
         // Surfaces the coupon/discount input on Dodo's hosted checkout
         show_discount_code_field: true,
       };
-      if (discount_code) payload.discount_code = discount_code;
+      if (includeDiscount && discount_code) payload.discount_code = discount_code;
       return payload;
     };
 
@@ -100,6 +100,21 @@ Deno.serve(async (req) => {
 
     const text = await res.text();
     if (!res.ok) {
+      if (discount_code && text.toLowerCase().includes("discount code")) {
+        console.warn("[dodo-checkout] discount code rejected; retrying without prefilled code");
+        const retry = await callDodo(usedHost, createPayload(usedHost, false));
+        const retryText = await retry.text();
+        if (retry.ok) {
+          const retryData = JSON.parse(retryText);
+          const retryUrl = retryData.payment_link || retryData.checkout_url || retryData.url;
+          if (retryUrl) {
+            return new Response(JSON.stringify({ url: retryUrl, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+              status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+        console.error("[dodo-checkout] retry without discount failed", usedHost, retry.status, retryText);
+      }
       console.error("[dodo-checkout] error", usedHost, res.status, text);
       return new Response(JSON.stringify({ error: "Dodo checkout failed", detail: text }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
