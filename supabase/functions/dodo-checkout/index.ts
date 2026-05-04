@@ -10,6 +10,13 @@ const corsHeaders = {
 };
 
 const DODO_SECRET_KEY = Deno.env.get("DODO_SECRET_KEY");
+// If your DODO_SECRET_KEY is a TEST key, set DODO_TEST_PRODUCT_ID to the
+// product ID created in the Dodo TEST dashboard. Live and test products are
+// separate — the live product ID will return 404 against the test API.
+const DODO_TEST_PRODUCT_ID = Deno.env.get("DODO_TEST_PRODUCT_ID");
+// Heuristic: most Dodo test keys are prefixed (e.g. sk_test_...). Fall back to
+// trying live first regardless.
+const IS_TEST_KEY = (DODO_SECRET_KEY ?? "").toLowerCase().includes("test");
 const DODO_LIVE = "https://live.dodopayments.com";
 const DODO_TEST = "https://test.dodopayments.com";
 
