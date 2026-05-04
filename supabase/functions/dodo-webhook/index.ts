@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     data?.subscription_id ??
     data?.subscription?.subscription_id ??
     data?.subscription?.id ??
-    data?.id;
+    (eventType.includes("subscription") ? data?.id : undefined);
   const customerId: string | undefined =
     data?.customer_id ??
     data?.customer?.customer_id ??
