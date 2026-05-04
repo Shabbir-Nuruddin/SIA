@@ -42,19 +42,31 @@ const AuthPage = () => {
       if (mode === "signup") {
         const fn = firstName.trim();
         const ln = lastName.trim();
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email, password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth?verified=1`,
             data: { first_name: fn, last_name: ln, display_name: fn },
           },
         });
         if (error) throw error;
-        toast.success(`Welcome to Apex, ${fn}. Let's set up your revision plan.`);
+        // If email confirmation is required, no session is returned.
+        if (!data.session) {
+          toast.success(`Check your email, ${fn} — verify to activate your account.`);
+          setMode("login");
+          return;
+        }
+        toast.success(`Welcome to MMR, ${fn}. Let's set up your revision plan.`);
         navigate("/diagnostic");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          // Friendlier message for unverified emails
+          if (/email.*not.*confirm|confirm.*email/i.test(error.message)) {
+            throw new Error("Please verify your email first. Check your inbox.");
+          }
+          throw error;
+        }
         const route = data.user ? await getPostAuthRoute(data.user.id) : "/dashboard";
         navigate(route);
       }

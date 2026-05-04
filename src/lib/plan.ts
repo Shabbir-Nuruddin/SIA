@@ -91,18 +91,23 @@ export async function getPlanState(): Promise<PlanState | null> {
     await supabase.from("profiles").update(updates as any).eq("id", user.id);
   }
 
-  // Cross-reference subscriptions table — Paddle-paying users override profile.plan
+  // Cross-reference is_pro / trial fields — paying or trialling users count as Pro.
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: sub } = await (supabase.from("subscriptions") as any)
-      .select("plan,status,expires_at")
-      .eq("user_id", user.id)
+    const { data: extra } = await supabase
+      .from("profiles")
+      .select("is_pro,trial_start_date,is_admin")
+      .eq("id", user.id)
       .maybeSingle();
-    if (sub?.plan === "pro" && sub?.status !== "cancelled") {
-      const exp = sub.expires_at ? new Date(sub.expires_at).getTime() : 0;
-      if (!exp || exp > Date.now()) (data as PlanState).plan = "pro";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const x: any = extra;
+    if (x?.is_pro || x?.is_admin) (data as PlanState).plan = "pro";
+    else if (x?.trial_start_date) {
+      const started = new Date(x.trial_start_date).getTime();
+      const days = (Date.now() - started) / 86400000;
+      if (days < 5) (data as PlanState).plan = "pro";
     }
-  } catch { /* table may not exist yet — ignore */ }
+  } catch { /* ignore */ }
 
   return data as PlanState;
 }

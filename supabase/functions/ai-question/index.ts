@@ -79,7 +79,14 @@ serve(async (req) => {
       const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
       const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
-FORMATTING: Render ALL mathematical expressions in LaTeX using $...$ for inline (e.g. $x^2 + 5x + 6$, $\\frac{dy}{dx}$, $\\sqrt{x^2+1}$, $\\int_0^1 f(x)\\,dx$, $H_2O$) and $$...$$ for display equations. Use \\frac, \\sqrt, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot. Outside math, use Unicode for standalone symbols (→, ⇌, °C). UK English.${syllabus_context ? `\n\nSCOPE — your questions MUST stay strictly within these specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
+FORMATTING (CRITICAL):
+- Render ALL mathematical expressions in LaTeX using $...$ for inline (e.g. $x^2 + 5x + 6$, $\\frac{dy}{dx}$, $\\sqrt{x^2+1}$, $\\int_0^1 f(x)\\,dx$, $H_2O$) and $$...$$ for display equations.
+- Use \\frac, \\sqrt, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
+- NEVER write standalone $$ markers, malformed delimiters, or unclosed math blocks. Every $ must be paired.
+- NEVER include LaTeX inside the "options" array — keep options as plain text or simple formulas wrapped properly.
+- Outside math, use Unicode for standalone symbols (→, ⇌, °C). UK English.
+
+THIS IS A WEB APP — questions must be answerable by typing. ABSOLUTELY DO NOT generate questions that require the student to draw, sketch, plot a graph, label a diagram, complete a Lewis structure, draw a curly-arrow mechanism, or otherwise produce a hand-drawn visual. If the natural question would require drawing, rephrase it as a description / explanation / calculation instead.${syllabus_context ? `\n\nSCOPE — your questions MUST stay strictly within these specification statements for this topic. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
       const user = `Generate ${n} DISTINCT ${difficulty} difficulty ${questionType} questions on the topic "${topic}" for ${boardLabel} ${subject}. Each question must test a different sub-skill or angle of the topic — no near-duplicates. Mark allocation should be realistic for the type:
 - Multiple Choice: 1 mark
 - Short Answer: 2-4 marks
@@ -87,6 +94,7 @@ FORMATTING: Render ALL mathematical expressions in LaTeX using $...$ for inline 
 - Calculation: 3-6 marks
 
 CRITICAL RULES ABOUT QUESTION PHRASING:
+- NO drawing/sketching/plotting/labelling/diagram-completion questions. The student is typing in a text box.
 ${questionType === "Multiple Choice"
   ? `- Every question MUST include exactly 4 plausible options in the "options" array. Never omit options.
 - Options should be distinct, realistic distractors of similar length.`
@@ -147,20 +155,30 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
     }
     const args = JSON.parse(toolCall.function.arguments);
 
-    // Post-filter: for non-MCQ actions, drop questions that look like MCQs without options.
-    if (action === "generate" && body.questionType !== "Multiple Choice" && Array.isArray(args?.questions)) {
-      const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+    // Post-filter: drop drawing/sketching questions and clean malformed math.
+    const drawPattern = /\b(draw|sketch|plot (a|the) graph|label (the|a) diagram|complete the (diagram|structure)|construct (the|a) (diagram|graph)|curly[- ]arrow mechanism)\b/i;
+    const cleanMath = (s: string) => String(s || "")
+      .replace(/\$\$\s*\$\$/g, "")           // empty $$$$
+      .replace(/(\$\$)\s*,/g, "$1")          // stray $$,
+      .replace(/\\text\{\s*\}/g, "")
+      .trim();
+
+    if (action === "generate" && Array.isArray(args?.questions)) {
       args.questions = args.questions.filter((q: any) => {
         const t = String(q?.question_text || "");
-        const looksMcq = mcqPattern.test(t);
-        const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
-        // Drop if it sounds like MCQ but has no options provided
-        if (looksMcq && !hasOptions) return false;
+        if (drawPattern.test(t)) return false;
+        if (body.questionType !== "Multiple Choice") {
+          const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+          const looksMcq = mcqPattern.test(t);
+          const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
+          if (looksMcq && !hasOptions) return false;
+        } else {
+          if (!Array.isArray(q?.options) || q.options.length < 2) return false;
+        }
+        q.question_text = cleanMath(t);
+        if (q.mark_scheme) q.mark_scheme = cleanMath(q.mark_scheme);
         return true;
       });
-    } else if (action === "generate" && body.questionType === "Multiple Choice" && Array.isArray(args?.questions)) {
-      // Drop MCQs missing options
-      args.questions = args.questions.filter((q: any) => Array.isArray(q?.options) && q.options.length >= 2);
     }
 
     return new Response(JSON.stringify(args), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

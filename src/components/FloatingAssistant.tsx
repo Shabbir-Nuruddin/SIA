@@ -40,7 +40,7 @@ export const FloatingAssistant = () => {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
-  const { isPro, upgrade: paddleUpgrade } = useSubscription();
+  const { isPro, upgrade: dodoUpgrade } = useSubscription();
 
   // Load board + first name from profile so the tutor can personalise
   useEffect(() => {
