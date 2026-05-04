@@ -220,13 +220,21 @@ const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: 
 const Pricing = () => {
   const [currency, setCurrency] = useState<Currency>("AED");
   const [searchParams, setSearchParams] = useSearchParams();
+  const { upgrade } = useSubscription();
 
   useEffect(() => {
     if (searchParams.get("checkout") !== "retry") return;
-    toast.info("Payment was not completed. You can retry checkout here without starting over.");
+    const errorText = searchParams.get("error") ?? searchParams.get("error_code") ?? searchParams.get("message") ?? searchParams.get("reason");
+    toast.error(errorText ? friendlyCheckoutError(errorText) : "Payment was not completed. Your card was not charged.", {
+      action: { label: "Retry", onClick: () => void upgrade().catch((err) => toast.error(friendlyCheckoutError(err))) },
+    });
     searchParams.delete("checkout");
+    searchParams.delete("error");
+    searchParams.delete("error_code");
+    searchParams.delete("message");
+    searchParams.delete("reason");
     setSearchParams(searchParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, upgrade]);
 
   return (
     <AppLayout>
