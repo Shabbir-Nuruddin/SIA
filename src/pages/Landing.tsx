@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
+import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
 import {
   ArrowRight, Map as MapIcon, Zap, FileText, BookOpen,
   CheckCircle2, Star, StarHalf
