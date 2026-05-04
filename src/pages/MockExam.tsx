@@ -129,6 +129,44 @@ const MockExam = () => {
     return (div.textContent || div.innerText || "").replace(/\s+\n/g, "\n").trim();
   };
 
+  // jsPDF's built-in Helvetica only supports WinAnsi (Latin-1). Any character
+  // outside that range (superscripts, fractions, math symbols, em-dash, smart
+  // quotes, etc.) renders as a fallback glyph that visually looks like wide
+  // letter-spacing. Normalise to ASCII-friendly equivalents before writing.
+  const pdfSafe = (s: string): string => {
+    if (!s) return "";
+    return s
+      .normalize("NFKD")
+      // common superscripts -> ^n
+      .replace(/[\u00B2]/g, "^2").replace(/[\u00B3]/g, "^3").replace(/[\u00B9]/g, "^1")
+      .replace(/[\u2070]/g, "^0").replace(/[\u2074]/g, "^4").replace(/[\u2075]/g, "^5")
+      .replace(/[\u2076]/g, "^6").replace(/[\u2077]/g, "^7").replace(/[\u2078]/g, "^8")
+      .replace(/[\u2079]/g, "^9").replace(/[\u207B]/g, "^-").replace(/[\u207A]/g, "^+")
+      // subscripts -> _n
+      .replace(/[\u2080]/g, "_0").replace(/[\u2081]/g, "_1").replace(/[\u2082]/g, "_2")
+      .replace(/[\u2083]/g, "_3").replace(/[\u2084]/g, "_4").replace(/[\u2085]/g, "_5")
+      .replace(/[\u2086]/g, "_6").replace(/[\u2087]/g, "_7").replace(/[\u2088]/g, "_8")
+      .replace(/[\u2089]/g, "_9")
+      // fractions
+      .replace(/\u00BD/g, "1/2").replace(/\u00BC/g, "1/4").replace(/\u00BE/g, "3/4")
+      .replace(/\u2153/g, "1/3").replace(/\u2154/g, "2/3")
+      // math symbols
+      .replace(/\u00D7/g, "x").replace(/\u00F7/g, "/").replace(/\u2212/g, "-")
+      .replace(/\u2260/g, "!=").replace(/\u2264/g, "<=").replace(/\u2265/g, ">=")
+      .replace(/\u2248/g, "~=").replace(/\u221A/g, "sqrt").replace(/\u03C0/g, "pi")
+      .replace(/\u00B0/g, " deg").replace(/\u00B1/g, "+/-").replace(/\u22C5/g, ".")
+      // punctuation
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+      .replace(/[\u2013\u2014]/g, "-").replace(/\u2026/g, "...")
+      .replace(/[\u00A0\u2007\u202F]/g, " ")
+      // bullet
+      .replace(/\u2022/g, "*")
+      // strip anything else outside Latin-1 printable range
+      .replace(/[^\x09\x0A\x0D\x20-\xFF]/g, "");
+  };
+
+
   const downloadPdf = () => {
     if (!paper) return;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -149,7 +187,7 @@ const MockExam = () => {
       const { size = 11, bold = false, gap = 4 } = opts;
       doc.setFont("helvetica", bold ? "bold" : "normal");
       doc.setFontSize(size);
-      const lines = doc.splitTextToSize(text || "", maxWidth);
+      const lines = doc.splitTextToSize(pdfSafe(text || ""), maxWidth);
       const lineHeight = size * 1.35;
       for (const line of lines) {
         ensureSpace(lineHeight);
