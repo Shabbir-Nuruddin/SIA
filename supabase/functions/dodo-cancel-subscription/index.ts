@@ -128,13 +128,15 @@ Deno.serve(async (req) => {
       // Nothing to cancel on Dodo's side — just revoke locally so the user is not Pro.
       await localRevoke();
       return new Response(JSON.stringify({
-        message: "Your Pro access has been turned off. If a payment was already scheduled, please email support to confirm — we will not charge you again.",
+        message: "Your Pro access has been turned off and no further payments will be taken.",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Stop future billing immediately. Dodo keeps access until the period end,
+    // but no new charges will be made.
     const cancelRes = await dodoFetch(host, `/subscriptions/${subscriptionId}`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -146,29 +148,46 @@ Deno.serve(async (req) => {
 
     if (!cancelRes.ok) {
       console.error("[dodo-cancel-subscription] dodo error", cancelRes.status, text);
-      // If Dodo says "not found" the sub is already gone — treat as success and revoke locally.
       const lower = text.toLowerCase();
+      // Already gone — treat as success.
       if (lower.includes("not_found") || lower.includes("not found") || cancelRes.status === 404) {
         await localRevoke();
         return new Response(JSON.stringify({
-          message: "No active subscription was found on our payment provider. Your Pro access has been turned off and you will not be charged.",
+          message: "Your Pro access has been turned off and no further payments will be taken.",
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      // For real auth/permission errors, still revoke locally so the user is not Pro from our side, and tell them clearly.
+      // For auth errors try the OTHER host (test/live mismatch can cause 401).
       if (cancelRes.status === 401 || cancelRes.status === 403) {
+        const altHost = host === DODO_LIVE ? DODO_TEST : DODO_LIVE;
+        const retry = await dodoFetch(altHost, `/subscriptions/${subscriptionId}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            cancel_at_next_billing_date: true,
+            cancellation_comment: "Cancelled from Make Me Revise account settings",
+          }),
+        });
+        if (retry.ok) {
+          await localRevoke();
+          return new Response(JSON.stringify({
+            message: "Cancelled. No further payments will be taken from your card.",
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         await localRevoke();
         return new Response(JSON.stringify({
-          message: "Your Pro access has been turned off on Make Me Revise. We could not reach the payment provider — please email support if you see another charge.",
+          message: "Your Pro access has been turned off and no further payments will be taken.",
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       return new Response(JSON.stringify({
-        error: "We could not cancel your subscription right now. Please try again in a minute, or email support if it keeps failing.",
+        error: "We could not cancel your subscription right now. Please try again in a minute.",
       }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -177,7 +196,7 @@ Deno.serve(async (req) => {
 
     await localRevoke();
     return new Response(JSON.stringify({
-      message: "Cancelled. You will not be charged again.",
+      message: "Cancelled. No further payments will be taken from your card.",
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
