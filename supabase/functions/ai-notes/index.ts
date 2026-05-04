@@ -174,7 +174,7 @@ Produce notes in this exact structure via the tool:
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
-5. VISUAL SUMMARY — one diagram/table/flowchart in ASCII or simple HTML table markup that captures key relationships.
+5. VISUAL SUMMARY — one diagram. Prefer an inline SVG illustration (viewBox="0 0 400 240", stroke="currentColor", fill="none" or fill="currentColor" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort.
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
