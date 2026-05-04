@@ -10,6 +10,13 @@ const corsHeaders = {
 };
 
 const DODO_SECRET_KEY = Deno.env.get("DODO_SECRET_KEY");
+// If your DODO_SECRET_KEY is a TEST key, set DODO_TEST_PRODUCT_ID to the
+// product ID created in the Dodo TEST dashboard. Live and test products are
+// separate — the live product ID will return 404 against the test API.
+const DODO_TEST_PRODUCT_ID = Deno.env.get("DODO_TEST_PRODUCT_ID");
+// Heuristic: most Dodo test keys are prefixed (e.g. sk_test_...). Fall back to
+// trying live first regardless.
+const IS_TEST_KEY = (DODO_SECRET_KEY ?? "").toLowerCase().includes("test");
 const DODO_LIVE = "https://live.dodopayments.com";
 const DODO_TEST = "https://test.dodopayments.com";
 
@@ -34,7 +41,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { product_id, return_url, discount_code } = await req.json();
+    const body = await req.json();
+    const return_url = body.return_url;
+    const discount_code = body.discount_code;
+    // Use test product ID when running with a test key, if provided.
+    const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID
+      ? DODO_TEST_PRODUCT_ID
+      : body.product_id;
     if (!product_id) {
       return new Response(JSON.stringify({ error: "product_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -72,13 +85,15 @@ Deno.serve(async (req) => {
     };
     if (discount_code) payload.discount_code = discount_code;
 
-    // Try live first, fall back to test on 401 (key/mode mismatch)
-    let res = await callDodo(DODO_LIVE, payload);
-    let usedHost = DODO_LIVE;
+    // Try the host that matches the key first, fall back on 401 (mode mismatch).
+    const firstHost = IS_TEST_KEY ? DODO_TEST : DODO_LIVE;
+    const secondHost = IS_TEST_KEY ? DODO_LIVE : DODO_TEST;
+    let res = await callDodo(firstHost, payload);
+    let usedHost = firstHost;
     if (res.status === 401) {
-      console.warn("[dodo-checkout] live returned 401, retrying on test host");
-      res = await callDodo(DODO_TEST, payload);
-      usedHost = DODO_TEST;
+      console.warn("[dodo-checkout]", firstHost, "returned 401, retrying on", secondHost);
+      res = await callDodo(secondHost, payload);
+      usedHost = secondHost;
     }
 
     const text = await res.text();
