@@ -36,12 +36,12 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
         durationMinutes: 90,
         topics: [
           "Algebra and Functions",
+          "Quadratics",
+          "Surds and Indices",
           "Coordinate Geometry",
+          "Trigonometry",
           "Differentiation",
           "Integration",
-          "Trigonometry",
-          "Exponentials and Logarithms",
-          "Vectors",
         ],
       },
       {
@@ -49,12 +49,13 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
         paperLabel: "P2 · 1hr 30min · 75 marks",
         durationMinutes: 90,
         topics: [
+          "Proof",
           "Further Algebra",
-          "Further Coordinate Geometry",
           "Sequences and Series",
+          "Binomial Expansion",
+          "Exponentials and Logarithms",
           "Further Trigonometry",
           "Further Calculus",
-          "Numerical Methods",
         ],
       },
       {
@@ -67,7 +68,7 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
           "Further Trigonometry",
           "Differential Equations",
           "Further Vectors",
-          "Complex Numbers",
+          "Numerical Methods",
         ],
       },
       {
@@ -78,10 +79,10 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
         topics: [
           "Proof",
           "Further Algebra",
-          "Polar Coordinates",
-          "Hyperbolic Functions",
+          "Parametric Equations",
+          "Vectors (lines & planes)",
           "Further Differentiation and Integration",
-          "Further Vectors",
+          "Complex Numbers",
         ],
       },
       {
