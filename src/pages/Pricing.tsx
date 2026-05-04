@@ -157,10 +157,23 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
       </div>
       <h3 className="text-2xl font-extrabold mt-2">{tier.tagline}</h3>
       <div className="mt-5 flex items-baseline gap-1.5 flex-wrap">
-        <div className="text-5xl font-extrabold tabular">{priceLabel}</div>
-        <div className="text-sm text-muted-foreground">
-          {tier.monthlyAED === 0 ? "forever" : "/ month"}
-        </div>
+        {tier.id === "pro" ? (
+          <>
+            <div className="text-5xl font-extrabold tabular">{formatPrice(tier.monthlyAED / 2, currency)}</div>
+            <div className="text-lg font-semibold text-muted-foreground line-through tabular">{priceLabel}</div>
+            <div className="text-sm text-muted-foreground">/ first month</div>
+            <span className="ml-1 inline-block px-1.5 py-0.5 rounded bg-primary/15 text-primary text-[10px] font-bold uppercase tracking-wider">
+              50% off — code REVISE50
+            </span>
+          </>
+        ) : (
+          <>
+            <div className="text-5xl font-extrabold tabular">{priceLabel}</div>
+            <div className="text-sm text-muted-foreground">
+              {tier.monthlyAED === 0 ? "forever" : "/ month"}
+            </div>
+          </>
+        )}
       </div>
       {annualLabel && (
         <div className="mt-2 text-sm">
