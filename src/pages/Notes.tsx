@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
-import { formattedHtmlProps, toPlainText, toFormattedHtml } from "@/lib/formatText";
+import { formattedHtmlProps, toPlainText, toFormattedHtml, renderMathInString } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
