@@ -61,11 +61,19 @@ Deno.serve(async (req) => {
     ]);
     const payments = paymentsRes.ok ? await paymentsRes.json() : { items: [] };
     const subs = subsRes.ok ? await subsRes.json() : { items: [] };
-    const paid = [...(payments.items ?? []), ...(subs.items ?? [])].some((item) => itemBelongsToUser(item, user.id, user.email));
+    const ownedItems = [...(payments.items ?? []), ...(subs.items ?? [])].filter((item) => itemBelongsToUser(item, user.id, user.email));
+    const paid = ownedItems.length > 0;
 
     if (paid) {
+      const subscription = ownedItems.find((item) => item.subscription_id || item.id || item.customer_id || item.customer?.id) ?? {};
       const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-      await adminClient.from("profiles").update({ is_pro: true, plan: "pro" } as any).eq("id", user.id);
+      await adminClient.from("profiles").update({
+        is_pro: true,
+        plan: "pro",
+        subscription_status: "active",
+        dodo_subscription_id: subscription.subscription_id ?? subscription.id ?? null,
+        dodo_customer_id: subscription.customer_id ?? subscription.customer?.id ?? subscription.customer?.customer_id ?? null,
+      } as any).eq("id", user.id);
     }
 
     return new Response(JSON.stringify({ is_pro: paid }), {
