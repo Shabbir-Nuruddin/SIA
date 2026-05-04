@@ -75,7 +75,7 @@ export const Privacy = () => (
       <p>We do not sell, rent, or trade your personal data to any third party. Ever.</p>
     </Section>
     <Section n={4} title="Service providers">
-      <p>We use Supabase to securely store your account and study data, and Paddle to process payments. These providers only receive the data they need to deliver their service.</p>
+      <p>We use Lovable Cloud to securely store your account and study data, and Dodo Payments to process payments. These providers only receive the data they need to deliver their service.</p>
     </Section>
     <Section n={5} title="Cookies">
       <p>We use essential cookies only — needed to keep you logged in and to remember your preferences. We do not use advertising or tracking cookies.</p>
