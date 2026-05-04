@@ -407,7 +407,7 @@ const Onboarding = () => {
                 onValueChange={(v) => setHoursPerDay(v[0])}
                 min={1}
                 max={8}
-                step={0.5}
+                step={1}
                 className="mt-4"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-2">
