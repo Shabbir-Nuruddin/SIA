@@ -172,7 +172,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
           </button>
 
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-4 px-1">
-            <span>From <span className="font-bold text-foreground">AED 19.99</span> first month</span>
+            <span>From <span className="font-bold text-foreground">{promoPrice}</span> first month</span>
             <span>Cancel anytime</span>
           </div>
 
