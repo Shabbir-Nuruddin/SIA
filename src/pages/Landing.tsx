@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
+import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
 import {
   ArrowRight, Map as MapIcon, Zap, FileText, BookOpen,
   CheckCircle2, Star, StarHalf
@@ -37,6 +38,12 @@ const Avatar = ({ name }: { name: string }) => {
 const Landing = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const currency = useMemo(() => detectDefaultCurrency(), []);
+  const priceFree = formatCurrency(0, currency);
+  const pricePro = formatCurrency(39.99, currency);
+  const priceProAnnual = formatCurrency(299, currency);
+  const priceAdvanced = formatCurrency(129.99, currency);
+  const pricePromo = formatCurrency(19.99, currency);
 
   // If a signed-in user lands here (e.g. after Google OAuth redirect), route them onward.
   useEffect(() => {
@@ -174,7 +181,7 @@ const Landing = () => {
             {/* Starter */}
             <div className="surface p-7 flex flex-col">
               <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-1">Starter</div>
-              <div className="text-4xl font-extrabold mb-1">AED 0</div>
+              <div className="text-4xl font-extrabold mb-1">{priceFree}</div>
               <div className="text-xs text-muted-foreground mb-6">Forever free</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
@@ -197,8 +204,8 @@ const Landing = () => {
                 Most popular
               </div>
               <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
-              <div className="text-4xl font-extrabold mb-1">AED 39.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
-              <div className="text-xs text-muted-foreground mb-1">or AED 299/year <span className="text-success font-semibold">· save 38%</span></div>
+              <div className="text-4xl font-extrabold mb-1">{pricePro}<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-xs text-muted-foreground mb-1">or {priceProAnnual}/year <span className="text-success font-semibold">· save 38%</span></div>
               <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
@@ -220,7 +227,7 @@ const Landing = () => {
             {/* Advanced */}
             <div className="surface p-7 flex flex-col">
               <div className="text-xs uppercase tracking-wider text-accent font-mono mb-1">Advanced</div>
-              <div className="text-4xl font-extrabold mb-1">AED 129.99<span className="text-base text-muted-foreground font-medium">/mo</span></div>
+              <div className="text-4xl font-extrabold mb-1">{priceAdvanced}<span className="text-base text-muted-foreground font-medium">/mo</span></div>
               <div className="text-xs text-muted-foreground mb-6">For top-grade hunters</div>
               <ul className="space-y-2.5 text-sm mb-6 flex-1">
                 {[
@@ -247,7 +254,7 @@ const Landing = () => {
             <div className="text-sm text-muted-foreground mb-1">
               Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
             </div>
-            <div className="text-[11px] text-muted-foreground">First month from AED 19.99 · cancel anytime</div>
+            <div className="text-[11px] text-muted-foreground">First month from {pricePromo} · cancel anytime</div>
           </div>
         </div>
       </section>

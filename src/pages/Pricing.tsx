@@ -11,24 +11,12 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-type Currency = "AED" | "GBP" | "USD";
-
-// Conversion rates relative to AED (approximate, for display).
-const RATES: Record<Currency, { symbol: string; rate: number; code: string }> = {
-  AED: { symbol: "AED", rate: 1, code: "AED" },
-  GBP: { symbol: "£", rate: 0.2126, code: "GBP" }, // 39.99 AED ≈ £8.50
-  USD: { symbol: "$", rate: 0.2723, code: "USD" }, // 39.99 AED ≈ $10.89
-};
-
-const formatPrice = (aed: number, currency: Currency) => {
-  const { symbol, rate } = RATES[currency];
-  if (aed === 0) return `${currency === "AED" ? "AED " : symbol}0`;
-  const v = aed * rate;
-  // Round nicely: GBP/USD show .XX, AED keeps .99 style
-  const rounded = currency === "AED" ? v.toFixed(2) : (Math.round(v * 100) / 100).toFixed(2);
-  return currency === "AED" ? `AED ${rounded}` : `${symbol}${rounded}`;
-};
+import {
+  type Currency,
+  CURRENCY_OPTIONS,
+  detectDefaultCurrency,
+  formatCurrency as formatPrice,
+} from "@/lib/currency";
 
 interface Tier {
   id: "free" | "pro" | "advanced";
@@ -215,7 +203,7 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
 };
 
 const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: (c: Currency) => void }) => {
-  const options: Currency[] = ["AED", "GBP", "USD"];
+  const options: Currency[] = CURRENCY_OPTIONS;
   return (
     <div className="inline-flex items-center rounded-lg border border-border bg-card p-1">
       {options.map((c) => (
@@ -236,7 +224,7 @@ const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: 
 };
 
 const Pricing = () => {
-  const [currency, setCurrency] = useState<Currency>("AED");
+  const [currency, setCurrency] = useState<Currency>(() => detectDefaultCurrency());
   const [searchParams, setSearchParams] = useSearchParams();
   const { upgrade, isPro, inTrial, refresh } = useSubscription();
   const [cancellingPlan, setCancellingPlan] = useState(false);

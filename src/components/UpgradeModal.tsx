@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X, Loader2, Check, Crown, Zap, Copy, Flame } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIMIT_LABELS, type LimitKey, type Plan } from "@/lib/plan";
 import { useSubscription } from "@/hooks/useSubscription";
+import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 
 interface UpgradeModalProps {
@@ -48,6 +49,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
   const navigate = useNavigate();
   const { upgrade } = useSubscription();
   const [busy, setBusy] = useState(false);
+  const promoPrice = useMemo(() => formatCurrency(19.99, detectDefaultCurrency()), []);
   if (!open) return null;
 
   const handleUpgrade = async () => {
@@ -170,7 +172,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
           </button>
 
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-4 px-1">
-            <span>From <span className="font-bold text-foreground">AED 19.99</span> first month</span>
+            <span>From <span className="font-bold text-foreground">{promoPrice}</span> first month</span>
             <span>Cancel anytime</span>
           </div>
 
