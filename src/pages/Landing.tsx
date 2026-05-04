@@ -286,7 +286,7 @@ const Landing = () => {
               { stars: 5, q: "I never knew where to start with revision. This told me exactly what to do every single day. My mock went from a C to a B in three weeks.", n: "Aisha M.", m: "Year 13 · Edexcel Biology & Chemistry" },
               { stars: 5, q: "The roadmap is the only reason I'm not panicking right now. It broke everything down. I just follow it.", n: "James T.", m: "Year 13 · Edexcel Maths & Physics" },
               { stars: 4.5, q: "The mock paper felt like a real exam. The AI feedback told me exactly why I lost marks. That's genuinely more useful than any mark scheme I've read on my own.", n: "Priya S.", m: "Year 12 · CIE Chemistry" },
-              { stars: 5, q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.", n: "Omar H.", m: "Year 13 · AQA Maths" },
+              { stars: 5, q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.", n: "Omar H.", m: "Year 13 · CIE Maths" },
               { stars: 4.5, q: "The questions actually feel like real exam questions. Not generic. The feedback is detailed and matches what my teacher says.", n: "Zara L.", m: "Year 13 · Edexcel Biology & Physics" },
               { stars: 5, q: "Every other revision site gives you resources and leaves you alone. This one tells you what to do with them.", n: "Daniel W.", m: "Year 13 · Edexcel Chemistry & Maths" },
             ].map((t, i) => (
