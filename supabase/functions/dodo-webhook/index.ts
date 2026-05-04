@@ -57,6 +57,15 @@ Deno.serve(async (req) => {
 
   const eventType: string = body?.type ?? body?.event_type ?? "";
   const data = body?.data ?? body;
+  const subscriptionId: string | undefined =
+    data?.subscription_id ??
+    data?.subscription?.subscription_id ??
+    data?.subscription?.id ??
+    (eventType.includes("subscription") ? data?.id : undefined);
+  const customerId: string | undefined =
+    data?.customer_id ??
+    data?.customer?.customer_id ??
+    data?.customer?.id;
   const userId: string | undefined =
     data?.metadata?.user_id ??
     data?.subscription?.metadata?.user_id ??
@@ -79,9 +88,16 @@ Deno.serve(async (req) => {
   }
   if (!targetId) return new Response("ok", { status: 200, headers: corsHeaders });
 
-  const setPro = async (isPro: boolean) => {
+  const setPro = async (isPro: boolean, status?: string) => {
     const { error } = await supabase.from("profiles")
-      .update({ is_pro: isPro, plan: isPro ? "pro" : "free" } as any)
+      .update({
+        is_pro: isPro,
+        plan: isPro ? "pro" : "free",
+        subscription_status: status ?? (isPro ? "active" : "cancelled"),
+        ...(isPro ? { trial_start_date: new Date().toISOString() } : { trial_start_date: null }),
+        ...(subscriptionId ? { dodo_subscription_id: subscriptionId } : {}),
+        ...(customerId ? { dodo_customer_id: customerId } : {}),
+      } as any)
       .eq("id", targetId);
     if (error) console.error("[dodo-webhook] update err", error);
   };
@@ -92,14 +108,16 @@ Deno.serve(async (req) => {
     eventType.includes("subscription.renewed") ||
     eventType.includes("subscription.created")
   ) {
-    await setPro(true);
+    await setPro(true, "active");
   } else if (
     eventType.includes("subscription.cancelled") ||
     eventType.includes("subscription.canceled") ||
     eventType.includes("subscription.expired") ||
+    eventType.includes("subscription.failed") ||
+    eventType.includes("subscription.on_hold") ||
     eventType.includes("payment.failed")
   ) {
-    await setPro(false);
+    await setPro(false, eventType.includes("on_hold") || eventType.includes("failed") ? "payment_failed" : "cancelled");
   }
 
   return new Response("ok", { status: 200, headers: corsHeaders });

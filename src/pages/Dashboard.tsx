@@ -111,19 +111,18 @@ const Dashboard = () => {
     if (!user || searchParams.get("checkout") !== "success") return;
     let cancelled = false;
     const run = async () => {
-      const toastId = toast.loading("Payment successful — unlocking Pro...");
       for (let attempt = 0; attempt < 8; attempt += 1) {
         const isPro = await syncProAfterCheckout();
         if (cancelled) return;
         if (isPro) {
-          toast.success("You're on Pro now 🎉", { id: toastId });
+          toast.success("You're on Pro now 🎉");
           searchParams.delete("checkout");
           setSearchParams(searchParams, { replace: true });
           return;
         }
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
-      toast.info("Payment received. Your Pro access is still syncing — refresh in a minute if it does not update.", { id: toastId });
+      toast.info("Payment received. Your Pro access may take a minute to appear — please refresh shortly if it has not updated.");
     };
     void run();
     return () => { cancelled = true; };

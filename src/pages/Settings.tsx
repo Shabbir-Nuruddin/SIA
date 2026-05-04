@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Palette, Trash2, Pencil, Check } from "lucide-react";
 import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
+import { useSubscription } from "@/hooks/useSubscription";
+import { cancelProSubscription } from "@/lib/dodo";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -32,6 +34,9 @@ interface ProfileRow {
   daily_reminder_time: string;
   rest_days: number[];
   theme: string;
+  is_pro: boolean;
+  subscription_status: string | null;
+  trial_start_date: string | null;
 }
 
 interface UnitRow {
@@ -44,6 +49,7 @@ interface UnitRow {
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
+  const { isPro, inTrial, refresh: refreshSubscription } = useSubscription();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [units, setUnits] = useState<UnitRow[]>([]);
@@ -59,6 +65,7 @@ const SettingsPage = () => {
 
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [cancellingPlan, setCancellingPlan] = useState(false);
 
   const [editingUnitId, setEditingUnitId] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
@@ -177,6 +184,20 @@ const SettingsPage = () => {
     setDeleting(false);
   };
 
+  const cancelPlan = async () => {
+    setCancellingPlan(true);
+    try {
+      const message = await cancelProSubscription();
+      await refreshSubscription();
+      setProfile(profile ? { ...profile, subscription_status: "cancelled", is_pro: false } : profile);
+      toast.success(message);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We could not cancel your subscription right now. Please try again in a minute.");
+    } finally {
+      setCancellingPlan(false);
+    }
+  };
+
   if (loading || !profile) {
     return <AppLayout><div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></AppLayout>;
   }
@@ -212,6 +233,51 @@ const SettingsPage = () => {
               {savingProfile ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               Save profile
             </Button>
+          </div>
+        </SettingsSection>
+
+        <SettingsSection icon={Lock} title="Subscription">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="font-semibold">{isPro ? (inTrial ? "Pro trial" : "Pro plan") : "Starter plan"}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isPro
+                  ? inTrial
+                    ? "Cancel before the 5-day trial ends and you will not be charged."
+                    : "Cancel anytime. Your plan will stop renewing."
+                  : "You do not have an active paid subscription."}
+              </p>
+            </div>
+            {isPro ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="text-urgent border-urgent/40 hover:bg-urgent/10 hover:text-urgent">
+                    Cancel {inTrial ? "trial" : "subscription"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel {inTrial ? "trial" : "subscription"}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will not be charged again. If you are in the 5-day trial, cancelling now stops the trial before any money is deducted.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Pro</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={cancelPlan}
+                      disabled={cancellingPlan}
+                      className="bg-urgent hover:bg-urgent/90 text-urgent-foreground"
+                    >
+                      {cancellingPlan ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                      Cancel plan
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Link to="/pricing"><Button variant="outline">View plans</Button></Link>
+            )}
           </div>
         </SettingsSection>
 

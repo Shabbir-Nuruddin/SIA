@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Zap, Crown } from "lucide-react";
+import { Check, Sparkles, Zap, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { friendlyCheckoutError } from "@/lib/dodo";
+import { cancelProSubscription, friendlyCheckoutError } from "@/lib/dodo";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Currency = "AED" | "GBP" | "USD";
 
@@ -91,9 +95,9 @@ const TIERS: Tier[] = [
       "Adaptive mock papers tuned to your weak spots",
       "Predicted-paper generator (exam-season exclusive)",
       "Full AI exam strategy report — personalised to your diagnostic results, weak topics, and target grade",
-      "Early access to every new feature",
+      "Priority access to more features as they launch",
     ],
-    cta: "Go Advanced",
+    cta: "Coming soon",
   },
 ];
 
@@ -122,7 +126,7 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
       }
       return;
     }
-    toast.info("Advanced launches soon — you're on early access.");
+    toast.info("Advanced is coming soon with more features — deeper analytics, smarter mocks, and extra AI tutor power.");
   };
   const priceLabel = formatPrice(tier.monthlyAED, currency);
   const annualLabel = tier.annualAED ? formatPrice(tier.annualAED, currency) : null;
@@ -220,13 +224,35 @@ const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: 
 const Pricing = () => {
   const [currency, setCurrency] = useState<Currency>("AED");
   const [searchParams, setSearchParams] = useSearchParams();
+  const { upgrade, isPro, inTrial, refresh } = useSubscription();
+  const [cancellingPlan, setCancellingPlan] = useState(false);
+
+  const cancelPlan = async () => {
+    setCancellingPlan(true);
+    try {
+      const message = await cancelProSubscription();
+      await refresh();
+      toast.success(message);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We could not cancel your subscription right now. Please try again in a minute.");
+    } finally {
+      setCancellingPlan(false);
+    }
+  };
 
   useEffect(() => {
     if (searchParams.get("checkout") !== "retry") return;
-    toast.info("Payment was not completed. You can retry checkout here without starting over.");
+    const errorText = searchParams.get("error") ?? searchParams.get("error_code") ?? searchParams.get("message") ?? searchParams.get("reason");
+    toast.error(errorText ? friendlyCheckoutError(errorText) : "Payment was not completed. Your card was not charged.", {
+      action: { label: "Retry", onClick: () => void upgrade().catch((err) => toast.error(friendlyCheckoutError(err))) },
+    });
     searchParams.delete("checkout");
+    searchParams.delete("error");
+    searchParams.delete("error_code");
+    searchParams.delete("message");
+    searchParams.delete("reason");
     setSearchParams(searchParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, upgrade]);
 
   return (
     <AppLayout>
@@ -250,7 +276,6 @@ const Pricing = () => {
         </div>
 
         <div className="mb-6 max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-primary/60 bg-gradient-to-br from-primary/15 via-accent/10 to-primary/15 p-6 text-center relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
           <div className="text-[11px] uppercase tracking-widest font-mono text-primary font-bold mb-2">🔥 Launch offer — first 100 users only</div>
           <div className="text-2xl md:text-3xl font-extrabold mb-1">50% off your first month</div>
           <div className="text-sm text-muted-foreground">
@@ -265,8 +290,41 @@ const Pricing = () => {
           {TIERS.map(t => <TierCard key={t.id} tier={t} currency={currency} />)}
         </div>
 
+        {isPro && (
+          <div className="mt-8 surface p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="font-bold">Manage your Pro plan</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {inTrial ? "Cancel before the 5-day trial ends and no money will be deducted." : "Cancel anytime. Your subscription will stop renewing."}
+              </p>
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="text-urgent border-urgent/40 hover:bg-urgent/10 hover:text-urgent">
+                  Cancel {inTrial ? "trial" : "subscription"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancel {inTrial ? "trial" : "subscription"}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You will not be charged again. If you are in the 5-day trial, cancelling now stops it before any money is deducted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep Pro</AlertDialogCancel>
+                  <AlertDialogAction onClick={cancelPlan} disabled={cancellingPlan} className="bg-urgent hover:bg-urgent/90 text-urgent-foreground">
+                    {cancellingPlan ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                    Cancel plan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period. Pause your subscription during holidays.
+          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period.
         </div>
       </div>
     </AppLayout>

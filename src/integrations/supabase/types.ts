@@ -340,6 +340,8 @@ export type Database = {
           daily_reminder_time: string
           diagnostic_completed: boolean
           display_name: string | null
+          dodo_customer_id: string | null
+          dodo_subscription_id: string | null
           exam_board: string
           first_name: string | null
           hours_per_day: number
@@ -361,6 +363,7 @@ export type Database = {
           questions_today_reset_at: string
           rest_days: number[]
           study_start_time: string
+          subscription_status: string | null
           theme: string
           trial_start_date: string | null
           tutor_message_count: number
@@ -374,6 +377,8 @@ export type Database = {
           daily_reminder_time?: string
           diagnostic_completed?: boolean
           display_name?: string | null
+          dodo_customer_id?: string | null
+          dodo_subscription_id?: string | null
           exam_board?: string
           first_name?: string | null
           hours_per_day?: number
@@ -395,6 +400,7 @@ export type Database = {
           questions_today_reset_at?: string
           rest_days?: number[]
           study_start_time?: string
+          subscription_status?: string | null
           theme?: string
           trial_start_date?: string | null
           tutor_message_count?: number
@@ -408,6 +414,8 @@ export type Database = {
           daily_reminder_time?: string
           diagnostic_completed?: boolean
           display_name?: string | null
+          dodo_customer_id?: string | null
+          dodo_subscription_id?: string | null
           exam_board?: string
           first_name?: string | null
           hours_per_day?: number
@@ -429,6 +437,7 @@ export type Database = {
           questions_today_reset_at?: string
           rest_days?: number[]
           study_start_time?: string
+          subscription_status?: string | null
           theme?: string
           trial_start_date?: string | null
           tutor_message_count?: number
