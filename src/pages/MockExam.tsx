@@ -60,6 +60,7 @@ const MockExam = () => {
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [now, setNow] = useState(Date.now());
   const submittedRef = useRef(false);
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!user || !id) return;
