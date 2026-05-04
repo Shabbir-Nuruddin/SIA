@@ -21,7 +21,7 @@ const DODO_LIVE = "https://live.dodopayments.com";
 const DODO_TEST = "https://test.dodopayments.com";
 
 async function callDodo(host: string, payload: unknown) {
-  return await fetch(`${host}/subscriptions`, {
+  return await fetch(`${host}/checkouts`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${DODO_SECRET_KEY}`,
@@ -29,6 +29,15 @@ async function callDodo(host: string, payload: unknown) {
     },
     body: JSON.stringify(payload),
   });
+}
+
+function friendlyDodoMessage(status: number, text: string) {
+  const lower = text.toLowerCase();
+  if (lower.includes("discount code")) return "That promo code is not active for this checkout yet. You can still continue and enter a valid code at checkout.";
+  if (lower.includes("not_found") || lower.includes("not found")) return "Checkout is not fully set up yet. The Pro product for this payment mode could not be found.";
+  if (lower.includes("currency")) return "Checkout could not open in AED. Please try again, or contact support if it keeps happening.";
+  if (status === 401 || status === 403) return "Payment settings need to be checked before checkout can open.";
+  return "Checkout could not open right now. Please try again in a minute.";
 }
 
 Deno.serve(async (req) => {
@@ -68,20 +77,25 @@ Deno.serve(async (req) => {
     const createPayload = (host: string, includeDiscount = true): Record<string, unknown> => {
       const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
       const payload: Record<string, unknown> = {
-        product_id: selectedProductId,
-        quantity: 1,
-        payment_link: true,
+        product_cart: [{ product_id: selectedProductId, quantity: 1 }],
         return_url: return_url || `${new URL(req.url).origin}/dashboard?checkout=success`,
+        cancel_url: `${return_url ? new URL(return_url).origin : new URL(req.url).origin}/pricing`,
         customer: {
           email: user.email,
           name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
         },
-        billing: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
-        metadata: { user_id: user.id, user_email: user.email ?? "" },
+        billing_address: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
+        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99" },
         allowed_payment_method_types: ["credit", "debit"],
         billing_currency: "AED",
-        // Surfaces the coupon/discount input on Dodo's hosted checkout
-        show_discount_code_field: true,
+        feature_flags: {
+          allow_currency_selection: false,
+          allow_discount_code: true,
+          allow_tax_id: true,
+          allow_customer_editing_country: true,
+          allow_customer_editing_zipcode: true,
+        },
+        customization: { pay_button_text: "Start Pro" },
       };
       if (includeDiscount && discount_code) payload.discount_code = discount_code;
       return payload;
