@@ -5,7 +5,7 @@ import { openProCheckout } from "@/lib/dodo";
 
 export type SubPlan = "free" | "pro";
 
-const TRIAL_DAYS = 5;
+const TRIAL_DAYS = 3;
 
 export interface SubscriptionState {
   plan: SubPlan;
