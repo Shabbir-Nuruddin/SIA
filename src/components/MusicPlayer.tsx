@@ -23,32 +23,18 @@ interface Track {
   url: string;
 }
 
-// Royalty-free MP3s with permissive CORS — verified streamable.
+// Royalty-free MP3s with permissive CORS — verified streamable from Pixabay CDN.
+// All Pixabay Content Licence (free for commercial use, no attribution required).
 const TRACKS: Track[] = [
-  {
-    id: "lofi-study",
-    title: "Lofi Study Beats",
-    vibe: "Chill · Focus",
-    url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3",
-  },
-  {
-    id: "ambient",
-    title: "Deep Ambient",
-    vibe: "Calm · Long sessions",
-    url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3",
-  },
-  {
-    id: "piano-focus",
-    title: "Piano for Focus",
-    vibe: "Soft · Study",
-    url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3",
-  },
-  {
-    id: "cinematic",
-    title: "Cinematic Calm",
-    vibe: "Atmospheric · Deep work",
-    url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3",
-  },
+  { id: "lofi-study", title: "Lofi Study Beats", vibe: "Chill · Focus", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { id: "lofi-rain", title: "Lofi Rain", vibe: "Lofi · Rainy day", url: "https://cdn.pixabay.com/audio/2024/02/04/audio_4a2f8a8156.mp3" },
+  { id: "ambient", title: "Deep Ambient", vibe: "Calm · Long sessions", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3" },
+  { id: "ambient-space", title: "Space Ambient", vibe: "Atmospheric · Drift", url: "https://cdn.pixabay.com/audio/2023/09/29/audio_2a5b9f4f8c.mp3" },
+  { id: "piano-focus", title: "Piano for Focus", vibe: "Soft · Study", url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3" },
+  { id: "piano-night", title: "Late Night Piano", vibe: "Soft · Late session", url: "https://cdn.pixabay.com/audio/2024/05/14/audio_a7c0db3ab9.mp3" },
+  { id: "cinematic", title: "Cinematic Calm", vibe: "Atmospheric · Deep work", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
+  { id: "forest", title: "Forest Sounds", vibe: "Nature · Birds & breeze", url: "https://cdn.pixabay.com/audio/2022/03/15/audio_2d2a48be57.mp3" },
+  { id: "rain-thunder", title: "Rain & Thunder", vibe: "Nature · Cosy", url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8c9b2a8b0a.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";
@@ -58,8 +44,6 @@ interface SavedState {
   trackId: string;
   volume: number;
   playing: boolean;
-  spotifyUrl: string;
-  source: "tracks" | "spotify";
 }
 
 const DEFAULT_STATE: SavedState = {
@@ -67,20 +51,22 @@ const DEFAULT_STATE: SavedState = {
   trackId: TRACKS[0].id,
   volume: 0.5,
   playing: false,
-  spotifyUrl: "",
-  source: "tracks",
 };
 
 function loadState(): SavedState {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) };
-  } catch {}
+  } catch {
+    // ignore parse errors
+  }
   return DEFAULT_STATE;
 }
 
 function saveState(s: SavedState) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(s)); } catch {
+    // ignore quota / serialization errors
+  }
 }
 
 // ---- Module-level audio singleton (survives React unmounts) ----
@@ -90,21 +76,8 @@ function getAudio(): HTMLAudioElement {
   const a = new Audio();
   a.loop = true;
   a.preload = "auto";
-  // Note: do NOT set crossOrigin — Pixabay CDN doesn't return CORS headers,
-  // which causes the audio element to silently fail to load when crossOrigin is set.
   audioEl = a;
   return a;
-}
-
-// Subscribers so multiple mounts (or none) stay in sync with audio events.
-type Listener = () => void;
-const listeners = new Set<Listener>();
-function notify() { listeners.forEach(l => l()); }
-
-function toSpotifyEmbed(url: string): string | null {
-  const m = url.match(/open\.spotify\.com\/(playlist|album|track|episode|show)\/([a-zA-Z0-9]+)/);
-  if (!m) return null;
-  return `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=apex`;
 }
 
 export const MusicPlayer = () => {
@@ -122,19 +95,15 @@ export const MusicPlayer = () => {
     });
   };
 
-  // Subscribe to module-level audio events so loading/playing reflect reality.
   useEffect(() => {
     const audio = getAudio();
-    const onPlay = () => { setLoading(false); };
     const onWaiting = () => setLoading(true);
     const onPlaying = () => setLoading(false);
     const onError = () => { setLoading(false); update({ playing: false }); };
-    audio.addEventListener("play", onPlay);
     audio.addEventListener("waiting", onWaiting);
     audio.addEventListener("playing", onPlaying);
     audio.addEventListener("error", onError);
     return () => {
-      audio.removeEventListener("play", onPlay);
       audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("playing", onPlaying);
       audio.removeEventListener("error", onError);
@@ -142,15 +111,9 @@ export const MusicPlayer = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Drive the singleton audio from React state.
   useEffect(() => {
     const audio = getAudio();
     audio.volume = muted ? 0 : state.volume;
-
-    if (state.source !== "tracks") {
-      audio.pause();
-      return;
-    }
 
     const track = TRACKS.find(t => t.id === state.trackId) ?? TRACKS[0];
     if (lastSrcRef.current !== track.url) {
@@ -167,7 +130,7 @@ export const MusicPlayer = () => {
       audio.pause();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.playing, state.trackId, state.volume, state.source, muted]);
+  }, [state.playing, state.trackId, state.volume, muted]);
 
   const hide =
     pathname === "/" ||
@@ -178,7 +141,6 @@ export const MusicPlayer = () => {
   if (hide) return null;
 
   const currentTrack = TRACKS.find(t => t.id === state.trackId) ?? TRACKS[0];
-  const spotifyEmbed = state.source === "spotify" ? toSpotifyEmbed(state.spotifyUrl) : null;
 
   const skipTrack = () => {
     const idx = TRACKS.findIndex(t => t.id === state.trackId);
@@ -191,6 +153,7 @@ export const MusicPlayer = () => {
       {!state.open && (
         <button
           onClick={() => update({ open: true })}
+          data-tutorial="music"
           className="fixed bottom-5 right-20 z-40 h-12 w-12 rounded-full shadow-lg flex items-center justify-center bg-secondary border border-border text-foreground hover:scale-105 transition-transform"
           aria-label="Open focus music"
           title="Focus music"
@@ -203,7 +166,7 @@ export const MusicPlayer = () => {
       )}
 
       {state.open && (
-        <div className="fixed bottom-5 right-20 z-40 w-[320px] max-w-[calc(100vw-2rem)] surface flex flex-col shadow-2xl animate-fade-in overflow-hidden">
+        <div data-tutorial="music" className="fixed bottom-5 right-20 z-40 w-[320px] max-w-[calc(100vw-2rem)] surface flex flex-col shadow-2xl animate-fade-in overflow-hidden">
           <div className="flex items-center justify-between p-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-primary" />
@@ -214,110 +177,62 @@ export const MusicPlayer = () => {
             </button>
           </div>
 
-          <div className="flex border-b border-border text-xs">
-            <button
-              onClick={() => update({ source: "tracks" })}
-              className={`flex-1 py-2 font-medium transition-colors ${state.source === "tracks" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Built-in
-            </button>
-            <button
-              onClick={() => update({ source: "spotify" })}
-              className={`flex-1 py-2 font-medium transition-colors ${state.source === "spotify" ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              Spotify
-            </button>
-          </div>
-
-          {state.source === "tracks" && (
-            <div className="p-3">
-              <div className="space-y-1 mb-3 max-h-[180px] overflow-y-auto">
-                {TRACKS.map(t => {
-                  const active = t.id === state.trackId;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => update({ trackId: t.id, playing: true })}
-                      className={`w-full text-left p-2 rounded-md text-xs transition-colors ${active ? "bg-primary/15 text-primary" : "hover:bg-secondary text-foreground"}`}
-                    >
-                      <div className="font-semibold flex items-center gap-2">
-                        {t.title}
-                        {active && loading && <Loader2 className="h-3 w-3 animate-spin" />}
-                        {active && state.playing && !loading && <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-0.5">{t.vibe}</div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center gap-2 pt-2 border-t border-border">
-                <button
-                  onClick={() => update({ playing: !state.playing })}
-                  className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform shrink-0"
-                  aria-label={state.playing ? "Pause" : "Play"}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : state.playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
-                </button>
-                <button
-                  onClick={skipTrack}
-                  className="p-2 rounded-md hover:bg-secondary text-muted-foreground"
-                  aria-label="Next track"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </button>
-                <div className="flex items-center gap-1.5 flex-1">
-                  <button onClick={() => setMuted(m => !m)} className="text-muted-foreground hover:text-foreground" aria-label="Toggle mute">
-                    {muted || state.volume === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+          <div className="p-3">
+            <div className="space-y-1 mb-3 max-h-[220px] overflow-y-auto">
+              {TRACKS.map(t => {
+                const active = t.id === state.trackId;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => update({ trackId: t.id, playing: true })}
+                    className={`w-full text-left p-2 rounded-md text-xs transition-colors ${active ? "bg-primary/15 text-primary" : "hover:bg-secondary text-foreground"}`}
+                  >
+                    <div className="font-semibold flex items-center gap-2">
+                      {t.title}
+                      {active && loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {active && state.playing && !loading && <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-0.5">{t.vibe}</div>
                   </button>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={state.volume}
-                    onChange={e => update({ volume: parseFloat(e.target.value) })}
-                    className="flex-1 accent-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="text-[10px] text-muted-foreground mt-2 truncate">
-                Now: <span className="text-foreground">{currentTrack.title}</span>
-              </div>
+                );
+              })}
             </div>
-          )}
 
-          {state.source === "spotify" && (
-            <div className="p-3 space-y-3">
-              <div>
-                <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">Paste Spotify playlist URL</label>
+            <div className="flex items-center gap-2 pt-2 border-t border-border">
+              <button
+                onClick={() => update({ playing: !state.playing })}
+                className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-105 transition-transform shrink-0"
+                aria-label={state.playing ? "Pause" : "Play"}
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : state.playing ? <Pause className="h-4 w-4" fill="currentColor" /> : <Play className="h-4 w-4" fill="currentColor" />}
+              </button>
+              <button
+                onClick={skipTrack}
+                className="p-2 rounded-md hover:bg-secondary text-muted-foreground"
+                aria-label="Next track"
+              >
+                <SkipForward className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-1.5 flex-1">
+                <button onClick={() => setMuted(m => !m)} className="text-muted-foreground hover:text-foreground" aria-label="Toggle mute">
+                  {muted || state.volume === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                </button>
                 <input
-                  type="url"
-                  value={state.spotifyUrl}
-                  onChange={e => update({ spotifyUrl: e.target.value })}
-                  placeholder="https://open.spotify.com/playlist/…"
-                  className="w-full mt-1 h-9 rounded-md bg-background border border-input px-2 text-xs"
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={state.volume}
+                  onChange={e => update({ volume: parseFloat(e.target.value) })}
+                  className="flex-1 accent-primary"
                 />
               </div>
-              {spotifyEmbed ? (
-                <iframe
-                  title="Spotify player"
-                  src={spotifyEmbed}
-                  width="100%"
-                  height="232"
-                  frameBorder={0}
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  className="rounded-md"
-                />
-              ) : (
-                <div className="text-[11px] text-muted-foreground p-3 text-center bg-secondary rounded-md">
-                  Paste a Spotify playlist, album or track link to embed it here.
-                </div>
-              )}
             </div>
-          )}
+
+            <div className="text-[10px] text-muted-foreground mt-2 truncate">
+              Now: <span className="text-foreground">{currentTrack.title}</span>
+            </div>
+          </div>
         </div>
       )}
     </>
