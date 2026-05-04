@@ -224,7 +224,7 @@ const CurrencyToggle = ({ currency, onChange }: { currency: Currency; onChange: 
 };
 
 const Pricing = () => {
-  const [currency, setCurrency] = useState<Currency>("AED");
+  const [currency, setCurrency] = useState<Currency>(() => detectDefaultCurrency());
   const [searchParams, setSearchParams] = useSearchParams();
   const { upgrade, isPro, inTrial, refresh } = useSubscription();
   const [cancellingPlan, setCancellingPlan] = useState(false);
