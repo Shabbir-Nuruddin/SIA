@@ -531,7 +531,7 @@ const RoadmapPage = () => {
                         size="lg"
                         className="btn-primary"
                         onClick={async () => {
-                          try { await upgrade(); } catch { toast.error("Couldn't open checkout."); }
+                          try { await upgrade(); } catch (err) { toast.error(err instanceof Error ? err.message : "Checkout could not open right now. Please try again in a minute."); }
                         }}
                       >
                         <Crown className="h-4 w-4 mr-2" /> Upgrade to Pro
