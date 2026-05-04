@@ -60,6 +60,12 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    let appOrigin = new URL(req.url).origin;
+    try {
+      if (return_url) appOrigin = new URL(return_url).origin;
+    } catch {
+      // Keep the function origin fallback if the provided URL is malformed.
+    }
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(
@@ -78,8 +84,8 @@ Deno.serve(async (req) => {
       const selectedProductId = host === DODO_TEST && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
       const payload: Record<string, unknown> = {
         product_cart: [{ product_id: selectedProductId, quantity: 1 }],
-        return_url: return_url || `${new URL(req.url).origin}/dashboard?checkout=success`,
-        cancel_url: `${return_url ? new URL(return_url).origin : new URL(req.url).origin}/pricing`,
+        return_url: return_url || `${appOrigin}/dashboard?checkout=success`,
+        cancel_url: `${appOrigin}/pricing`,
         customer: {
           email: user.email,
           name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
@@ -130,7 +136,7 @@ Deno.serve(async (req) => {
         console.error("[dodo-checkout] retry without discount failed", usedHost, retry.status, retryText);
       }
       console.error("[dodo-checkout] error", usedHost, res.status, text);
-      return new Response(JSON.stringify({ error: "Dodo checkout failed", detail: text }), {
+      return new Response(JSON.stringify({ error: friendlyDodoMessage(res.status, text) }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -138,7 +144,7 @@ Deno.serve(async (req) => {
     const data = JSON.parse(text);
     const url = data.payment_link || data.checkout_url || data.url;
     if (!url) {
-      return new Response(JSON.stringify({ error: "No checkout URL", raw: data }), {
+      return new Response(JSON.stringify({ error: "Checkout opened, but the payment provider did not send back a checkout link. Please try again." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -147,7 +153,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[dodo-checkout] unhandled", err);
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
+    return new Response(JSON.stringify({ error: "Checkout could not open right now. Please try again in a minute." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
