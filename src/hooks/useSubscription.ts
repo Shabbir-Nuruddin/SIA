@@ -14,7 +14,7 @@ export interface SubscriptionState {
   trialDaysLeft: number;
   loading: boolean;
   refresh: () => Promise<void>;
-  upgrade: () => Promise<void>;
+  upgrade: (discountCode?: string) => Promise<void>;
 }
 
 export const useSubscription = (): SubscriptionState => {
@@ -60,8 +60,8 @@ export const useSubscription = (): SubscriptionState => {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const upgrade = useCallback(async () => {
-    await openProCheckout();
+  const upgrade = useCallback(async (discountCode?: string) => {
+    await openProCheckout(discountCode);
   }, []);
 
   return { plan, isPro: plan === "pro", inTrial, trialDaysLeft, loading, refresh, upgrade };
