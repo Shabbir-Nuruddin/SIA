@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, X,
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, X, MessageSquare,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,7 @@ const items = [
   { to: "/notes", icon: BookOpen, label: "Notes" },
   { to: "/papers", icon: LinkIcon, label: "Past Papers" },
   { to: "/faq", icon: MessageCircle, label: "Exam FAQs" },
+  { to: "/feedback", icon: MessageSquare, label: "Feedback" },
   { to: "/pricing", icon: Sparkles, label: "Plans" },
   { to: "/settings", icon: Settings, label: "Settings" },
 ];
