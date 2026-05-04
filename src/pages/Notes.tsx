@@ -625,9 +625,9 @@ const NotesPage = () => {
                       <div className="text-xs text-muted-foreground mb-2">{notes.visual_summary.caption}</div>
                     )}
                     {notes.visual_summary.content.trim().startsWith("<") ? (
-                      <div className="text-sm overflow-x-auto" dangerouslySetInnerHTML={{ __html: notes.visual_summary.content }} />
+                      <div className="text-sm overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
                     ) : (
-                      <pre className="text-xs font-mono bg-secondary/30 p-3 rounded-md overflow-x-auto whitespace-pre">{notes.visual_summary.content}</pre>
+                      <pre className="text-xs font-mono bg-secondary/30 p-3 rounded-md overflow-x-auto whitespace-pre" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
                     )}
                   </Section>
                 )}
