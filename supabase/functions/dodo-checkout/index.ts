@@ -40,6 +40,14 @@ function friendlyDodoMessage(status: number, text: string) {
   return "Checkout could not open right now. Please try again in a minute.";
 }
 
+function prepareCheckoutUrl(rawUrl: string) {
+  const url = new URL(rawUrl);
+  url.searchParams.set("showDiscounts", "true");
+  url.searchParams.set("paymentCurrency", "AED");
+  url.searchParams.set("showCurrencySelector", "false");
+  return url.toString();
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -128,7 +136,7 @@ Deno.serve(async (req) => {
           const retryData = JSON.parse(retryText);
           const retryUrl = retryData.payment_link || retryData.checkout_url || retryData.url;
           if (retryUrl) {
-            return new Response(JSON.stringify({ url: retryUrl, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl), mode: usedHost === DODO_LIVE ? "live" : "test" }), {
               status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
@@ -148,7 +156,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ url, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url), mode: usedHost === DODO_LIVE ? "live" : "test" }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
