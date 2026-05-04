@@ -161,7 +161,12 @@ CRITICAL — THIS IS MATHEMATICS:
 - For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
 - Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.
 - For key_definitions, set "plain_english" to an empty string "" — maths notes show the formal definition only.
-- For overview, keep it short and conceptual (1 paragraph max) — students want to see worked examples, not prose.`
+- For overview, keep it short and conceptual (1 paragraph max) — students want to see worked examples, not prose.
+
+CRITICAL — VISUAL SUMMARY FOR MATHS:
+- DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely on these notes for accuracy.
+- Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> that summarises the key cases, formulae, or conditions for this topic. Example for the discriminant: a 3-row table with columns "Discriminant", "Number of real roots", "Graph behaviour" and rows describing $b^2-4ac>0$ (two real roots, curve crosses x-axis at 2 points), $b^2-4ac=0$ (one repeated root, curve touches x-axis at 1 point), $b^2-4ac<0$ (no real roots, curve does not cross x-axis).
+- The HTML table content may use $...$ LaTeX inside cells.`
       : "";
 
     const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
@@ -174,7 +179,7 @@ Produce notes in this exact structure via the tool:
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
-5. VISUAL SUMMARY — one diagram. Prefer an inline SVG illustration (viewBox="0 0 400 240", stroke="currentColor", fill="none" or fill="currentColor" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort.
+5. VISUAL SUMMARY — ${isMaths ? "MUST be an HTML <table> (kind=\"table\"). Do NOT use SVG for maths topics — accuracy is critical." : "one diagram. Prefer an inline SVG illustration (viewBox=\"0 0 400 240\", stroke=\"currentColor\", fill=\"none\" or fill=\"currentColor\" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort."}
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
