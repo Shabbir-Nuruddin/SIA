@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { Sparkles, X, Loader2, Check, Crown, Zap, Copy, Flame } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LIMIT_LABELS, type LimitKey, type Plan } from "@/lib/plan";
 import { useSubscription } from "@/hooks/useSubscription";
+import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 
 interface UpgradeModalProps {
