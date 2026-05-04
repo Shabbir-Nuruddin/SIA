@@ -2,16 +2,17 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, X, MessageSquare,
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 
-const items = [
+const items: { to: string; icon: any; label: string; proOnly?: boolean }[] = [
   { to: "/dashboard", icon: Home, label: "Today's Plan" },
   { to: "/roadmap", icon: Calendar, label: "Roadmap" },
   { to: "/exams", icon: GraduationCap, label: "Exams" },
@@ -19,7 +20,7 @@ const items = [
   { to: "/mock-papers", icon: FileText, label: "Mock Papers" },
   { to: "/notes", icon: BookOpen, label: "Notes" },
   { to: "/papers", icon: LinkIcon, label: "Past Papers" },
-  { to: "/faq", icon: MessageCircle, label: "Exam FAQs" },
+  { to: "/faq", icon: MessageCircle, label: "Exam FAQs", proOnly: true },
   { to: "/feedback", icon: MessageSquare, label: "Feedback" },
   { to: "/pricing", icon: Sparkles, label: "Plans" },
   { to: "/settings", icon: Settings, label: "Settings" },
@@ -42,6 +43,7 @@ interface ProfileLite {
 const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
+  const { isPro } = useSubscription();
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [subjects, setSubjects] = useState<SubjectCode[]>([]);
 
@@ -72,6 +74,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
             it.to === "/mock-papers" ? "nav-mocks" :
             it.to === "/questions" ? "nav-questions" :
             it.to === "/feedback" ? "nav-feedback" : undefined;
+          const locked = it.proOnly && !isPro;
           return (
             <NavLink
               key={it.to}
@@ -82,10 +85,16 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
                 active
                   ? "bg-primary/15 text-primary font-semibold"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
-              }`}
+              } ${locked ? "opacity-70" : ""}`}
+              title={locked ? "Pro feature — start your 5-day free trial to unlock." : undefined}
             >
               <it.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{it.label}</span>
+              {locked && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary">
+                  <Lock className="h-2.5 w-2.5" /> Pro
+                </span>
+              )}
             </NavLink>
           );
         })}

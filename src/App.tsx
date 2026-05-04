@@ -17,6 +17,7 @@ import MockResults from "./pages/MockResults";
 import Roadmap from "./pages/Roadmap";
 import RoadmapTopicNotes from "./pages/RoadmapTopicNotes";
 import { StubPage } from "./components/StubPage";
+import { RequirePro } from "./components/RequirePro";
 import Notes from "./pages/Notes";
 import PastPapers from "./pages/PastPapers";
 import FAQ from "./pages/FAQ";
@@ -51,7 +52,7 @@ const App = () => (
             <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/papers" element={<PastPapers />} />
-            <Route path="/faq" element={<FAQ />} />
+            <Route path="/faq" element={<RequirePro featureName="Exam FAQs"><FAQ /></RequirePro>} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/exams" element={<Exams />} />
             <Route path="/pricing" element={<Pricing />} />
