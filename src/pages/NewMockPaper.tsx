@@ -246,8 +246,14 @@ const NewMockPaper = () => {
         <div className="grid md:grid-cols-2 gap-5 mb-5">
           <div className="glass-card rounded-2xl p-6">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">Total marks</Label>
-            <Input type="number" min={20} max={120} value={totalMarks}
-              onChange={e => setTotalMarks(Math.max(20, Math.min(120, Number(e.target.value) || 80)))}
+            <Input type="number" min={20} max={120} value={totalMarks === 0 ? "" : totalMarks}
+              onChange={e => {
+                const v = e.target.value;
+                if (v === "") { setTotalMarks(0); return; }
+                const n = Number(v);
+                if (!Number.isNaN(n)) setTotalMarks(n);
+              }}
+              onBlur={() => setTotalMarks(t => Math.max(20, Math.min(120, t || 80)))}
               className="mt-1.5" />
             <p className="text-xs text-muted-foreground mt-2">Range: 20 – 120 marks</p>
           </div>
