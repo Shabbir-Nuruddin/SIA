@@ -243,7 +243,7 @@ const SettingsPage = () => {
               <p className="text-xs text-muted-foreground mt-1">
                 {isPro
                   ? inTrial
-                    ? "Cancel before the 5-day trial ends and you will not be charged."
+                    ? "Cancel before the 3-day trial ends and you will not be charged."
                     : "Cancel anytime. Your plan will stop renewing."
                   : "You do not have an active paid subscription."}
               </p>
@@ -259,7 +259,7 @@ const SettingsPage = () => {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Cancel {inTrial ? "trial" : "subscription"}?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      You will not be charged again. If you are in the 5-day trial, cancelling now stops the trial before any money is deducted.
+                      You will not be charged again. If you are in the 3-day trial, cancelling now stops the trial before any money is deducted.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
