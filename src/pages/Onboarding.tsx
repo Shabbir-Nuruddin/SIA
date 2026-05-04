@@ -144,7 +144,8 @@ const Onboarding = () => {
       const profileUpdates: any = {
         onboarded: true,
         exam_board: board,
-        hours_per_day: hoursPerDay,
+        // hours_per_day column is an integer — round the half-step slider value
+        hours_per_day: Math.max(1, Math.round(hoursPerDay)),
         theme,
       };
       if (firstName.trim()) profileUpdates.first_name = firstName.trim();
