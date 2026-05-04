@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, MessageSquare, Send, Plus } from "lucide-react";
+import { Loader2, MessageSquare, Send, Plus, Users, Crown, Search } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 interface Ticket {
   id: string;
