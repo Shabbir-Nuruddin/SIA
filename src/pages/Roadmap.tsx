@@ -1116,10 +1116,27 @@ const QuestionsRunner = ({ node, onFinished }: { node: RoadmapNodeRow; onFinishe
                 placeholder="Write your answer. Show working."
                 className="min-h-[120px] text-sm font-mono"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button onClick={submit} disabled={!answer.trim() || loadingMark} className="btn-primary h-9 px-4 text-sm">
                   {loadingMark ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />Marking…</> : "Submit answer"}
                 </Button>
+                {(node.subject === "mathematics" || (node.subject as string) === "maths" || (node.subject as string) === "math") && (
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      // Maths working is hard to type. Let the student view the model answer
+                      // without writing it out — submits a placeholder so the marker still
+                      // returns the worked solution + mark scheme.
+                      setAnswer((a) => a.trim() || "(Skipped typed working — please show the full worked solution and mark scheme.)");
+                      setTimeout(submit, 0);
+                    }}
+                    disabled={loadingMark}
+                    className="h-9 px-4 text-sm"
+                    title="Maths working is hard to type. Reveal the model answer and mark scheme without typing it out."
+                  >
+                    Reveal model answer &amp; mark scheme
+                  </Button>
+                )}
               </div>
             </>
           )}
