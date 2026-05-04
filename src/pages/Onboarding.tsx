@@ -144,7 +144,8 @@ const Onboarding = () => {
       const profileUpdates: any = {
         onboarded: true,
         exam_board: board,
-        hours_per_day: hoursPerDay,
+        // hours_per_day column is an integer — round the half-step slider value
+        hours_per_day: Math.max(1, Math.round(hoursPerDay)),
         theme,
       };
       if (firstName.trim()) profileUpdates.first_name = firstName.trim();
@@ -406,7 +407,7 @@ const Onboarding = () => {
                 onValueChange={(v) => setHoursPerDay(v[0])}
                 min={1}
                 max={8}
-                step={0.5}
+                step={1}
                 className="mt-4"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground font-mono uppercase tracking-wider mt-2">
