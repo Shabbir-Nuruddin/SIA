@@ -234,6 +234,43 @@ const Landing = () => {
               <Link to="/auth?mode=signup"><Button variant="outline" className="w-full">Go Advanced</Button></Link>
             </div>
           </div>
+
+          {/* REVISE50 promo */}
+          <div className="mt-8 max-w-2xl mx-auto rounded-xl border border-primary/40 bg-primary/10 p-4 text-center">
+            <div className="text-xs uppercase tracking-widest font-mono text-primary mb-1">Launch offer</div>
+            <div className="text-sm">
+              Use code <span className="font-mono font-bold text-primary">REVISE50</span> at checkout —
+              <span className="font-semibold"> 50% off your first month.</span> First 100 users only.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 md:py-24 border-t border-border/50">
+        <div className="container max-w-3xl">
+          <div className="text-center mb-10">
+            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">FAQ</div>
+            <h2 className="text-3xl md:text-4xl font-bold">Quick answers.</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              { q: "Which exam boards do you support?", a: "Edexcel IAL and CIE A-Level for Maths, Biology, Chemistry and Physics." },
+              { q: "How does the free trial work?", a: "Start on Starter for free, no card. When you click Upgrade you enter your card and get 5 days of full Pro access. Cancel before day 5 and you pay nothing." },
+              { q: "Is the AI marking actually accurate?", a: "Yes — it follows the official mark-scheme phrasing for your board, awards mark-by-mark, and tells you exactly where you lost marks." },
+              { q: "Can I cancel anytime?", a: "Yes. One click in Settings. No retention questions, no friction. Pause during holidays too." },
+              { q: "Do you store my work?", a: "Your roadmap, notes, mocks and questions are saved to your account so you can pick up where you left off on any device." },
+              { q: "What's the REVISE50 code?", a: "50% off your first month — first 100 users only. Apply it at checkout." },
+            ].map((f, i) => (
+              <details key={i} className="surface p-4 group">
+                <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-3">
+                  <span>{f.q}</span>
+                  <span className="text-primary text-lg group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{f.a}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -249,7 +286,7 @@ const Landing = () => {
               { stars: 5, q: "I never knew where to start with revision. This told me exactly what to do every single day. My mock went from a C to a B in three weeks.", n: "Aisha M.", m: "Year 13 · Edexcel Biology & Chemistry" },
               { stars: 5, q: "The roadmap is the only reason I'm not panicking right now. It broke everything down. I just follow it.", n: "James T.", m: "Year 13 · Edexcel Maths & Physics" },
               { stars: 4.5, q: "The mock paper felt like a real exam. The AI feedback told me exactly why I lost marks. That's genuinely more useful than any mark scheme I've read on my own.", n: "Priya S.", m: "Year 12 · CIE Chemistry" },
-              { stars: 5, q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.", n: "Omar H.", m: "Year 13 · AQA Maths" },
+              { stars: 5, q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.", n: "Omar H.", m: "Year 13 · CIE Maths" },
               { stars: 4.5, q: "The questions actually feel like real exam questions. Not generic. The feedback is detailed and matches what my teacher says.", n: "Zara L.", m: "Year 13 · Edexcel Biology & Physics" },
               { stars: 5, q: "Every other revision site gives you resources and leaves you alone. This one tells you what to do with them.", n: "Daniel W.", m: "Year 13 · Edexcel Chemistry & Maths" },
             ].map((t, i) => (

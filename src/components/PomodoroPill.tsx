@@ -27,8 +27,14 @@ export const PomodoroPill = () => {
       setState(s);
       if (s.active && !s.paused && s.remainingSeconds === 0) {
         playChime();
-        notify(s.mode === "focus" ? "Focus session complete" : "Break over");
-        stopPomodoro();
+        if (s.mode === "focus") {
+          notify("Focus complete — break starting (5 min)");
+          // Auto-cycle into break
+          startPomodoro({ mode: "break", minutes: 5, topic: s.topic });
+        } else {
+          notify("Break over — ready for the next focus session");
+          stopPomodoro();
+        }
       }
     };
     const id = setInterval(tick, 250);
