@@ -1,4 +1,7 @@
 project_id = "womqjniplkfthbxkzlkb"
 
-[functions.paddle-webhook]
+[functions.dodo-webhook]
+verify_jwt = false
+
+[functions.dodo-checkout]
 verify_jwt = false
