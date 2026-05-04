@@ -85,13 +85,15 @@ Deno.serve(async (req) => {
     };
     if (discount_code) payload.discount_code = discount_code;
 
-    // Try live first, fall back to test on 401 (key/mode mismatch)
-    let res = await callDodo(DODO_LIVE, payload);
-    let usedHost = DODO_LIVE;
+    // Try the host that matches the key first, fall back on 401 (mode mismatch).
+    const firstHost = IS_TEST_KEY ? DODO_TEST : DODO_LIVE;
+    const secondHost = IS_TEST_KEY ? DODO_LIVE : DODO_TEST;
+    let res = await callDodo(firstHost, payload);
+    let usedHost = firstHost;
     if (res.status === 401) {
-      console.warn("[dodo-checkout] live returned 401, retrying on test host");
-      res = await callDodo(DODO_TEST, payload);
-      usedHost = DODO_TEST;
+      console.warn("[dodo-checkout]", firstHost, "returned 401, retrying on", secondHost);
+      res = await callDodo(secondHost, payload);
+      usedHost = secondHost;
     }
 
     const text = await res.text();
