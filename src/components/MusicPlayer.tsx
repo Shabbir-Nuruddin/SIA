@@ -27,14 +27,13 @@ interface Track {
 // All Pixabay Content Licence (free for commercial use, no attribution required).
 const TRACKS: Track[] = [
   { id: "lofi-study", title: "Lofi Study Beats", vibe: "Chill · Focus", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
-  { id: "lofi-rain", title: "Lofi Rain", vibe: "Lofi · Rainy day", url: "https://cdn.pixabay.com/audio/2024/02/04/audio_4a2f8a8156.mp3" },
-  { id: "ambient", title: "Deep Ambient", vibe: "Calm · Long sessions", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3" },
-  { id: "ambient-space", title: "Space Ambient", vibe: "Atmospheric · Drift", url: "https://cdn.pixabay.com/audio/2023/09/29/audio_2a5b9f4f8c.mp3" },
+  { id: "deep-ambient", title: "Deep Ambient", vibe: "Calm · Long sessions", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3" },
   { id: "piano-focus", title: "Piano for Focus", vibe: "Soft · Study", url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3" },
-  { id: "piano-night", title: "Late Night Piano", vibe: "Soft · Late session", url: "https://cdn.pixabay.com/audio/2024/05/14/audio_a7c0db3ab9.mp3" },
-  { id: "cinematic", title: "Cinematic Calm", vibe: "Atmospheric · Deep work", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
-  { id: "forest", title: "Forest Sounds", vibe: "Nature · Birds & breeze", url: "https://cdn.pixabay.com/audio/2022/03/15/audio_2d2a48be57.mp3" },
-  { id: "rain-thunder", title: "Rain & Thunder", vibe: "Nature · Cosy", url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8c9b2a8b0a.mp3" },
+  { id: "cinematic-calm", title: "Cinematic Calm", vibe: "Atmospheric · Deep work", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
+  { id: "ambient-flow", title: "Ambient Flow", vibe: "Smooth · Deep focus", url: "https://cdn.pixabay.com/audio/2023/05/16/audio_166b9c7242.mp3" },
+  { id: "instrumental-1", title: "Instrumental Focus", vibe: "Mellow · Steady", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+  { id: "instrumental-2", title: "Long-Session Loop", vibe: "Hypnotic · Repetitive", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+  { id: "instrumental-3", title: "Late Night Drift", vibe: "Soft · Late session", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";
