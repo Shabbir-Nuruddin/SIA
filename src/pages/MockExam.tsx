@@ -121,6 +121,96 @@ const MockExam = () => {
 
   const setAnswer = (qid: string, v: string) => setAnswers(p => ({ ...p, [qid]: v }));
   const toggleFlag = (qid: string) => setFlags(p => ({ ...p, [qid]: !p[qid] }));
+  const toggleReveal = (qid: string) => setRevealed(p => ({ ...p, [qid]: !p[qid] }));
+
+  const stripHtml = (s: string) => {
+    const div = document.createElement("div");
+    div.innerHTML = s || "";
+    return (div.textContent || div.innerText || "").replace(/\s+\n/g, "\n").trim();
+  };
+
+  const downloadPdf = () => {
+    if (!paper) return;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 48;
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const ensureSpace = (h: number) => {
+      if (y + h > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    };
+
+    const writeWrapped = (text: string, opts: { size?: number; bold?: boolean; gap?: number } = {}) => {
+      const { size = 11, bold = false, gap = 4 } = opts;
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.setFontSize(size);
+      const lines = doc.splitTextToSize(text || "", maxWidth);
+      const lineHeight = size * 1.35;
+      for (const line of lines) {
+        ensureSpace(lineHeight);
+        doc.text(line, margin, y);
+        y += lineHeight;
+      }
+      y += gap;
+    };
+
+    // Title
+    writeWrapped(`${meta.name} — Mock Paper`, { size: 18, bold: true, gap: 6 });
+    writeWrapped(`${meta.spec} · Units ${paper.units.join(", ")} · ${paper.total_marks} marks · ${paper.time_limit_minutes} mins`, { size: 10, gap: 14 });
+
+    // Instructions
+    writeWrapped("Instructions:", { size: 11, bold: true, gap: 2 });
+    writeWrapped("• Answer all questions in the spaces provided (use separate paper if needed).", { size: 10, gap: 1 });
+    writeWrapped("• Show all working. Marks may be awarded for method.", { size: 10, gap: 1 });
+    writeWrapped("• Total marks shown in brackets [ ] at the end of each question.", { size: 10, gap: 14 });
+
+    // Questions
+    questions.forEach(q => {
+      ensureSpace(60);
+      writeWrapped(`Q${q.question_index + 1}.  (${q.topic} · ${q.question_type})   [${q.marks}]`, { size: 11, bold: true, gap: 4 });
+      writeWrapped(stripHtml(q.question_text), { size: 11, gap: 6 });
+      if (q.options && q.options.length > 0) {
+        q.options.forEach((opt, i) => {
+          writeWrapped(`   ${String.fromCharCode(65 + i)})  ${opt}`, { size: 11, gap: 2 });
+        });
+        y += 4;
+      } else {
+        // Blank answer space
+        const lines = Math.max(3, Math.min(10, Math.ceil(q.marks * 1.5)));
+        for (let i = 0; i < lines; i++) {
+          ensureSpace(18);
+          doc.setDrawColor(180);
+          doc.line(margin, y + 12, margin + maxWidth, y + 12);
+          y += 18;
+        }
+        y += 4;
+      }
+    });
+
+    // Mark scheme & model answers — always included so user can self-mark
+    doc.addPage();
+    y = margin;
+    writeWrapped("Mark Scheme & Model Answers", { size: 16, bold: true, gap: 12 });
+    questions.forEach(q => {
+      ensureSpace(40);
+      writeWrapped(`Q${q.question_index + 1}.   [${q.marks}]`, { size: 11, bold: true, gap: 2 });
+      if (q.model_answer) {
+        writeWrapped("Model answer:", { size: 10, bold: true, gap: 1 });
+        writeWrapped(stripHtml(q.model_answer), { size: 10, gap: 4 });
+      }
+      if (q.mark_scheme) {
+        writeWrapped("Mark scheme:", { size: 10, bold: true, gap: 1 });
+        writeWrapped(stripHtml(q.mark_scheme), { size: 10, gap: 8 });
+      }
+    });
+
+    doc.save(`${meta.name.replace(/\s+/g, "-")}-mock-${paper.units.join("-")}.pdf`);
+  };
 
   const handleSubmit = async (auto = false) => {
     if (!paper) return;
