@@ -49,6 +49,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
   const navigate = useNavigate();
   const { upgrade } = useSubscription();
   const [busy, setBusy] = useState(false);
+  const promoPrice = useMemo(() => formatCurrency(19.99, detectDefaultCurrency()), []);
   if (!open) return null;
 
   const handleUpgrade = async () => {
