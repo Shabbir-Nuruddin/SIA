@@ -291,9 +291,15 @@ const MockExam = () => {
             <div className={`font-mono font-extrabold text-2xl md:text-3xl ${timerColor} ${timerPulse}`}>{formatTimer(remaining)}</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Time remaining</div>
           </div>
-          <div className="text-right">
-            <div className="font-mono text-xl font-extrabold">{paper.total_marks}<span className="text-xs text-muted-foreground"> marks</span></div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{totalAnswered}/{questions.length} answered</div>
+          <div className="text-right flex items-center gap-3">
+            <Button size="sm" variant="outline" onClick={downloadPdf} title="Download printable PDF">
+              <Download className="h-4 w-4 md:mr-1.5" />
+              <span className="hidden md:inline">PDF</span>
+            </Button>
+            <div>
+              <div className="font-mono text-xl font-extrabold">{paper.total_marks}<span className="text-xs text-muted-foreground"> marks</span></div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{totalAnswered}/{questions.length} answered</div>
+            </div>
           </div>
         </div>
       </header>
