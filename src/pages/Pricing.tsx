@@ -91,9 +91,9 @@ const TIERS: Tier[] = [
       "Adaptive mock papers tuned to your weak spots",
       "Predicted-paper generator (exam-season exclusive)",
       "Full AI exam strategy report — personalised to your diagnostic results, weak topics, and target grade",
-      "Early access to every new feature",
+      "Priority access to more features as they launch",
     ],
-    cta: "Go Advanced",
+    cta: "Coming soon",
   },
 ];
 
@@ -122,7 +122,7 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
       }
       return;
     }
-    toast.info("Advanced launches soon — you're on early access.");
+    toast.info("Advanced is coming soon with more features — deeper analytics, smarter mocks, and extra AI tutor power.");
   };
   const priceLabel = formatPrice(tier.monthlyAED, currency);
   const annualLabel = tier.annualAED ? formatPrice(tier.annualAED, currency) : null;
@@ -250,7 +250,6 @@ const Pricing = () => {
         </div>
 
         <div className="mb-6 max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-primary/60 bg-gradient-to-br from-primary/15 via-accent/10 to-primary/15 p-6 text-center relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
           <div className="text-[11px] uppercase tracking-widest font-mono text-primary font-bold mb-2">🔥 Launch offer — first 100 users only</div>
           <div className="text-2xl md:text-3xl font-extrabold mb-1">50% off your first month</div>
           <div className="text-sm text-muted-foreground">
@@ -266,7 +265,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center text-xs text-muted-foreground font-mono">
-          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period. Pause your subscription during holidays.
+          Cancel anytime. AED 39.99/month before VAT. 5-day free trial — money is only deducted after the trial period.
         </div>
       </div>
     </AppLayout>
