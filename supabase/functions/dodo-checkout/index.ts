@@ -41,7 +41,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { product_id, return_url, discount_code } = await req.json();
+    const body = await req.json();
+    const return_url = body.return_url;
+    const discount_code = body.discount_code;
+    // Use test product ID when running with a test key, if provided.
+    const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID
+      ? DODO_TEST_PRODUCT_ID
+      : body.product_id;
     if (!product_id) {
       return new Response(JSON.stringify({ error: "product_id required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
