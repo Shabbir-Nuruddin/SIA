@@ -61,11 +61,13 @@ Deno.serve(async (req) => {
     ]);
     const payments = paymentsRes.ok ? await paymentsRes.json() : { items: [] };
     const subs = subsRes.ok ? await subsRes.json() : { items: [] };
-    const ownedItems = [...(payments.items ?? []), ...(subs.items ?? [])].filter((item) => itemBelongsToUser(item, user.id, user.email));
+    const ownedSubscriptions = (subs.items ?? []).filter((item) => itemBelongsToUser(item, user.id, user.email));
+    const ownedPayments = (payments.items ?? []).filter((item) => itemBelongsToUser(item, user.id, user.email));
+    const ownedItems = [...ownedSubscriptions, ...ownedPayments];
     const paid = ownedItems.length > 0;
 
     if (paid) {
-      const subscription = ownedItems.find((item) => item.subscription_id || item.id || item.customer_id || item.customer?.id) ?? {};
+      const subscription = ownedSubscriptions[0] ?? {};
       const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       await adminClient.from("profiles").update({
         is_pro: true,
