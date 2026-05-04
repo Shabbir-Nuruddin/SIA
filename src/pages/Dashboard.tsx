@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
 import { computeUrgency } from "@/lib/urgency";
 import { TutorialOverlay } from "@/components/TutorialOverlay";
+import { syncProAfterCheckout } from "@/lib/dodo";
 
 interface SessionRow {
   id: string;
@@ -80,6 +81,7 @@ interface ExamRow {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
@@ -104,6 +106,28 @@ const Dashboard = () => {
   };
 
   useEffect(() => { load(); }, [user]);
+
+  useEffect(() => {
+    if (!user || searchParams.get("checkout") !== "success") return;
+    let cancelled = false;
+    const run = async () => {
+      const toastId = toast.loading("Payment successful — unlocking Pro...");
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const isPro = await syncProAfterCheckout();
+        if (cancelled) return;
+        if (isPro) {
+          toast.success("You're on Pro now 🎉", { id: toastId });
+          searchParams.delete("checkout");
+          setSearchParams(searchParams, { replace: true });
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      toast.info("Payment received. Your Pro access is still syncing — refresh in a minute if it does not update.", { id: toastId });
+    };
+    void run();
+    return () => { cancelled = true; };
+  }, [user, searchParams, setSearchParams]);
 
   // Re-tick at midnight so urgency refreshes daily without a reload.
   useEffect(() => {

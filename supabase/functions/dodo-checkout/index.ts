@@ -33,8 +33,10 @@ async function callDodo(host: string, payload: unknown) {
 
 function friendlyDodoMessage(status: number, text: string) {
   const lower = text.toLowerCase();
-  if (lower.includes("discount code")) return "That promo code is not active for this checkout yet. You can still continue and enter a valid code at checkout.";
-  if (lower.includes("not_found") || lower.includes("not found")) return "Checkout is not fully set up yet. The Pro product for this payment mode could not be found.";
+  if (lower.includes("insufficient_funds")) return "Your card does not have enough funds for this payment. Please try another card or add funds, then retry checkout.";
+  if (lower.includes("card_declined") || lower.includes("declined")) return "Your bank declined the payment. Please try another card or contact your bank.";
+  if (lower.includes("discount code")) return "That promo code is not active yet. You can still retry checkout and enter a valid code there.";
+  if (lower.includes("not_found") || lower.includes("not found")) return "Checkout is not fully set up yet. Please contact support so we can fix the Pro product setup.";
   if (lower.includes("currency")) return "Checkout could not open in AED. Please try again, or contact support if it keeps happening.";
   if (status === 401 || status === 403) return "Payment settings need to be checked before checkout can open.";
   return "Checkout could not open right now. Please try again in a minute.";
@@ -93,15 +95,16 @@ Deno.serve(async (req) => {
       const payload: Record<string, unknown> = {
         product_cart: [{ product_id: selectedProductId, quantity: 1 }],
         return_url: return_url || `${appOrigin}/dashboard?checkout=success`,
-        cancel_url: `${appOrigin}/pricing`,
+        cancel_url: `${appOrigin}/pricing?checkout=retry`,
         customer: {
           email: user.email,
           name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
         },
         billing_address: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
-        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99" },
+        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency: "AED" },
         allowed_payment_method_types: ["credit", "debit"],
         billing_currency: "AED",
+        subscription_data: { on_demand: { mandate_only: false, product_currency: "AED", product_price: 3999 } },
         feature_flags: {
           allow_currency_selection: false,
           allow_discount_code: true,
@@ -136,7 +139,7 @@ Deno.serve(async (req) => {
           const retryData = JSON.parse(retryText);
           const retryUrl = retryData.payment_link || retryData.checkout_url || retryData.url;
           if (retryUrl) {
-            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl), mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl), session_id: retryData.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
               status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
@@ -156,7 +159,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url), mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url), session_id: data.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
