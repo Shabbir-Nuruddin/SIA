@@ -208,7 +208,7 @@ const RoadmapPage = () => {
     setShowNotifPrompt(false);
     if (perm === "granted") {
       toast.success("Reminders on. We'll notify you at your study time.");
-      showNotification("Apex Reminders enabled", "We'll ping you when your next study session is due.");
+      showNotification("Make Me Revise Reminders enabled", "We'll ping you when your next study session is due.");
     }
   };
 
