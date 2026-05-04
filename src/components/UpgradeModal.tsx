@@ -53,11 +53,11 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
   const handleUpgrade = async () => {
     setBusy(true);
     try {
-      await upgrade("REVISE50");
+      await upgrade();
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Couldn't open checkout.");
+      toast.error(err instanceof Error ? err.message : "Checkout could not open right now. Please try again in a minute.");
       navigate("/pricing");
     } finally {
       setBusy(false);
@@ -160,7 +160,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono font-extrabold text-xl tracking-wider text-primary">REVISE50</span>
-                  <span className="text-[11px] text-muted-foreground">auto-applied at checkout</span>
+                  <span className="text-[11px] text-muted-foreground">enter it at checkout</span>
                 </div>
               </div>
               <div className="shrink-0 h-9 w-9 rounded-lg border border-primary/40 bg-background/40 flex items-center justify-center text-primary group-hover:scale-105 transition">
