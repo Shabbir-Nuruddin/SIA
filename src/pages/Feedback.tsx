@@ -42,7 +42,7 @@ const Feedback = () => {
 
   // Admin users panel
   const [adminStats, setAdminStats] = useState<{ total: number; pro: number } | null>(null);
-  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string; display_name: string | null; is_pro: boolean }>>([]);
+  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string; display_name: string | null; is_pro: boolean; study_minutes?: number }>>([]);
   const [userSearch, setUserSearch] = useState("");
   const [ticketTarget, setTicketTarget] = useState<{ id: string; email: string } | null>(null);
   const [ticketSubject, setTicketSubject] = useState("");
@@ -223,9 +223,15 @@ const Feedback = () => {
                         {u.email || "(no email)"}
                         {u.is_pro && <Crown className="h-3 w-3 text-primary shrink-0" />}
                       </div>
-                      {u.display_name && (
-                        <div className="text-xs text-muted-foreground truncate">{u.display_name}</div>
-                      )}
+                      <div className="text-xs text-muted-foreground truncate">
+                        {u.display_name ? `${u.display_name} · ` : ""}
+                        {(() => {
+                          const m = u.study_minutes ?? 0;
+                          const h = Math.floor(m / 60);
+                          const r = m % 60;
+                          return h > 0 ? `${h}h ${r}m studied` : `${r}m studied`;
+                        })()}
+                      </div>
                     </div>
                     <Button
                       size="sm"
