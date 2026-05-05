@@ -232,9 +232,21 @@ const inlineFormat = (raw: string, store: string[]): string => {
   return s;
 };
 
+// Strip LaTeX list environments and orphan markers the model sometimes emits
+// (e.g. "\item ...", "\end{itemize}"). Convert \item to markdown bullets.
+const sanitizeLatexEnvs = (input: string): string => {
+  let s = input;
+  s = s.replace(/\\(begin|end)\{(itemize|enumerate|description|list)\}/g, "");
+  s = s.replace(/\\item\s+/g, "\n- ");
+  s = s.replace(/\\(begin|end)\{[^}]*\}/g, "");
+  s = s.replace(/^\s*\$\s*$/gm, "");
+  return s;
+};
+
 export const toFormattedHtml = (input: string): string => {
   if (!input) return "";
-  const wrapped = autoWrapMath(input);
+  const cleaned = sanitizeLatexEnvs(input);
+  const wrapped = autoWrapMath(cleaned);
   const { text: mathRendered, store } = renderMathWithPlaceholders(wrapped);
 
   const lines = mathRendered.split(/\r?\n/);
