@@ -42,13 +42,22 @@ function friendlyDodoMessage(status: number, text: string) {
   return "Checkout could not open right now. Please try again in a minute.";
 }
 
-function prepareCheckoutUrl(rawUrl: string) {
+function prepareCheckoutUrl(rawUrl: string, currency: string) {
   const url = new URL(rawUrl);
   url.searchParams.set("showDiscounts", "true");
-  url.searchParams.set("paymentCurrency", "AED");
-  url.searchParams.set("showCurrencySelector", "false");
+  url.searchParams.set("paymentCurrency", currency);
+  url.searchParams.set("showCurrencySelector", currency === "INR" ? "true" : "false");
   return url.toString();
 }
+
+// AED base price → other currencies (must roughly match src/lib/currency.ts)
+const RATE_FROM_AED: Record<string, number> = {
+  AED: 1,
+  INR: 23.0,
+  GBP: 0.2126,
+  USD: 0.2723,
+};
+const BASE_AED = 39.99;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
