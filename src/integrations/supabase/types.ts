@@ -814,6 +814,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity: {
+        Row: {
+          last_heartbeat: string
+          total_seconds: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_heartbeat?: string
+          total_seconds?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_heartbeat?: string
+          total_seconds?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -911,6 +932,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_activity_heartbeat: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

@@ -3,6 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { applyTheme } from "@/lib/theme";
 import { claimDeviceSlot, verifyDeviceSlot, releaseDeviceSlot } from "@/lib/deviceSession";
+import { startActivityHeartbeat, stopActivityHeartbeat } from "@/lib/activityHeartbeat";
 import { toast } from "sonner";
 
 interface AuthCtx {
@@ -41,9 +42,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const uid = s.user.id;
           claimedForUserRef.current = uid;
           setTimeout(() => { claimDeviceSlot(uid).catch(() => {}); }, 0);
+          setTimeout(() => { startActivityHeartbeat(); }, 0);
         }
       } else {
         claimedForUserRef.current = null;
+        stopActivityHeartbeat();
       }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
