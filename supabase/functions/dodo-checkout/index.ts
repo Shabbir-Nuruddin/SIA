@@ -131,17 +131,21 @@ Deno.serve(async (req) => {
           email: user.email,
           name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
         },
-        billing_address: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
-        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency: "AED" },
-        allowed_payment_method_types: ["credit", "debit"],
-        billing_currency: "AED",
+        billing_address: isIndia
+          ? { city: "Mumbai", country: "IN", state: "Maharashtra", street: "N/A", zipcode: "400001" }
+          : { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
+        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency },
+        allowed_payment_method_types: isIndia
+          ? ["upi_collect", "upi_intent", "credit", "debit"]
+          : ["credit", "debit"],
+        billing_currency: currency,
         subscription_data: {
           trial_period_days: trialDays,
-          product_currency: "AED",
-          product_price: 3999,
+          product_currency: currency,
+          product_price: productPriceMinor,
         },
         feature_flags: {
-          allow_currency_selection: false,
+          allow_currency_selection: isIndia,
           allow_discount_code: true,
           allow_tax_id: true,
           allow_customer_editing_country: true,
