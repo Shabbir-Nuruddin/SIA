@@ -45,6 +45,26 @@ Deno.serve(async (req) => {
       .from("profiles")
       .select("id, display_name, is_pro, plan, subscription_status, created_at");
 
+    // Aggregate study minutes per user
+    const minutesById: Record<string, number> = {};
+    {
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data, error } = await admin
+          .from("study_sessions")
+          .select("user_id, duration_minutes")
+          .range(from, from + pageSize - 1);
+        if (error || !data || data.length === 0) break;
+        for (const s of data as any[]) {
+          minutesById[s.user_id] = (minutesById[s.user_id] ?? 0) + (s.duration_minutes ?? 0);
+        }
+        if (data.length < pageSize) break;
+        from += pageSize;
+        if (from > 200000) break;
+      }
+    }
+
     // Fetch emails from auth.users via admin API (paged)
     const emailById: Record<string, string> = {};
     let page = 1;
