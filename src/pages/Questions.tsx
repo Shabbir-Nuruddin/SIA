@@ -173,6 +173,8 @@ const QuestionsPage = () => {
   };
 
   const submit = async () => {
+    toast.error("This feature is currently under maintenance. We'll be back shortly.");
+    return;
     if (!current) return;
     if (!currentAnswer.trim() && !currentImage) return;
     setLoadingMark(true);
