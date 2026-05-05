@@ -72,6 +72,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const return_url = body.return_url;
     const discount_code = body.discount_code;
+    const requestedCurrency = (typeof body.currency === "string" ? body.currency.toUpperCase() : "AED");
+    const currency = RATE_FROM_AED[requestedCurrency] ? requestedCurrency : "AED";
+    const isIndia = currency === "INR";
+    const productPriceMinor = Math.round(BASE_AED * RATE_FROM_AED[currency] * 100);
     const liveProductId = body.product_id;
     const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
     if (!product_id) {
