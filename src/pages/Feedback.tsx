@@ -223,9 +223,15 @@ const Feedback = () => {
                         {u.email || "(no email)"}
                         {u.is_pro && <Crown className="h-3 w-3 text-primary shrink-0" />}
                       </div>
-                      {u.display_name && (
-                        <div className="text-xs text-muted-foreground truncate">{u.display_name}</div>
-                      )}
+                      <div className="text-xs text-muted-foreground truncate">
+                        {u.display_name ? `${u.display_name} · ` : ""}
+                        {(() => {
+                          const m = u.study_minutes ?? 0;
+                          const h = Math.floor(m / 60);
+                          const r = m % 60;
+                          return h > 0 ? `${h}h ${r}m studied` : `${r}m studied`;
+                        })()}
+                      </div>
                     </div>
                     <Button
                       size="sm"
