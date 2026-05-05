@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
 });
 
-const originalInvoke = supabase.functions.invoke.bind(supabase.functions);
-supabase.functions.invoke = async () => {
-  throw new Error("We're improving our AI features. Back shortly.");
+const _invoke = supabase.functions.invoke.bind(supabase.functions);
+supabase.functions.invoke = async (fn: string, options?: any) => {
+  throw new Error("🔧 We're upgrading our AI features. Back very soon.");
 };
