@@ -42,13 +42,22 @@ function friendlyDodoMessage(status: number, text: string) {
   return "Checkout could not open right now. Please try again in a minute.";
 }
 
-function prepareCheckoutUrl(rawUrl: string) {
+function prepareCheckoutUrl(rawUrl: string, currency: string) {
   const url = new URL(rawUrl);
   url.searchParams.set("showDiscounts", "true");
-  url.searchParams.set("paymentCurrency", "AED");
-  url.searchParams.set("showCurrencySelector", "false");
+  url.searchParams.set("paymentCurrency", currency);
+  url.searchParams.set("showCurrencySelector", currency === "INR" ? "true" : "false");
   return url.toString();
 }
+
+// AED base price → other currencies (must roughly match src/lib/currency.ts)
+const RATE_FROM_AED: Record<string, number> = {
+  AED: 1,
+  INR: 23.0,
+  GBP: 0.2126,
+  USD: 0.2723,
+};
+const BASE_AED = 39.99;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -63,6 +72,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const return_url = body.return_url;
     const discount_code = body.discount_code;
+    const requestedCurrency = (typeof body.currency === "string" ? body.currency.toUpperCase() : "AED");
+    const currency = RATE_FROM_AED[requestedCurrency] ? requestedCurrency : "AED";
+    const isIndia = currency === "INR";
+    const productPriceMinor = Math.round(BASE_AED * RATE_FROM_AED[currency] * 100);
     const liveProductId = body.product_id;
     const product_id = IS_TEST_KEY && DODO_TEST_PRODUCT_ID ? DODO_TEST_PRODUCT_ID : liveProductId;
     if (!product_id) {
@@ -118,17 +131,21 @@ Deno.serve(async (req) => {
           email: user.email,
           name: user.user_metadata?.full_name ?? user.user_metadata?.first_name ?? user.email,
         },
-        billing_address: { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
-        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency: "AED" },
-        allowed_payment_method_types: ["credit", "debit"],
-        billing_currency: "AED",
+        billing_address: isIndia
+          ? { city: "Mumbai", country: "IN", state: "Maharashtra", street: "N/A", zipcode: "400001" }
+          : { city: "Dubai", country: "AE", state: "Dubai", street: "N/A", zipcode: "00000" },
+        metadata: { user_id: user.id, user_email: user.email ?? "", base_price_aed: "39.99", currency },
+        allowed_payment_method_types: isIndia
+          ? ["upi_collect", "upi_intent", "credit", "debit"]
+          : ["credit", "debit"],
+        billing_currency: currency,
         subscription_data: {
           trial_period_days: trialDays,
-          product_currency: "AED",
-          product_price: 3999,
+          product_currency: currency,
+          product_price: productPriceMinor,
         },
         feature_flags: {
-          allow_currency_selection: false,
+          allow_currency_selection: isIndia,
           allow_discount_code: true,
           allow_tax_id: true,
           allow_customer_editing_country: true,
@@ -163,7 +180,7 @@ Deno.serve(async (req) => {
           const retryData = JSON.parse(retryText);
           const retryUrl = retryData.payment_link || retryData.checkout_url || retryData.url;
           if (retryUrl) {
-            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl), session_id: retryData.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl, currency), session_id: retryData.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
               status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
@@ -183,7 +200,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url), session_id: data.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url, currency), session_id: data.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

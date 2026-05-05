@@ -34,6 +34,8 @@ export function friendlyCheckoutError(err: unknown): string {
 export async function openProCheckout(discountCode?: string): Promise<void> {
   const returnUrl = `${window.location.origin}/dashboard?checkout=success`;
   const { data: { session } } = await supabase.auth.getSession();
+  const { detectDefaultCurrency } = await import("@/lib/currency");
+  const currency = detectDefaultCurrency();
   const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dodo-checkout`, {
     method: "POST",
     headers: {
@@ -41,7 +43,7 @@ export async function openProCheckout(discountCode?: string): Promise<void> {
       apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
     },
-    body: JSON.stringify({ product_id: DODO_PRODUCT_ID, return_url: returnUrl, discount_code: discountCode }),
+    body: JSON.stringify({ product_id: DODO_PRODUCT_ID, return_url: returnUrl, discount_code: discountCode, currency }),
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.url) {
