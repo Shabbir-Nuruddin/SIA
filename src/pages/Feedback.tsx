@@ -42,7 +42,7 @@ const Feedback = () => {
 
   // Admin users panel
   const [adminStats, setAdminStats] = useState<{ total: number; pro: number } | null>(null);
-  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string; display_name: string | null; is_pro: boolean }>>([]);
+  const [adminUsers, setAdminUsers] = useState<Array<{ id: string; email: string; display_name: string | null; is_pro: boolean; study_minutes?: number }>>([]);
   const [userSearch, setUserSearch] = useState("");
   const [ticketTarget, setTicketTarget] = useState<{ id: string; email: string } | null>(null);
   const [ticketSubject, setTicketSubject] = useState("");
