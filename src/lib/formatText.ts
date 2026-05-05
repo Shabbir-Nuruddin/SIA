@@ -301,7 +301,7 @@ export const formattedHtmlProps = (input: string) => ({
  */
 export const renderMathInString = (input: string): string => {
   if (!input) return "";
-  let s = autoWrapMath(input);
+  let s = autoWrapMath(sanitizeLatexEnvs(input));
   s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => renderMath(tex, true));
   s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => renderMath(tex, true));
   s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => renderMath(tex, false));
