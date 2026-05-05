@@ -42,9 +42,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const uid = s.user.id;
           claimedForUserRef.current = uid;
           setTimeout(() => { claimDeviceSlot(uid).catch(() => {}); }, 0);
+          setTimeout(() => { startActivityHeartbeat(); }, 0);
         }
       } else {
         claimedForUserRef.current = null;
+        stopActivityHeartbeat();
       }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
