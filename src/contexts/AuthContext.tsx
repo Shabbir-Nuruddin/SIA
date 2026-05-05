@@ -3,6 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { applyTheme } from "@/lib/theme";
 import { claimDeviceSlot, verifyDeviceSlot, releaseDeviceSlot } from "@/lib/deviceSession";
+import { startActivityHeartbeat, stopActivityHeartbeat } from "@/lib/activityHeartbeat";
 import { toast } from "sonner";
 
 interface AuthCtx {
