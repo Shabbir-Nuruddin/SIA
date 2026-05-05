@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
       plan: p.plan,
       subscription_status: p.subscription_status,
       created_at: p.created_at,
+      study_minutes: minutesById[p.id] ?? 0,
     }));
 
     const total = users.length;
