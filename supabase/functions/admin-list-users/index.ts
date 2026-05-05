@@ -45,23 +45,14 @@ Deno.serve(async (req) => {
       .from("profiles")
       .select("id, display_name, is_pro, plan, subscription_status, created_at");
 
-    // Aggregate study minutes per user
+    // Total seconds on site per user (from heartbeat-tracked user_activity)
     const minutesById: Record<string, number> = {};
     {
-      let from = 0;
-      const pageSize = 1000;
-      while (true) {
-        const { data, error } = await admin
-          .from("study_sessions")
-          .select("user_id, duration_minutes")
-          .range(from, from + pageSize - 1);
-        if (error || !data || data.length === 0) break;
-        for (const s of data as any[]) {
-          minutesById[s.user_id] = (minutesById[s.user_id] ?? 0) + (s.duration_minutes ?? 0);
-        }
-        if (data.length < pageSize) break;
-        from += pageSize;
-        if (from > 200000) break;
+      const { data } = await admin
+        .from("user_activity")
+        .select("user_id, total_seconds");
+      for (const r of (data ?? []) as any[]) {
+        minutesById[r.user_id] = Math.floor((r.total_seconds ?? 0) / 60);
       }
     }
 
