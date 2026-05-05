@@ -229,7 +229,7 @@ const Feedback = () => {
                           const m = u.study_minutes ?? 0;
                           const h = Math.floor(m / 60);
                           const r = m % 60;
-                          return h > 0 ? `${h}h ${r}m studied` : `${r}m studied`;
+                          return h > 0 ? `${h}h ${r}m on site` : `${r}m on site`;
                         })()}
                       </div>
                     </div>
