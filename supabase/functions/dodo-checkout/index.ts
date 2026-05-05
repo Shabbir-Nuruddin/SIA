@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
           const retryData = JSON.parse(retryText);
           const retryUrl = retryData.payment_link || retryData.checkout_url || retryData.url;
           if (retryUrl) {
-            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl), session_id: retryData.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+            return new Response(JSON.stringify({ url: prepareCheckoutUrl(retryUrl, currency), session_id: retryData.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
               status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url), session_id: data.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
+    return new Response(JSON.stringify({ url: prepareCheckoutUrl(url, currency), session_id: data.session_id, mode: usedHost === DODO_LIVE ? "live" : "test" }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
