@@ -8,7 +8,7 @@ import { PomodoroPill } from "@/components/PomodoroPill";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { useNotificationScheduler } from "@/lib/useNotificationScheduler";
-import { Loader2, Wrench } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideChrome?: boolean }) => {
   const { user, loading } = useAuth();
@@ -28,10 +28,6 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
 
   return (
     <div className="min-h-screen flex bg-background" style={{ paddingTop: topOffset }}>
-      <div className="fixed top-0 left-0 right-0 z-[9999] bg-amber-500/90 text-black text-center text-sm font-medium py-2 flex items-center justify-center gap-2">
-        <Wrench className="h-4 w-4" /> AI features are temporarily under maintenance while we make improvements. Back
-        very soon.
-      </div>
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar />}
