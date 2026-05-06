@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemma-3-27b";
+const MODEL = "gemini-2.5-flash";
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
