@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -6,9 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
-const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemini-2.5-flash";
+const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
+const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
+const MODEL = "llama-3.1-8b-instant";
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
