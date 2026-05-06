@@ -9,12 +9,15 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemini-2.0-flash-lite";
+const MODEL = "gemma-3-27b-it";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (!LOVABLE_API_KEY) {
-    return new Response(JSON.stringify({ error: "AI not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "AI not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
   try {
     const { messages, context } = await req.json();
@@ -23,7 +26,9 @@ serve(async (req) => {
     const ctxLine = context?.topic
       ? `The student is currently on the topic: "${context.topic}" — ${context.subject ?? ""} ${context.unit_name ?? ""}. Tailor your help to that topic when relevant.`
       : "";
-    const nameLine = name ? `The student's name is ${name}. Address them by name occasionally — warm but not over-the-top.` : "";
+    const nameLine = name
+      ? `The student's name is ${name}. Address them by name occasionally — warm but not over-the-top.`
+      : "";
     const system = `You are "Make Me Revise Tutor" — the official AI tutor for makemerevise.com. You are a calm, encouraging ${board} study coach.
 
 IDENTITY RULES (CRITICAL — never break these):
@@ -53,11 +58,22 @@ ${ctxLine}`;
     });
     if (!res.ok) {
       const status = res.status;
-      const error = status === 429 ? "Rate limit hit. Try again shortly." : status === 402 ? "AI credits exhausted." : "Tutor unavailable.";
-      return new Response(JSON.stringify({ error }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const error =
+        status === 429
+          ? "Rate limit hit. Try again shortly."
+          : status === 402
+            ? "AI credits exhausted."
+            : "Tutor unavailable.";
+      return new Response(JSON.stringify({ error }), {
+        status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
     return new Response(res.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

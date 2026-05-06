@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemini-2.0-flash-lite";
+const MODEL = "gemma-3-27b-it";
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
@@ -21,7 +21,8 @@ const notesTool = {
       properties: {
         overview: {
           type: "string",
-          description: "3–4 paragraphs of flowing prose explaining what the topic is, why it matters, and how it connects to other topics in the unit. No bullets, no markdown, no LaTeX.",
+          description:
+            "3–4 paragraphs of flowing prose explaining what the topic is, why it matters, and how it connects to other topics in the unit. No bullets, no markdown, no LaTeX.",
         },
         key_definitions: {
           type: "array",
@@ -47,7 +48,10 @@ const notesTool = {
               statement: { type: "string", description: "The fact or rule, stated clearly." },
               worked_example: { type: "string", description: "Setup → method → answer with units. Plain text." },
               wrong_approach: { type: "string", description: "The most common wrong method and why it loses marks." },
-              typical_marks: { type: "integer", description: "How many marks this typically carries in an exam question." },
+              typical_marks: {
+                type: "integer",
+                description: "How many marks this typically carries in an exam question.",
+              },
             },
             required: ["statement", "worked_example", "wrong_approach", "typical_marks"],
             additionalProperties: false,
@@ -59,21 +63,41 @@ const notesTool = {
           items: {
             type: "object",
             properties: {
-              equation: { type: "string", description: "The equation as a single LaTeX expression wrapped in $$...$$ (display math). Example: '$$\\\\Delta G^{\\\\ominus} = -nFE^{\\\\ominus}_{cell}$$'." },
+              equation: {
+                type: "string",
+                description:
+                  "The equation as a single LaTeX expression wrapped in $$...$$ (display math). Example: '$$\\\\Delta G^{\\\\ominus} = -nFE^{\\\\ominus}_{cell}$$'.",
+              },
               variables: {
                 type: "array",
                 items: {
                   type: "object",
                   properties: {
-                    symbol: { type: "string", description: "Symbol as inline LaTeX wrapped in $...$. Example: '$\\\\Delta G^{\\\\ominus}$' or '$E^{\\\\ominus}_{cell}$'." },
-                    meaning: { type: "string", description: "Plain prose meaning. No LaTeX, no $ signs, no backslashes. Example: 'Standard Gibbs free energy change'." },
-                    unit: { type: "string", description: "Unit as inline LaTeX wrapped in $...$. Example: '$\\\\text{J mol}^{-1}$' or '$\\\\text{kJ mol}^{-1}$'. Use 'dimensionless' if none." },
+                    symbol: {
+                      type: "string",
+                      description:
+                        "Symbol as inline LaTeX wrapped in $...$. Example: '$\\\\Delta G^{\\\\ominus}$' or '$E^{\\\\ominus}_{cell}$'.",
+                    },
+                    meaning: {
+                      type: "string",
+                      description:
+                        "Plain prose meaning. No LaTeX, no $ signs, no backslashes. Example: 'Standard Gibbs free energy change'.",
+                    },
+                    unit: {
+                      type: "string",
+                      description:
+                        "Unit as inline LaTeX wrapped in $...$. Example: '$\\\\text{J mol}^{-1}$' or '$\\\\text{kJ mol}^{-1}$'. Use 'dimensionless' if none.",
+                    },
                   },
                   required: ["symbol", "meaning", "unit"],
                   additionalProperties: false,
                 },
               },
-              worked_substitution: { type: "string", description: "One worked numerical substitution as prose with inline LaTeX (use $...$ for math). Show full numeric chain." },
+              worked_substitution: {
+                type: "string",
+                description:
+                  "One worked numerical substitution as prose with inline LaTeX (use $...$ for math). Show full numeric chain.",
+              },
             },
             required: ["equation", "variables", "worked_substitution"],
             additionalProperties: false,
@@ -81,11 +105,16 @@ const notesTool = {
         },
         visual_summary: {
           type: "object",
-          description: "A diagram, table, flowchart, or inline SVG illustration that explains key relationships visually.",
+          description:
+            "A diagram, table, flowchart, or inline SVG illustration that explains key relationships visually.",
           properties: {
             kind: { type: "string", enum: ["table", "flowchart", "diagram", "svg"] },
             caption: { type: "string" },
-            content: { type: "string", description: "Either: (a) an inline <svg>...</svg> illustration with viewBox=\"0 0 400 240\" using stroke=\"currentColor\" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) ASCII flowchart. Prefer SVG for spatial/process diagrams (energy profiles, electric fields, biological cycles, geometric proofs)." },
+            content: {
+              type: "string",
+              description:
+                'Either: (a) an inline <svg>...</svg> illustration with viewBox="0 0 400 240" using stroke="currentColor" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) ASCII flowchart. Prefer SVG for spatial/process diagrams (energy profiles, electric fields, biological cycles, geometric proofs).',
+            },
           },
           required: ["kind", "caption", "content"],
           additionalProperties: false,
@@ -96,7 +125,11 @@ const notesTool = {
           items: {
             type: "object",
             properties: {
-              command_word: { type: "string", description: "The Edexcel command word this tip applies to (Calculate, Explain, Describe, Evaluate, Compare, Suggest, Determine, State, Deduce, Show that)." },
+              command_word: {
+                type: "string",
+                description:
+                  "The Edexcel command word this tip applies to (Calculate, Explain, Describe, Evaluate, Compare, Suggest, Determine, State, Deduce, Show that).",
+              },
               tip: { type: "string", description: "Specific, actionable tip referencing the command word." },
             },
             required: ["command_word", "tip"],
@@ -118,7 +151,15 @@ const notesTool = {
           },
         },
       },
-      required: ["overview", "key_definitions", "core_content", "equations", "visual_summary", "examiner_tips", "flashcards"],
+      required: [
+        "overview",
+        "key_definitions",
+        "core_content",
+        "equations",
+        "visual_summary",
+        "examiner_tips",
+        "flashcards",
+      ],
       additionalProperties: false,
     },
   },
@@ -127,15 +168,24 @@ const notesTool = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (!LOVABLE_API_KEY) {
-    return new Response(JSON.stringify({ error: "AI service not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "AI service not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
   try {
     const { subject, unit_number, unit_name, topic, syllabus_context, board, level } = await req.json();
     const isCie = board === "cie";
-    const boardLabel = isCie ? "Cambridge International (CIE) A Level" : (board || "Edexcel International A-Level");
+    const boardLabel = isCie ? "Cambridge International (CIE) A Level" : board || "Edexcel International A-Level";
     const levelLabel = level || "A-Level";
     const specCode = isCie
-      ? (subject === "chemistry" ? "9701" : subject === "biology" ? "9700" : subject === "physics" ? "9702" : "9709")
+      ? subject === "chemistry"
+        ? "9701"
+        : subject === "biology"
+          ? "9700"
+          : subject === "physics"
+            ? "9702"
+            : "9709"
       : "Edexcel IAL";
 
     const scopeNote = syllabus_context
@@ -179,7 +229,7 @@ Produce notes in this exact structure via the tool:
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
-5. VISUAL SUMMARY — ${isMaths ? "MUST be an HTML <table> (kind=\"table\"). Do NOT use SVG for maths topics — accuracy is critical." : "one diagram. Prefer an inline SVG illustration (viewBox=\"0 0 400 240\", stroke=\"currentColor\", fill=\"none\" or fill=\"currentColor\" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort."}
+5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table"). Do NOT use SVG for maths topics — accuracy is critical.' : 'one diagram. Prefer an inline SVG illustration (viewBox="0 0 400 240", stroke="currentColor", fill="none" or fill="currentColor" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort.'}
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
@@ -188,7 +238,10 @@ Produce notes in this exact structure via the tool:
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: MODEL,
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
         tools: [notesTool],
         tool_choice: { type: "function", function: { name: "create_topic_notes" } },
       }),
@@ -197,16 +250,34 @@ Produce notes in this exact structure via the tool:
       const txt = await res.text();
       console.error("ai-notes gateway error", res.status, txt);
       const status = res.status;
-      const error = status === 429 ? "Rate limit hit. Try again in a moment." : status === 402 ? "AI credits exhausted." : "Notes generation failed";
-      return new Response(JSON.stringify({ error }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const error =
+        status === 429
+          ? "Rate limit hit. Try again in a moment."
+          : status === 402
+            ? "AI credits exhausted."
+            : "Notes generation failed";
+      return new Response(JSON.stringify({ error }), {
+        status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
     const data = await res.json();
     const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!tc) return new Response(JSON.stringify({ error: "AI returned no structured output" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!tc)
+      return new Response(JSON.stringify({ error: "AI returned no structured output" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     const args = JSON.parse(tc.function.arguments);
-    return new Response(JSON.stringify(args), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify(args), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("ai-notes error", err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

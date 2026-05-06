@@ -8,13 +8,14 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemini-2.0-flash-lite";
+const MODEL = "gemma-3-27b-it";
 
 const generatePaperTool = {
   type: "function",
   function: {
     name: "create_mock_paper",
-    description: "Generate an original Edexcel-style A-Level mock paper. Each question must be original (no verbatim past-paper reproduction) but identical in cognitive demand, command words, and mark allocation to real Edexcel questions for the topic.",
+    description:
+      "Generate an original Edexcel-style A-Level mock paper. Each question must be original (no verbatim past-paper reproduction) but identical in cognitive demand, command words, and mark allocation to real Edexcel questions for the topic.",
     parameters: {
       type: "object",
       properties: {
@@ -25,14 +26,36 @@ const generatePaperTool = {
             properties: {
               topic: { type: "string" },
               question_type: { type: "string" },
-              command_word: { type: "string", description: "e.g. Calculate, Describe, Explain, Evaluate, Show that, State" },
-              question_text: { type: "string", description: "Full question, command word in **bold** at start. Use real scientific contexts but altered specifics." },
+              command_word: {
+                type: "string",
+                description: "e.g. Calculate, Describe, Explain, Evaluate, Show that, State",
+              },
+              question_text: {
+                type: "string",
+                description:
+                  "Full question, command word in **bold** at start. Use real scientific contexts but altered specifics.",
+              },
               marks: { type: "integer" },
-              options: { type: "array", items: { type: "string" }, description: "For Multiple Choice only: 4 plausible options." },
+              options: {
+                type: "array",
+                items: { type: "string" },
+                description: "For Multiple Choice only: 4 plausible options.",
+              },
               model_answer: { type: "string", description: "A clean full-mark model answer." },
-              mark_scheme: { type: "string", description: "Edexcel-style point-by-point mark scheme with M1/A1/B1 codes where appropriate." },
+              mark_scheme: {
+                type: "string",
+                description: "Edexcel-style point-by-point mark scheme with M1/A1/B1 codes where appropriate.",
+              },
             },
-            required: ["topic", "question_type", "command_word", "question_text", "marks", "model_answer", "mark_scheme"],
+            required: [
+              "topic",
+              "question_type",
+              "command_word",
+              "question_text",
+              "marks",
+              "model_answer",
+              "mark_scheme",
+            ],
           },
         },
       },
@@ -73,12 +96,25 @@ async function callAI(messages: any[], tools: any[], toolName: string) {
   const res = await fetch(GATEWAY, {
     method: "POST",
     headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: MODEL, messages, tools, tool_choice: { type: "function", function: { name: toolName } } }),
+    body: JSON.stringify({
+      model: MODEL,
+      messages,
+      tools,
+      tool_choice: { type: "function", function: { name: toolName } },
+    }),
   });
   if (!res.ok) {
     const txt = await res.text();
     console.error("AI gateway error", res.status, txt);
-    throw { status: res.status, message: res.status === 429 ? "Rate limit hit. Try again in a moment." : res.status === 402 ? "AI credits exhausted. Add funds in workspace settings." : "AI generation failed" };
+    throw {
+      status: res.status,
+      message:
+        res.status === 429
+          ? "Rate limit hit. Try again in a moment."
+          : res.status === 402
+            ? "AI credits exhausted. Add funds in workspace settings."
+            : "AI generation failed",
+    };
   }
   const data = await res.json();
   const tc = data.choices?.[0]?.message?.tool_calls?.[0];
@@ -89,7 +125,10 @@ async function callAI(messages: any[], tools: any[], toolName: string) {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (!LOVABLE_API_KEY) {
-    return new Response(JSON.stringify({ error: "AI service not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "AI service not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
   try {
     const body = await req.json();
@@ -110,11 +149,17 @@ Target total marks: ${totalMarks} (±5). Vary marks per question realistically (
 Difficulty mix: ${difficultyMix} (foundation = easier, mixed = balanced, challenge = harder).
 Number questions sequentially starting at 1. Output via the tool.`;
       const result = await callAI(
-        [{ role: "system", content: system }, { role: "user", content: user }],
+        [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
         [generatePaperTool],
         "create_mock_paper",
       );
-      return new Response(JSON.stringify(result), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (action === "mark") {
@@ -129,7 +174,8 @@ Number questions sequentially starting at 1. Output via the tool.`;
           blanks.push({
             question_index: q.question_index,
             awarded_marks: 0,
-            feedback: "No answer provided. 0 marks awarded. Always attempt every question — even partial working can earn method marks.",
+            feedback:
+              "No answer provided. 0 marks awarded. Always attempt every question — even partial working can earn method marks.",
           });
         } else {
           toMark.push(q);
@@ -141,7 +187,9 @@ Number questions sequentially starting at 1. Output via the tool.`;
         const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. Mark each answer Edexcel-style: method marks for working, accuracy marks for correct values, banded marking for 6-mark extended responses (Band 1: 1-2 basic, Band 2: 3-4 good, Band 3: 5-6 comprehensive). Award marks for valid alternative wording. Be honest — do not inflate. CRITICAL: If a student answer is blank, empty, whitespace, or just says "(no answer)", award 0 marks — never award marks for non-answers.`;
         const user = `Mark these questions. Return one result per question with awarded_marks (integer, 0..marks) and 1-2 sentence feedback.
 
-${toMark.map((q: any) => `Q${q.question_index + 1} [${q.marks} marks] (${q.question_type}):
+${toMark
+  .map(
+    (q: any) => `Q${q.question_index + 1} [${q.marks} marks] (${q.question_type}):
 ${q.question_text}
 
 Mark scheme:
@@ -152,9 +200,14 @@ ${q.model_answer}
 
 Student answer:
 ${q.student_answer}
-`).join("\n---\n")}`;
+`,
+  )
+  .join("\n---\n")}`;
         const result = await callAI(
-          [{ role: "system", content: system }, { role: "user", content: user }],
+          [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
           [markPaperTool],
           "mark_mock_paper",
         );
@@ -162,14 +215,23 @@ ${q.student_answer}
       }
 
       const merged = [...blanks, ...aiResults].sort((a, b) => a.question_index - b.question_index);
-      return new Response(JSON.stringify({ results: merged }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ results: merged }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Unknown action" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err: any) {
     console.error("ai-mock-paper error", err);
     const status = err?.status || 500;
     const message = err?.message || (err instanceof Error ? err.message : "Unknown error");
-    return new Response(JSON.stringify({ error: message }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

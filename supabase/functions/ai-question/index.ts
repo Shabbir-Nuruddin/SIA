@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GEMINI_API_KEY");
 const GATEWAY = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemini-2.0-flash-lite";
+const MODEL = "gemma-3-27b-it";
 
 const generateTool = {
   type: "function",
@@ -24,10 +24,21 @@ const generateTool = {
           items: {
             type: "object",
             properties: {
-              question_text: { type: "string", description: "The full question. Use bold command words at the start (e.g. **Calculate**, **Explain**)." },
+              question_text: {
+                type: "string",
+                description:
+                  "The full question. Use bold command words at the start (e.g. **Calculate**, **Explain**).",
+              },
               marks: { type: "integer", description: "Mark allocation appropriate for difficulty/type." },
-              mark_scheme: { type: "string", description: "Concise mark scheme: bullet points with M1/A1/B1 codes where appropriate." },
-              options: { type: "array", items: { type: "string" }, description: "Only for Multiple Choice: 4 plausible options." },
+              mark_scheme: {
+                type: "string",
+                description: "Concise mark scheme: bullet points with M1/A1/B1 codes where appropriate.",
+              },
+              options: {
+                type: "array",
+                items: { type: "string" },
+                description: "Only for Multiple Choice: 4 plausible options.",
+              },
             },
             required: ["question_text", "marks", "mark_scheme"],
             additionalProperties: false,
@@ -50,8 +61,15 @@ const markTool = {
       properties: {
         awarded_marks: { type: "integer" },
         total_marks: { type: "integer" },
-        feedback: { type: "string", description: "Specific, examiner-style feedback. What earned marks. What was missing. Reference command words. Keep it tight and useful." },
-        model_answer: { type: "string", description: "A clean, full-mark model answer the student can compare against." },
+        feedback: {
+          type: "string",
+          description:
+            "Specific, examiner-style feedback. What earned marks. What was missing. Reference command words. Keep it tight and useful.",
+        },
+        model_answer: {
+          type: "string",
+          description: "A clean, full-mark model answer the student can compare against.",
+        },
       },
       required: ["awarded_marks", "total_marks", "feedback", "model_answer"],
       additionalProperties: false,
@@ -62,7 +80,10 @@ const markTool = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (!LOVABLE_API_KEY) {
-    return new Response(JSON.stringify({ error: "AI service not configured" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "AI service not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -95,14 +116,19 @@ THIS IS A WEB APP — questions must be answerable by typing. ABSOLUTELY DO NOT 
 
 CRITICAL RULES ABOUT QUESTION PHRASING:
 - NO drawing/sketching/plotting/labelling/diagram-completion questions. The student is typing in a text box.
-${questionType === "Multiple Choice"
-  ? `- Every question MUST include exactly 4 plausible options in the "options" array. Never omit options.
+${
+  questionType === "Multiple Choice"
+    ? `- Every question MUST include exactly 4 plausible options in the "options" array. Never omit options.
 - Options should be distinct, realistic distractors of similar length.`
-  : `- This is a ${questionType} question. DO NOT phrase it as a multiple-choice question.
+    : `- This is a ${questionType} question. DO NOT phrase it as a multiple-choice question.
 - FORBIDDEN phrasings: "Which of the following...", "Which one of the following...", "Select the correct statement...", "Identify which statement...", "Choose the option that...", or any wording that implies the student is picking from a list.
 - The question must be answerable as free-form written work (calculation, explanation, derivation, description). It must NOT reference unseen options, statements, or choices.
-- Do NOT include the "options" field for these questions.`}`;
-      messages = [{ role: "system", content: system }, { role: "user", content: user }];
+- Do NOT include the "options" field for these questions.`
+}`;
+      messages = [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ];
       tools = [generateTool];
       toolName = "create_exam_questions";
     } else if (action === "mark") {
@@ -119,13 +145,22 @@ ${studentAnswer ? `Student answer (typed):\n${studentAnswer}\n` : ""}${studentAn
 
 Mark this answer. Be fair: award marks for any valid alternative wording. Be strict: don't award marks for missing key terms or incorrect calculations. Provide examiner feedback that helps the student improve.`;
       const userContent: any = studentAnswerImage
-        ? [{ type: "text", text: userText }, { type: "image_url", image_url: { url: studentAnswerImage } }]
+        ? [
+            { type: "text", text: userText },
+            { type: "image_url", image_url: { url: studentAnswerImage } },
+          ]
         : userText;
-      messages = [{ role: "system", content: system }, { role: "user", content: userContent }];
+      messages = [
+        { role: "system", content: system },
+        { role: "user", content: userContent },
+      ];
       tools = [markTool];
       toolName = "mark_student_answer";
     } else {
-      return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Unknown action" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const aiRes = await fetch(GATEWAY, {
@@ -142,33 +177,50 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
     if (!aiRes.ok) {
       const txt = await aiRes.text();
       console.error("AI gateway error", aiRes.status, txt);
-      if (aiRes.status === 429) return new Response(JSON.stringify({ error: "Rate limit hit. Try again in a moment." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (aiRes.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in workspace settings." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      return new Response(JSON.stringify({ error: "AI generation failed" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (aiRes.status === 429)
+        return new Response(JSON.stringify({ error: "Rate limit hit. Try again in a moment." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      if (aiRes.status === 402)
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in workspace settings." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      return new Response(JSON.stringify({ error: "AI generation failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await aiRes.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
       console.error("No tool call returned", JSON.stringify(data));
-      return new Response(JSON.stringify({ error: "AI returned no structured output" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "AI returned no structured output" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
     const args = JSON.parse(toolCall.function.arguments);
 
     // Post-filter: drop drawing/sketching questions and clean malformed math.
-    const drawPattern = /\b(draw|sketch|plot (a|the) graph|label (the|a) diagram|complete the (diagram|structure)|construct (the|a) (diagram|graph)|curly[- ]arrow mechanism)\b/i;
-    const cleanMath = (s: string) => String(s || "")
-      .replace(/\$\$\s*\$\$/g, "")           // empty $$$$
-      .replace(/(\$\$)\s*,/g, "$1")          // stray $$,
-      .replace(/\\text\{\s*\}/g, "")
-      .trim();
+    const drawPattern =
+      /\b(draw|sketch|plot (a|the) graph|label (the|a) diagram|complete the (diagram|structure)|construct (the|a) (diagram|graph)|curly[- ]arrow mechanism)\b/i;
+    const cleanMath = (s: string) =>
+      String(s || "")
+        .replace(/\$\$\s*\$\$/g, "") // empty $$$$
+        .replace(/(\$\$)\s*,/g, "$1") // stray $$,
+        .replace(/\\text\{\s*\}/g, "")
+        .trim();
 
     if (action === "generate" && Array.isArray(args?.questions)) {
       args.questions = args.questions.filter((q: any) => {
         const t = String(q?.question_text || "");
         if (drawPattern.test(t)) return false;
         if (body.questionType !== "Multiple Choice") {
-          const mcqPattern = /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
+          const mcqPattern =
+            /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;
           const looksMcq = mcqPattern.test(t);
           const hasOptions = Array.isArray(q?.options) && q.options.length >= 2;
           if (looksMcq && !hasOptions) return false;
@@ -181,9 +233,15 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
       });
     }
 
-    return new Response(JSON.stringify(args), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify(args), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("ai-question error", err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
