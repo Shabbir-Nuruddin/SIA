@@ -7,7 +7,7 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
 const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
+const MODEL = "llama-3.3-70b-versatile";
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
@@ -247,7 +247,6 @@ Produce notes in this exact structure via the tool:
     });
     if (!res.ok) {
       const txt = await res.text();
-      console.error("FULL ERROR:", res.status, await res.text());
       console.error("ai-notes gateway error", res.status, txt);
       const status = res.status;
       const error =
