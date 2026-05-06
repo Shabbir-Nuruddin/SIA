@@ -247,6 +247,7 @@ Produce notes in this exact structure via the tool:
     });
     if (!res.ok) {
       const txt = await res.text();
+      console.error("FULL ERROR:", res.status, await res.text());
       console.error("ai-notes gateway error", res.status, txt);
       const status = res.status;
       const error =
