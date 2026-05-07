@@ -24,7 +24,7 @@ const notesTool = {
     parameters: {
       type: "object",
       properties: {
-        overview: {
+        Summary: {
           type: "string",
           description:
             "3–4 paragraphs of flowing prose explaining what the topic is, why it matters, and how it connects to other topics in the unit. No bullets, no markdown, no LaTeX.",
@@ -157,7 +157,7 @@ const notesTool = {
         },
       },
       required: [
-        "overview",
+        "Summary",
         "key_definitions",
         "core_content",
         "equations",
@@ -239,7 +239,7 @@ CRITICAL — THIS IS MATHEMATICS:
 - For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
 - Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.
 - For key_definitions, set "plain_english" to an empty string "" — maths notes show the formal definition only.
-- For overview, keep it short and conceptual (1 paragraph max) — students want to see worked examples, not prose.
+- For Summary, keep it detailed but only the necessary things that either reinforces concept or helps with exam — students want to see worked examples, not prose.
 
 CRITICAL — VISUAL SUMMARY FOR MATHS:
 - DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely on these notes for accuracy.
@@ -253,7 +253,7 @@ ${syllabus_context ? `Official syllabus content (your scope is limited to this):
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool:
-1. OVERVIEW — 3–4 paragraphs of flowing prose. Conceptual, like a knowledgeable teacher introducing the topic. No bullets.
+1. SUMMARY — 3–4 paragraphs of flowing prose. Like Savemyexams detailed notes or like a teachers detailed lesson plan only the necessary concepts . No bullets.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
@@ -292,15 +292,17 @@ Produce notes in this exact structure via the tool:
           const m = fg.match(/\{[\s\S]*\}/);
           if (m) {
             const candidate = m[0];
-            const tryParse = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
+            const tryParse = (s: string) => {
+              try {
+                return JSON.parse(s);
+              } catch {
+                return null;
+              }
+            };
             args =
               tryParse(candidate) ||
               tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
-              tryParse(
-                candidate
-                  .replace(/\\(?!["\\/bfnrtu])/g, "\\\\")
-                  .replace(/[\u0000-\u001F]+/g, " "),
-              );
+              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F]+/g, " "));
             if (args) break;
           }
         } catch (e) {
@@ -341,13 +343,14 @@ Produce notes in this exact structure via the tool:
       });
     }
 
-
     // Save to shared cache so future requests skip the AI call entirely.
     try {
-      await admin.from("cached_topic_notes").upsert(
-        { board: cacheBoard, subject, unit_number, topic, content: args, updated_at: new Date().toISOString() },
-        { onConflict: "board,subject,unit_number,topic" },
-      );
+      await admin
+        .from("cached_topic_notes")
+        .upsert(
+          { board: cacheBoard, subject, unit_number, topic, content: args, updated_at: new Date().toISOString() },
+          { onConflict: "board,subject,unit_number,topic" },
+        );
     } catch (e) {
       console.error("cache save failed", e);
     }
