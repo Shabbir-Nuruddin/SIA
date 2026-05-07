@@ -296,7 +296,14 @@ Produce notes in this exact structure via the tool:
         break;
       } catch (e) {
         console.error("ai-notes JSON parse failed attempt", attempt, e);
-        continue;
+        try {
+          // LaTeX often introduces stray backslashes that break JSON. Escape them.
+          const cleaned = tc.function.arguments.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+          args = JSON.parse(cleaned);
+          break;
+        } catch {
+          continue;
+        }
       }
     }
     if (!args) {
