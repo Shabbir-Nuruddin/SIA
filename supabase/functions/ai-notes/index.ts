@@ -284,6 +284,28 @@ Produce notes in this exact structure via the tool:
         lastErrBody = await res.text();
         console.error("ai-notes gateway error attempt", attempt, res.status, lastErrBody.slice(0, 500));
         if (res.status === 429 || res.status === 402) break;
+        // Try to recover: Groq sometimes rejects valid intent because tool args are invalid JSON.
+        // The actual model output is in error.failed_generation. Pull it out and try to clean it.
+        try {
+          const errJson = JSON.parse(lastErrBody);
+          const fg: string = errJson?.error?.failed_generation || "";
+          const m = fg.match(/\{[\s\S]*\}/);
+          if (m) {
+            const candidate = m[0];
+            const tryParse = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
+            args =
+              tryParse(candidate) ||
+              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
+              tryParse(
+                candidate
+                  .replace(/\\(?!["\\/bfnrtu])/g, "\\\\")
+                  .replace(/[\u0000-\u001F]+/g, " "),
+              );
+            if (args) break;
+          }
+        } catch (e) {
+          console.error("recover-from-failed-generation error", e);
+        }
         continue;
       }
       const data = await res.json();
@@ -298,7 +320,6 @@ Produce notes in this exact structure via the tool:
       } catch (e) {
         console.error("ai-notes JSON parse failed attempt", attempt, e);
         try {
-          // LaTeX often introduces stray backslashes that break JSON. Escape them.
           const cleaned = tc.function.arguments.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
           args = JSON.parse(cleaned);
           break;
