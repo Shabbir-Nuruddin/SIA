@@ -253,7 +253,7 @@ ${syllabus_context ? `Official syllabus content (your scope is limited to this):
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool:
-1. SUMMARY — 3–4 paragraphs of flowing prose. Like Savemyexams detailed notes or like a teachers detailed lesson plan only the necessary concepts . No bullets.
+1. SUMMARY — A detailed, comprehensive 6–8 paragraph summary of the entire topic. Write like a teacher giving complete lesson notes — cover every key idea, real-world context, misconceptions, and connections to other topics. Detailed enough that a student can understand the whole topic from this section alone. No bullets.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
