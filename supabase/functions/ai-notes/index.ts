@@ -260,42 +260,58 @@ Produce notes in this exact structure via the tool:
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
-    const res = await fetch(GATEWAY, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-        tools: [notesTool],
-        tool_choice: { type: "function", function: { name: "create_topic_notes" } },
-      }),
-    });
-    if (!res.ok) {
-      const txt = await res.text();
-      console.error("ai-notes gateway error", res.status, txt);
-      const status = res.status;
+    let args: any = null;
+    let lastErrStatus = 500;
+    let lastErrBody = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await fetch(GATEWAY, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: user },
+          ],
+          tools: [notesTool],
+          tool_choice: { type: "function", function: { name: "create_topic_notes" } },
+          temperature: 0.3,
+        }),
+      });
+      if (!res.ok) {
+        lastErrStatus = res.status;
+        lastErrBody = await res.text();
+        console.error("ai-notes gateway error attempt", attempt, res.status, lastErrBody.slice(0, 500));
+        if (res.status === 429 || res.status === 402) break;
+        continue;
+      }
+      const data = await res.json();
+      const tc = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (!tc) {
+        console.error("ai-notes no tool call attempt", attempt);
+        continue;
+      }
+      try {
+        args = JSON.parse(tc.function.arguments);
+        break;
+      } catch (e) {
+        console.error("ai-notes JSON parse failed attempt", attempt, e);
+        continue;
+      }
+    }
+    if (!args) {
       const error =
-        status === 429
+        lastErrStatus === 429
           ? "Rate limit hit. Try again in a moment."
-          : status === 402
+          : lastErrStatus === 402
             ? "AI credits exhausted."
             : "Notes generation failed";
       return new Response(JSON.stringify({ error }), {
-        status,
+        status: lastErrStatus,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const data = await res.json();
-    const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!tc)
-      return new Response(JSON.stringify({ error: "AI returned no structured output" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    const args = JSON.parse(tc.function.arguments);
+
 
     // Save to shared cache so future requests skip the AI call entirely.
     try {
