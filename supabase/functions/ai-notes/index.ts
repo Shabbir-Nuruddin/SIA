@@ -24,7 +24,7 @@ const notesTool = {
     parameters: {
       type: "object",
       properties: {
-        Summary: {
+        overview: {
           type: "string",
           description:
             "3–4 paragraphs of flowing prose explaining what the topic is, why it matters, and how it connects to other topics in the unit. No bullets, no markdown, no LaTeX.",
@@ -157,7 +157,7 @@ const notesTool = {
         },
       },
       required: [
-        "Summary",
+        "overview",
         "key_definitions",
         "core_content",
         "equations",
@@ -239,7 +239,7 @@ CRITICAL — THIS IS MATHEMATICS:
 - For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
 - Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.
 - For key_definitions, set "plain_english" to an empty string "" — maths notes show the formal definition only.
-- For Summary, keep it detailed but only the necessary things that either reinforces concept or helps with exam — students want to see worked examples, not prose.
+- For overview, keep it detailed but only the necessary things that either reinforces concept or helps with exam — students want to see worked examples, not prose.
 
 CRITICAL — VISUAL SUMMARY FOR MATHS:
 - DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely on these notes for accuracy.
@@ -253,7 +253,7 @@ ${syllabus_context ? `Official syllabus content (your scope is limited to this):
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool:
-1. SUMMARY — A detailed, comprehensive 6–8 paragraph summary of the entire topic. Write like a teacher giving complete lesson notes — cover every key idea, real-world context, misconceptions, and connections to other topics. Detailed enough that a student can understand the whole topic from this section alone. No bullets.
+1. overview — A detailed, comprehensive 6–8 paragraph summary of the entire topic. Write like a teacher giving complete lesson notes — cover every key idea, real-world context, misconceptions, and connections to other topics. Detailed enough that a student can understand the whole topic from this section alone. No bullets.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
