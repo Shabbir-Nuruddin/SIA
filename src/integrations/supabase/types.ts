@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cached_topic_notes: {
+        Row: {
+          board: string
+          content: Json
+          created_at: string
+          id: string
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at: string
+        }
+        Insert: {
+          board?: string
+          content: Json
+          created_at?: string
+          id?: string
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at?: string
+        }
+        Update: {
+          board?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          subject?: string
+          topic?: string
+          unit_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string

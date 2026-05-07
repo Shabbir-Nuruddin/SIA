@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +9,11 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
 const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
+const MODEL = "llama-3.3-70b-versatile";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
@@ -175,6 +180,28 @@ serve(async (req) => {
   }
   try {
     const { subject, unit_number, unit_name, topic, syllabus_context, board, level } = await req.json();
+
+    // Shared cache: if any user already generated notes for this board+subject+unit+topic, reuse them.
+    const cacheBoard = board === "cie" ? "cie" : "edexcel";
+    try {
+      const { data: cachedRow } = await admin
+        .from("cached_topic_notes")
+        .select("content")
+        .eq("board", cacheBoard)
+        .eq("subject", subject)
+        .eq("unit_number", unit_number)
+        .eq("topic", topic)
+        .maybeSingle();
+      if (cachedRow?.content) {
+        return new Response(JSON.stringify(cachedRow.content), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } catch (e) {
+      console.error("cache lookup failed", e);
+    }
+
     const isCie = board === "cie";
     const boardLabel = isCie ? "Cambridge International (CIE) A Level" : board || "Edexcel International A-Level";
     const levelLabel = level || "A-Level";
@@ -269,6 +296,17 @@ Produce notes in this exact structure via the tool:
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     const args = JSON.parse(tc.function.arguments);
+
+    // Save to shared cache so future requests skip the AI call entirely.
+    try {
+      await admin.from("cached_topic_notes").upsert(
+        { board: cacheBoard, subject, unit_number, topic, content: args, updated_at: new Date().toISOString() },
+        { onConflict: "board,subject,unit_number,topic" },
+      );
+    } catch (e) {
+      console.error("cache save failed", e);
+    }
+
     return new Response(JSON.stringify(args), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

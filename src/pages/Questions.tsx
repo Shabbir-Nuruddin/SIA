@@ -109,7 +109,6 @@ const QuestionsPage = () => {
   };
 
   const generateBatch = async () => {
-    return;
     if (!(await checkAndWarn("questions_per_day"))) return;
     setLoadingGen(true);
     setBatch([]);
@@ -172,7 +171,6 @@ const QuestionsPage = () => {
   };
 
   const submit = async () => {
-    return;
     if (!current) return;
     if (!currentAnswer.trim() && !currentImage) return;
     setLoadingMark(true);
