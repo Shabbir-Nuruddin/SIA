@@ -225,7 +225,8 @@ ABSOLUTE FORMATTING RULES:
 - For ALL mathematical expressions use LaTeX delimited with $...$ (inline) or $$...$$ (display). Examples: $x^2 + 5x + 6$, $\\frac{a}{b}$, $\\sqrt{x+1}$, $\\int_0^1 x\\,dx$, $H_2O$, $\\pi r^2$.
 - Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
 - Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
-- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.`;
+- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
+- CRITICAL JSON SAFETY: When emitting tool arguments, every backslash inside a JSON string MUST be doubled (\\\\). For LaTeX, write "\\\\frac{a}{b}", "\\\\sqrt{x}", "\\\\Delta", "\\\\sum", "\\\\int", "\\\\pi" — never a single backslash. Never emit unescaped control characters or stray backslashes. Invalid JSON will be discarded.`;
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
     const mathsBoost = isMaths
