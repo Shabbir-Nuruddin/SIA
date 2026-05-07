@@ -109,7 +109,6 @@ const QuestionsPage = () => {
   };
 
   const generateBatch = async () => {
-    toast.error("This feature is currently under maintenance. We'll be back shortly.");
     return;
     if (!(await checkAndWarn("questions_per_day"))) return;
     setLoadingGen(true);
@@ -173,7 +172,6 @@ const QuestionsPage = () => {
   };
 
   const submit = async () => {
-    toast.error("This feature is currently under maintenance. We'll be back shortly.");
     return;
     if (!current) return;
     if (!currentAnswer.trim() && !currentImage) return;
