@@ -17,6 +17,7 @@ import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { TopicImages } from "@/components/TopicImages";
 
 /* ────────────────────────────────────────────────────────────
    UNIFIED NOTE MODEL
@@ -639,6 +640,9 @@ const NotesPage = () => {
                       <div className="text-sm overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
                     ) : (
                       <pre className="text-xs font-mono bg-secondary/30 p-3 rounded-md overflow-x-auto whitespace-pre" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
+                    )}
+                    {subjectParam && unitParam && topicParam && (
+                      <TopicImages board={board} subject={subjectParam} unit_number={unitParam} topic={topicParam} />
                     )}
                   </Section>
                 )}

@@ -37,40 +37,19 @@ const FAQPage = () => {
   const [topicQs, setTopicQs] = useState<Record<string, TopicQState>>({});
 
   const loadTopicQuestions = async (key: string, subj: SubjectCode, topic: string) => {
-    // Cache per board+subject+topic in localStorage for 30 days.
-    const ck = cacheKey(board, subj, topic);
-    try {
-      const raw = localStorage.getItem(ck);
-      if (raw) {
-        const { ts, questions } = JSON.parse(raw) as { ts: number; questions: ExamQ[] };
-        if (Date.now() - ts < 30 * 86400_000 && Array.isArray(questions) && questions.length) {
-          setTopicQs(s => ({ ...s, [key]: { loading: false, error: false, questions, expanded: new Set() } }));
-          return;
-        }
-      }
-    } catch { /* ignore */ }
-
     setTopicQs(s => ({ ...s, [key]: { loading: true, error: false, questions: null, expanded: new Set() } }));
     try {
-      const { data, error } = await supabase.functions.invoke("ai-question", {
-        body: {
-          action: "generate",
-          subject: subj,
-          topic,
-          board,
-          difficulty: "Standard",
-          questionType: "Extended Response",
-          count: 3,
-          syllabus_context: `Generate exam questions worth between 3 and 6 marks each. Use realistic ${board === "cie" ? "Cambridge International" : "Edexcel"} command words. Mark schemes must list each marking point clearly with a (1) at the end of each point.`,
-        },
+      const { data, error } = await supabase.functions.invoke("faq-questions", {
+        body: { board, subject: subj, topic },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const questions: ExamQ[] = (data?.questions || [])
-        .map((q: any) => ({ question_text: q.question_text, marks: q.marks, mark_scheme: q.mark_scheme }))
-        .filter((q: ExamQ) => q.marks >= 3 && q.marks <= 6);
+      const questions: ExamQ[] = (data?.questions || []).map((q: any) => ({
+        question_text: q.question_text,
+        marks: q.marks,
+        mark_scheme: q.mark_scheme,
+      }));
       if (!questions.length) throw new Error("no questions");
-      try { localStorage.setItem(ck, JSON.stringify({ ts: Date.now(), questions })); } catch { /* ignore */ }
       setTopicQs(s => ({ ...s, [key]: { loading: false, error: false, questions, expanded: new Set() } }));
     } catch (e) {
       setTopicQs(s => ({ ...s, [key]: { loading: false, error: true, questions: null, expanded: new Set() } }));

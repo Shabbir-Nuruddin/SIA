@@ -9,6 +9,7 @@ import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { formattedHtmlProps, renderedMathHtmlProps } from "@/lib/formatText";
+import { TopicImages } from "@/components/TopicImages";
 
 // Full-screen Notes route consuming the structured ai-notes JSON.
 // Tabs: Overview / Definitions / Worked Examples / Equations / Visual / Tips / Flashcards.
@@ -258,6 +259,9 @@ const RoadmapTopicNotes = () => {
                       <div className="overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" {...renderedMathHtmlProps(notes.visual_summary.content)} />
                     ) : (
                       <pre className="whitespace-pre-wrap font-mono text-[13px] bg-secondary rounded-md p-3 overflow-x-auto" {...renderedMathHtmlProps(notes.visual_summary.content)} />
+                    )}
+                    {node?.subject && node?.topic_name && (
+                      <TopicImages board={board} subject={node.subject} unit_number={node.unit_number || 0} topic={node.topic_name} />
                     )}
                   </div>
                 ) : <p className="text-muted-foreground text-sm italic">No visual summary.</p>}
