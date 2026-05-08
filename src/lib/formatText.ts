@@ -26,6 +26,33 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /* ------------------------------------------------------------------ */
+/*  Repair LaTeX corrupted by JSON control-char interpretation.        */
+/*  When an LLM emits "\rightarrow" inside a JSON string without       */
+/*  escaping the backslash, JSON.parse turns "\r" into a CR and the    */
+/*  rest survives as "ightarrow". Same for \f → "rac", \b → "ackslash" */
+/*  These patches restore the missing backslash + drop stray controls. */
+/* ------------------------------------------------------------------ */
+const repairLatex = (input: string): string => {
+  if (!input) return input;
+  let s = input;
+  // Strip raw control chars that came from \r \f \b \v \t inside math.
+  s = s.replace(/[\u0008\u000B\u000C]/g, "");
+  s = s.replace(/\r(?!\n)/g, "");
+  // Restore commands whose leading backslash was eaten as a control char.
+  // \f → "f" was lost, leaving "rac{...}" etc.
+  s = s.replace(/\b(rac)\s*\{/g, "\\f$1{");
+  // \r* commands (rightarrow, rightleftharpoons, rho)
+  s = s.replace(/(^|[^\\A-Za-z])(ightarrow|ightleftharpoons|ho)\b/g, "$1\\r$2");
+  // \l* commands (leftarrow, leq, ldots, log, ln, lambda, leftrightarrow)
+  s = s.replace(/(^|[^\\A-Za-z])(eftarrow|eftrightarrow)\b/g, "$1\\l$2");
+  // \b* commands (beta, binom)
+  s = s.replace(/(^|[^\\A-Za-z])Bightarrow\b/g, "$1\\Rightarrow");
+  // Capital variants — \Rightarrow, \Leftarrow
+  s = s.replace(/(^|[^\\A-Za-z])(ightarrow)\b/g, "$1\\r$2");
+  return s;
+};
+
+/* ------------------------------------------------------------------ */
 /*  Auto-math: heuristically wrap bare math tokens in $...$            */
 /*  so plain "x^2", "sqrt(2)", "1/2", "\frac{a}{b}", "H_2O" render.    */
 /* ------------------------------------------------------------------ */
@@ -245,7 +272,8 @@ const sanitizeLatexEnvs = (input: string): string => {
 
 export const toFormattedHtml = (input: string): string => {
   if (!input) return "";
-  const cleaned = sanitizeLatexEnvs(input);
+  const repaired = repairLatex(input);
+  const cleaned = sanitizeLatexEnvs(repaired);
   const wrapped = autoWrapMath(cleaned);
   const { text: mathRendered, store } = renderMathWithPlaceholders(wrapped);
 
@@ -301,7 +329,7 @@ export const formattedHtmlProps = (input: string) => ({
  */
 export const renderMathInString = (input: string): string => {
   if (!input) return "";
-  let s = autoWrapMath(sanitizeLatexEnvs(input));
+  let s = autoWrapMath(sanitizeLatexEnvs(repairLatex(input)));
   s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, tex) => renderMath(tex, true));
   s = s.replace(/\\\[([\s\S]+?)\\\]/g, (_m, tex) => renderMath(tex, true));
   s = s.replace(/\\\(([\s\S]+?)\\\)/g, (_m, tex) => renderMath(tex, false));
