@@ -17,3 +17,7 @@ project_id = "womqjniplkfthbxkzlkb"
     verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
+  [functions.topic-images]
+    verify_jwt = false
+  [functions.faq-questions]
+    verify_jwt = false
