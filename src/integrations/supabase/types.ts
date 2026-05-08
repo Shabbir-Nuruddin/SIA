@@ -95,6 +95,69 @@ export type Database = {
         }
         Relationships: []
       }
+      cached_faq_questions: {
+        Row: {
+          board: string
+          created_at: string
+          id: string
+          questions: Json
+          subject: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          board: string
+          created_at?: string
+          id?: string
+          questions: Json
+          subject: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          board?: string
+          created_at?: string
+          id?: string
+          questions?: Json
+          subject?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cached_topic_images: {
+        Row: {
+          board: string
+          created_at: string
+          id: string
+          images: Json
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at: string
+        }
+        Insert: {
+          board: string
+          created_at?: string
+          id?: string
+          images: Json
+          subject: string
+          topic: string
+          unit_number: number
+          updated_at?: string
+        }
+        Update: {
+          board?: string
+          created_at?: string
+          id?: string
+          images?: Json
+          subject?: string
+          topic?: string
+          unit_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cached_topic_notes: {
         Row: {
           board: string
