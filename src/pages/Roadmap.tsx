@@ -103,6 +103,7 @@ const RoadmapPage = () => {
   const [nodes, setNodes] = useState<RoadmapNodeRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; current_streak: number; notification_enabled: boolean; notification_prompted: boolean; notification_time: string } | null>(null);
   const [units, setUnits] = useState<{ subject: SubjectCode; unit_number: number; unit_name: string; exam_date: string }[]>([]);
+  const [exams, setExams] = useState<{ subject: SubjectCode | null; exam_date: string; name: string; is_active: boolean }[]>([]);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
@@ -112,14 +113,16 @@ const RoadmapPage = () => {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const [n, p, u] = await Promise.all([
+    const [n, p, u, e] = await Promise.all([
       supabase.from("roadmap_nodes").select("*").eq("user_id", user.id).order("node_order"),
       supabase.from("profiles").select("first_name,current_streak,notification_enabled,notification_prompted,notification_time").eq("id", user.id).single(),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date").eq("user_id", user.id).order("exam_date"),
+      supabase.from("exams").select("subject,exam_date,name,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (n.data) setNodes(n.data as RoadmapNodeRow[]);
     if (p.data) setProfile(p.data as any);
     if (u.data) setUnits(u.data as any);
+    if (e.data) setExams(e.data as any);
     setLoading(false);
   };
 
