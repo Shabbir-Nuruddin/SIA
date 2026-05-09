@@ -226,8 +226,14 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
         }
         q.question_text = cleanMath(t);
         if (q.mark_scheme) q.mark_scheme = cleanMath(q.mark_scheme);
+        onePointPerMark(q);
         return true;
       });
+    }
+
+    if (action === "mark") {
+      args.awarded_marks = Math.max(0, Math.min(Number(body.totalMarks) || 0, Number(args.awarded_marks) || 0));
+      args.total_marks = Number(body.totalMarks) || Number(args.total_marks) || 0;
     }
 
     return new Response(JSON.stringify(args), {
