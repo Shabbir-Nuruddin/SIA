@@ -3,6 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callGroqTool } from "../_shared/groq.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,11 +11,20 @@ const corsHeaders = {
 };
 
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
-const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+const onePointPerMark = (q: any) => {
+  const marks = Math.max(1, Number(q?.marks) || 1);
+  const lines = String(q?.mark_scheme || "")
+    .split(/\n+/)
+    .map((l) => l.replace(/^[-•*]\s*/, "").trim())
+    .filter(Boolean)
+    .map((l, i) => (/(\(1\)|\[1\])\s*$/.test(l) ? l : `MP${i + 1} — ${l.replace(/\s*\(\d+\)\s*$/, "")} (1)`));
+  q.mark_scheme = lines.slice(0, marks).join("\n");
+  return q;
+};
 
 const tool = {
   type: "function",
