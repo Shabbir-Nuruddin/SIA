@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock, Headphones,
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock, Headphones, Compass,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,6 +100,26 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
           );
         })}
       </nav>
+
+      <div className="px-2 pb-2">
+        <NavLink
+          to="/clarity-compass"
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] transition-colors border ${
+              isActive
+                ? "bg-primary/15 text-primary font-semibold border-primary/30"
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground border-sidebar-border"
+            }`
+          }
+        >
+          <Compass className="h-4 w-4 shrink-0" />
+          <div className="flex-1">
+            <div className="font-semibold text-[12px]">Clarity Compass</div>
+            <div className="text-[10px] text-muted-foreground leading-tight">Discover your career path</div>
+          </div>
+        </NavLink>
+      </div>
 
       <div className="mt-3 pt-3 border-t border-sidebar-border space-y-2">
         <div className="px-2">
