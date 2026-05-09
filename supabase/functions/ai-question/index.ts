@@ -42,7 +42,8 @@ const generateTool = {
               marks: { type: "integer", description: "Mark allocation appropriate for difficulty/type." },
               mark_scheme: {
                 type: "string",
-                description: "Concise mark scheme: bullet points with M1/A1/B1 codes where appropriate.",
+                description:
+                  "Official-examiner-style marking scheme. Exactly one line per mark. Each line ends with (1). Use MP1/MP2 or M1/A1/B1 where appropriate, include required keywords and acceptable alternatives. The number of lines must equal marks.",
               },
               options: {
                 type: "array",
@@ -74,7 +75,7 @@ const markTool = {
         feedback: {
           type: "string",
           description:
-            "Specific, examiner-style feedback. What earned marks. What was missing. Reference command words. Keep it tight and useful.",
+            "Specific examiner-style feedback. State which exact marking points earned marks and which keywords/steps were missing. Keep it tight and useful.",
         },
         model_answer: {
           type: "string",
