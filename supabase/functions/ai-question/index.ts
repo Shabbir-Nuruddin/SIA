@@ -111,6 +111,12 @@ serve(async (req) => {
       const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
       const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
+EXAM AUTHENTICITY RULES:
+- Questions must feel like real recent ${boardLabel} past-paper questions for this exact topic. Do not ask generic textbook questions that never appear in papers.
+- Mark allocations must match real exam practice: recall usually 1-2, explain/describe usually 2-4, calculation usually 3-6, extended response only when the actual exam would ask it.
+- The mark_scheme must have exactly one marking point per mark, one line per mark, every line ending with (1). Use official language with keywords and allowed alternatives, e.g. "MP1 — collision frequency increases (1)".
+- Model answers and marking must show where each line earns 1 mark, like an official mark scheme.
+
 FORMATTING (CRITICAL):
 - Render ALL mathematical expressions in LaTeX using $...$ for inline (e.g. $x^2 + 5x + 6$, $\\frac{dy}{dx}$, $\\sqrt{x^2+1}$, $\\int_0^1 f(x)\\,dx$, $H_2O$) and $$...$$ for display equations.
 - Use \\frac, \\sqrt, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
@@ -124,6 +130,8 @@ THIS IS A WEB APP — questions must be answerable by typing. ABSOLUTELY DO NOT 
 - Short Answer: 2-4 marks
 - Extended Response: 5-9 marks
 - Calculation: 3-6 marks
+
+For EVERY generated question, its mark_scheme must contain exactly the same number of (1) lines as the marks value. No prose before or after the marking points.
 
 CRITICAL RULES ABOUT QUESTION PHRASING:
 - NO drawing/sketching/plotting/labelling/diagram-completion questions. The student is typing in a text box.
