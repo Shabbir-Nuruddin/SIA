@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callGroqTool } from "../_shared/groq.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,8 +8,17 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
-const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
+
+const onePointPerMark = (q: any) => {
+  const marks = Math.max(1, Number(q?.marks) || 1);
+  const lines = String(q?.mark_scheme || "")
+    .split(/\n+/)
+    .map((l) => l.replace(/^[-•*]\s*/, "").trim())
+    .filter(Boolean)
+    .map((l, i) => (/(\(1\)|\[1\])\s*$/.test(l) ? l : `MP${i + 1} — ${l.replace(/\s*\(\d+\)\s*$/, "")} (1)`));
+  q.mark_scheme = lines.slice(0, marks).join("\n");
+  return q;
+};
 
 const generateTool = {
   type: "function",
@@ -32,7 +42,8 @@ const generateTool = {
               marks: { type: "integer", description: "Mark allocation appropriate for difficulty/type." },
               mark_scheme: {
                 type: "string",
-                description: "Concise mark scheme: bullet points with M1/A1/B1 codes where appropriate.",
+                description:
+                  "Official-examiner-style marking scheme. Exactly one line per mark. Each line ends with (1). Use MP1/MP2 or M1/A1/B1 where appropriate, include required keywords and acceptable alternatives. The number of lines must equal marks.",
               },
               options: {
                 type: "array",
@@ -64,7 +75,7 @@ const markTool = {
         feedback: {
           type: "string",
           description:
-            "Specific, examiner-style feedback. What earned marks. What was missing. Reference command words. Keep it tight and useful.",
+            "Specific examiner-style feedback. State which exact marking points earned marks and which keywords/steps were missing. Keep it tight and useful.",
         },
         model_answer: {
           type: "string",
@@ -100,6 +111,12 @@ serve(async (req) => {
       const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
       const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
+EXAM AUTHENTICITY RULES:
+- Questions must feel like real recent ${boardLabel} past-paper questions for this exact topic. Do not ask generic textbook questions that never appear in papers.
+- Mark allocations must match real exam practice: recall usually 1-2, explain/describe usually 2-4, calculation usually 3-6, extended response only when the actual exam would ask it.
+- The mark_scheme must have exactly one marking point per mark, one line per mark, every line ending with (1). Use official language with keywords and allowed alternatives, e.g. "MP1 — collision frequency increases (1)".
+- Model answers and marking must show where each line earns 1 mark, like an official mark scheme.
+
 FORMATTING (CRITICAL):
 - Render ALL mathematical expressions in LaTeX using $...$ for inline (e.g. $x^2 + 5x + 6$, $\\frac{dy}{dx}$, $\\sqrt{x^2+1}$, $\\int_0^1 f(x)\\,dx$, $H_2O$) and $$...$$ for display equations.
 - Use \\frac, \\sqrt, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
@@ -113,6 +130,8 @@ THIS IS A WEB APP — questions must be answerable by typing. ABSOLUTELY DO NOT 
 - Short Answer: 2-4 marks
 - Extended Response: 5-9 marks
 - Calculation: 3-6 marks
+
+For EVERY generated question, its mark_scheme must contain exactly the same number of (1) lines as the marks value. No prose before or after the marking points.
 
 CRITICAL RULES ABOUT QUESTION PHRASING:
 - NO drawing/sketching/plotting/labelling/diagram-completion questions. The student is typing in a text box.
@@ -163,46 +182,24 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
       });
     }
 
-    const aiRes = await fetch(GATEWAY, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
+    let args: any;
+    try {
+      args = await callGroqTool({
+        apiKey: LOVABLE_API_KEY,
         messages,
         tools,
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const txt = await aiRes.text();
-      console.error("AI gateway error", aiRes.status, txt);
-      if (aiRes.status === 429)
-        return new Response(JSON.stringify({ error: "Rate limit hit. Try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      if (aiRes.status === 402)
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in workspace settings." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 500,
+        toolName,
+        temperature: action === "generate" ? 0.35 : 0.15,
+        maxTokens: action === "generate" ? 6000 : 2500,
+        vision: Boolean(body.studentAnswerImage),
+      });
+    } catch (err: any) {
+      console.error("ai-question generation failed", err?.body?.slice?.(0, 700) || err);
+      return new Response(JSON.stringify({ error: err?.message || "AI generation failed after trying fallback models." }), {
+        status: err?.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const data = await aiRes.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      console.error("No tool call returned", JSON.stringify(data));
-      return new Response(JSON.stringify({ error: "AI returned no structured output" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const args = JSON.parse(toolCall.function.arguments);
 
     // Post-filter: drop drawing/sketching questions and clean malformed math.
     const drawPattern =
@@ -229,8 +226,14 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
         }
         q.question_text = cleanMath(t);
         if (q.mark_scheme) q.mark_scheme = cleanMath(q.mark_scheme);
+        onePointPerMark(q);
         return true;
       });
+    }
+
+    if (action === "mark") {
+      args.awarded_marks = Math.max(0, Math.min(Number(body.totalMarks) || 0, Number(args.awarded_marks) || 0));
+      args.total_marks = Number(body.totalMarks) || Number(args.total_marks) || 0;
     }
 
     return new Response(JSON.stringify(args), {

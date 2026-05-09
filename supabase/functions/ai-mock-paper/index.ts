@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callGroqTool } from "../_shared/groq.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,8 +8,6 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
-const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
 
 const generatePaperTool = {
   type: "function",
@@ -93,33 +92,7 @@ const markPaperTool = {
 };
 
 async function callAI(messages: any[], tools: any[], toolName: string) {
-  const res = await fetch(GATEWAY, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      tools,
-      tool_choice: { type: "function", function: { name: toolName } },
-    }),
-  });
-  if (!res.ok) {
-    const txt = await res.text();
-    console.error("AI gateway error", res.status, txt);
-    throw {
-      status: res.status,
-      message:
-        res.status === 429
-          ? "Rate limit hit. Try again in a moment."
-          : res.status === 402
-            ? "AI credits exhausted. Add funds in workspace settings."
-            : "AI generation failed",
-    };
-  }
-  const data = await res.json();
-  const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-  if (!tc) throw { status: 500, message: "AI returned no structured output" };
-  return JSON.parse(tc.function.arguments);
+  return callGroqTool({ apiKey: LOVABLE_API_KEY, messages, tools, toolName, temperature: 0.3, maxTokens: 6500 });
 }
 
 serve(async (req) => {

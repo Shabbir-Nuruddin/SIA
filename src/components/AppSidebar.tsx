@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock,
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock, Headphones,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,7 @@ const items: { to: string; icon: any; label: string; proOnly?: boolean }[] = [
   { to: "/questions", icon: Zap, label: "Topical Questions" },
   { to: "/mock-papers", icon: FileText, label: "Mock Papers" },
   { to: "/notes", icon: BookOpen, label: "Notes" },
+  { to: "/podcast", icon: Headphones, label: "Podcast" },
   { to: "/papers", icon: LinkIcon, label: "Past Papers" },
   { to: "/faq", icon: MessageCircle, label: "Exam FAQs", proOnly: true },
   { to: "/feedback", icon: MessageSquare, label: "Feedback" },

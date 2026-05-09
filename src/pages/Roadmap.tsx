@@ -103,6 +103,7 @@ const RoadmapPage = () => {
   const [nodes, setNodes] = useState<RoadmapNodeRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; current_streak: number; notification_enabled: boolean; notification_prompted: boolean; notification_time: string } | null>(null);
   const [units, setUnits] = useState<{ subject: SubjectCode; unit_number: number; unit_name: string; exam_date: string }[]>([]);
+  const [exams, setExams] = useState<{ subject: SubjectCode | null; exam_date: string; name: string; is_active: boolean }[]>([]);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
@@ -112,14 +113,16 @@ const RoadmapPage = () => {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const [n, p, u] = await Promise.all([
+    const [n, p, u, e] = await Promise.all([
       supabase.from("roadmap_nodes").select("*").eq("user_id", user.id).order("node_order"),
       supabase.from("profiles").select("first_name,current_streak,notification_enabled,notification_prompted,notification_time").eq("id", user.id).single(),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date").eq("user_id", user.id).order("exam_date"),
+      supabase.from("exams").select("subject,exam_date,name,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (n.data) setNodes(n.data as RoadmapNodeRow[]);
     if (p.data) setProfile(p.data as any);
     if (u.data) setUnits(u.data as any);
+    if (e.data) setExams(e.data as any);
     setLoading(false);
   };
 
@@ -240,8 +243,8 @@ const RoadmapPage = () => {
   const completed = nodes.filter(n => n.status === "complete").length;
   const total = nodes.length;
   const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-  const nearestExam = units[0];
-  const daysToNearest = nearestExam ? Math.max(0, differenceInDays(parseISO(nearestExam.exam_date), new Date())) : 0;
+  const nearestExam = exams[0] ?? null;
+  const daysToNearest = nearestExam ? Math.max(0, differenceInDays(parseISO(nearestExam.exam_date), new Date())) : null;
 
   // === Render ===
   if (loading) {
@@ -359,8 +362,8 @@ const RoadmapPage = () => {
 
   const firstName = profile?.first_name || "Your";
   const nextExamLabel = nearestExam
-    ? `${SUBJECTS[nearestExam.subject].name} — ${daysToNearest} days`
-    : "exams";
+    ? `${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name}`
+    : "no exam date set";
 
   return (
     <AppLayout>
@@ -369,7 +372,7 @@ const RoadmapPage = () => {
         <header className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold mb-1">{firstName}'s Revision Path</h1>
           <p className="text-sm text-muted-foreground">
-            {total} sessions · {grouped.length} days · {daysToNearest} days to {nextExamLabel}
+            {total} sessions · {grouped.length} days · {nearestExam ? `${daysToNearest} days to ${nextExamLabel}` : "no exam date set"}
           </p>
 
           {/* Progress bar */}
@@ -510,7 +513,7 @@ const RoadmapPage = () => {
                         <div className="mt-4 ml-6 surface p-4 text-sm">
                           <p className="font-medium">Today's plan: complete.</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {daysToNearest} days to {nearestExam ? SUBJECTS[nearestExam.subject].name : "your exam"}.
+                            {nearestExam ? `${daysToNearest} days to ${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name}.` : "No exam date set yet."}
                           </p>
                         </div>
                       )}

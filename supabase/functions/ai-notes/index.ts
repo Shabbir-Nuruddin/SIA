@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callGroqTool } from "../_shared/groq.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,12 +9,24 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
-const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+const paragraphiseOverview = (s: string) =>
+  String(s || "")
+    .split(/\n\s*\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+const enoughOverview = (s: string) => paragraphiseOverview(s).split(/\n\s*\n+/).filter(Boolean).length >= 6;
+
+const normaliseNotes = (args: any) => ({
+  ...args,
+  overview: paragraphiseOverview(args?.overview || ""),
+});
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
@@ -27,7 +40,7 @@ const notesTool = {
         overview: {
           type: "string",
           description:
-            "8 to 10 substantive paragraphs of flowing prose, written like a Save My Exams revision summary. Teach the actual topic content directly: define the core concepts in plain language, walk through how each idea works with short illustrative examples, explain the underlying mechanism (why it happens, not just what), connect it to related topics in the unit, and highlight the most common exam scenarios. Do NOT talk about 'the syllabus', 'this section', 'students should learn'. Just teach. No bullets, no markdown, no LaTeX delimiters in this field — keep it pure prose.",
+            "8 to 10 separate paragraphs of flowing prose, with a blank line between paragraphs. Each paragraph must be 4 to 6 sentences. Written like a Save My Exams revision summary. Teach the actual topic content directly: define the core concepts in plain language, walk through how each idea works with short illustrative examples, explain the underlying mechanism (why it happens, not just what), connect it to related topics in the unit, and highlight the most common exam scenarios. Do NOT talk about 'the syllabus', 'this section', 'students should learn'. Just teach. No bullets, no markdown, no LaTeX delimiters in this field — keep it pure prose.",
         },
         key_definitions: {
           type: "array",
@@ -225,7 +238,8 @@ ABSOLUTE FORMATTING RULES:
 - For ALL mathematical expressions use LaTeX delimited with $...$ (inline) or $$...$$ (display). Examples: $x^2 + 5x + 6$, $\\frac{a}{b}$, $\\sqrt{x+1}$, $\\int_0^1 x\\,dx$, $H_2O$, $\\pi r^2$.
 - Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
 - Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
-- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
+ - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
+ - OVERVIEW LENGTH IS NON-NEGOTIABLE: overview must contain 8 to 10 real paragraphs separated by blank lines. Never compress overview into 1-2 paragraphs. Each paragraph must teach exam-relevant content, not meta-commentary.
 - CRITICAL JSON SAFETY: When emitting tool arguments, every backslash inside a JSON string MUST be doubled (\\\\). For LaTeX, write "\\\\frac{a}{b}", "\\\\sqrt{x}", "\\\\Delta", "\\\\sum", "\\\\int", "\\\\pi" — never a single backslash. Never emit unescaped control characters or stray backslashes. Invalid JSON will be discarded.`;
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
@@ -253,7 +267,7 @@ ${syllabus_context ? `Official syllabus content (your scope is limited to this):
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool:
-1. overview — 8 to 10 substantial paragraphs in the style of Save My Exams revision notes. Teach the actual content directly: define every core concept in plain language, walk through how each idea works with a short worked example baked into the prose, explain the underlying mechanism (why, not just what), connect it to other topics in the unit, and call out the most common exam scenarios. Do NOT mention 'the syllabus', 'this section', 'students will learn', or talk about the structure of the topic — just teach it. A student who reads only this overview should understand the topic well enough to attempt exam questions.
+1. overview — EXACTLY 8 to 10 substantial paragraphs separated by blank lines in the style of Save My Exams revision notes. Each paragraph must be 4 to 6 sentences. Teach the actual content directly: define every core concept in plain language, walk through how each idea works with a short worked example baked into the prose, explain the underlying mechanism (why, not just what), connect it to other topics in the unit, and call out the most common exam scenarios. Do NOT mention 'the syllabus', 'this section', 'students will learn', or talk about the structure of the topic — just teach it. A student who reads only this overview should understand the topic well enough to attempt exam questions.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
 3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
@@ -261,84 +275,37 @@ Produce notes in this exact structure via the tool:
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
-    let args: any = null;
-    let lastErrStatus = 500;
-    let lastErrBody = "";
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const res = await fetch(GATEWAY, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: MODEL,
+    let args: any;
+    try {
+      args = await callGroqTool({
+        apiKey: LOVABLE_API_KEY,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        tools: [notesTool],
+        toolName: "create_topic_notes",
+        temperature: 0.25,
+        maxTokens: 8000,
+      });
+      args = normaliseNotes(args);
+      if (!enoughOverview(args.overview)) {
+        args = normaliseNotes(await callGroqTool({
+          apiKey: LOVABLE_API_KEY,
           messages: [
             { role: "system", content: system },
-            { role: "user", content: user },
+            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version where overview has 8 to 10 separate paragraphs with blank lines between them.` },
           ],
           tools: [notesTool],
-          tool_choice: { type: "function", function: { name: "create_topic_notes" } },
-          temperature: 0.3,
-        }),
-      });
-      if (!res.ok) {
-        lastErrStatus = res.status;
-        lastErrBody = await res.text();
-        console.error("ai-notes gateway error attempt", attempt, res.status, lastErrBody.slice(0, 500));
-        if (res.status === 429 || res.status === 402) break;
-        // Try to recover: Groq sometimes rejects valid intent because tool args are invalid JSON.
-        // The actual model output is in error.failed_generation. Pull it out and try to clean it.
-        try {
-          const errJson = JSON.parse(lastErrBody);
-          const fg: string = errJson?.error?.failed_generation || "";
-          const m = fg.match(/\{[\s\S]*\}/);
-          if (m) {
-            const candidate = m[0];
-            const tryParse = (s: string) => {
-              try {
-                return JSON.parse(s);
-              } catch {
-                return null;
-              }
-            };
-            args =
-              tryParse(candidate) ||
-              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
-              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F]+/g, " "));
-            if (args) break;
-          }
-        } catch (e) {
-          console.error("recover-from-failed-generation error", e);
-        }
-        continue;
+          toolName: "create_topic_notes",
+          temperature: 0.2,
+          maxTokens: 8000,
+        }));
       }
-      const data = await res.json();
-      const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-      if (!tc) {
-        console.error("ai-notes no tool call attempt", attempt);
-        continue;
-      }
-      try {
-        args = JSON.parse(tc.function.arguments);
-        break;
-      } catch (e) {
-        console.error("ai-notes JSON parse failed attempt", attempt, e);
-        try {
-          const cleaned = tc.function.arguments.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-          args = JSON.parse(cleaned);
-          break;
-        } catch {
-          continue;
-        }
-      }
-    }
-    if (!args) {
-      const error =
-        lastErrStatus === 429
-          ? "Rate limit hit. Try again in a moment."
-          : lastErrStatus === 402
-            ? "AI credits exhausted."
-            : "Notes generation failed";
-      return new Response(JSON.stringify({ error }), {
-        status: lastErrStatus,
+    } catch (err: any) {
+      console.error("ai-notes generation failed", err?.body?.slice?.(0, 700) || err);
+      return new Response(JSON.stringify({ error: err?.message || "Notes generation failed after trying fallback models." }), {
+        status: err?.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
