@@ -24,6 +24,8 @@ const tryParseJson = (s: string) => {
 };
 
 const recoverToolArgs = (raw: string) => {
+  const valid = (obj: any) => (obj && typeof obj === "object" && !obj.error ? obj : null);
+  const parse = (s: string) => valid(tryParseJson(s));
   const candidates: string[] = [raw];
   const failed = tryParseJson(raw)?.error?.failed_generation;
   if (typeof failed === "string") candidates.push(failed);
@@ -31,10 +33,10 @@ const recoverToolArgs = (raw: string) => {
     const match = source.match(/\{[\s\S]*\}/);
     const body = match?.[0] ?? source;
     const parsed =
-      (tryParseJson(body)?.error ? null : tryParseJson(body)) ||
-      tryParseJson(body.replace(/```json|```/g, "").trim()) ||
-      tryParseJson(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
-      tryParseJson(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F\u007F]+/g, " "));
+      parse(body) ||
+      parse(body.replace(/```json|```/g, "").trim()) ||
+      parse(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
+      parse(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F\u007F]+/g, " "));
     if (parsed) return parsed;
   }
   return null;
