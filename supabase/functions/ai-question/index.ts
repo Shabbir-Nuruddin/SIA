@@ -182,46 +182,24 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
       });
     }
 
-    const aiRes = await fetch(GATEWAY, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
+    let args: any;
+    try {
+      args = await callGroqTool({
+        apiKey: LOVABLE_API_KEY,
         messages,
         tools,
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const txt = await aiRes.text();
-      console.error("AI gateway error", aiRes.status, txt);
-      if (aiRes.status === 429)
-        return new Response(JSON.stringify({ error: "Rate limit hit. Try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      if (aiRes.status === 402)
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in workspace settings." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 500,
+        toolName,
+        temperature: action === "generate" ? 0.35 : 0.15,
+        maxTokens: action === "generate" ? 6000 : 2500,
+        vision: Boolean(body.studentAnswerImage),
+      });
+    } catch (err: any) {
+      console.error("ai-question generation failed", err?.body?.slice?.(0, 700) || err);
+      return new Response(JSON.stringify({ error: err?.message || "AI generation failed after trying fallback models." }), {
+        status: err?.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const data = await aiRes.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      console.error("No tool call returned", JSON.stringify(data));
-      return new Response(JSON.stringify({ error: "AI returned no structured output" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const args = JSON.parse(toolCall.function.arguments);
 
     // Post-filter: drop drawing/sketching questions and clean malformed math.
     const drawPattern =
