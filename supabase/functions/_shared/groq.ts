@@ -31,7 +31,7 @@ const recoverToolArgs = (raw: string) => {
     const match = source.match(/\{[\s\S]*\}/);
     const body = match?.[0] ?? source;
     const parsed =
-      tryParseJson(body) ||
+      (tryParseJson(body)?.error ? null : tryParseJson(body)) ||
       tryParseJson(body.replace(/```json|```/g, "").trim()) ||
       tryParseJson(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
       tryParseJson(body.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F\u007F]+/g, " "));
