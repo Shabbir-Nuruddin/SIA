@@ -105,43 +105,27 @@ ABSOLUTE RULES:
     const user = `Generate 3 distinct, realistic past-paper-style exam questions for ${boardLabel} ${subject}, topic: ${topic}.
 Each question must use a different command word (Explain, Describe, Calculate, Compare, State, Suggest, Determine, Evaluate). Mark allocation must reflect what an actual past paper would award for that exact question. Output via the tool.`;
 
-    const aiRes = await fetch(GATEWAY, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
+    let args: any;
+    try {
+      args = await callGroqTool({
+        apiKey: GROQ_KEY,
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },
         ],
         tools: [tool],
-        tool_choice: { type: "function", function: { name: "create_faq_questions" } },
-        temperature: 0.4,
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const txt = await aiRes.text();
-      console.error("groq error", aiRes.status, txt.slice(0, 400));
-      return new Response(JSON.stringify({ error: aiRes.status === 429 ? "Rate limit hit." : "AI failed" }), {
-        status: aiRes.status,
+        toolName: "create_faq_questions",
+        temperature: 0.35,
+        maxTokens: 3500,
+      });
+      args.questions = (Array.isArray(args.questions) ? args.questions : []).map(onePointPerMark).slice(0, 3);
+      if (args.questions.length !== 3) throw { status: 502, message: "AI returned too few questions." };
+    } catch (err: any) {
+      console.error("faq-questions generation failed", err?.body?.slice?.(0, 700) || err);
+      return new Response(JSON.stringify({ error: err?.message || "AI failed after trying fallback models." }), {
+        status: err?.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
-
-    const data = await aiRes.json();
-    const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!tc) {
-      return new Response(JSON.stringify({ error: "AI returned no questions" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    let args: any;
-    try {
-      args = JSON.parse(tc.function.arguments);
-    } catch {
-      args = JSON.parse(tc.function.arguments.replace(/\\(?!["\\/bfnrtu])/g, "\\\\"));
     }
 
     // Persist to cache
