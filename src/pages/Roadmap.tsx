@@ -243,8 +243,8 @@ const RoadmapPage = () => {
   const completed = nodes.filter(n => n.status === "complete").length;
   const total = nodes.length;
   const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-  const nearestExam = units[0];
-  const daysToNearest = nearestExam ? Math.max(0, differenceInDays(parseISO(nearestExam.exam_date), new Date())) : 0;
+  const nearestExam = exams[0] ?? null;
+  const daysToNearest = nearestExam ? Math.max(0, differenceInDays(parseISO(nearestExam.exam_date), new Date())) : null;
 
   // === Render ===
   if (loading) {
@@ -362,8 +362,8 @@ const RoadmapPage = () => {
 
   const firstName = profile?.first_name || "Your";
   const nextExamLabel = nearestExam
-    ? `${SUBJECTS[nearestExam.subject].name} — ${daysToNearest} days`
-    : "exams";
+    ? `${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name} — ${daysToNearest} days`
+    : "no exam date set";
 
   return (
     <AppLayout>
@@ -372,7 +372,7 @@ const RoadmapPage = () => {
         <header className="mb-8">
           <h1 className="text-2xl md:text-3xl font-extrabold mb-1">{firstName}'s Revision Path</h1>
           <p className="text-sm text-muted-foreground">
-            {total} sessions · {grouped.length} days · {daysToNearest} days to {nextExamLabel}
+            {total} sessions · {grouped.length} days · {nearestExam ? `${daysToNearest} days to ${nextExamLabel}` : "no exam date set"}
           </p>
 
           {/* Progress bar */}
