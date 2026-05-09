@@ -362,7 +362,7 @@ const RoadmapPage = () => {
 
   const firstName = profile?.first_name || "Your";
   const nextExamLabel = nearestExam
-    ? `${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name} — ${daysToNearest} days`
+    ? `${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name}`
     : "no exam date set";
 
   return (
