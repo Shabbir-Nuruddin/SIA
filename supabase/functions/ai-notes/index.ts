@@ -290,7 +290,17 @@ Produce notes in this exact structure via the tool:
       });
       args = normaliseNotes(args);
       if (!enoughOverview(args.overview)) {
-        throw { status: 502, message: "Overview was too short; retrying with fallback model." };
+        args = normaliseNotes(await callGroqTool({
+          apiKey: LOVABLE_API_KEY,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version where overview has 8 to 10 separate paragraphs with blank lines between them.` },
+          ],
+          tools: [notesTool],
+          toolName: "create_topic_notes",
+          temperature: 0.2,
+          maxTokens: 8000,
+        }));
       }
     } catch (err: any) {
       console.error("ai-notes generation failed", err?.body?.slice?.(0, 700) || err);
