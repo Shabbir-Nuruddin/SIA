@@ -275,84 +275,27 @@ Produce notes in this exact structure via the tool:
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
-    let args: any = null;
-    let lastErrStatus = 500;
-    let lastErrBody = "";
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const res = await fetch(GATEWAY, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-          tools: [notesTool],
-          tool_choice: { type: "function", function: { name: "create_topic_notes" } },
-          temperature: 0.3,
-        }),
+    let args: any;
+    try {
+      args = await callGroqTool({
+        apiKey: LOVABLE_API_KEY,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        tools: [notesTool],
+        toolName: "create_topic_notes",
+        temperature: 0.25,
+        maxTokens: 8000,
       });
-      if (!res.ok) {
-        lastErrStatus = res.status;
-        lastErrBody = await res.text();
-        console.error("ai-notes gateway error attempt", attempt, res.status, lastErrBody.slice(0, 500));
-        if (res.status === 429 || res.status === 402) break;
-        // Try to recover: Groq sometimes rejects valid intent because tool args are invalid JSON.
-        // The actual model output is in error.failed_generation. Pull it out and try to clean it.
-        try {
-          const errJson = JSON.parse(lastErrBody);
-          const fg: string = errJson?.error?.failed_generation || "";
-          const m = fg.match(/\{[\s\S]*\}/);
-          if (m) {
-            const candidate = m[0];
-            const tryParse = (s: string) => {
-              try {
-                return JSON.parse(s);
-              } catch {
-                return null;
-              }
-            };
-            args =
-              tryParse(candidate) ||
-              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\")) ||
-              tryParse(candidate.replace(/\\(?!["\\/bfnrtu])/g, "\\\\").replace(/[\u0000-\u001F]+/g, " "));
-            if (args) break;
-          }
-        } catch (e) {
-          console.error("recover-from-failed-generation error", e);
-        }
-        continue;
+      args = normaliseNotes(args);
+      if (!enoughOverview(args.overview)) {
+        throw { status: 502, message: "Overview was too short; retrying with fallback model." };
       }
-      const data = await res.json();
-      const tc = data.choices?.[0]?.message?.tool_calls?.[0];
-      if (!tc) {
-        console.error("ai-notes no tool call attempt", attempt);
-        continue;
-      }
-      try {
-        args = JSON.parse(tc.function.arguments);
-        break;
-      } catch (e) {
-        console.error("ai-notes JSON parse failed attempt", attempt, e);
-        try {
-          const cleaned = tc.function.arguments.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
-          args = JSON.parse(cleaned);
-          break;
-        } catch {
-          continue;
-        }
-      }
-    }
-    if (!args) {
-      const error =
-        lastErrStatus === 429
-          ? "Rate limit hit. Try again in a moment."
-          : lastErrStatus === 402
-            ? "AI credits exhausted."
-            : "Notes generation failed";
-      return new Response(JSON.stringify({ error }), {
-        status: lastErrStatus,
+    } catch (err: any) {
+      console.error("ai-notes generation failed", err?.body?.slice?.(0, 700) || err);
+      return new Response(JSON.stringify({ error: err?.message || "Notes generation failed after trying fallback models." }), {
+        status: err?.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
