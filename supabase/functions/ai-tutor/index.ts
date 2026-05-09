@@ -9,7 +9,14 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
 const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.1-8b-instant";
+const MODELS = [
+  "llama-3.1-8b-instant",
+  "gemma2-9b-it",
+  "llama3-8b-8192",
+  "llama-3.3-70b-versatile",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "meta-llama/llama-4-maverick-17b-128e-instruct",
+];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -47,15 +54,21 @@ Keep replies under 200 words unless the student asks for depth.
 ${nameLine}
 ${ctxLine}`;
 
-    const res = await fetch(GATEWAY, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: "system", content: system }, ...messages],
-        stream: true,
-      }),
-    });
+    let res: Response | null = null;
+    for (const model of MODELS) {
+      res = await fetch(GATEWAY, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "system", content: system }, ...messages],
+          stream: true,
+        }),
+      });
+      if (res.ok || ![400, 402, 404, 422, 429, 500, 503].includes(res.status)) break;
+      console.error("ai-tutor model failed", model, res.status, (await res.clone().text()).slice(0, 500));
+    }
+    if (!res) throw new Error("Tutor unavailable.");
     if (!res.ok) {
       const status = res.status;
       const error =
