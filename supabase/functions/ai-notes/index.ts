@@ -40,7 +40,7 @@ const notesTool = {
         overview: {
           type: "string",
           description:
-            "8 to 10 substantive paragraphs of flowing prose, written like a Save My Exams revision summary. Teach the actual topic content directly: define the core concepts in plain language, walk through how each idea works with short illustrative examples, explain the underlying mechanism (why it happens, not just what), connect it to related topics in the unit, and highlight the most common exam scenarios. Do NOT talk about 'the syllabus', 'this section', 'students should learn'. Just teach. No bullets, no markdown, no LaTeX delimiters in this field — keep it pure prose.",
+            "8 to 10 separate paragraphs of flowing prose, with a blank line between paragraphs. Each paragraph must be 4 to 6 sentences. Written like a Save My Exams revision summary. Teach the actual topic content directly: define the core concepts in plain language, walk through how each idea works with short illustrative examples, explain the underlying mechanism (why it happens, not just what), connect it to related topics in the unit, and highlight the most common exam scenarios. Do NOT talk about 'the syllabus', 'this section', 'students should learn'. Just teach. No bullets, no markdown, no LaTeX delimiters in this field — keep it pure prose.",
         },
         key_definitions: {
           type: "array",
