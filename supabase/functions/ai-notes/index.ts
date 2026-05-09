@@ -14,6 +14,20 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
+const paragraphiseOverview = (s: string) =>
+  String(s || "")
+    .split(/\n\s*\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+const enoughOverview = (s: string) => paragraphiseOverview(s).split(/\n\s*\n+/).filter(Boolean).length >= 6;
+
+const normaliseNotes = (args: any) => ({
+  ...args,
+  overview: paragraphiseOverview(args?.overview || ""),
+});
+
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
   type: "function",
