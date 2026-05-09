@@ -513,7 +513,7 @@ const RoadmapPage = () => {
                         <div className="mt-4 ml-6 surface p-4 text-sm">
                           <p className="font-medium">Today's plan: complete.</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {daysToNearest} days to {nearestExam ? SUBJECTS[nearestExam.subject].name : "your exam"}.
+                            {nearestExam ? `${daysToNearest} days to ${nearestExam.subject ? SUBJECTS[nearestExam.subject].name : nearestExam.name}.` : "No exam date set yet."}
                           </p>
                         </div>
                       )}
