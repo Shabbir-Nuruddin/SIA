@@ -40,7 +40,7 @@ const notesTool = {
         overview: {
           type: "string",
           description:
-            "8 to 10 separate paragraphs of flowing prose, with a blank line between paragraphs. Each paragraph must be 4 to 6 sentences. Written like a Save My Exams revision summary. Teach the actual topic content directly: define the core concepts in plain language, walk through how each idea works with short illustrative examples, explain the underlying mechanism (why it happens, not just what), connect it to related topics in the unit, and highlight the most common exam scenarios. Do NOT talk about 'the syllabus', 'this section', 'students should learn'. Just teach. No bullets, no markdown, no LaTeX delimiters in this field — keep it pure prose.",
+            "8 to 10 separate paragraphs of flowing prose, with a blank line between paragraphs. Each paragraph must be 4 to 6 sentences. Written like a Save My Exams revision summary. Teach the a[...]
         },
         key_definitions: {
           type: "array",
@@ -131,7 +131,7 @@ const notesTool = {
             content: {
               type: "string",
               description:
-                'Either: (a) an inline <svg>...</svg> illustration with viewBox="0 0 400 240" using stroke="currentColor" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) ASCII flowchart. Prefer SVG for spatial/process diagrams (energy profiles, electric fields, biological cycles, geometric proofs).',
+                'Either: (a) an inline <svg>...</svg> illustration with viewBox="0 0 400 240" using stroke="currentColor" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) AS[...]
             },
           },
           required: ["kind", "caption", "content"],
@@ -229,7 +229,7 @@ serve(async (req) => {
       : "Edexcel IAL";
 
     const scopeNote = syllabus_context
-      ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it.`
+      ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT in[...]
       : "";
 
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
@@ -239,15 +239,15 @@ ABSOLUTE FORMATTING RULES:
 - Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
 - Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
  - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
- - OVERVIEW LENGTH IS NON-NEGOTIABLE: overview must contain 8 to 10 real paragraphs separated by blank lines. Never compress overview into 1-2 paragraphs. Each paragraph must teach exam-relevant content, not meta-commentary.
-- CRITICAL JSON SAFETY: When emitting tool arguments, every backslash inside a JSON string MUST be doubled (\\\\). For LaTeX, write "\\\\frac{a}{b}", "\\\\sqrt{x}", "\\\\Delta", "\\\\sum", "\\\\int", "\\\\pi" — never a single backslash. Never emit unescaped control characters or stray backslashes. Invalid JSON will be discarded.`;
+ - OVERVIEW LENGTH IS NON-NEGOTIABLE: overview must contain 8 to 10 real paragraphs separated by blank lines. Never compress overview into 1-2 paragraphs. Each paragraph must teach exam-relevant [...]
+- CRITICAL JSON SAFETY: When emitting tool arguments, every backslash inside a JSON string MUST be doubled (\\\\). For LaTeX, write "\\\\frac{a}{b}", "\\\\sqrt{x}", "\\\\Delta", "\\\\sum", "\\\\i[...]
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
     const mathsBoost = isMaths
       ? `
 
 CRITICAL — THIS IS MATHEMATICS:
-- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, written in LaTeX (e.g. "$x^2 + 5x + 6 = 0$", "Let $u = 2x + 1$, then $\\frac{du}{dx} = 2$"). Do NOT skip steps.
+- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, written in LaTeX (e.g. "$x^2 + 5x + 6 = 0$", "Let $u = [...]
 - Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern (standard case, edge case, with substitution, applied/word problem, etc.).
 - Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure. Use $$...$$ for any equation that should be centred on its own line.
 - For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
@@ -256,8 +256,8 @@ CRITICAL — THIS IS MATHEMATICS:
 - For overview, keep it detailed but only the necessary things that either reinforces concept or helps with exam — students want to see worked examples, not prose.
 
 CRITICAL — VISUAL SUMMARY FOR MATHS:
-- DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely on these notes for accuracy.
-- Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> that summarises the key cases, formulae, or conditions for this topic. Example for the discriminant: a 3-row table with columns "Discriminant", "Number of real roots", "Graph behaviour" and rows describing $b^2-4ac>0$ (two real roots, curve crosses x-axis at 2 points), $b^2-4ac=0$ (one repeated root, curve touches x-axis at 1 point), $b^2-4ac<0$ (no real roots, curve does not cross x-axis).
+- DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely [...]
+- Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> that summarises the key cases, formulae, or conditions for this topic. Example for the discriminant: a 3-ro[...]
 - The HTML table content may use $...$ LaTeX inside cells.`
       : "";
 
@@ -267,11 +267,11 @@ ${syllabus_context ? `Official syllabus content (your scope is limited to this):
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool:
-1. overview — EXACTLY 8 to 10 substantial paragraphs separated by blank lines in the style of Save My Exams revision notes. Each paragraph must be 4 to 6 sentences. Teach the actual content directly: define every core concept in plain language, walk through how each idea works with a short worked example baked into the prose, explain the underlying mechanism (why, not just what), connect it to other topics in the unit, and call out the most common exam scenarios. Do NOT mention 'the syllabus', 'this section', 'students will learn', or talk about the structure of the topic — just teach it. A student who reads only this overview should understand the topic well enough to attempt exam questions.
+1. overview — EXACTLY 8 to 10 substantial paragraphs separated by blank lines in the style of Save My Exams revision notes. Each paragraph must be 4 to 6 sentences. Teach the actual content dir[...]
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
-3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each with a fully-worked multi-line solution." : ""}
+3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least [...]
 4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
-5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table"). Do NOT use SVG for maths topics — accuracy is critical.' : 'one diagram. Prefer an inline SVG illustration (viewBox="0 0 400 240", stroke="currentColor", fill="none" or fill="currentColor" with low opacity) when the topic is spatial/process-based — e.g. energy profile diagrams, force diagrams, ray diagrams, geometric figures, biological cycles, organic mechanisms. Use a clean HTML <table> for comparisons or summary data. Use ASCII flowchart only as a last resort.'}
+5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table"). Do NOT use SVG for maths topics — accuracy is critical.' : 'one diagram. Prefer an inline SVG illustration (viewBox="0[...]
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
 7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
 
@@ -294,7 +294,7 @@ Produce notes in this exact structure via the tool:
           apiKey: LOVABLE_API_KEY,
           messages: [
             { role: "system", content: system },
-            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version where overview has 8 to 10 separate paragraphs with blank lines between them.` },
+            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version where overview has 8 to 10 separate paragraphs wit[...]
           ],
           tools: [notesTool],
           toolName: "create_topic_notes",
@@ -304,8 +304,8 @@ Produce notes in this exact structure via the tool:
       }
     } catch (err: any) {
       console.error("ai-notes generation failed", err?.body?.slice?.(0, 700) || err);
-      return new Response(JSON.stringify({ error: err?.message || "Notes generation failed after trying fallback models." }), {
-        status: err?.status || 500,
+      return new Response(JSON.stringify({ error: "AI is taking a short break — please try again in 30 seconds" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
