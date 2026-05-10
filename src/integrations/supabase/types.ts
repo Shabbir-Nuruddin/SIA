@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_ai_modifiers: {
+        Row: {
+          board: string
+          created_at: string
+          feature: string
+          id: string
+          instruction: string
+          is_active: boolean
+        }
+        Insert: {
+          board?: string
+          created_at?: string
+          feature: string
+          id?: string
+          instruction: string
+          is_active?: boolean
+        }
+        Update: {
+          board?: string
+          created_at?: string
+          feature?: string
+          id?: string
+          instruction?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
       ai_questions: {
         Row: {
           awarded_marks: number | null
