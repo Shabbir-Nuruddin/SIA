@@ -65,40 +65,47 @@ export async function callGroqTool({
 
   for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const res = await fetch(GATEWAY, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          messages,
-          tools,
-          tool_choice: { type: "function", function: { name: toolName } },
-          temperature,
-          max_tokens: maxTokens,
-        }),
-      });
+      try {
+        const res = await fetch(GATEWAY, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            messages,
+            tools,
+            tool_choice: { type: "function", function: { name: toolName } },
+            temperature,
+            max_tokens: maxTokens,
+          }),
+        });
 
-      const body = await res.text();
-      lastStatus = res.status;
-      lastBody = body;
-      if (!res.ok) {
-        console.error("groq tool error", { model, attempt, status: res.status, body: body.slice(0, 700) });
-        const recovered = recoverToolArgs(body);
-        if (recovered) return recovered;
-        if ([400, 401, 402, 404, 413, 422, 429].includes(res.status)) break;
+        const body = await res.text();
+        lastStatus = res.status;
+        lastBody = body;
+        if (!res.ok) {
+          console.error("groq tool error", { model, attempt, status: res.status, body: body.slice(0, 700) });
+          const recovered = recoverToolArgs(body);
+          if (recovered) return recovered;
+          if ([400, 401, 402, 404, 413, 422, 429].includes(res.status)) break;
+          continue;
+        }
+
+        const data = tryParseJson(body);
+        const finishReason = data?.choices?.[0]?.finish_reason;
+        if (finishReason === "length" || finishReason === "max_tokens") {
+          console.error("groq truncated output", { model, attempt });
+          continue;
+        }
+        const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        const parsed = typeof args === "string" ? recoverToolArgs(args) : null;
+        if (parsed) return parsed;
+        console.error("groq no parseable tool output", { model, attempt, body: body.slice(0, 700) });
+      } catch (err) {
+        console.error("groq fetch error", { model, attempt, error: err instanceof Error ? err.message : err });
+        lastStatus = 500;
+        lastBody = err instanceof Error ? err.message : String(err);
         continue;
       }
-
-      const data = tryParseJson(body);
-      const finishReason = data?.choices?.[0]?.finish_reason;
-      if (finishReason === "length" || finishReason === "max_tokens") {
-        console.error("groq truncated output", { model, attempt });
-        continue;
-      }
-      const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      const parsed = typeof args === "string" ? recoverToolArgs(args) : null;
-      if (parsed) return parsed;
-      console.error("groq no parseable tool output", { model, attempt, body: body.slice(0, 700) });
     }
   }
 
