@@ -1,7 +1,19 @@
 import { CIE_SUBJECTS } from "./cieSyllabus";
 
+// --- IGCSE CIE Imports ---
+import { ciePhysics0625 } from "./data/cie-physics-0625";
+import { cieBiology0610 } from "./data/cie-biology-0610";
+import { cieChemistry0620 } from "./data/cie-chemistry-0620";
+import { cieMaths0580 } from "./data/cie-maths-0580";
+
+// --- IGCSE Edexcel Imports ---
+import { edexcelPhysics4PH1 } from "./data/edexcel-physics-4ph1";
+import { edexcelBiology4BI1 } from "./data/edexcel-biology-4bi1";
+import { edexcelChemistry4CH1 } from "./data/edexcel-chemistry-4ch1";
+import { edexcelMaths4MA1 } from "./data/edexcel-maths-4ma1";
+
 export type SubjectCode = "mathematics" | "biology" | "chemistry" | "physics";
-export type Board = "edexcel-ial" | "cie";
+export type Board = "edexcel-ial" | "cie" | "cie-igcse" | "edexcel-igcse";
 
 export interface UnitMeta {
   number: number;
@@ -19,10 +31,11 @@ export interface SubjectMeta {
   name: string;
   emoji: string;
   spec: string;
-  units: UnitMeta[];
+  units?: UnitMeta[]; // Made optional to support IGCSE
+  topics?: any[];    // Added to support IGCSE
 }
 
-// === EDEXCEL IAL — full default catalogue (Maths P1–4/M1–2/S1–2, Sciences U1–6) ===
+// === EDEXCEL IAL — full default catalogue ===
 export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
   mathematics: {
     code: "mathematics",
@@ -268,11 +281,29 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
   },
 };
 
+// === IGCSE CIE CATALOGUE ===
+export const IGCSE_CIE_SUBJECTS: any = {
+  mathematics: cieMaths0580,
+  biology: cieBiology0610,
+  chemistry: cieChemistry0620,
+  physics: ciePhysics0625,
+};
+
+// === IGCSE EDEXCEL CATALOGUE ===
+export const IGCSE_EDEXCEL_SUBJECTS: any = {
+  mathematics: edexcelMaths4MA1,
+  biology: edexcelBiology4BI1,
+  chemistry: edexcelChemistry4CH1,
+  physics: edexcelPhysics4PH1,
+};
+
 export const SUBJECT_LIST: SubjectMeta[] = Object.values(SUBJECTS);
 
 // Board-aware catalog: returns Edexcel IAL (default) or CIE subject metadata.
 export function getSubjectsForBoard(board: Board | string | null | undefined): Record<SubjectCode, SubjectMeta> {
   if (board === "cie") return CIE_SUBJECTS;
+  if (board === "cie-igcse") return IGCSE_CIE_SUBJECTS;
+  if (board === "edexcel-igcse") return IGCSE_EDEXCEL_SUBJECTS;
   return SUBJECTS;
 }
 
@@ -283,6 +314,8 @@ export function getSubjectListForBoard(board: Board | string | null | undefined)
 export const BOARD_LABEL: Record<Board, string> = {
   "edexcel-ial": "Edexcel IAL",
   "cie": "Cambridge International (CIE) A Level",
+  "cie-igcse": "Cambridge IGCSE",
+  "edexcel-igcse": "Edexcel IGCSE",
 };
 
 export const GRADES = ["A*", "A", "B", "C", "D", "E"] as const;
@@ -294,16 +327,20 @@ export const gradeGap = (target: Grade, current: Grade): number => {
 };
 
 // Helper: short unit label like "Maths P1" or "Chemistry U4"
-export const unitShortLabel = (subject: SubjectCode, unit_number: number | null | undefined): string => {
-  const meta = SUBJECTS[subject];
-  if (!meta || unit_number == null) return meta?.name ?? "";
-  const u = meta.units.find(x => x.number === unit_number);
-  const code = u?.unitCode ?? `U${unit_number}`;
-  const subShort = subject === "mathematics" ? "Maths"
+export const unitShortLabel = (subject: SubjectCode, unit_number: number | null | undefined, board?: string): string => {
+  const meta = getSubjectsForBoard(board)[subject];
+  if (!meta) return "";
+  
+  if (meta.units && unit_number != null) {
+    const u = meta.units.find(x => x.number === unit_number);
+    const code = u?.unitCode ?? `U${unit_number}`;
+    const subShort = subject === "mathematics" ? "Maths"
                  : subject === "biology" ? "Biology"
                  : subject === "chemistry" ? "Chemistry"
                  : "Physics";
-  return `${subShort} ${code}`;
+    return `${subShort} ${code}`;
+  }
+  return meta.name;
 };
 
 export const urgencyScore = (gap: number, daysToExam: number): { value: number; level: "urgent" | "moderate" | "track"; color: string } => {
