@@ -1,1 +1,545 @@
-import { useState, useEffect, useCallback, useRef } from "react";\nimport { useNavigate } from "react-router-dom";\nimport { Compass, GripVertical } from "lucide-react";\nimport { ClarityLayout } from "@/components/ClarityCompass/ClarityLayout\";\nimport { Button } from \"@/components/ui/button\";\nimport { useAuth } from \"@/contexts/AuthContext\";\nimport { supabase } from \"@/integrations/supabase/client\";\nimport {\n  QuizQuestion,\n  QuizAnswer,\n  ClarityProfile,\n  FinalAnalysis,\n} from \"@/types/clarity.types\";\nimport { toast } from \"sonner\";\n\nconst AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL ?? \"https://api.groq.com/openai/v1\";\nconst AI_MODEL = import.meta.env.VITE_AI_MODEL ?? \"llama3-70b-8192\";\nconst AI_KEY = import.meta.env.VITE_AI_KEY ?? \"\";\n\nconst LOADING_MESSAGES = [\n  \"Reading between the lines...\",\n  \"Connecting the dots...\",\n  \"One more dimension to explore...\",\n  \"The AI is thinking...\",\n  \"Mapping your strengths...\",\n];\n\nasync function fetchNextQuestion(\n  profile: ClarityProfile,\n  history: QuizAnswer[]\n): Promise<QuizQuestion> {\n  const systemPrompt = `You are a world-class career psychologist conducting an adaptive career discovery assessment for a UK student aged 16-19 finishing their A-levels. Your goal: understand what careers will make this student THRIVE.\n\nStudent profile:\nSUBJECTS: ${JSON.stringify(profile.subjects)}\nHOBBIES: ${profile.hobbies.join(\", \")}\nSTRENGTHS: ${profile.strengths.join(\", \")}\nDISLIKES: ${profile.dislikes.join(\", \")}\nPERSONAL STATEMENT: ${profile.free_text}\nQuestions asked so far: ${history.length}\nQ&A history: ${JSON.stringify(history)}\n\nGenerate the NEXT single question. Rules: never repeat themes, probe something unknown, sound like a thoughtful mentor, ask about real scenarios. When question count >= 28 OR confidence >= 85, end the quiz.\n\nRespond ONLY in this exact JSON (no markdown):\n{ question_text, answer_type (MULTIPLE_CHOICE|SCALE|TEXT|RANK|YES_NO), options (array or null), scale_labels ({low,high} or null), rationale, confidence (0-100), quiz_complete: false }\n\nWhen ending: { quiz_complete: true, final_analysis: { personality_summary, core_values[], working_style, hidden_strengths[], career_matches: [{ career, match_score, why_it_fits, reality_check, daily_tasks_glimpse[], experience_it_now[], skills_to_build_before_uni: [{skill,how,resource,is_free}] }], careers_to_avoid[] } }\nReturn 3-4 career matches sorted by match_score descending. Be honest and specific.`;\n\n  const response = await fetch(`${AI_BASE_URL}/chat/completions`, {\n    method: \"POST\",\n    headers: {\n      Authorization: `Bearer ${AI_KEY}`,\n      \"Content-Type\": \"application/json\",\n    },\n    body: JSON.stringify({\n      model: AI_MODEL,\n      messages: [{ role: \"user\", content: systemPrompt }],\n      temperature: 0.7,\n      max_tokens: 2000,\n    }),\n  });\n\n  if (!response.ok) {\n    throw new Error(`AI API error: ${response.statusText}`);\n  }\n\n  const data = await response.json();\n  const content = data.choices?.[0]?.message?.content || \"\";\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (!jsonMatch) throw new Error(\"Invalid AI response format\");\n\n  return JSON.parse(jsonMatch[0]) as QuizQuestion;\n}\n\n// Answer type components\nfunction MultipleChoice({\n  options,\n  value,\n  onChange,\n}: {\n  options: string[];\n  value: string;\n  onChange: (val: string) => void;\n}): React.ReactElement {\n  return (\n    <div className=\"grid grid-cols-2 gap-3\">\n      {options.map((opt) => (\n        <button\n          key={opt}\n          onClick={() => onChange(opt)}\n          className={`p-3 rounded-lg border transition-colors text-sm font-medium ${\n            value === opt\n              ? \"bg-primary text-primary-foreground border-primary\"\n              : \"bg-card text-foreground border-border hover:border-primary/50\"\n          }`}\n        >\n          {opt}\n        </button>\n      ))}\n    </div>\n  );\n}\n\nfunction YesNo({\n  value,\n  onChange,\n}: {\n  value: string;\n  onChange: (val: string) => void;\n}): React.ReactElement {\n  return (\n    <div className=\"flex gap-4\">\n      {[\"Yes\", \"No\"].map((opt) => (\n        <button\n          key={opt}\n          onClick={() => onChange(opt)}\n          className={`flex-1 p-4 rounded-lg border transition-colors font-semibold text-base ${\n            value === opt\n              ? \"bg-primary text-primary-foreground border-primary\"\n              : \"bg-card text-foreground border-border hover:border-primary/50\"\n          }`}\n        >\n          {opt}\n        </button>\n      ))}\n    </div>\n  );\n}\n\nfunction ScaleInput({\n  value,\n  onChange,\n  labels,\n}: {\n  value: number;\n  onChange: (val: number) => void;\n  labels: { low: string; high: string };\n}): React.ReactElement {\n  return (\n    <div className=\"space-y-4\">\n      <input\n        type=\"range\"\n        min=\"1\"\n        max=\"10\"\n        value={value || 5}\n        onChange={(e) => onChange(parseInt(e.target.value))}\n        className=\"w-full accent-primary\"\n      />\n      <div className=\"flex justify-between items-center\">\n        <span className=\"text-xs text-muted-foreground\">{labels.low}</span>\n        <span className=\"text-2xl font-bold text-primary\">{value || 5}</span>\n        <span className=\"text-xs text-muted-foreground\">{labels.high}</span>\n      </div>\n    </div>\n  );\n}\n\nfunction TextInput({\n  value,\n  onChange,\n}: {\n  value: string;\n  onChange: (val: string) => void;\n}): React.ReactElement {\n  return (\n    <div className=\"space-y-2\">\n      <textarea\n        value={value}\n        onChange={(e) => onChange(e.target.value.slice(0, 200))}\n        placeholder=\"Your answer...\"\n        className=\"w-full min-h-[120px] bg-background border border-border rounded px-3 py-2 text-sm text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary\"\n      />\n      <p className=\"text-xs text-muted-foreground text-right\">\n        {value.length} / 200 characters\n      </p>\n    </div>\n  );\n}\n\nfunction RankInput({\n  items,\n  onChange,\n}: {\n  items: string[];\n  onChange: (ranked: string[]) => void;\n}): React.ReactElement {\n  const [list, setList] = useState<string[]>(items);\n  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);\n\n  const handleDragStart = (idx: number): void => {\n    setDraggingIdx(idx);\n  };\n\n  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, idx: number): void => {\n    e.preventDefault();\n    if (draggingIdx !== null && draggingIdx !== idx) {\n      const newList = [...list];\n      const [removed] = newList.splice(draggingIdx, 1);\n      newList.splice(idx, 0, removed);\n      setList(newList);\n      setDraggingIdx(idx);\n      onChange(newList);\n    }\n  };\n\n  return (\n    <div className=\"space-y-2\">\n      {list.map((item, idx) => (\n        <div\n          key={idx}\n          draggable\n          onDragStart={() => handleDragStart(idx)}\n          onDragOver={(e) => handleDragOver(e, idx)}\n          className=\"flex items-center gap-3 p-3 bg-card border border-border rounded cursor-move hover:border-primary/50 transition-colors\"\n        >\n          <GripVertical className=\"w-4 h-4 text-muted-foreground\" />\n          <span className=\"font-semibold text-primary text-sm w-6\">{idx + 1}.</span>\n          <span className=\"text-foreground flex-1\">{item}</span>\n        </div>\n      ))}\n    </div>\n  );\n}\n\nexport function ClarityQuiz(): React.ReactElement {\n  const navigate = useNavigate();\n  const { user } = useAuth();\n  const [profile, setProfile] = useState<ClarityProfile | null>(null);\n  const [history, setHistory] = useState<QuizAnswer[]>([]);\n  const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);\n  const [currentAnswer, setCurrentAnswer] = useState<string | number | string[]>(\"\");\n  const [loading, setLoading] = useState<boolean>(true);\n  const [loadingMsgIdx, setLoadingMsgIdx] = useState<number>(0);\n  const [error, setError] = useState<string | null>(null);\n  const [sessionId, setSessionId] = useState<string | null>(null);\n  const [slideIn, setSlideIn] = useState<boolean>(true);\n  const loadingIntervalRef = useRef<number | null>(null);\n\n  // Load profile and initialize session\n  useEffect(() => {\n    const initializeQuiz = async (): Promise<void> => {\n      if (!user) {\n        toast.error(\"User not authenticated\");\n        navigate(\"/clarity-compass\");\n        return;\n      }\n\n      try {\n        // Load profile\n        const { data: profileData, error: profileError } = await supabase\n          .from(\"clarity_profiles\")\n          .select(\"*\")\n          .eq(\"user_id\", user.id)\n          .single();\n\n        if (profileError) throw new Error(\"Profile not found\");\n        setProfile(profileData as ClarityProfile);\n\n        // Create session\n        const { data: sessionData, error: sessionError } = await supabase\n          .from(\"clarity_quiz_sessions\")\n          .insert({\n            user_id: user.id,\n            questions_and_answers: [],\n            completed: false,\n          })\n          .select(\"id\")\n          .single();\n\n        if (sessionError) throw new Error(\"Failed to create session\");\n        setSessionId(sessionData.id);\n\n        // Load first question\n        await loadNextQuestion(profileData as ClarityProfile, []);\n      } catch (err) {\n        console.error(err);\n        toast.error(\"Failed to start quiz\");\n        navigate(\"/clarity-compass\");\n      }\n    };\n\n    initializeQuiz();\n  }, [user, navigate]);\n\n  // Loading message rotation\n  useEffect(() => {\n    if (!loading) return;\n    loadingIntervalRef.current = window.setInterval(() => {\n      setLoadingMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);\n    }, 1800);\n    return () => {\n      if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);\n    };\n  }, [loading]);\n\n  const loadNextQuestion = useCallback(\n    async (prof: ClarityProfile, hist: QuizAnswer[]): Promise<void> => {\n      setLoading(true);\n      setError(null);\n      try {\n        const question = await fetchNextQuestion(prof, hist);\n        setCurrentQuestion(question);\n        setCurrentAnswer(\"\");\n        setSlideIn(true);\n        setLoading(false);\n      } catch (err) {\n        console.error(err);\n        setError(\"Failed to load next question. Please try again.\");\n        setLoading(false);\n      }\n    },\n    []\n  );\n\n  const handleSubmitAnswer = useCallback(async (): Promise<void> => {\n    if (!currentQuestion || !profile || !user) return;\n    if (currentAnswer === \"\" || currentAnswer === null) return;\n\n    const newAnswer: QuizAnswer = {\n      question_text: currentQuestion.question_text,\n      answer_type: currentQuestion.answer_type,\n      user_answer: currentAnswer,\n    };\n\n    const newHistory = [...history, newAnswer];\n    setHistory(newHistory);\n\n    // Update session every 3 questions\n    if ((newHistory.length + 1) % 3 === 0 && sessionId) {\n      await supabase\n        .from(\"clarity_quiz_sessions\")\n        .update({ questions_and_answers: newHistory })\n        .eq(\"id\", sessionId)\n        .catch((err) => console.error(\"Failed to update session\", err));\n    }\n\n    // Check if quiz is complete\n    if (currentQuestion.quiz_complete && currentQuestion.final_analysis) {\n      // Update session as completed\n      if (sessionId) {\n        await supabase\n          .from(\"clarity_quiz_sessions\")\n          .update({\n            completed: true,\n            ai_analysis: currentQuestion.final_analysis,\n            questions_and_answers: newHistory,\n          })\n          .eq(\"id\", sessionId);\n      }\n\n      // Insert results\n      if (user && currentQuestion.final_analysis) {\n        const { error: resultsError } = await supabase\n          .from(\"clarity_results\")\n          .insert({\n            user_id: user.id,\n            session_id: sessionId,\n            career_matches: currentQuestion.final_analysis.career_matches,\n            milestone_checks: {},\n          });\n\n        if (resultsError) console.error(\"Failed to insert results\", resultsError);\n      }\n\n      // Save to localStorage\n      if (currentQuestion.final_analysis) {\n        localStorage.setItem(\n          \"clarity_analysis\",\n          JSON.stringify(currentQuestion.final_analysis)\n        );\n      }\n\n      toast.success(\"Quiz complete!\");\n      navigate(\"/clarity-compass/results\");\n    } else {\n      // Load next question\n      setSlideIn(false);\n      setTimeout(() => {\n        if (profile) {\n          loadNextQuestion(profile, newHistory);\n        }\n      }, 50);\n    }\n  }, [currentQuestion, profile, user, history, sessionId, navigate, loadNextQuestion]);\n\n  const handleBackClick = (): void => {\n    if (history.length > 0) {\n      const newHistory = history.slice(0, -1);\n      setHistory(newHistory);\n      setCurrentAnswer(\"\");\n      setSlideIn(false);\n      setTimeout(() => {\n        if (profile) {\n          loadNextQuestion(profile, newHistory);\n        }\n      }, 50);\n    }\n  };\n\n  if (!profile) {\n    return (\n      <ClarityLayout>\n        <div className=\"flex-1 flex items-center justify-center bg-background\">\n          <div className=\"text-center\">\n            <Compass className=\"w-12 h-12 text-primary mx-auto mb-4 animate-spin\" />\n            <p className=\"text-muted-foreground\">Loading your quiz...</p>\n          </div>\n        </div>\n      </ClarityLayout>\n    );\n  }\n\n  const progress = Math.min(95, (history.length / 28) * 100);\n  const roughlyPercent = Math.round(progress);\n\n  return (\n    <ClarityLayout>\n      <div className=\"flex-1 overflow-y-auto bg-background\">\n        <div className=\"max-w-2xl mx-auto px-4 py-8\">\n          {/* Progress bar */}\n          <div className=\"mb-6\">\n            <div className=\"h-1 bg-border rounded-full overflow-hidden\">\n              <div\n                className=\"h-full bg-primary transition-all duration-300\"\n                style={{ width: `${progress}%` }}\n              />\n            </div>\n            <p className=\"text-xs text-muted-foreground mt-2\">\n              Question {history.length + 1} • Roughly {roughlyPercent}% through\n            </p>\n          </div>\n\n          {/* Loading state */}\n          {loading && (\n            <div className=\"flex flex-col items-center justify-center py-16\">\n              <Compass className=\"w-12 h-12 text-primary mb-4 animate-spin\" />\n              <p className=\"text-muted-foreground\">{LOADING_MESSAGES[loadingMsgIdx]}</p>\n            </div>\n          )}\n\n          {/* Error state */}\n          {error && !loading && (\n            <div className=\"text-center py-12\">\n              <p className=\"text-sm text-muted-foreground mb-4\">{error}</p>\n              <Button\n                onClick={() => {\n                  if (profile) loadNextQuestion(profile, history);\n                }}\n                variant=\"outline\"\n              >\n                Try again\n              </Button>\n            </div>\n          )}\n\n          {/* Question */}\n          {currentQuestion && !loading && !error && (\n            <div\n              className={`transition-all duration-300 ${\n                slideIn ? \"opacity-100 translate-y-0\" : \"opacity-0 translate-y-4\"\n              }`}\n            >\n              <h2 className=\"text-2xl font-bold text-foreground mb-6\">\n                {currentQuestion.question_text}\n              </h2>\n\n              {/* Answer components */}\n              <div className=\"mb-8 p-4 bg-card rounded-lg border border-border\">\n                {currentQuestion.answer_type === \"MULTIPLE_CHOICE\" &&\n                  currentQuestion.options && (\n                    <MultipleChoice\n                      options={currentQuestion.options}\n                      value={currentAnswer as string}\n                      onChange={setCurrentAnswer}\n                    />\n                  )}\n\n                {currentQuestion.answer_type === \"YES_NO\" && (\n                  <YesNo\n                    value={currentAnswer as string}\n                    onChange={setCurrentAnswer}\n                  />\n                )}\n\n                {currentQuestion.answer_type === \"SCALE\" &&\n                  currentQuestion.scale_labels && (\n                    <ScaleInput\n                      value={currentAnswer as number}\n                      onChange={setCurrentAnswer}\n                      labels={currentQuestion.scale_labels}\n                    />\n                  )}\n\n                {currentQuestion.answer_type === \"TEXT\" && (\n                  <TextInput\n                    value={currentAnswer as string}\n                    onChange={setCurrentAnswer}\n                  />\n                )}\n\n                {currentQuestion.answer_type === \"RANK\" &&\n                  currentQuestion.options && (\n                    <RankInput\n                      items={currentQuestion.options}\n                      onChange={(ranked) => setCurrentAnswer(ranked)}\n                    />\n                  )}\n              </div>\n\n              {/* Rationale */}\n              <p className=\"text-xs text-muted-foreground italic mb-8\">\n                {currentQuestion.rationale}\n              </p>\n\n              {/* Navigation */}\n              <div className=\"flex gap-3\">\n                {history.length > 0 && (\n                  <Button\n                    variant=\"outline\"\n                    onClick={handleBackClick}\n                    className=\"flex-1\"\n                  >\n                    Back\n                  </Button>\n                )}\n                <Button\n                  onClick={handleSubmitAnswer}\n                  disabled={\n                    currentAnswer === \"\" ||\n                    (typeof currentAnswer === \"number\" && currentAnswer === 0)\n                  }\n                  className={history.length === 0 ? \"w-full\" : \"flex-1\"}\n                >\n                  Next →\n                </Button>\n              </div>\n            </div>\n          )}\n        </div>\n      </div>\n    </ClarityLayout>\n  );\n}\n
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Compass, GripVertical } from "lucide-react";
+import { ClarityLayout } from "@/components/ClarityCompass/ClarityLayout";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  QuizQuestion,
+  QuizAnswer,
+  ClarityProfile,
+  FinalAnalysis,
+} from "@/types/clarity.types";
+import { toast } from "sonner";
+
+const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL ?? "https://api.groq.com/openai/v1";
+const AI_MODEL = import.meta.env.VITE_AI_MODEL ?? "llama3-70b-8192";
+const AI_KEY = import.meta.env.VITE_AI_KEY ?? "";
+
+const LOADING_MESSAGES = [
+  "Reading between the lines...",
+  "Connecting the dots...",
+  "One more dimension to explore...",
+  "The AI is thinking...",
+  "Mapping your strengths...",
+];
+
+async function fetchNextQuestion(
+  profile: ClarityProfile,
+  history: QuizAnswer[]
+): Promise<QuizQuestion> {
+  const systemPrompt = `You are a world-class career psychologist conducting an adaptive career discovery assessment for a UK student aged 16-19 finishing their A-levels. Your goal: understand what careers will make this student THRIVE.
+
+Student profile:
+SUBJECTS: ${JSON.stringify(profile.subjects)}
+HOBBIES: ${profile.hobbies.join(", ")}
+STRENGTHS: ${profile.strengths.join(", ")}
+DISLIKES: ${profile.dislikes.join(", ")}
+PERSONAL STATEMENT: ${profile.free_text}
+Questions asked so far: ${history.length}
+Q&A history: ${JSON.stringify(history)}
+
+Generate the NEXT single question. Rules: never repeat themes, probe something unknown, sound like a thoughtful mentor, ask about real scenarios. When question count >= 28 OR confidence >= 85, end the quiz.
+
+Respond ONLY in this exact JSON (no markdown):
+{ question_text, answer_type (MULTIPLE_CHOICE|SCALE|TEXT|RANK|YES_NO), options (array or null), scale_labels ({low,high} or null), rationale, confidence (0-100), quiz_complete: false }
+
+When ending: { quiz_complete: true, final_analysis: { personality_summary, core_values[], working_style, hidden_strengths[], career_matches: [{ career, match_score, why_it_fits, reality_check, daily_tasks_glimpse[], experience_it_now[], skills_to_build_before_uni: [{skill,how,resource,is_free}] }], careers_to_avoid[] } }
+Return 3-4 career matches sorted by match_score descending. Be honest and specific.`;
+
+  const response = await fetch(`${AI_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${AI_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [{ role: "user", content: systemPrompt }],
+      temperature: 0.7,
+      max_tokens: 2000,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content || "";
+  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);
+  if (!jsonMatch) throw new Error("Invalid AI response format");
+
+  return JSON.parse(jsonMatch[0]) as QuizQuestion;
+}
+
+// Answer type components
+function MultipleChoice({
+  options,
+  value,
+  onChange,
+}: {
+  options: string[];
+  value: string;
+  onChange: (val: string) => void;
+}): React.ReactElement {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {options.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onChange(opt)}
+          className={`p-3 rounded-lg border transition-colors text-sm font-medium ${
+            value === opt
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-foreground border-border hover:border-primary/50"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function YesNo({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}): React.ReactElement {
+  return (
+    <div className="flex gap-4">
+      {["Yes", "No"].map((opt) => (
+        <button
+          key={opt}
+          onClick={() => onChange(opt)}
+          className={`flex-1 p-4 rounded-lg border transition-colors font-semibold text-base ${
+            value === opt
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card text-foreground border-border hover:border-primary/50"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ScaleInput({
+  value,
+  onChange,
+  labels,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+  labels: { low: string; high: string };
+}): React.ReactElement {
+  return (
+    <div className="space-y-4">
+      <input
+        type="range"
+        min="1"
+        max="10"
+        value={value || 5}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full accent-primary"
+      />
+      <div className="flex justify-between items-center">
+        <span className="text-xs text-muted-foreground">{labels.low}</span>
+        <span className="text-2xl font-bold text-primary">{value || 5}</span>
+        <span className="text-xs text-muted-foreground">{labels.high}</span>
+      </div>
+    </div>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}): React.ReactElement {
+  return (
+    <div className="space-y-2">
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value.slice(0, 200))}
+        placeholder="Your answer..."
+        className="w-full min-h-[120px] bg-background border border-border rounded px-3 py-2 text-sm text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+      <p className="text-xs text-muted-foreground text-right">
+        {value.length} / 200 characters
+      </p>
+    </div>
+  );
+}
+
+function RankInput({
+  items,
+  onChange,
+}: {
+  items: string[];
+  onChange: (ranked: string[]) => void;
+}): React.ReactElement {
+  const [list, setList] = useState<string[]>(items);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+
+  const handleDragStart = (idx: number): void => {
+    setDraggingIdx(idx);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, idx: number): void => {
+    e.preventDefault();
+    if (draggingIdx !== null && draggingIdx !== idx) {
+      const newList = [...list];
+      const [removed] = newList.splice(draggingIdx, 1);
+      newList.splice(idx, 0, removed);
+      setList(newList);
+      setDraggingIdx(idx);
+      onChange(newList);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {list.map((item, idx) => (
+        <div
+          key={idx}
+          draggable
+          onDragStart={() => handleDragStart(idx)}
+          onDragOver={(e) => handleDragOver(e, idx)}
+          className="flex items-center gap-3 p-3 bg-card border border-border rounded cursor-move hover:border-primary/50 transition-colors"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+          <span className="font-semibold text-primary text-sm w-6">{idx + 1}.</span>
+          <span className="text-foreground flex-1">{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function ClarityQuiz(): React.ReactElement {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<ClarityProfile | null>(null);
+  const [history, setHistory] = useState<QuizAnswer[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
+  const [currentAnswer, setCurrentAnswer] = useState<string | number | string[]>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [slideIn, setSlideIn] = useState<boolean>(true);
+  const loadingIntervalRef = useRef<number | null>(null);
+
+  // Load profile and initialize session
+  useEffect(() => {
+    const initializeQuiz = async (): Promise<void> => {
+      if (!user) {
+        toast.error("User not authenticated");
+        navigate("/clarity-compass");
+        return;
+      }
+
+      try {
+        // Load profile
+        const { data: profileData, error: profileError } = await supabase
+          .from("clarity_profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (profileError) throw new Error("Profile not found");
+        setProfile(profileData as ClarityProfile);
+
+        // Create session
+        const { data: sessionData, error: sessionError } = await supabase
+          .from("clarity_quiz_sessions")
+          .insert({
+            user_id: user.id,
+            questions_and_answers: [],
+            completed: false,
+          })
+          .select("id")
+          .single();
+
+        if (sessionError) throw new Error("Failed to create session");
+        setSessionId(sessionData.id);
+
+        // Load first question
+        await loadNextQuestion(profileData as ClarityProfile, []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to start quiz");
+        navigate("/clarity-compass");
+      }
+    };
+
+    initializeQuiz();
+  }, [user, navigate]);
+
+  // Loading message rotation
+  useEffect(() => {
+    if (!loading) return;
+    loadingIntervalRef.current = window.setInterval(() => {
+      setLoadingMsgIdx((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 1800);
+    return () => {
+      if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
+    };
+  }, [loading]);
+
+  const loadNextQuestion = useCallback(
+    async (prof: ClarityProfile, hist: QuizAnswer[]): Promise<void> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const question = await fetchNextQuestion(prof, hist);
+        setCurrentQuestion(question);
+        setCurrentAnswer("");
+        setSlideIn(true);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load next question. Please try again.");
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const handleSubmitAnswer = useCallback(async (): Promise<void> => {
+    if (!currentQuestion || !profile || !user) return;
+    if (currentAnswer === "" || currentAnswer === null) return;
+
+    const newAnswer: QuizAnswer = {
+      question_text: currentQuestion.question_text,
+      answer_type: currentQuestion.answer_type,
+      user_answer: currentAnswer,
+    };
+
+    const newHistory = [...history, newAnswer];
+    setHistory(newHistory);
+
+    // Update session every 3 questions
+    if ((newHistory.length + 1) % 3 === 0 && sessionId) {
+      await supabase
+        .from("clarity_quiz_sessions")
+        .update({ questions_and_answers: newHistory })
+        .eq("id", sessionId)
+        .catch((err) => console.error("Failed to update session", err));
+    }
+
+    // Check if quiz is complete
+    if (currentQuestion.quiz_complete && currentQuestion.final_analysis) {
+      // Update session as completed
+      if (sessionId) {
+        await supabase
+          .from("clarity_quiz_sessions")
+          .update({
+            completed: true,
+            ai_analysis: currentQuestion.final_analysis,
+            questions_and_answers: newHistory,
+          })
+          .eq("id", sessionId);
+      }
+
+      // Insert results
+      if (user && currentQuestion.final_analysis) {
+        const { error: resultsError } = await supabase
+          .from("clarity_results")
+          .insert({
+            user_id: user.id,
+            session_id: sessionId,
+            career_matches: currentQuestion.final_analysis.career_matches,
+            milestone_checks: {},
+          });
+
+        if (resultsError) console.error("Failed to insert results", resultsError);
+      }
+
+      // Save to localStorage
+      if (currentQuestion.final_analysis) {
+        localStorage.setItem(
+          "clarity_analysis",
+          JSON.stringify(currentQuestion.final_analysis)
+        );
+      }
+
+      toast.success("Quiz complete!");
+      navigate("/clarity-compass/results");
+    } else {
+      // Load next question
+      setSlideIn(false);
+      setTimeout(() => {
+        if (profile) {
+          loadNextQuestion(profile, newHistory);
+        }
+      }, 50);
+    }
+  }, [currentQuestion, profile, user, history, sessionId, navigate, loadNextQuestion]);
+
+  const handleBackClick = (): void => {
+    if (history.length > 0) {
+      const newHistory = history.slice(0, -1);
+      setHistory(newHistory);
+      setCurrentAnswer("");
+      setSlideIn(false);
+      setTimeout(() => {
+        if (profile) {
+          loadNextQuestion(profile, newHistory);
+        }
+      }, 50);
+    }
+  };
+
+  if (!profile) {
+    return (
+      <ClarityLayout>
+        <div className="flex-1 flex items-center justify-center bg-background">
+          <div className="text-center">
+            <Compass className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+            <p className="text-muted-foreground">Loading your quiz...</p>
+          </div>
+        </div>
+      </ClarityLayout>
+    );
+  }
+
+  const progress = Math.min(95, (history.length / 28) * 100);
+  const roughlyPercent = Math.round(progress);
+
+  return (
+    <ClarityLayout>
+      <div className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          {/* Progress bar */}
+          <div className="mb-6">
+            <div className="h-1 bg-border rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Question {history.length + 1} • Roughly {roughlyPercent}% through
+            </p>
+          </div>
+
+          {/* Loading state */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Compass className="w-12 h-12 text-primary mb-4 animate-spin" />
+              <p className="text-muted-foreground">{LOADING_MESSAGES[loadingMsgIdx]}</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && !loading && (
+            <div className="text-center py-12">
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button
+                onClick={() => {
+                  if (profile) loadNextQuestion(profile, history);
+                }}
+                variant="outline"
+              >
+                Try again
+              </Button>
+            </div>
+          )}
+
+          {/* Question */}
+          {currentQuestion && !loading && !error && (
+            <div
+              className={`transition-all duration-300 ${
+                slideIn ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
+            >
+              <h2 className="text-2xl font-bold text-foreground mb-6">
+                {currentQuestion.question_text}
+              </h2>
+
+              {/* Answer components */}
+              <div className="mb-8 p-4 bg-card rounded-lg border border-border">
+                {currentQuestion.answer_type === "MULTIPLE_CHOICE" &&
+                  currentQuestion.options && (
+                    <MultipleChoice
+                      options={currentQuestion.options}
+                      value={currentAnswer as string}
+                      onChange={setCurrentAnswer}
+                    />
+                  )}
+
+                {currentQuestion.answer_type === "YES_NO" && (
+                  <YesNo
+                    value={currentAnswer as string}
+                    onChange={setCurrentAnswer}
+                  />
+                )}
+
+                {currentQuestion.answer_type === "SCALE" &&
+                  currentQuestion.scale_labels && (
+                    <ScaleInput
+                      value={currentAnswer as number}
+                      onChange={setCurrentAnswer}
+                      labels={currentQuestion.scale_labels}
+                    />
+                  )}
+
+                {currentQuestion.answer_type === "TEXT" && (
+                  <TextInput
+                    value={currentAnswer as string}
+                    onChange={setCurrentAnswer}
+                  />
+                )}
+
+                {currentQuestion.answer_type === "RANK" &&
+                  currentQuestion.options && (
+                    <RankInput
+                      items={currentQuestion.options}
+                      onChange={(ranked) => setCurrentAnswer(ranked)}
+                    />
+                  )}
+              </div>
+
+              {/* Rationale */}
+              <p className="text-xs text-muted-foreground italic mb-8">
+                {currentQuestion.rationale}
+              </p>
+
+              {/* Navigation */}
+              <div className="flex gap-3">
+                {history.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={handleBackClick}
+                    className="flex-1"
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button
+                  onClick={handleSubmitAnswer}
+                  disabled={
+                    currentAnswer === "" ||
+                    (typeof currentAnswer === "number" && currentAnswer === 0)
+                  }
+                  className={history.length === 0 ? "w-full" : "flex-1"}
+                >
+                  Next →
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </ClarityLayout>
+  );
+}

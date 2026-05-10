@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
-  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock, Headphones, Compass,
+  MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu, MessageSquare, Lock, Headphones, Compass, Shield,
 } from "lucide-react";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
+import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
 
-const items: { to: string; icon: any; label: string; proOnly?: boolean }[] = [
+const items: { to: string; icon: any; label: string; proOnly?: boolean; adminOnly?: boolean }[] = [
   { to: "/dashboard", icon: Home, label: "Today's Plan" },
   { to: "/roadmap", icon: Calendar, label: "Roadmap" },
   { to: "/exams", icon: GraduationCap, label: "Exams" },
@@ -25,6 +26,7 @@ const items: { to: string; icon: any; label: string; proOnly?: boolean }[] = [
   { to: "/feedback", icon: MessageSquare, label: "Feedback" },
   { to: "/pricing", icon: Sparkles, label: "Plans" },
   { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/admin", icon: Shield, label: "Admin Panel", adminOnly: true },
 ];
 
 const subjectColor: Record<SubjectCode, string> = {
@@ -44,6 +46,8 @@ interface ProfileLite {
 const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
+  const [testMode] = useTestMode();
+  const isAdmin = (user?.email || "").toLowerCase() === ADMIN_EMAIL && !testMode;
   const { isPro } = useSubscription();
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [subjects, setSubjects] = useState<SubjectCode[]>([]);
@@ -68,6 +72,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto">
         {items.map(it => {
+          if (it.adminOnly && !isAdmin) return null;
           const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
           const tutorialKey =
             it.to === "/roadmap" ? "nav-roadmap" :

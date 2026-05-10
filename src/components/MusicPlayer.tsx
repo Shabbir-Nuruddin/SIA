@@ -34,6 +34,12 @@ const TRACKS: Track[] = [
   { id: "instrumental-1", title: "Instrumental Focus", vibe: "Mellow · Steady", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
   { id: "instrumental-2", title: "Long-Session Loop", vibe: "Hypnotic · Repetitive", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
   { id: "instrumental-3", title: "Late Night Drift", vibe: "Soft · Late session", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+  // ── New high-energy / focus-state tracks ──
+  { id: "lofi-energetic", title: "Lo-fi Hip Hop — Energetic", vibe: "Upbeat lofi · Fast BPM", url: "https://cdn.pixabay.com/audio/2023/07/30/audio_3286e2581c.mp3" },
+  { id: "binaural-40hz", title: "Binaural Beats — Focus 40Hz", vibe: "Gamma waves · Deep concentration", url: "https://cdn.pixabay.com/audio/2024/03/26/audio_71c2f0cb88.mp3" },
+  { id: "study-trap", title: "Study Trap — Fast BPM", vibe: "Instrumental trap · No lyrics", url: "https://cdn.pixabay.com/audio/2023/03/22/audio_e2bcb86fd4.mp3" },
+  { id: "dnb-study", title: "Drum & Bass Study", vibe: "Fast rhythm · High energy", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
+  { id: "uptempo-ambient", title: "Uptempo Ambient", vibe: "Fast clean electronic · No lyrics", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";

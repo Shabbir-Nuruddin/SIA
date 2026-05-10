@@ -28,5 +28,63 @@ import Exams from "./pages/Exams";
 import Pricing from "./pages/Pricing";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 import { Terms, Privacy, Refund } from "./pages/Legal";
-import { ClarityCompassHome } from "./pages/ClarityCompass/ClarityCompassHome";\nimport { ClarityOnboarding } from "./pages/ClarityCompass/ClarityOnboarding";\nimport { ClarityQuiz } from "./pages/ClarityCompass/ClarityQuiz";\nimport { ClarityResults } from "./pages/ClarityCompass/ClarityResults";\nimport { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";\nimport { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile\";\n\nconst queryClient = new QueryClient();\n\nconst App = () => (\n  <QueryClientProvider client={queryClient}>\n    <AuthProvider>\n      <TooltipProvider>\n        <Toaster />\n        <Sonner />\n        <BrowserRouter>\n          <MaintenanceGate>\n          <Routes>\n            <Route path=\"/\" element={<Landing />} />\n            <Route path=\"/auth\" element={<AuthPage />} />\n            <Route path=\"/diagnostic\" element={<Diagnostic />} />\n            <Route path=\"/onboarding\" element={<Onboarding />} />\n            <Route path=\"/dashboard\" element={<Dashboard />} />\n            <Route path=\"/questions\" element={<Questions />} />\n            <Route path=\"/mock-papers\" element={<MockPapers />} />\n            <Route path=\"/mock-papers/new\" element={<NewMockPaper />} />\n            <Route path=\"/mock-papers/exam/:id\" element={<MockExam />} />\n            <Route path=\"/mock-papers/:id/results\" element={<MockResults />} />\n            <Route path=\"/roadmap\" element={<Roadmap />} />\n            <Route path=\"/roadmap/topic/:nodeId/notes\" element={<RoadmapTopicNotes />} />\n            <Route path=\"/notes\" element={<Notes />} />\n            <Route path=\"/podcast\" element={<Podcast />} />\n            <Route path=\"/papers\" element={<PastPapers />} />\n            <Route path=\"/faq\" element={<RequirePro featureName=\"Exam FAQs\"><FAQ /></RequirePro>} />\n            <Route path=\"/settings\" element={<Settings />} />\n            <Route path=\"/exams\" element={<Exams />} />\n            <Route path=\"/pricing\" element={<Pricing />} />\n            <Route path=\"/feedback\" element={<Feedback />} />\n            <Route path=\"/terms\" element={<Terms />} />\n            <Route path=\"/privacy\" element={<Privacy />} />\n            <Route path=\"/refund\" element={<Refund />} />\n            <Route path=\"/clarity-compass\" element={<ClarityCompassHome />} />\n            <Route path=\"/clarity-compass/onboarding\" element={<ClarityOnboarding />} />\n            <Route path=\"/clarity-compass/quiz\" element={<ClarityQuiz />} />\n            <Route path=\"/clarity-compass/results\" element={<ClarityResults />} />\n            <Route path=\"/clarity-compass/roadmap\" element={<ClarityRoadmap />} />\n            <Route path=\"/clarity-compass/profile\" element={<ClarityProfile />} />\n            <Route path=\"*\" element={<NotFound />} />\n          </Routes>\n          </MaintenanceGate>\n        </BrowserRouter>\n      </TooltipProvider>\n    </AuthProvider>\n  </QueryClientProvider>\n);\n\nexport default App;\n
+import { ClarityCompassHome } from "./pages/ClarityCompass/ClarityCompassHome";
+import { ClarityOnboarding } from "./pages/ClarityCompass/ClarityOnboarding";
+import { ClarityQuiz } from "./pages/ClarityCompass/ClarityQuiz";
+import { ClarityResults } from "./pages/ClarityCompass/ClarityResults";
+import { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";
+import { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <MaintenanceGate>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/diagnostic" element={<Diagnostic />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/questions" element={<Questions />} />
+              <Route path="/mock-papers" element={<MockPapers />} />
+              <Route path="/mock-papers/new" element={<NewMockPaper />} />
+              <Route path="/mock-papers/exam/:id" element={<MockExam />} />
+              <Route path="/mock-papers/:id/results" element={<MockResults />} />
+              <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
+              <Route path="/notes" element={<Notes />} />
+              <Route path="/podcast" element={<Podcast />} />
+              <Route path="/papers" element={<PastPapers />} />
+              <Route path="/faq" element={<RequirePro featureName="Exam FAQs"><FAQ /></RequirePro>} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/exams" element={<Exams />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/feedback" element={<Feedback />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/refund" element={<Refund />} />
+              <Route path="/clarity-compass" element={<ClarityCompassHome />} />
+              <Route path="/clarity-compass/onboarding" element={<ClarityOnboarding />} />
+              <Route path="/clarity-compass/quiz" element={<ClarityQuiz />} />
+              <Route path="/clarity-compass/results" element={<ClarityResults />} />
+              <Route path="/clarity-compass/roadmap" element={<ClarityRoadmap />} />
+              <Route path="/clarity-compass/profile" element={<ClarityProfile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MaintenanceGate>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
+
+export default App;
