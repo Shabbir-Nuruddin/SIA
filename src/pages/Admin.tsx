@@ -20,10 +20,12 @@ const Admin = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("admin_ai_modifiers").select("*").order("created_at", { ascending: false })
-      .then(({ data }) => { if (data) setModifiers(data as any); });
-    supabase.from("feedback").select("id,created_at,user_id,message,rating").order("created_at", { ascending: false }).limit(200)
-      .then(({ data }) => { if (data) setFeedback(data as any); });
+    (supabase.from("admin_ai_modifiers") as any).select("*").order("created_at", { ascending: false })
+      .then(({ data }: any) => { if (data) setModifiers(data); });
+    (supabase.from("feedback_tickets") as any).select("id,created_at,user_id,subject,message,rating").order("created_at", { ascending: false }).limit(200)
+      .then(({ data }: any) => {
+        if (data) setFeedback(data.map((d: any) => ({ ...d, message: `${d.subject ? `[${d.subject}] ` : ""}${d.message || ""}` })));
+      });
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
