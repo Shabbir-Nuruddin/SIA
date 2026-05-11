@@ -229,7 +229,7 @@ serve(async (req) => {
       : "Edexcel IAL";
 
     const scopeNote = syllabus_context
-      ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT in[...]
+      ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it.`
       : "";
 
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
