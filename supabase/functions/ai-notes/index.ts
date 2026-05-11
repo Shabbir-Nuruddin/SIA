@@ -1,14 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callGroqTool } from "../_shared/groq.ts";
+import { callAITool, deepStripLatex } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -21,12 +19,13 @@ const paragraphiseOverview = (s: string) =>
     .filter(Boolean)
     .join("\n\n");
 
-const enoughOverview = (s: string) => paragraphiseOverview(s).split(/\n\s*\n+/).filter(Boolean).length >= 6;
+const enoughOverview = (s: string) => paragraphiseOverview(s).split(/\n\s*\n+/).filter(Boolean).length >= 5;
 
-const normaliseNotes = (args: any) => ({
+const normaliseNotes = (args: any) => deepStripLatex({
   ...args,
   overview: paragraphiseOverview(args?.overview || ""),
 });
+
 
 // Structured 7-section schema. Returned via tool calling for reliability.
 const notesTool = {
