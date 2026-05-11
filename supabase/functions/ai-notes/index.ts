@@ -234,31 +234,33 @@ serve(async (req) => {
 
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
 
-ABSOLUTE FORMATTING RULES:
-- For ALL mathematical expressions use LaTeX delimited with $...$ (inline) or $$...$$ (display). Examples: $x^2 + 5x + 6$, $\\frac{a}{b}$, $\\sqrt{x+1}$, $\\int_0^1 x\\,dx$, $H_2O$, $\\pi r^2$.
-- Use proper LaTeX commands: \\frac, \\sqrt, \\sum, \\int, ^{...}, _{...}, \\pi, \\theta, \\Delta, \\rightarrow, \\leq, \\geq, \\pm, \\times, \\cdot.
-- Outside math, use Unicode for stand-alone symbols (→, ⇌, °C) and UK English. Mark-scheme phrasing for ${boardLabel}.
- - Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
- - OVERVIEW LENGTH IS NON-NEGOTIABLE: overview must contain 8 to 10 real paragraphs separated by blank lines. Never compress overview into 1-2 paragraphs. Each paragraph must teach exam-relevant [...]
-- CRITICAL JSON SAFETY: When emitting tool arguments, every backslash inside a JSON string MUST be doubled (\\\\). For LaTeX, write "\\\\frac{a}{b}", "\\\\sqrt{x}", "\\\\Delta", "\\\\sum", "\\\\i[...]
+ABSOLUTE FORMATTING RULES — PLAIN UNICODE ONLY:
+- DO NOT use LaTeX. DO NOT use \\(, \\), \\[, \\], $, $$, or backslash commands of any kind.
+- Write all mathematical expressions in plain Unicode:
+  • Use ² ³ ⁴ ⁻¹ ⁰ ⁺ for superscripts (NOT ^2 or ^{2}).
+  • Use ₀ ₁ ₂ ₃ for subscripts (NOT _2 or _{2}). Example: H₂O, CO₂, x₁.
+  • Use → for arrows (NOT \\rightarrow or ->), ⇌ for equilibrium, ⇒ for implies.
+  • Use ≤ ≥ ≠ ≈ ± × · ÷ √ ∑ ∫ ∞ Δ δ α β γ θ π μ ρ σ ω λ φ ε ° directly.
+  • Fractions: write "(a)/(b)" or "a/b" inline, never \\frac{}{}.
+  • Square roots: use √x or √(x+1), never \\sqrt{}.
+- Outside math, use UK English and standard mark-scheme phrasing for ${boardLabel}.
+- Do NOT use ## headers or markdown bullets in any field — return structured data via the tool.
+- OVERVIEW LENGTH: overview must contain 5 to 8 real paragraphs separated by blank lines. Each paragraph must be 4 to 6 sentences and teach exam-relevant content directly so a student reading only the overview understands the entire topic.`;
 
     const isMaths = subject === "mathematics" || subject === "math" || subject === "maths";
     const mathsBoost = isMaths
       ? `
 
 CRITICAL — THIS IS MATHEMATICS:
-- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, written in LaTeX (e.g. "$x^2 + 5x + 6 = 0$", "Let $u = [...]
-- Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern (standard case, edge case, with substitution, applied/word problem, etc.).
-- Each worked_example should be at least 6 lines long: a clear "Given → Method → Working → Answer" structure. Use $$...$$ for any equation that should be centred on its own line.
-- For equations, every worked_substitution must show the full numeric chain in LaTeX, not just the final answer.
-- Show common algebraic manipulations explicitly (factorising, expanding, completing the square, integration by parts, etc.) using $\\frac{}{}$, $\\sqrt{}$, $^{}$ as appropriate.
+- For EVERY core_content item, the worked_example MUST be a fully-worked numerical or algebraic solution showing each step on its own line, in plain Unicode (e.g. "x² + 5x + 6 = 0", "Let u = x + 1", "(x+2)(x+3) = 0", "x = -2 or x = -3"). NEVER use LaTeX.
+- Include AT LEAST 6 core_content items per topic, each demonstrating a different worked-example pattern.
+- Each worked_example should be at least 6 lines: a clear "Given → Method → Working → Answer" structure.
+- For equations, every worked_substitution must show the full numeric chain in plain Unicode.
 - For key_definitions, set "plain_english" to an empty string "" — maths notes show the formal definition only.
-- For overview, keep it detailed but only the necessary things that either reinforces concept or helps with exam — students want to see worked examples, not prose.
+- For overview, prioritise worked examples over prose.
 
 CRITICAL — VISUAL SUMMARY FOR MATHS:
-- DO NOT generate inline SVG graphs for maths. SVG graphs are visually unreliable (curves crossing the x-axis at the wrong number of points, asymptotes drawn incorrectly, etc.) and students rely [...]
-- Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> that summarises the key cases, formulae, or conditions for this topic. Example for the discriminant: a 3-ro[...]
-- The HTML table content may use $...$ LaTeX inside cells.`
+- Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> (no LaTeX inside).`
       : "";
 
     const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
@@ -266,19 +268,18 @@ CRITICAL — VISUAL SUMMARY FOR MATHS:
 ${syllabus_context ? `Official syllabus content (your scope is limited to this):\n${syllabus_context}\n` : ""}
 ${mathsBoost}
 
-Produce notes in this exact structure via the tool:
-1. overview — EXACTLY 8 to 10 substantial paragraphs separated by blank lines in the style of Save My Exams revision notes. Each paragraph must be 4 to 6 sentences. Teach the actual content dir[...]
+Produce notes in this exact structure via the tool. REMEMBER: PLAIN UNICODE ONLY — NO LATEX.
+1. overview — 5 to 8 substantial paragraphs separated by blank lines. Each paragraph 4 to 6 sentences. Teach the actual content so a student reading only the overview understands the topic.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
-3. CORE CONTENT — every syllabus point. Each: statement + worked example (setup → method → answer with units) + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least [...]
-4. EQUATIONS — every equation needed. Plain text. Each variable with meaning + unit. One worked substitution.
-5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table"). Do NOT use SVG for maths topics — accuracy is critical.' : 'one diagram. Prefer an inline SVG illustration (viewBox="0[...]
-6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word (Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that, Deduce).
-7. FLASHCARDS — exactly 10. Test definitions, equations, and application — not just recall.`;
+3. CORE CONTENT — every syllabus point. Each: statement + worked example + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each a fully-worked solution." : ""}
+4. EQUATIONS — every equation in plain Unicode. Each variable with meaning + unit. One worked substitution.
+5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table").' : 'one diagram. Prefer inline SVG (viewBox="0 0 400 240") with stroke="currentColor", or HTML <table>.'}
+6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word.
+7. FLASHCARDS — exactly 10.`;
 
     let args: any;
     try {
-      args = await callGroqTool({
-        apiKey: LOVABLE_API_KEY,
+      args = await callAITool({
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },
@@ -290,11 +291,10 @@ Produce notes in this exact structure via the tool:
       });
       args = normaliseNotes(args);
       if (!enoughOverview(args.overview)) {
-        args = normaliseNotes(await callGroqTool({
-          apiKey: LOVABLE_API_KEY,
+        args = normaliseNotes(await callAITool({
           messages: [
             { role: "system", content: system },
-            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version where overview has 8 to 10 separate paragraphs wit[...]
+            { role: "user", content: `${user}\n\nThe previous attempt was rejected because overview was too short. Return a new complete version with overview = 5 to 8 substantial paragraphs separated by blank lines.` },
           ],
           tools: [notesTool],
           toolName: "create_topic_notes",
@@ -303,11 +303,16 @@ Produce notes in this exact structure via the tool:
         }));
       }
     } catch (err: any) {
-      console.error("ai-notes generation failed", err?.body?.slice?.(0, 700) || err);
+      console.error("ai-notes generation failed", {
+        status: err?.status,
+        message: err?.message,
+        body: typeof err?.body === "string" ? err.body.slice(0, 1000) : err?.body,
+      });
       return new Response(JSON.stringify({ error: "AI is taking a short break — please try again in 30 seconds" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
     }
 
     // Save to shared cache so future requests skip the AI call entirely.
