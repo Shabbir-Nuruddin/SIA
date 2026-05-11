@@ -184,12 +184,13 @@ const notesTool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (!LOVABLE_API_KEY) {
-    return new Response(JSON.stringify({ error: "AI service not configured" }), {
+  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GROQ_API_KEY")) {
+    return new Response(JSON.stringify({ error: "AI service not configured (need GEMINI_API_KEY or GROQ_API_KEY)" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
   try {
     const { subject, unit_number, unit_name, topic, syllabus_context, board, level } = await req.json();
 
