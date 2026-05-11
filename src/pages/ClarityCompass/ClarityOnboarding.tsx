@@ -11,6 +11,7 @@ import { ClarityLayout } from "@/components/ClarityCompass/ClarityLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { clarityDb } from "@/types/clarity-types";
 import { SubjectEntry, ClarityProfile } from "@/types/clarity.types";
 
 const SUBJECT_OPTIONS = [
@@ -226,7 +227,7 @@ export function ClarityOnboarding(): React.ReactElement {
         free_text: state.freeText,
       };
 
-      const { error } = await supabase
+      const { error } = await clarityDb
         .from("clarity_profiles")
         .upsert(profile, { onConflict: "user_id" });
 

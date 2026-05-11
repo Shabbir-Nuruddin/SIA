@@ -5,6 +5,7 @@ import { ClarityLayout } from "@/components/ClarityCompass/ClarityLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { clarityDb } from "@/types/clarity-types";
 import { ClarityProfile as ClarityProfileType, ClarityResults } from "@/types/clarity.types";
 import { toast } from "sonner";
 
@@ -33,17 +34,17 @@ export function ClarityProfile(): React.ReactElement {
 
       try {
         const [profileRes, resultsRes, sessionsRes] = await Promise.all([
-          supabase
+          clarityDb
             .from("clarity_profiles")
             .select("*")
             .eq("user_id", user.id)
             .single(),
-          supabase
+          clarityDb
             .from("clarity_results")
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false }),
-          supabase
+          clarityDb
             .from("clarity_quiz_sessions")
             .select("created_at")
             .eq("user_id", user.id)
@@ -70,9 +71,9 @@ export function ClarityProfile(): React.ReactElement {
     try {
       // Delete from all tables
       await Promise.all([
-        supabase.from("clarity_profiles").delete().eq("user_id", user.id),
-        supabase.from("clarity_results").delete().eq("user_id", user.id),
-        supabase.from("clarity_quiz_sessions").delete().eq("user_id", user.id),
+        clarityDb.from("clarity_profiles").delete().eq("user_id", user.id),
+        clarityDb.from("clarity_results").delete().eq("user_id", user.id),
+        clarityDb.from("clarity_quiz_sessions").delete().eq("user_id", user.id),
       ]);
 
       // Clear localStorage

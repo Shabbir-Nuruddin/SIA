@@ -1,0 +1,25 @@
+// CIE IGCSE Biology (0610) — placeholder syllabus. Replace with full topic list.
+export const cieBiology0610 = {
+  id: 'cie-biology-0610',
+  name: 'Biology',
+  code: '0610',
+  board: 'CIE',
+  topics: [
+    { id: 'cie-b1', title: 'Characteristics and classification of living organisms', subtopics: [] },
+    { id: 'cie-b2', title: 'Organisation of the organism', subtopics: [] },
+    { id: 'cie-b3', title: 'Movement into and out of cells', subtopics: [] },
+    { id: 'cie-b4', title: 'Biological molecules', subtopics: [] },
+    { id: 'cie-b5', title: 'Enzymes', subtopics: [] },
+    { id: 'cie-b6', title: 'Plant nutrition', subtopics: [] },
+    { id: 'cie-b7', title: 'Human nutrition', subtopics: [] },
+    { id: 'cie-b8', title: 'Transport in plants and animals', subtopics: [] },
+    { id: 'cie-b9', title: 'Diseases and immunity', subtopics: [] },
+    { id: 'cie-b10', title: 'Gas exchange and respiration', subtopics: [] },
+    { id: 'cie-b11', title: 'Excretion and coordination', subtopics: [] },
+    { id: 'cie-b12', title: 'Reproduction', subtopics: [] },
+    { id: 'cie-b13', title: 'Inheritance and variation', subtopics: [] },
+    { id: 'cie-b14', title: 'Organisms and their environment', subtopics: [] },
+    { id: 'cie-b15', title: 'Human influences on ecosystems', subtopics: [] },
+    { id: 'cie-b16', title: 'Biotechnology and genetic modification', subtopics: [] },
+  ],
+};

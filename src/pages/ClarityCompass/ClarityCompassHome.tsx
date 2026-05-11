@@ -5,6 +5,7 @@ import { ClarityLayout } from "@/components/ClarityCompass/ClarityLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { clarityDb } from "@/types/clarity-types";
 
 interface ClarityResult {
   created_at: string;
@@ -23,7 +24,7 @@ export function ClarityCompassHome(): React.ReactElement {
     }
 
     const fetchLastResult = async (): Promise<void> => {
-      const { data, error } = await supabase
+      const { data, error } = await clarityDb
         .from("clarity_results")
         .select("created_at")
         .eq("user_id", user.id)

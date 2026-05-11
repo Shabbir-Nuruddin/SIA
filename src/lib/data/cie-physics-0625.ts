@@ -1,3 +1,8 @@
+export const ciePhysics0625 = {
+  id: 'cie-physics-0625',
+  name: 'Physics',
+  code: '0625',
+  board: 'CIE',
   topics: [
     {
       id: 'cie-p1',
@@ -95,4 +100,5 @@
       ]
     }
   ]
-;
+};
+
