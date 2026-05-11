@@ -130,7 +130,7 @@ const notesTool = {
             content: {
               type: "string",
               description:
-                'Either: (a) an inline <svg>...</svg> illustration with viewBox="0 0 400 240" using stroke="currentColor" so it themes correctly, OR (b) a simple HTML <table>... markup, OR (c) AS[...]
+                'Either an inline <svg>...</svg> illustration (viewBox="0 0 400 240", stroke="currentColor"), or a simple HTML <table> markup, or plain ASCII flowchart text. NO LaTeX inside.',
             },
           },
           required: ["kind", "caption", "content"],
