@@ -34,17 +34,17 @@ export function ClarityProfile(): React.ReactElement {
 
       try {
         const [profileRes, resultsRes, sessionsRes] = await Promise.all([
-          supabase
+          clarityDb
             .from("clarity_profiles")
             .select("*")
             .eq("user_id", user.id)
             .single(),
-          supabase
+          clarityDb
             .from("clarity_results")
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false }),
-          supabase
+          clarityDb
             .from("clarity_quiz_sessions")
             .select("created_at")
             .eq("user_id", user.id)

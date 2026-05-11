@@ -24,7 +24,7 @@ export function ClarityCompassHome(): React.ReactElement {
     }
 
     const fetchLastResult = async (): Promise<void> => {
-      const { data, error } = await supabase
+      const { data, error } = await clarityDb
         .from("clarity_results")
         .select("created_at")
         .eq("user_id", user.id)

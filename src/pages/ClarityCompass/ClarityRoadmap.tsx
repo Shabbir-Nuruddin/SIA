@@ -243,7 +243,7 @@ export function ClarityRoadmap(): React.ReactElement {
 
       if (!user) return;
 
-      await supabase
+      await clarityDb
         .from("clarity_results")
         .update({ milestone_checks: newChecks })
         .eq("user_id", user.id)

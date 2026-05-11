@@ -227,7 +227,7 @@ export function ClarityOnboarding(): React.ReactElement {
         free_text: state.freeText,
       };
 
-      const { error } = await supabase
+      const { error } = await clarityDb
         .from("clarity_profiles")
         .upsert(profile, { onConflict: "user_id" });
 

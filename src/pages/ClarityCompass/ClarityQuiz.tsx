@@ -250,7 +250,7 @@ export function ClarityQuiz(): React.ReactElement {
 
       try {
         // Load profile
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData, error: profileError } = await clarityDb
           .from("clarity_profiles")
           .select("*")
           .eq("user_id", user.id)
@@ -260,7 +260,7 @@ export function ClarityQuiz(): React.ReactElement {
         setProfile(profileData as ClarityProfile);
 
         // Create session
-        const { data: sessionData, error: sessionError } = await supabase
+        const { data: sessionData, error: sessionError } = await clarityDb
           .from("clarity_quiz_sessions")
           .insert({
             user_id: user.id,
@@ -330,7 +330,7 @@ export function ClarityQuiz(): React.ReactElement {
 
     // Update session every 3 questions
     if ((newHistory.length + 1) % 3 === 0 && sessionId) {
-      await supabase
+      await clarityDb
         .from("clarity_quiz_sessions")
         .update({ questions_and_answers: newHistory })
         .eq("id", sessionId)
@@ -341,7 +341,7 @@ export function ClarityQuiz(): React.ReactElement {
     if (currentQuestion.quiz_complete && currentQuestion.final_analysis) {
       // Update session as completed
       if (sessionId) {
-        await supabase
+        await clarityDb
           .from("clarity_quiz_sessions")
           .update({
             completed: true,
@@ -353,7 +353,7 @@ export function ClarityQuiz(): React.ReactElement {
 
       // Insert results
       if (user && currentQuestion.final_analysis) {
-        const { error: resultsError } = await supabase
+        const { error: resultsError } = await clarityDb
           .from("clarity_results")
           .insert({
             user_id: user.id,
