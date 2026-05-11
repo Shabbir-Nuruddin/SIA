@@ -10,6 +10,7 @@ import {
   Menu,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -31,10 +32,22 @@ const SidebarBody = ({ onNavigate }: SidebarBodyProps): React.ReactElement => {
   const [userName, setUserName] = useState<string>("Clarity Explorer");
 
   useEffect(() => {
-    if (user?.email) {
-      const emailPrefix = user.email.split("@")[0];
-      setUserName(emailPrefix);
-    }
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("first_name, last_name, display_name")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.first_name || data?.display_name) {
+          const name = `${data.first_name || data.display_name || ""} ${data.last_name || ""}`.trim();
+          setUserName(name || "Clarity Explorer");
+        } else if (user.email) {
+          // Fallback: capitalise the part before @ so at least it looks like a name
+          const prefix = user.email.split("@")[0];
+          setUserName(prefix.charAt(0).toUpperCase() + prefix.slice(1));
+        }
+      });
   }, [user]);
 
   return (

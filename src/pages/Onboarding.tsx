@@ -43,7 +43,7 @@ const Onboarding = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const [board, setBoard] = useState<"edexcel-ial" | "cie" | "cie-igcse" | "edexcel-igcse">("edexcel-ial");
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [firstName, setFirstName] = useState("");
   const [needsName, setNeedsName] = useState(false);
@@ -72,7 +72,7 @@ const Onboarding = () => {
 
   const SUBJECT_LIST = Object.values(getSubjectsForBoard(board));
 
-  const buildInitialSubjects = (b: "edexcel-ial" | "cie"): Record<SubjectCode, SubjectInput> => {
+  const buildInitialSubjects = (b: "edexcel-ial" | "cie" | "cie-igcse" | "edexcel-igcse"): Record<SubjectCode, SubjectInput> => {
     const list = Object.values(getSubjectsForBoard(b));
     return list.reduce((a, s) => ({
       ...a,
@@ -80,7 +80,7 @@ const Onboarding = () => {
         selected: false,
         target_grade: "A" as Grade,
         current_grade: "C" as Grade,
-        units: s.units.reduce((u, unit) => ({
+        units: (s.units || []).reduce((u: any, unit: any) => ({
           ...u,
           [unit.number]: { selected: !unit.aLevelOnly }
         }), {} as Record<number, UnitInput>),
@@ -93,7 +93,7 @@ const Onboarding = () => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const handleBoardChange = (b: "edexcel-ial" | "cie") => {
+  const handleBoardChange = (b: "edexcel-ial" | "cie" | "cie-igcse" | "edexcel-igcse") => {
     setBoard(b);
     setSubjects(buildInitialSubjects(b));
   };
@@ -276,7 +276,9 @@ const Onboarding = () => {
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
               {([
                 { id: "edexcel-ial" as const, name: "Edexcel IAL", sub: "International A-Level · Pearson", spec: "Units 1–6 (e.g. WCH11, WBI11)" },
-                { id: "cie" as const, name: "Cambridge (CIE)", sub: "A Level · Cambridge International", spec: "9701, 9700, 9702, 9709" },
+                { id: "cie" as const, name: "Cambridge (CIE) A Level", sub: "A Level · Cambridge International", spec: "9701, 9700, 9702, 9709" },
+                { id: "edexcel-igcse" as const, name: "Edexcel IGCSE", sub: "International GCSE · Pearson", spec: "4CH1, 4BI1, 4PH1, 4MA1" },
+                { id: "cie-igcse" as const, name: "Cambridge IGCSE", sub: "IGCSE · Cambridge International", spec: "0620, 0610, 0625, 0580" },
               ]).map(b => {
                 const sel = board === b.id;
                 return (
@@ -304,7 +306,7 @@ const Onboarding = () => {
               }}
               className="bg-primary hover:bg-primary/90 h-12 px-8"
             >
-              Continue with {board === "edexcel-ial" ? "Edexcel IAL" : "Cambridge"} <ArrowRight className="ml-2 h-4 w-4" />
+              Continue with {board === "edexcel-ial" ? "Edexcel IAL" : board === "cie" ? "Cambridge A Level" : board === "edexcel-igcse" ? "Edexcel IGCSE" : "Cambridge IGCSE"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         )}

@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callAITool } from "../_shared/ai.ts";
 import { callGroqTool } from "../_shared/groq.ts";
 
 const corsHeaders = {
@@ -7,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
+const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 
 const onePointPerMark = (q: any) => {
   const marks = Math.max(1, Number(q?.marks) || 1);
@@ -90,7 +91,7 @@ const markTool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (!LOVABLE_API_KEY) {
+  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -184,15 +185,26 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
 
     let args: any;
     try {
-      args = await callGroqTool({
-        apiKey: LOVABLE_API_KEY,
-        messages,
-        tools,
-        toolName,
-        temperature: action === "generate" ? 0.35 : 0.15,
-        maxTokens: action === "generate" ? 6000 : 2500,
-        vision: Boolean(body.studentAnswerImage),
-      });
+      // For marking with an image, must use Groq (vision-capable). For all other actions, use Gemini primary.
+      if (action === "mark" && body.studentAnswerImage && GROQ_KEY) {
+        args = await callGroqTool({
+          apiKey: GROQ_KEY,
+          messages,
+          tools,
+          toolName,
+          temperature: 0.15,
+          maxTokens: 2500,
+          vision: true,
+        });
+      } else {
+        args = await callAITool({
+          messages,
+          tools,
+          toolName,
+          temperature: action === "generate" ? 0.35 : 0.15,
+          maxTokens: action === "generate" ? 6000 : 2500,
+        });
+      }
     } catch (err: any) {
       console.error("ai-question generation failed", err?.body?.slice?.(0, 700) || err);
       return new Response(JSON.stringify({ error: err?.message || "AI generation failed after trying fallback models." }), {

@@ -31,15 +31,15 @@ const TRACKS: Track[] = [
   { id: "piano-focus", title: "Piano for Focus", vibe: "Soft · Study", url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3" },
   { id: "cinematic-calm", title: "Cinematic Calm", vibe: "Atmospheric · Deep work", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
   { id: "ambient-flow", title: "Ambient Flow", vibe: "Smooth · Deep focus", url: "https://cdn.pixabay.com/audio/2023/05/16/audio_166b9c7242.mp3" },
-  { id: "instrumental-1", title: "Instrumental Focus", vibe: "Mellow · Steady", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-  { id: "instrumental-2", title: "Long-Session Loop", vibe: "Hypnotic · Repetitive", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-  { id: "instrumental-3", title: "Late Night Drift", vibe: "Soft · Late session", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+  { id: "instrumental-1", title: "Instrumental Focus", vibe: "Mellow · Steady", url: "https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" },
+  { id: "instrumental-2", title: "Long-Session Loop", vibe: "Hypnotic · Repetitive", url: "https://cdn.pixabay.com/audio/2023/04/10/audio_8cb749f7db.mp3" },
+  { id: "instrumental-3", title: "Late Night Drift", vibe: "Soft · Late session", url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8880d42b1d.mp3" },
   // ── New high-energy / focus-state tracks ──
   { id: "lofi-energetic", title: "Lo-fi Hip Hop — Energetic", vibe: "Upbeat lofi · Fast BPM", url: "https://cdn.pixabay.com/audio/2023/07/30/audio_3286e2581c.mp3" },
   { id: "binaural-40hz", title: "Binaural Beats — Focus 40Hz", vibe: "Gamma waves · Deep concentration", url: "https://cdn.pixabay.com/audio/2024/03/26/audio_71c2f0cb88.mp3" },
   { id: "study-trap", title: "Study Trap — Fast BPM", vibe: "Instrumental trap · No lyrics", url: "https://cdn.pixabay.com/audio/2023/03/22/audio_e2bcb86fd4.mp3" },
-  { id: "dnb-study", title: "Drum & Bass Study", vibe: "Fast rhythm · High energy", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
-  { id: "uptempo-ambient", title: "Uptempo Ambient", vibe: "Fast clean electronic · No lyrics", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
+  { id: "dnb-study", title: "Drum & Bass Study", vibe: "Fast rhythm · High energy", url: "https://cdn.pixabay.com/audio/2023/06/12/audio_a2ad02ed3c.mp3" },
+  { id: "uptempo-ambient", title: "Uptempo Ambient", vibe: "Fast clean electronic · No lyrics", url: "https://cdn.pixabay.com/audio/2022/03/24/audio_1a609c4d8c.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";

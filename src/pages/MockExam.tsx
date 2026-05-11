@@ -283,19 +283,38 @@ const MockExam = () => {
       if (marked?.error) throw new Error(marked.error);
 
       const results: { question_index: number; awarded_marks: number; feedback: string }[] = marked.results || [];
+      
+      // Build a map from question_index → payload item for reliable matching
+      const payloadByIndex = new Map(payload.map((p: any) => [p.question_index, p]));
+      
       let total = 0;
       for (const r of results) {
-        const q = payload.find((p: any) => p.question_index === r.question_index);
+        const q = payloadByIndex.get(r.question_index);
         if (!q) continue;
         const studentAns = (q.student_answer ?? "").toString().trim();
         // Hard guard: blank answers always get 0, regardless of what the AI returned.
         const rawAwarded = studentAns ? r.awarded_marks : 0;
-        const awarded = Math.max(0, Math.min(q.marks, rawAwarded));
+        const awarded = Math.max(0, Math.min(q.marks, rawAwarded ?? 0));
         total += awarded;
         await supabase.from("mock_paper_questions").update({
           awarded_marks: awarded,
           feedback: studentAns ? r.feedback : "No answer provided. 0 marks awarded.",
         }).eq("id", q.id);
+      }
+      
+      // If AI returned fewer results than questions (silent truncation), give 0 for missing ones
+      const returnedIndices = new Set(results.map(r => r.question_index));
+      for (const q of payload) {
+        if (!returnedIndices.has(q.question_index)) {
+          const studentAns = (q.student_answer ?? "").toString().trim();
+          if (!studentAns) {
+            await supabase.from("mock_paper_questions").update({
+              awarded_marks: 0,
+              feedback: "No answer provided. 0 marks awarded.",
+            }).eq("id", q.id);
+          }
+          // If they did answer but AI missed it, leave awarded_marks as null (shows as ungraded)
+        }
       }
       const grade = estimateGrade(paper.subject, total, paper.total_marks);
       await supabase.from("mock_papers").update({

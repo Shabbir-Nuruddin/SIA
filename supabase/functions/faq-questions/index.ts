@@ -3,14 +3,13 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callGroqTool } from "../_shared/groq.ts";
+import { callAITool } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -62,7 +61,7 @@ const tool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (!GROQ_KEY) {
+  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -92,23 +91,29 @@ serve(async (req) => {
       });
     }
 
-    const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel International A-Level";
-    const system = `You are a senior ${boardLabel} ${subject} examiner. You write ORIGINAL exam questions in the EXACT style, structure, command words and mark allocations of real ${boardLabel} past papers for the topic. Use UK English and proper mark-scheme phrasing.
+    const boardLabel = board === "cie" ? "Cambridge International (CIE) A Level" : "Edexcel International A-Level (IAL)";
+    const system = `You are a senior ${boardLabel} ${subject} examiner with 15+ years of marking experience. You write ORIGINAL exam questions in the EXACT style, structure, command words and mark allocations of real ${boardLabel} past papers. Use UK English and official mark-scheme phrasing.
 
-ABSOLUTE RULES:
+CRITICAL BOARD AND LEVEL RULES:
+- If the topic belongs to Unit 4 or higher (e.g. Kinetics in Unit 4, Entropy, Chemical Equilibria with Kc/Kp, Acid-base Equilibria, Redox Equilibria, Transition Metals), generate A2-level (IA2) questions ONLY. Do NOT ask Unit 1/2 level questions on the same topic name.
+- Example: "Kinetics" at Unit 4 = rate equations, orders of reaction, rate constants, half-life, Arrhenius equation. NOT Maxwell-Boltzmann distributions (that is Unit 2).
+- Example: "Chemical Equilibria" at Unit 4 = Kc/Kp expressions and calculations. NOT basic Le Chatelier's principle (that is Unit 2).
+- Match cognitive demand exactly to the unit level.
+
+ABSOLUTE QUESTION RULES:
 - Every question MUST be plausible as a real past-paper question. If a real exam never asks 6-mark questions on this micro-topic, do not invent one.
-- Mark allocations MUST be realistic for the type of question asked. Definition recall: 1–2 marks. Short explain/describe: 3–4 marks. Calculation or extended explain: 4–6 marks.
+- Mark allocations MUST be realistic: definition recall = 1–2 marks, short explain/describe = 3–4 marks, calculation or extended explain = 4–6 marks.
 - Mark schemes MUST be written like the official mark scheme: ONE marking point per line, each line ending with " (1)". No bullet symbols, no introductory prose, no commentary — just the marking points.
 - Questions must be answerable as typed text — no drawing, sketching, plotting or labelling.
-- Use proper LaTeX inside $...$ for any maths. Double-escape backslashes inside JSON strings (\\\\frac, \\\\rightarrow, \\\\Delta).`;
+- Use proper LaTeX inside $...$ for any maths. Double-escape backslashes inside JSON strings (\\\\frac, \\\\rightarrow, \\\\Delta).
+- Each question must use a DIFFERENT command word (Explain, Describe, Calculate, Compare, State, Suggest, Determine, Evaluate, Deduce).`;
 
     const user = `Generate 3 distinct, realistic past-paper-style exam questions for ${boardLabel} ${subject}, topic: ${topic}.
 Each question must use a different command word (Explain, Describe, Calculate, Compare, State, Suggest, Determine, Evaluate). Mark allocation must reflect what an actual past paper would award for that exact question. Output via the tool.`;
 
     let args: any;
     try {
-      args = await callGroqTool({
-        apiKey: GROQ_KEY,
+      args = await callAITool({
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },

@@ -216,23 +216,54 @@ serve(async (req) => {
     }
 
     const isCie = board === "cie";
-    const boardLabel = isCie ? "Cambridge International (CIE) A Level" : board || "Edexcel International A-Level";
-    const levelLabel = level || "A-Level";
+    const isIgcse = board === "cie-igcse" || board === "edexcel-igcse";
+    const boardLabel = isCie
+      ? "Cambridge International (CIE) A Level"
+      : isIgcse
+        ? (board === "cie-igcse" ? "Cambridge IGCSE" : "Edexcel IGCSE")
+        : board || "Edexcel International A-Level (IAL)";
+    const levelLabel = level || (isIgcse ? "IGCSE" : unit_number >= 4 ? "A2-Level (IA2)" : "AS-Level (IAS)");
     const specCode = isCie
-      ? subject === "chemistry"
-        ? "9701"
-        : subject === "biology"
-          ? "9700"
-          : subject === "physics"
-            ? "9702"
-            : "9709"
-      : "Edexcel IAL";
+      ? subject === "chemistry" ? "9701"
+        : subject === "biology" ? "9700"
+        : subject === "physics" ? "9702"
+        : "9709"
+      : isIgcse
+        ? subject === "chemistry" ? "0620 / 4CH1"
+          : subject === "biology" ? "0610 / 4BI1"
+          : subject === "physics" ? "0625 / 4PH1"
+          : "0580 / 4MA1"
+        : "Edexcel IAL";
+
+    // CIE uses "Papers", Edexcel uses "Units"
+    const unitOrPaper = isCie ? "Paper" : isIgcse ? "Section" : "Unit";
+    const unitOrPaperNum = isCie
+      ? unit_number <= 3 ? `Papers 1, 2 & 3 (AS)` : `Papers 4 & 5 (A2)`
+      : `${unitOrPaper} ${unit_number}`;
 
     const scopeNote = syllabus_context
       ? `You MUST stay strictly within the official ${boardLabel} ${subject} (${specCode}) specification content provided. If a concept is not in the syllabus statements for this topic, do NOT include it.`
       : "";
 
+    // Determine AS vs A2 level for ALL units, not just unit 4
+    const isA2 = !isIgcse && unit_number >= 4;
+    const isAS = !isIgcse && unit_number <= 3;
+    const levelContext = isIgcse
+      ? "IGCSE level — assume no prior A-level knowledge. Cover Core and Extended content."
+      : isA2
+        ? `A2-level (${unitOrPaperNum}) — this is Year 13 content. Do NOT include AS-level (Year 12) material unless it is a direct prerequisite listed in the syllabus statements provided.`
+        : `AS-level (${unitOrPaperNum}) — this is Year 12 content. Do NOT include A2-level material.`;
+
     const system = `You are an expert ${boardLabel} ${levelLabel} ${subject} examiner and teacher (${specCode}). ${scopeNote}
+
+CRITICAL — UNIT/PAPER AND LEVEL SPECIFICITY:
+- These notes are for ${unitOrPaperNum} (${unit_name}).
+- ${levelContext}
+- For Edexcel IAL Chemistry: Unit 1 = Atomic structure/bonding/organic intro. Unit 2 = Energetics/Groups/Kinetics intro/Equilibria intro. Unit 4 = Rate equations/Kc/Kp/Entropy/Gibbs/Acid-base. Unit 5 = Transition metals/Arenes/Amines. Each unit has DIFFERENT content even if topic names overlap.
+- For Edexcel IAL Biology: Unit 1 = Lifestyle/Transport/Genes. Unit 2 = Development/Plants. Unit 4 = Energy/Environment/Immunity. Unit 5 = Respiration/Coordination/Gene technology.
+- For Edexcel IAL Physics: Unit 1 = Mechanics/Circuits. Unit 2 = Waves/Electricity. Unit 4 = Further mechanics/Fields/Nuclear. Unit 5 = Thermodynamics/Oscillations/Cosmology.
+- For CIE: AS topics (Papers 1–3) vs A2 topics (Papers 4–5) are completely different. Never mix them.
+- The syllabus_context IS your scope. Do not go beyond it.
 
 ABSOLUTE FORMATTING RULES — PLAIN UNICODE ONLY:
 - DO NOT use LaTeX. DO NOT use \\(, \\), \\[, \\], $, $$, or backslash commands of any kind.
@@ -263,15 +294,15 @@ CRITICAL — VISUAL SUMMARY FOR MATHS:
 - Set visual_summary.kind to "table" and visual_summary.content to a clean HTML <table> (no LaTeX inside).`
       : "";
 
-    const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (Unit ${unit_number}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
+    const user = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} (${unitOrPaperNum}) for ${boardLabel} ${levelLabel} ${subject} (${specCode}).
 
-${syllabus_context ? `Official syllabus content (your scope is limited to this):\n${syllabus_context}\n` : ""}
+${syllabus_context ? `Official syllabus content (your scope is LIMITED to these statements — do not include content outside this list):\n${syllabus_context}\n` : ""}
 ${mathsBoost}
 
 Produce notes in this exact structure via the tool. REMEMBER: PLAIN UNICODE ONLY — NO LATEX.
-1. overview — 5 to 8 substantial paragraphs separated by blank lines. Each paragraph 4 to 6 sentences. Teach the actual content so a student reading only the overview understands the topic.
+1. overview — 5 to 8 substantial paragraphs separated by blank lines. Each paragraph 4 to 6 sentences. Teach the actual ${unitOrPaperNum} content so a student reading only the overview understands the topic at the correct exam level.
 2. KEY DEFINITIONS — minimum 8. Each: term + mark-scheme definition + plain English + one common mistake.
-3. CORE CONTENT — every syllabus point. Each: statement + worked example + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each a fully-worked solution." : ""}
+3. CORE CONTENT — every syllabus point from the statements above. Each: statement + worked example + most common wrong approach + typical marks. ${isMaths ? "FOR MATHS: at least 6 items, each a fully-worked solution." : ""}
 4. EQUATIONS — every equation in plain Unicode. Each variable with meaning + unit. One worked substitution.
 5. VISUAL SUMMARY — ${isMaths ? 'MUST be an HTML <table> (kind="table").' : 'one diagram. Prefer inline SVG (viewBox="0 0 400 240") with stroke="currentColor", or HTML <table>.'}
 6. EXAMINER TIPS — minimum 5, each tied to a specific ${boardLabel} command word.

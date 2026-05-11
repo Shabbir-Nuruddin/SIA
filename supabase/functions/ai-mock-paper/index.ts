@@ -109,9 +109,15 @@ serve(async (req) => {
 
     if (action === "generate") {
       const { subject, units, topics, questionTypes, totalMarks, difficultyMix, syllabus_context } = body;
-      const system = `You are a senior Edexcel A-Level ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that. For sciences use real scientific contexts (named reactions, real organisms, real experimental setups) with altered specifics.
+      const system = `You are a senior Edexcel International A-Level (IAL) ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel IAL papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.
 
-ABSOLUTE FORMATTING RULES:
+UNIT-LEVEL CRITICAL RULES:
+- Units 1–3 are AS-level (IAS). Units 4–6 are A2-level (IA2). Generate questions ONLY at the correct level for the units specified.
+- If units include 4+, do NOT ask AS-level questions on topics that also exist at AS level. Ask the A2 version (e.g. Kinetics Unit 4 = rate equations/Arrhenius, NOT Maxwell-Boltzmann).
+- For sciences: use real scientific contexts (named reactions, real organisms, real experimental setups) with altered specifics.
+- For maths: every calculation question must have full step-by-step mark scheme with method marks (M1) and accuracy marks (A1).
+
+FORMATTING RULES:
 - Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math. NO markdown headings (#) or bold asterisks (**).
 - Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½. Write "x squared" or "x²" — never "x^2". Fractions as a/b.
 - Structure with clear paragraph breaks. Numbered/bulleted lists as plain text only.${syllabus_context ? `\n\nSCOPE — every question MUST stay strictly within the official Edexcel specification statements below. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;

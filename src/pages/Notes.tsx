@@ -12,6 +12,7 @@ import {
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { usePlan } from "@/hooks/usePlan";
@@ -150,7 +151,7 @@ const NotesPage = () => {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const { checkAndWarn, upgrade, closeUpgrade, state: planState } = usePlan();
-  const [board, setBoard] = useState<"edexcel-ial" | "cie">("edexcel-ial");
+  const [board, setBoard] = useState<"edexcel-ial" | "cie" | "cie-igcse" | "edexcel-igcse">("edexcel-ial");
   const SUBJECTS = getSubjectsForBoard(board);
   const [enrolled, setEnrolled] = useState<Array<{ subject: SubjectCode; unit_number: number; unit_name: string }>>([]);
   const [openSubject, setOpenSubject] = useState<SubjectCode | null>(null);
@@ -165,9 +166,6 @@ const NotesPage = () => {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [showFlashcards, setShowFlashcards] = useState(false);
-  const [flashIndex, setFlashIndex] = useState(0);
-  const [flashFlipped, setFlashFlipped] = useState(false);
 
   const [selection, setSelection] = useState<{ text: string; x: number; y: number } | null>(null);
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -178,7 +176,11 @@ const NotesPage = () => {
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("exam_board").eq("id", user.id).single().then(({ data }) => {
-      if (data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
+      const b = data?.exam_board;
+      if (b === "cie") setBoard("cie");
+      else if (b === "cie-igcse") setBoard("cie-igcse");
+      else if (b === "edexcel-igcse") setBoard("edexcel-igcse");
+      else setBoard("edexcel-ial");
     });
     supabase.from("user_subjects").select("subject,unit_number,unit_name").eq("user_id", user.id).order("subject").order("unit_number")
       .then(({ data }) => {
@@ -243,7 +245,15 @@ const NotesPage = () => {
           if (t) syllabus_context = t.statements.map(s => `${s.ref} ${s.text}`).join("\n");
         }
         const { data, error } = await supabase.functions.invoke("ai-notes", {
-          body: { subject, unit_number: unit, unit_name: unitMeta?.name || `Unit ${unit}`, topic, syllabus_context, board },
+          body: {
+            subject,
+            unit_number: unit,
+            unit_name: unitMeta?.name || `Unit ${unit}`,
+            topic,
+            syllabus_context,
+            board,
+            level: unit >= 4 ? "A2-Level (IA2)" : "AS-Level (IAS)",
+          },
         });
         if (error) throw new Error(error.message || "Notes service unavailable");
         if (!data || data.error) throw new Error(data?.error || "Notes service returned no data");
@@ -450,9 +460,11 @@ const NotesPage = () => {
                   {open && (
                     <div className="px-3 pb-3 space-y-3">
                       {units.map(u => {
-                        const unitMeta = m.units.find(x => x.number === u.unit_number);
+                        const unitMeta = m.units?.find(x => x.number === u.unit_number);
                         const unitKey = `${code}-${u.unit_number}`;
                         const unitOpen = openUnit === unitKey || (subjectParam === code && unitParam === u.unit_number);
+                        // CIE uses "Paper", Edexcel uses "Unit"
+                        const unitLabel = board === "cie" ? "Paper" : board === "cie-igcse" || board === "edexcel-igcse" ? "Section" : "Unit";
                         return (
                           <div key={u.unit_number}>
                             <button
@@ -460,7 +472,7 @@ const NotesPage = () => {
                               className="w-full flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-mono text-primary mb-1 hover:text-primary/80"
                             >
                               {unitOpen ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronRight className="h-2.5 w-2.5" />}
-                              <span>Unit {u.unit_number} · {unitMeta?.unitCode ?? ""}</span>
+                              <span>{unitLabel} {u.unit_number} · {unitMeta?.unitCode ?? ""}</span>
                             </button>
                             {unitOpen && (
                               <div className="space-y-0.5 ml-3">
@@ -516,193 +528,31 @@ const NotesPage = () => {
               </div>
             ) : notes ? (
               <div className="glass-card rounded-2xl p-6 md:p-8 relative" ref={panelRef} onMouseUp={handleMouseUp}>
-                <div className="flex items-start justify-between gap-3 mb-6 pb-5 border-b border-border">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground">{SUBJECTS[subjectParam]?.name ?? ""} · Unit {unitParam}</div>
-                    <h2 className="text-2xl font-extrabold mt-1">{topicParam}</h2>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">
-                      <RefreshCw className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button onClick={downloadPdf} variant="outline" size="sm">
-                      <Download className="h-3.5 w-3.5 mr-1.5" />PDF
-                    </Button>
-                  </div>
+                {/* Action bar */}
+                <div className="flex items-center justify-end gap-2 mb-6">
+                  <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Regenerate
+                  </Button>
+                  <Button onClick={downloadPdf} variant="outline" size="sm">
+                    <Download className="h-3.5 w-3.5 mr-1.5" />PDF
+                  </Button>
                 </div>
 
-                {notes.overview && (
-                  <Section title="Overview">
-                    <div className="text-sm leading-relaxed text-foreground/90 space-y-2"
-                         dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(notes.overview)) }} />
-                  </Section>
-                )}
+                <NotesVisualRenderer
+                  notes={notes}
+                  topic={topicParam}
+                  subject={SUBJECTS[subjectParam]?.name ?? subjectParam}
+                  unitLabel={
+                    board === "cie" ? `Paper ${unitParam}` :
+                    board === "cie-igcse" || board === "edexcel-igcse" ? `Section ${unitParam}` :
+                    `Unit ${unitParam}`
+                  }
+                  formatHtml={formatToHtml}
+                  renderMath={renderMathInString}
+                  annotate={annotateHtml}
+                />
 
-                {notes.key_definitions.length > 0 && (
-                  <Section title="Key Definitions">
-                    <div className="space-y-3">
-                      {notes.key_definitions.map((d, i) => (
-                        <div key={i} className="rounded-md border border-border/60 p-3 bg-secondary/20">
-                          <div className="font-semibold text-primary text-sm" {...formattedHtmlProps(d.term)} />
-                          <div className="text-sm mt-1" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(d.mark_scheme)) }} />
-                          {d.plain_english && (
-                            <div className="text-xs text-muted-foreground mt-1.5" dangerouslySetInnerHTML={{ __html: formatToHtml(`In plain English: ${d.plain_english}`) }} />
-                          )}
-                          {d.common_mistake && (
-                            <div className="text-xs mt-1.5 pl-2 border-l-2 border-urgent/60 text-foreground/80" dangerouslySetInnerHTML={{ __html: formatToHtml(`⚠ ${d.common_mistake}`) }} />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
-                )}
-
-                {notes.core_content.length > 0 && (
-                  <Section title="Core Content">
-                    <div className="space-y-4">
-                      {notes.core_content.map((c, i) => (
-                        <div key={i} className="rounded-md bg-secondary/30 p-4">
-                          <div className="flex items-start gap-2 mb-2">
-                            <span className="text-xs font-mono text-primary shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                            <div className="flex-1">
-                              <div className="font-semibold text-sm" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(c.statement)) }} />
-                              {typeof c.typical_marks === "number" && c.typical_marks > 0 && (
-                                <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-accent mt-0.5">{c.typical_marks} mark{c.typical_marks === 1 ? "" : "s"}</span>
-                              )}
-                            </div>
-                          </div>
-                          {c.worked_example && (
-                            <div className="mt-2 text-xs">
-                              <div className="text-[10px] uppercase tracking-wider font-mono text-success mb-1">Worked example</div>
-                              <div className="text-foreground/90 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(c.worked_example)) }} />
-                            </div>
-                          )}
-                          {c.wrong_approach && (
-                            <div className="mt-2 text-xs">
-                              <div className="text-[10px] uppercase tracking-wider font-mono text-urgent mb-1">Common wrong approach</div>
-                              <div className="text-foreground/80" dangerouslySetInnerHTML={{ __html: formatToHtml(c.wrong_approach) }} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
-                )}
-
-                {notes.equations.length > 0 && (
-                  <Section title="Equations">
-                    <div className="space-y-3">
-                      {notes.equations.map((e, i) => (
-                        <div key={i} className="rounded-md border border-border/60 p-3">
-                          <div className="text-base font-bold text-primary mb-2" dangerouslySetInnerHTML={{ __html: renderMathInString(
-                            (() => {
-                              const eq = String(e.equation ?? "").replace(/[\u0000-\u001F\u007F]/g, "").trim();
-                              if (!eq) return "";
-                              if (/\$/.test(eq)) return eq;
-                              return `$${eq}$`;
-                            })()
-                          ) }} />
-                          {e.variables.length > 0 && (
-                            <div className="text-xs space-y-0.5 mb-2">
-                              {e.variables.map((v, j) => {
-                                const cleanMeaning = String(v.meaning ?? "").replace(/\{?\s*meaning\s*:?\s*\}?/gi, "").trim();
-                                const cleanUnit = String(v.unit ?? "").replace(/^[\s({]+|[\s)}]+$/g, "").trim();
-                                return (
-                                  <div key={j} className="flex gap-2 items-baseline flex-wrap">
-                                    <span className="font-mono font-semibold text-accent" dangerouslySetInnerHTML={{ __html: renderMathInString(v.symbol) }} />
-                                    <span className="text-muted-foreground">=</span>
-                                    <span dangerouslySetInnerHTML={{ __html: renderMathInString(cleanMeaning) }} />
-                                    {cleanUnit && <span className="text-muted-foreground">(<span dangerouslySetInnerHTML={{ __html: renderMathInString(cleanUnit) }} />)</span>}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          {e.worked_substitution && (
-                            <div className="text-xs mt-2">
-                              <span className="text-[10px] uppercase tracking-wider font-mono text-success mr-2">Substitution</span>
-                              <span dangerouslySetInnerHTML={{ __html: formatToHtml(e.worked_substitution) }} />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
-                )}
-
-                {notes.visual_summary && notes.visual_summary.content && (
-                  <Section title="Visual Summary">
-                    {notes.visual_summary.caption && (
-                      <div className="text-xs text-muted-foreground mb-2">{notes.visual_summary.caption}</div>
-                    )}
-                    {notes.visual_summary.content.trim().startsWith("<") ? (
-                      <div className="text-sm overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
-                    ) : (
-                      <pre className="text-xs font-mono bg-secondary/30 p-3 rounded-md overflow-x-auto whitespace-pre" dangerouslySetInnerHTML={{ __html: renderMathInString(notes.visual_summary.content) }} />
-                    )}
-                  </Section>
-                )}
-
-                {notes.examiner_tips.length > 0 && (
-                  <Section title="Examiner Tips">
-                    <ul className="space-y-2 text-sm">
-                      {notes.examiner_tips.map((t, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-accent shrink-0">→</span>
-                          <span>
-                            {t.command_word && (
-                              <span className="text-[10px] font-mono uppercase tracking-wider text-primary mr-2 px-1.5 py-0.5 rounded bg-primary/10">{t.command_word}</span>
-                            )}
-                            <span dangerouslySetInnerHTML={{ __html: annotateHtml(formatToHtml(t.tip)) }} />
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Section>
-                )}
-
-                {notes.flashcards.length > 0 && (
-                  <Section title="Flashcards">
-                    {!showFlashcards ? (
-                      <Button variant="outline" size="sm" onClick={() => { setShowFlashcards(true); setFlashIndex(0); setFlashFlipped(false); }}>
-                        Practice {notes.flashcards.length} flashcards →
-                      </Button>
-                    ) : (
-                      <div className="rounded-lg border border-border bg-secondary/20 p-6 text-center">
-                        <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground mb-2">
-                          {flashIndex + 1} / {notes.flashcards.length}
-                        </div>
-                        <div
-                          onClick={() => setFlashFlipped(f => !f)}
-                          className="min-h-[120px] flex items-center justify-center cursor-pointer text-sm font-medium px-4"
-                        >
-                          {flashFlipped ? (
-                            <span className="text-success" {...formattedHtmlProps(notes.flashcards[flashIndex].a)} />
-                          ) : (
-                            <span {...formattedHtmlProps(notes.flashcards[flashIndex].q)} />
-                          )}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mb-3">Click card to {flashFlipped ? "see question" : "reveal answer"}</div>
-                        <div className="flex justify-center gap-2">
-                          <Button size="sm" variant="outline" disabled={flashIndex === 0}
-                            onClick={() => { setFlashIndex(i => Math.max(0, i - 1)); setFlashFlipped(false); }}>
-                            ← Prev
-                          </Button>
-                          <Button size="sm" variant="outline"
-                            onClick={() => { setFlashFlipped(false); setShowFlashcards(false); }}>
-                            Done
-                          </Button>
-                          <Button size="sm" disabled={flashIndex === notes.flashcards.length - 1}
-                            onClick={() => { setFlashIndex(i => Math.min(notes.flashcards.length - 1, i + 1)); setFlashFlipped(false); }}>
-                            Next →
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </Section>
-                )}
-
-                {/* Floating selection toolbar */}
+                                {/* Floating selection toolbar */}
                 {selection && !composing && (
                   <div className="absolute z-30 -translate-x-1/2 -translate-y-full"
                        style={{ left: selection.x, top: selection.y }}>
@@ -755,13 +605,6 @@ const NotesPage = () => {
     </AppLayout>
   );
 };
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="mb-8">
-    <h3 className="text-xs uppercase tracking-[0.2em] font-mono text-primary mb-3">{title}</h3>
-    {children}
-  </section>
-);
 
 const NotesSkeleton = ({ topic, board }: { topic: string; board: string }) => (
   <div className="glass-card rounded-2xl p-6 md:p-8">
