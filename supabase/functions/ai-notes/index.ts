@@ -39,7 +39,7 @@ const notesTool = {
         overview: {
           type: "string",
           description:
-            "8 to 10 separate paragraphs of flowing prose, with a blank line between paragraphs. Each paragraph must be 4 to 6 sentences. Written like a Save My Exams revision summary. Teach the a[...]
+            "5 to 8 separate paragraphs of flowing prose in plain Unicode (NO LaTeX), with a blank line between paragraphs. Each paragraph 4 to 6 sentences. Save My Exams style — teach the actual content so a student understands the topic from this alone.",
         },
         key_definitions: {
           type: "array",
