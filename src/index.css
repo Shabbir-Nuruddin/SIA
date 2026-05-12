@@ -204,6 +204,53 @@
   }
 html.theme-paper { color-scheme: light; }
 
+  /* Notebook — warm cream notebook paper, vibrant pen accents */
+  html.theme-notebook {
+    --background: 42 50% 94%;
+    --background-elevated: 0 0% 100%;
+    --foreground: 222 35% 18%;
+    --card: 0 0% 100%;
+    --card-hover: 42 40% 90%;
+    --card-foreground: 222 35% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 35% 18%;
+    --secondary: 42 40% 88%;
+    --secondary-foreground: 222 35% 18%;
+    --muted: 42 35% 90%;
+    --muted-foreground: 222 18% 38%;
+    --border: 42 25% 78%;
+    --input: 42 25% 84%;
+    --primary: 220 80% 52%;
+    --primary-glow: 220 88% 62%;
+    --ring: 220 80% 52%;
+    --accent: 340 75% 55%;
+    --sidebar-background: 42 45% 90%;
+    --sidebar-foreground: 222 35% 22%;
+    --sidebar-accent: 42 38% 86%;
+    --sidebar-accent-foreground: 222 35% 18%;
+    --sidebar-border: 42 25% 76%;
+  }
+  html.theme-notebook { color-scheme: light; }
+
+  /* Inkwell — dark notebook (chalkboard / midnight study) */
+  html.theme-inkwell {
+    --background: 215 30% 10%;
+    --background-elevated: 215 28% 13%;
+    --card: 215 26% 14%;
+    --card-hover: 215 24% 17%;
+    --secondary: 215 22% 16%;
+    --muted: 215 20% 14%;
+    --border: 42 25% 30%;
+    --input: 215 22% 16%;
+    --primary: 42 90% 60%;
+    --primary-glow: 42 95% 70%;
+    --ring: 42 90% 60%;
+    --accent: 340 75% 60%;
+    --sidebar-background: 215 32% 7%;
+    --sidebar-accent: 215 26% 12%;
+    --sidebar-border: 215 22% 16%;
+  }
+
 @layer base {
   * { @apply border-border; }
   html { color-scheme: dark; }
