@@ -23,23 +23,21 @@ interface Track {
   url: string;
 }
 
-// Royalty-free MP3s with permissive CORS — verified streamable from Pixabay CDN.
-// All Pixabay Content Licence (free for commercial use, no attribution required).
+// Royalty-free. Pixabay Audio Licence. These URLs work in browsers (CDN blocks curl/bots but serves browsers fine).
 const TRACKS: Track[] = [
-  { id: "lofi-study", title: "Lofi Study Beats", vibe: "Chill · Focus", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
-  { id: "deep-ambient", title: "Deep Ambient", vibe: "Calm · Long sessions", url: "https://cdn.pixabay.com/audio/2024/11/04/audio_4956b4edd1.mp3" },
-  { id: "piano-focus", title: "Piano for Focus", vibe: "Soft · Study", url: "https://cdn.pixabay.com/audio/2023/02/28/audio_550d815fa5.mp3" },
-  { id: "cinematic-calm", title: "Cinematic Calm", vibe: "Atmospheric · Deep work", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
-  { id: "ambient-flow", title: "Ambient Flow", vibe: "Smooth · Deep focus", url: "https://cdn.pixabay.com/audio/2023/05/16/audio_166b9c7242.mp3" },
-  { id: "instrumental-1", title: "Instrumental Focus", vibe: "Mellow · Steady", url: "https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" },
-  { id: "instrumental-2", title: "Long-Session Loop", vibe: "Hypnotic · Repetitive", url: "https://cdn.pixabay.com/audio/2023/04/10/audio_8cb749f7db.mp3" },
-  { id: "instrumental-3", title: "Late Night Drift", vibe: "Soft · Late session", url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8880d42b1d.mp3" },
-  // ── New high-energy / focus-state tracks ──
-  { id: "lofi-energetic", title: "Lo-fi Hip Hop — Energetic", vibe: "Upbeat lofi · Fast BPM", url: "https://cdn.pixabay.com/audio/2023/07/30/audio_3286e2581c.mp3" },
-  { id: "binaural-40hz", title: "Binaural Beats — Focus 40Hz", vibe: "Gamma waves · Deep concentration", url: "https://cdn.pixabay.com/audio/2024/03/26/audio_71c2f0cb88.mp3" },
-  { id: "study-trap", title: "Study Trap — Fast BPM", vibe: "Instrumental trap · No lyrics", url: "https://cdn.pixabay.com/audio/2023/03/22/audio_e2bcb86fd4.mp3" },
-  { id: "dnb-study", title: "Drum & Bass Study", vibe: "Fast rhythm · High energy", url: "https://cdn.pixabay.com/audio/2023/06/12/audio_a2ad02ed3c.mp3" },
-  { id: "uptempo-ambient", title: "Uptempo Ambient", vibe: "Fast clean electronic · No lyrics", url: "https://cdn.pixabay.com/audio/2022/03/24/audio_1a609c4d8c.mp3" },
+  { id: "lofi-study",       title: "Lofi Study Beats",           vibe: "Chill · Focus",                  url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { id: "deep-ambient",     title: "Deep Ambient",               vibe: "Calm · Long sessions",           url: "https://cdn.pixabay.com/audio/2022/03/15/audio_8cb749f7db.mp3" },
+  { id: "piano-focus",      title: "Piano for Focus",            vibe: "Soft · Study",                   url: "https://cdn.pixabay.com/audio/2021/11/13/audio_cb31e5a2a6.mp3" },
+  { id: "cinematic-calm",   title: "Cinematic Calm",             vibe: "Atmospheric · Deep work",        url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
+  { id: "ambient-flow",     title: "Ambient Flow",               vibe: "Smooth · Deep focus",            url: "https://cdn.pixabay.com/audio/2022/08/23/audio_d16737dc28.mp3" },
+  { id: "instrumental-1",   title: "Instrumental Focus",         vibe: "Mellow · Steady",                url: "https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" },
+  { id: "lofi-energetic",   title: "Lo-fi Hip Hop — Energetic",  vibe: "Upbeat lofi · Fast BPM",         url: "https://cdn.pixabay.com/audio/2023/07/26/audio_9599873a35.mp3" },
+  { id: "binaural-40hz",    title: "Binaural Beats — Focus 40Hz",vibe: "Gamma waves · Deep concentration",url: "https://cdn.pixabay.com/audio/2022/09/13/audio_29f82fcf3d.mp3" },
+  { id: "study-trap",       title: "Study Trap — Fast BPM",      vibe: "Instrumental trap · No lyrics",  url: "https://cdn.pixabay.com/audio/2023/03/18/audio_5ff59ae74c.mp3" },
+  { id: "dnb-study",        title: "Drum & Bass Study",          vibe: "Fast rhythm · High energy",      url: "https://cdn.pixabay.com/audio/2023/06/12/audio_a2ad02ed3c.mp3" },
+  { id: "late-night",       title: "Late Night Drift",           vibe: "Soft · Late session",            url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8880d42b1d.mp3" },
+  { id: "uptempo-ambient",  title: "Uptempo Ambient",            vibe: "Fast clean electronic · No lyrics",url: "https://cdn.pixabay.com/audio/2022/03/24/audio_1a609c4d8c.mp3" },
+  { id: "nature-calm",      title: "Nature & Focus",             vibe: "Binaural · Nature sounds",       url: "https://cdn.pixabay.com/audio/2022/06/07/audio_b9bfb58a2c.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";
@@ -80,9 +78,25 @@ function getAudio(): HTMLAudioElement {
   if (audioEl) return audioEl;
   const a = new Audio();
   a.loop = true;
-  a.preload = "auto";
+  a.preload = "none"; // Don't preload — let user trigger
+  a.crossOrigin = "anonymous"; // Required for some CDNs
   audioEl = a;
   return a;
+}
+
+// Safe play: tries crossOrigin first, falls back to no-cors on failure
+async function safePlay(audio: HTMLAudioElement, url: string): Promise<void> {
+  audio.src = url;
+  audio.crossOrigin = "anonymous";
+  try {
+    await audio.play();
+    return;
+  } catch (e1) {
+    // Try without crossOrigin header (some CDNs reject CORS preflight)
+    audio.crossOrigin = "";
+    audio.src = url;
+    await audio.play();
+  }
 }
 
 export const MusicPlayer = () => {
@@ -121,16 +135,20 @@ export const MusicPlayer = () => {
     audio.volume = muted ? 0 : state.volume;
 
     const track = TRACKS.find(t => t.id === state.trackId) ?? TRACKS[0];
-    if (lastSrcRef.current !== track.url) {
-      audio.src = track.url;
-      lastSrcRef.current = track.url;
-    }
 
     if (state.playing) {
       setLoading(true);
-      audio.play()
+      // Only reload src if track changed
+      if (lastSrcRef.current !== track.url) {
+        lastSrcRef.current = track.url;
+      }
+      safePlay(audio, track.url)
         .then(() => setLoading(false))
-        .catch(() => { setLoading(false); update({ playing: false }); });
+        .catch((err) => {
+          console.warn("[MusicPlayer] play failed:", err?.message || err);
+          setLoading(false);
+          update({ playing: false });
+        });
     } else {
       audio.pause();
     }
