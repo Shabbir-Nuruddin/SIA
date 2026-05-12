@@ -208,9 +208,7 @@ const NotesPage = () => {
     setLoadingNotes(true);
     setLoadError(null);
     setNotes(null);
-    setShowFlashcards(false);
-    setFlashIndex(0);
-    setFlashFlipped(false);
+    // (legacy flashcard local state removed — handled inside NotesVisualRenderer)
     try {
       let cached: any = null;
       if (!forceRefresh) {
