@@ -9,7 +9,8 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+const supabase: any = supabaseTyped;
 import { useAuth } from "@/contexts/AuthContext";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { Button } from "@/components/ui/button";

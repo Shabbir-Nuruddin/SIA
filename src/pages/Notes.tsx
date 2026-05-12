@@ -208,9 +208,7 @@ const NotesPage = () => {
     setLoadingNotes(true);
     setLoadError(null);
     setNotes(null);
-    setShowFlashcards(false);
-    setFlashIndex(0);
-    setFlashFlipped(false);
+    // (legacy flashcard local state removed — handled inside NotesVisualRenderer)
     try {
       let cached: any = null;
       if (!forceRefresh) {
@@ -527,7 +525,7 @@ const NotesPage = () => {
                 </Button>
               </div>
             ) : notes ? (
-              <div className="glass-card rounded-2xl p-6 md:p-8 relative" ref={panelRef} onMouseUp={handleMouseUp}>
+              <div className="notebook-paper rounded-2xl p-6 md:p-10 pl-14 md:pl-16 relative border border-foreground/10 shadow-md" ref={panelRef} onMouseUp={handleMouseUp}>
                 {/* Action bar */}
                 <div className="flex items-center justify-end gap-2 mb-6">
                   <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">

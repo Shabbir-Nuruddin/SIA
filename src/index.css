@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -204,6 +204,53 @@
   }
 html.theme-paper { color-scheme: light; }
 
+  /* Notebook — warm cream notebook paper, vibrant pen accents */
+  html.theme-notebook {
+    --background: 42 50% 94%;
+    --background-elevated: 0 0% 100%;
+    --foreground: 222 35% 18%;
+    --card: 0 0% 100%;
+    --card-hover: 42 40% 90%;
+    --card-foreground: 222 35% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 35% 18%;
+    --secondary: 42 40% 88%;
+    --secondary-foreground: 222 35% 18%;
+    --muted: 42 35% 90%;
+    --muted-foreground: 222 18% 38%;
+    --border: 42 25% 78%;
+    --input: 42 25% 84%;
+    --primary: 220 80% 52%;
+    --primary-glow: 220 88% 62%;
+    --ring: 220 80% 52%;
+    --accent: 340 75% 55%;
+    --sidebar-background: 42 45% 90%;
+    --sidebar-foreground: 222 35% 22%;
+    --sidebar-accent: 42 38% 86%;
+    --sidebar-accent-foreground: 222 35% 18%;
+    --sidebar-border: 42 25% 76%;
+  }
+  html.theme-notebook { color-scheme: light; }
+
+  /* Inkwell — dark notebook (chalkboard / midnight study) */
+  html.theme-inkwell {
+    --background: 215 30% 10%;
+    --background-elevated: 215 28% 13%;
+    --card: 215 26% 14%;
+    --card-hover: 215 24% 17%;
+    --secondary: 215 22% 16%;
+    --muted: 215 20% 14%;
+    --border: 42 25% 30%;
+    --input: 215 22% 16%;
+    --primary: 42 90% 60%;
+    --primary-glow: 42 95% 70%;
+    --ring: 42 90% 60%;
+    --accent: 340 75% 60%;
+    --sidebar-background: 215 32% 7%;
+    --sidebar-accent: 215 26% 12%;
+    --sidebar-border: 215 22% 16%;
+  }
+
 @layer base {
   * { @apply border-border; }
   html { color-scheme: dark; }
@@ -310,3 +357,72 @@ html.theme-paper { color-scheme: light; }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.65; }
 }
+
+/* ===== Notebook paper utilities (used by Notes redesign) ===== */
+.notebook-paper {
+  background-color: hsl(var(--card));
+  background-image:
+    linear-gradient(transparent 0px, transparent 31px, hsl(220 50% 55% / 0.18) 31px, hsl(220 50% 55% / 0.18) 32px),
+    linear-gradient(90deg, transparent 0px, transparent 47px, hsl(0 75% 55% / 0.45) 47px, hsl(0 75% 55% / 0.45) 49px, transparent 49px);
+  background-size: 100% 32px, 100% 100%;
+  background-position: 0 8px, 0 0;
+  position: relative;
+}
+html.theme-inkwell .notebook-paper,
+:root:not(.light):not(.theme-paper):not(.theme-notebook) .notebook-paper {
+  background-color: hsl(var(--card));
+  background-image:
+    linear-gradient(transparent 0px, transparent 31px, hsl(var(--primary) / 0.12) 31px, hsl(var(--primary) / 0.12) 32px),
+    linear-gradient(90deg, transparent 0px, transparent 47px, hsl(var(--accent) / 0.55) 47px, hsl(var(--accent) / 0.55) 49px, transparent 49px);
+}
+.notebook-grid {
+  background-color: hsl(var(--card));
+  background-image:
+    linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.font-handwritten { font-family: 'Caveat', 'Patrick Hand', cursive; }
+.font-marker { font-family: 'Patrick Hand', 'Kalam', cursive; }
+
+.highlighter {
+  background-image: linear-gradient(120deg, hsl(48 100% 70% / 0.55) 0%, hsl(48 100% 70% / 0.55) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 60%;
+  background-position: 0 80%;
+  padding: 0 2px;
+}
+.highlighter-pink   { background-image: linear-gradient(120deg, hsl(330 90% 75% / 0.55), hsl(330 90% 75% / 0.55)); }
+.highlighter-green  { background-image: linear-gradient(120deg, hsl(140 70% 70% / 0.55), hsl(140 70% 70% / 0.55)); }
+.highlighter-blue   { background-image: linear-gradient(120deg, hsl(200 90% 75% / 0.55), hsl(200 90% 75% / 0.55)); }
+.highlighter-purple { background-image: linear-gradient(120deg, hsl(280 80% 78% / 0.55), hsl(280 80% 78% / 0.55)); }
+.highlighter-orange { background-image: linear-gradient(120deg, hsl(28 95% 70% / 0.55),  hsl(28 95% 70% / 0.55)); }
+
+.sticky-note {
+  background: hsl(48 95% 78%);
+  color: hsl(40 50% 18%);
+  box-shadow: 2px 3px 0 hsl(0 0% 0% / 0.08), 0 2px 6px hsl(0 0% 0% / 0.08);
+  transform: rotate(-1.5deg);
+  font-family: 'Patrick Hand', cursive;
+}
+.sticky-note.pink   { background: hsl(330 90% 82%); color: hsl(330 50% 18%); transform: rotate(1.2deg); }
+.sticky-note.green  { background: hsl(140 65% 78%); color: hsl(140 40% 16%); transform: rotate(-0.8deg); }
+.sticky-note.blue   { background: hsl(200 85% 80%); color: hsl(210 50% 18%); transform: rotate(1.8deg); }
+.sticky-note.purple { background: hsl(280 70% 82%); color: hsl(280 45% 20%); transform: rotate(-2deg); }
+
+.washi-tape {
+  background: repeating-linear-gradient(45deg, hsl(48 100% 70% / 0.85) 0 8px, hsl(48 100% 80% / 0.85) 8px 16px);
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1);
+}
+
+.flip-card { perspective: 1200px; }
+.flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; position: relative; width: 100%; height: 100%; }
+.flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+.flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-face.back { transform: rotateY(180deg); }
+
+@keyframes wobble-in {
+  0% { opacity: 0; transform: rotate(-3deg) translateY(8px); }
+  100% { opacity: 1; transform: rotate(-1.5deg) translateY(0); }
+}
+.animate-sticky-in { animation: wobble-in 0.4s ease-out both; }

@@ -9,7 +9,9 @@ export type ThemeName =
   | "forest"     // dark green
   | "rose"       // dark warm rose
   | "amber"      // dark warm amber
-  | "paper";     // warm light paper
+  | "paper"      // warm light paper
+  | "notebook"   // cream notebook paper
+  | "inkwell";   // dark notebook / chalkboard
 
 export interface ThemeMeta {
   name: ThemeName;
@@ -19,6 +21,8 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ThemeMeta[] = [
+  { name: "notebook", label: "Notebook",   isLight: true,  swatches: ["#f7f0d9", "#ffffff", "#3b6fd8", "#dc2c5e"] },
+  { name: "inkwell",  label: "Inkwell",    isLight: false, swatches: ["#161e2c", "#1d2636", "#f0b740", "#d8487a"] },
   { name: "midnight", label: "Midnight",   isLight: false, swatches: ["#0f1620", "#1a2332", "#3b6fb8", "#7aa8e8"] },
   { name: "ocean",    label: "Ocean",      isLight: false, swatches: ["#0a1f2a", "#13323f", "#2d8a9e", "#5cbdb9"] },
   { name: "forest",   label: "Forest",     isLight: false, swatches: ["#0f1d16", "#16291e", "#2d8a4e", "#7ad19e"] },
