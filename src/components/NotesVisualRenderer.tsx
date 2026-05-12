@@ -1,19 +1,23 @@
 /**
- * NotesVisualRenderer
- * A lively, book-style notes renderer inspired by hand-written study notes.
- * Replaces the plain paragraph layout with colour blocks, mind-map chips,
- * flashcard flips, equation cards, and examiner tip badges.
+ * NotesVisualRenderer — Notebook edition.
+ * Renders AI-generated revision notes as if they were a vibrant student notebook:
+ * lined paper, sticky-note headers, highlighter chips, index-card definitions,
+ * blackboard equations, and a 3D-flip flashcard deck.
  */
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen, Hash, Lightbulb, Star, ArrowRight } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
+  Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
+  PencilLine, Eye, RotateCcw,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface KeyDef   { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
-interface CoreItem { statement: string; worked_example?: string; wrong_approach?: string; typical_marks?: number; }
-interface EqVar    { symbol: string; meaning: string; unit: string; }
-interface EqItem   { equation: string; variables: EqVar[]; worked_substitution?: string; }
-interface TipItem  { command_word?: string; tip: string; }
+interface KeyDef    { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
+interface CoreItem  { statement: string; worked_example?: string; wrong_approach?: string; typical_marks?: number; }
+interface EqVar     { symbol: string; meaning: string; unit: string; }
+interface EqItem    { equation: string; variables: EqVar[]; worked_substitution?: string; }
+interface TipItem   { command_word?: string; tip: string; }
 interface Flashcard { q: string; a: string; }
 interface VisualSummary { kind: string; caption: string; content: string; }
 
@@ -31,116 +35,93 @@ interface Props {
   notes: NotesData;
   topic: string;
   subject: string;
-  unitLabel: string;   // e.g. "Unit 4" or "Paper 1"
+  unitLabel: string;
   formatHtml: (s: string) => string;
   renderMath: (s: string) => string;
   annotate: (s: string) => string;
 }
 
-// ─── Palette — section accent colours cycling ─────────────────────────────────
-const SECTION_PALETTES = [
-  { bg: "bg-amber-50 dark:bg-amber-950/30",   border: "border-amber-300 dark:border-amber-700",  tag: "bg-amber-400 text-amber-950",  dot: "bg-amber-400" },
-  { bg: "bg-violet-50 dark:bg-violet-950/30", border: "border-violet-300 dark:border-violet-700", tag: "bg-violet-400 text-white",      dot: "bg-violet-400" },
-  { bg: "bg-teal-50 dark:bg-teal-950/30",     border: "border-teal-300 dark:border-teal-700",    tag: "bg-teal-400 text-teal-950",    dot: "bg-teal-400" },
-  { bg: "bg-rose-50 dark:bg-rose-950/30",     border: "border-rose-300 dark:border-rose-700",    tag: "bg-rose-400 text-white",       dot: "bg-rose-400" },
-  { bg: "bg-sky-50 dark:bg-sky-950/30",       border: "border-sky-300 dark:border-sky-700",      tag: "bg-sky-400 text-sky-950",      dot: "bg-sky-400" },
-  { bg: "bg-lime-50 dark:bg-lime-950/30",     border: "border-lime-300 dark:border-lime-700",    tag: "bg-lime-400 text-lime-950",    dot: "bg-lime-400" },
+// ─── Vibrant rotating palette ─────────────────────────────────────────────────
+const ACCENTS = [
+  { name: "amber",  rail: "border-amber-400",  chip: "bg-amber-200 text-amber-950",  soft: "bg-amber-50 dark:bg-amber-950/30",  ring: "ring-amber-400",  dot: "bg-amber-400",  hl: "highlighter" },
+  { name: "rose",   rail: "border-rose-400",   chip: "bg-rose-200 text-rose-950",     soft: "bg-rose-50 dark:bg-rose-950/30",    ring: "ring-rose-400",   dot: "bg-rose-400",   hl: "highlighter-pink" },
+  { name: "sky",    rail: "border-sky-400",    chip: "bg-sky-200 text-sky-950",       soft: "bg-sky-50 dark:bg-sky-950/30",      ring: "ring-sky-400",    dot: "bg-sky-400",    hl: "highlighter-blue" },
+  { name: "violet", rail: "border-violet-400", chip: "bg-violet-200 text-violet-950", soft: "bg-violet-50 dark:bg-violet-950/30", ring: "ring-violet-400", dot: "bg-violet-400", hl: "highlighter-purple" },
+  { name: "teal",   rail: "border-teal-400",   chip: "bg-teal-200 text-teal-950",     soft: "bg-teal-50 dark:bg-teal-950/30",    ring: "ring-teal-400",   dot: "bg-teal-400",   hl: "highlighter-green" },
+  { name: "orange", rail: "border-orange-400", chip: "bg-orange-200 text-orange-950", soft: "bg-orange-50 dark:bg-orange-950/30", ring: "ring-orange-400", dot: "bg-orange-400", hl: "highlighter-orange" },
 ];
 
-const HIGHLIGHT_COLORS = [
-  "bg-yellow-200/70 dark:bg-yellow-700/40",
-  "bg-purple-200/70 dark:bg-purple-700/40",
-  "bg-green-200/70 dark:bg-green-700/40",
-  "bg-pink-200/70 dark:bg-pink-700/40",
-  "bg-blue-200/70 dark:bg-blue-700/40",
-  "bg-orange-200/70 dark:bg-orange-700/40",
-];
+const STICKY_VARIANTS = ["", "pink", "blue", "green", "purple"];
 
-// ─── Small helper components ───────────────────────────────────────────────────
+const SUBJECT_META: Record<string, { emoji: string; icon: any; tint: string }> = {
+  chemistry:   { emoji: "🧪", icon: FlaskConical, tint: "from-violet-300/60 to-rose-300/60" },
+  biology:     { emoji: "🧬", icon: Dna,          tint: "from-emerald-300/60 to-teal-300/60" },
+  physics:     { emoji: "⚛️", icon: Atom,         tint: "from-sky-300/60 to-amber-300/60" },
+  mathematics: { emoji: "📐", icon: Sigma,        tint: "from-amber-300/60 to-rose-300/60" },
+  maths:       { emoji: "📐", icon: Sigma,        tint: "from-amber-300/60 to-rose-300/60" },
+  math:        { emoji: "📐", icon: Sigma,        tint: "from-amber-300/60 to-rose-300/60" },
+};
 
-const SectionHeader = ({ icon, title, palette }: { icon: React.ReactNode; title: string; palette: typeof SECTION_PALETTES[0] }) => (
-  <div className={`flex items-center gap-3 mb-5 pb-3 border-b-2 ${palette.border}`}>
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${palette.tag} shrink-0`}>{icon}</div>
-    <h3 className="text-lg font-extrabold tracking-tight">{title}</h3>
+const subjectMeta = (subjectName: string) => {
+  const k = subjectName.toLowerCase();
+  for (const key of Object.keys(SUBJECT_META)) if (k.includes(key)) return SUBJECT_META[key];
+  return { emoji: "📚", icon: BookOpen, tint: "from-amber-200/60 to-sky-200/60" };
+};
+
+// ─── Sticky badge ─────────────────────────────────────────────────────────────
+const Sticky = ({ children, variant = "" as string, className = "" }) => (
+  <div className={`sticky-note ${variant} px-3 py-1.5 rounded-md text-sm font-bold animate-sticky-in ${className}`}>
+    {children}
   </div>
 );
 
-const Chip = ({ text, color }: { text: string; color: string }) => (
-  <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold mr-1 mb-1 ${color}`}>{text}</span>
-);
-
-const MistakeTag = () => (
-  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/40 px-2 py-0.5 rounded">
-    <AlertTriangle className="h-2.5 w-2.5" /> Watch out
-  </span>
-);
-
-const ExampleTag = () => (
-  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-0.5 rounded">
-    <Zap className="h-2.5 w-2.5" /> Worked example
-  </span>
-);
-
-// ─── Overview section — paragraph blocks with lead ────────────────────────────
-const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatHtml: (s:string)=>string; annotate: (s:string)=>string }) => {
-  const paragraphs = text.split(/\n\n+/).filter(Boolean);
-  return (
-    <div className="grid gap-3">
-      {paragraphs.map((para, i) => (
-        <div
-          key={i}
-          className={`rounded-xl p-4 ${i === 0 ? "border-l-4 border-primary bg-primary/5" : "bg-secondary/20"}`}
-        >
-          {i === 0 && (
-            <div className="text-[10px] uppercase tracking-widest font-mono text-primary mb-2 flex items-center gap-1">
-              <BookOpen className="h-3 w-3" /> Introduction
-            </div>
-          )}
-          <p
-            className="text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: annotate(formatHtml(para)) }}
-          />
-        </div>
-      ))}
+// ─── Section header — washi tape strip ────────────────────────────────────────
+const SectionHeader = ({ icon, title, subtitle, accent, n }: { icon: React.ReactNode; title: string; subtitle?: string; accent: typeof ACCENTS[0]; n: number }) => (
+  <div className="relative mb-5 mt-2">
+    <div className="washi-tape h-3 w-32 absolute -top-1 left-6 rounded-sm" style={{ transform: "rotate(-2deg)" }} />
+    <div className="flex items-end gap-3 pt-4 pl-2 border-b-2 border-dashed border-foreground/15 pb-2">
+      <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-extrabold ${accent.chip} shadow-sm`}>
+        {n}
+      </span>
+      <div className="flex items-center gap-2">
+        <span className="text-foreground/70">{icon}</span>
+        <h3 className="font-handwritten text-3xl font-bold leading-none tracking-tight">{title}</h3>
+      </div>
+      {subtitle && <span className="text-xs text-muted-foreground italic ml-2 mb-1">{subtitle}</span>}
     </div>
-  );
-};
+  </div>
+);
 
-// ─── Key Definitions — card grid ──────────────────────────────────────────────
-const DefinitionsSection = ({ defs, formatHtml, i: sectionIdx }: { defs: KeyDef[]; formatHtml:(s:string)=>string; i: number }) => {
-  const [expanded, setExpanded] = useState<number | null>(null);
+// ─── Overview — paragraphs with drop-caps + alternating highlighter tints ────
+const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatHtml: (s:string)=>string; annotate: (s:string)=>string }) => {
+  const paragraphs = text.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+  const tints = [
+    "bg-amber-100/40 dark:bg-amber-900/15",
+    "bg-violet-100/40 dark:bg-violet-900/15",
+    "bg-emerald-100/40 dark:bg-emerald-900/15",
+    "bg-sky-100/40 dark:bg-sky-900/15",
+    "bg-rose-100/40 dark:bg-rose-900/15",
+  ];
+  const dropColors = ["text-amber-600", "text-violet-600", "text-emerald-600", "text-sky-600", "text-rose-600"];
   return (
-    <div className="grid sm:grid-cols-2 gap-3">
-      {defs.map((d, i) => {
-        const color = HIGHLIGHT_COLORS[i % HIGHLIGHT_COLORS.length];
-        const open = expanded === i;
+    <div className="space-y-4 relative">
+      {paragraphs.map((para, i) => {
+        const tint = tints[i % tints.length];
+        const dc = dropColors[i % dropColors.length];
         return (
-          <div
-            key={i}
-            onClick={() => setExpanded(open ? null : i)}
-            className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:shadow-md transition-all select-none"
-          >
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <span className={`inline-block px-2 py-0.5 rounded font-semibold text-sm ${color}`}
-                dangerouslySetInnerHTML={{ __html: d.term }} />
-              {open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />}
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed"
-               dangerouslySetInnerHTML={{ __html: formatHtml(d.plain_english || d.mark_scheme) }} />
-            {open && (
-              <div className="mt-3 space-y-2 border-t border-border pt-3">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider font-mono text-primary mb-1">Mark-scheme definition</div>
-                  <p className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: formatHtml(d.mark_scheme) }} />
-                </div>
-                {d.common_mistake && (
-                  <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-2.5">
-                    <MistakeTag />
-                    <p className="text-xs mt-1.5" dangerouslySetInnerHTML={{ __html: formatHtml(d.common_mistake) }} />
-                  </div>
-                )}
+          <div key={i} className={`relative rounded-xl ${tint} p-5 pl-6 border border-foreground/5`}>
+            {i === 0 && (
+              <div className="absolute -top-3 left-4 z-10">
+                <Sticky variant="" className="text-xs">📌 Introduction</Sticky>
               </div>
             )}
+            <p className="text-[15px] leading-[1.85] text-foreground/90"
+               dangerouslySetInnerHTML={{
+                 __html: annotate(formatHtml(para)).replace(
+                   /^([A-Za-z])/,
+                   (m) => `<span class="font-handwritten ${dc} text-5xl leading-none float-left mr-2 -mt-1 font-bold">${m}</span>`
+                 ),
+               }} />
           </div>
         );
       })}
@@ -148,53 +129,100 @@ const DefinitionsSection = ({ defs, formatHtml, i: sectionIdx }: { defs: KeyDef[
   );
 };
 
-// ─── Core Content — numbered blocks with colour accent bars ───────────────────
+// ─── Definitions — index-card grid ────────────────────────────────────────────
+const DefinitionsSection = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml:(s:string)=>string }) => {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  return (
+    <div className="grid sm:grid-cols-2 gap-4">
+      {defs.map((d, i) => {
+        const a = ACCENTS[i % ACCENTS.length];
+        const open = expanded === i;
+        return (
+          <div
+            key={i}
+            className={`relative rounded-xl bg-card border border-foreground/10 shadow-sm hover:shadow-md transition-all overflow-hidden`}
+          >
+            <div className={`h-1.5 ${a.dot}`} />
+            <div className="p-4">
+              <div className="mb-2">
+                <span className={`font-handwritten text-2xl font-bold ${a.hl} px-1.5 inline-block`}
+                  dangerouslySetInnerHTML={{ __html: d.term }} />
+              </div>
+              {d.plain_english && (
+                <p className="text-sm text-foreground/80 leading-relaxed mb-2"
+                   dangerouslySetInnerHTML={{ __html: formatHtml(d.plain_english) }} />
+              )}
+              <div className="text-xs text-muted-foreground italic mb-3 leading-relaxed border-l-2 border-foreground/15 pl-2"
+                   dangerouslySetInnerHTML={{ __html: `<strong class="not-italic text-foreground/70">Mark scheme:</strong> ${formatHtml(d.mark_scheme)}` }} />
+              {d.common_mistake && (
+                <button
+                  onClick={() => setExpanded(open ? null : i)}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-orange-200 text-orange-900 hover:bg-orange-300 transition-colors"
+                >
+                  <AlertTriangle className="h-3 w-3" /> Watch out
+                  {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+              )}
+              {open && d.common_mistake && (
+                <div className="mt-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-3 text-xs text-foreground/90 animate-fade-in"
+                     dangerouslySetInnerHTML={{ __html: formatHtml(d.common_mistake) }} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ─── Core Content — numbered cards with thick coloured rail ───────────────────
 const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string }) => {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const toggle = (i: number) => setExpanded(prev => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
-
+  const toggle = (i: number) => setExpanded(prev => {
+    const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n;
+  });
   return (
     <div className="space-y-3">
       {items.map((c, i) => {
-        const accent = SECTION_PALETTES[i % SECTION_PALETTES.length];
+        const a = ACCENTS[i % ACCENTS.length];
         const open = expanded.has(i);
-        const hasExtra = c.worked_example || c.wrong_approach;
+        const hasExtra = !!(c.worked_example || c.wrong_approach);
         return (
-          <div key={i} className={`rounded-xl border ${accent.border} overflow-hidden`}>
+          <div key={i} className={`rounded-xl bg-card border-l-[6px] ${a.rail} border-y border-r border-foreground/10 shadow-sm overflow-hidden`}>
             <button
               onClick={() => hasExtra && toggle(i)}
-              className={`w-full flex items-start gap-3 p-4 text-left ${accent.bg} ${hasExtra ? "cursor-pointer hover:brightness-95" : "cursor-default"}`}
+              className={`w-full flex items-start gap-3 p-4 text-left ${hasExtra ? "hover:bg-foreground/5 cursor-pointer" : "cursor-default"}`}
             >
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-extrabold ${accent.tag}`}>
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold ${a.chip} shadow-sm`}>
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-snug" dangerouslySetInnerHTML={{ __html: annotate(formatHtml(c.statement)) }} />
+                <p className="text-[15px] font-medium leading-snug" dangerouslySetInnerHTML={{ __html: annotate(formatHtml(c.statement)) }} />
                 {typeof c.typical_marks === "number" && c.typical_marks > 0 && (
-                  <span className="inline-block mt-1.5 text-[10px] font-mono bg-white/60 dark:bg-black/20 px-1.5 py-0.5 rounded">
+                  <span className={`inline-block mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${a.chip}`}>
                     {c.typical_marks} mark{c.typical_marks !== 1 ? "s" : ""}
                   </span>
                 )}
               </div>
-              {hasExtra && (
-                open
-                  ? <ChevronUp className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
-                  : <ChevronDown className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
-              )}
+              {hasExtra && (open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
             </button>
             {open && hasExtra && (
-              <div className="bg-card divide-y divide-border">
+              <div className="px-4 pb-4 space-y-3 animate-fade-in">
                 {c.worked_example && (
-                  <div className="p-4">
-                    <ExampleTag />
-                    <p className="text-xs mt-2 leading-relaxed whitespace-pre-wrap text-foreground/90"
+                  <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-l-4 border-emerald-400 p-3">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-1.5">
+                      <PencilLine className="h-3 w-3" /> Worked example
+                    </div>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90"
                        dangerouslySetInnerHTML={{ __html: annotate(formatHtml(c.worked_example)) }} />
                   </div>
                 )}
                 {c.wrong_approach && (
-                  <div className="p-4 bg-orange-50/50 dark:bg-orange-950/20">
-                    <MistakeTag />
-                    <p className="text-xs mt-2 leading-relaxed text-foreground/80"
+                  <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 border-l-4 border-orange-400 p-3">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300 mb-1.5">
+                      <AlertTriangle className="h-3 w-3" /> Wrong approach
+                    </div>
+                    <p className="text-sm leading-relaxed text-foreground/85"
                        dangerouslySetInnerHTML={{ __html: formatHtml(c.wrong_approach) }} />
                   </div>
                 )}
@@ -207,72 +235,40 @@ const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]
   );
 };
 
-// ─── Equations — formula cards ────────────────────────────────────────────────
+// ─── Equations — chalkboard cards ─────────────────────────────────────────────
 const EquationsSection = ({ eqs, renderMath, formatHtml }: { eqs: EqItem[]; renderMath:(s:string)=>string; formatHtml:(s:string)=>string }) => (
-  <div className="grid sm:grid-cols-2 gap-4">
+  <div className="grid md:grid-cols-2 gap-4">
     {eqs.map((e, i) => {
+      const a = ACCENTS[i % ACCENTS.length];
       const raw = String(e.equation ?? "").trim();
       const mathStr = raw && !/\$/.test(raw) ? `$${raw}$` : raw;
       return (
-        <div key={i} className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
-          <div className="text-center text-xl font-bold mb-3 py-2 rounded-lg bg-primary/10"
-               dangerouslySetInnerHTML={{ __html: renderMath(mathStr) }} />
-          {e.variables.length > 0 && (
-            <div className="space-y-1 mb-3">
-              {e.variables.map((v, j) => {
-                const meaning = String(v.meaning ?? "").replace(/\{?\s*meaning\s*:?\s*\}?/gi, "").trim();
-                const unit = String(v.unit ?? "").replace(/^[\s({]+|[\s)}]+$/g, "").trim();
-                return (
-                  <div key={j} className="flex items-baseline gap-1.5 text-xs flex-wrap">
-                    <span className="font-mono font-bold text-primary" dangerouslySetInnerHTML={{ __html: renderMath(v.symbol) }} />
-                    <span className="text-muted-foreground">=</span>
-                    <span dangerouslySetInnerHTML={{ __html: renderMath(meaning) }} />
-                    {unit && <span className="text-muted-foreground font-mono">({unit})</span>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {e.worked_substitution && (
-            <div className="mt-2 pt-2 border-t border-primary/20">
-              <div className="text-[10px] uppercase tracking-wider font-mono text-emerald-600 dark:text-emerald-400 mb-1">Substitution</div>
-              <p className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: formatHtml(e.worked_substitution) }} />
-            </div>
-          )}
-        </div>
-      );
-    })}
-  </div>
-);
-
-// ─── Visual Summary — rendered HTML/SVG or table ──────────────────────────────
-const VisualSection = ({ vs, renderMath }: { vs: VisualSummary; renderMath:(s:string)=>string }) => (
-  <div className="rounded-xl border border-border overflow-hidden">
-    {vs.caption && (
-      <div className="px-4 py-2 bg-secondary/40 text-xs font-medium text-muted-foreground border-b border-border">
-        {vs.caption}
-      </div>
-    )}
-    <div className="p-4 overflow-x-auto [&_table]:w-full [&_td]:px-3 [&_td]:py-2 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:bg-primary/10 [&_tr:nth-child(even)]:bg-secondary/20 [&_table]:text-sm [&_svg]:max-w-full"
-         dangerouslySetInnerHTML={{ __html: renderMath(vs.content) }} />
-  </div>
-);
-
-// ─── Examiner Tips — command-word badges on a coloured rail ───────────────────
-const ExaminerTipsSection = ({ tips, formatHtml }: { tips: TipItem[]; formatHtml:(s:string)=>string }) => (
-  <div className="space-y-3">
-    {tips.map((t, i) => {
-      const palette = SECTION_PALETTES[i % SECTION_PALETTES.length];
-      return (
-        <div key={i} className={`flex gap-3 rounded-xl p-3 ${palette.bg} border ${palette.border}`}>
-          <ArrowRight className={`h-4 w-4 shrink-0 mt-0.5 ${palette.dot.replace("bg-", "text-")}`} />
-          <div>
-            {t.command_word && (
-              <span className={`inline-block text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded mr-2 ${palette.tag}`}>
-                {t.command_word}
-              </span>
+        <div key={i} className="rounded-xl overflow-hidden shadow-md border-2 border-foreground/15 bg-[hsl(150_25%_12%)]">
+          <div className="p-5 text-center">
+            <div className="text-amber-300 text-2xl font-serif"
+                 style={{ textShadow: "0 1px 0 rgba(255,255,255,0.08)" }}
+                 dangerouslySetInnerHTML={{ __html: renderMath(mathStr) }} />
+          </div>
+          <div className="bg-card p-4 space-y-2">
+            {e.variables.map((v, j) => {
+              const meaning = String(v.meaning ?? "").replace(/\{?\s*meaning\s*:?\s*\}?/gi, "").trim();
+              const unit = String(v.unit ?? "").replace(/^[\s({]+|[\s)}]+$/g, "").trim();
+              return (
+                <div key={j} className="flex items-baseline gap-2 text-sm flex-wrap">
+                  <span className={`inline-flex items-center justify-center min-w-[36px] px-2 py-0.5 rounded font-bold ${a.chip}`}
+                        dangerouslySetInnerHTML={{ __html: renderMath(v.symbol) }} />
+                  <span className="text-muted-foreground">=</span>
+                  <span className="text-foreground/85" dangerouslySetInnerHTML={{ __html: renderMath(meaning) }} />
+                  {unit && <span className="text-xs text-muted-foreground font-mono">[{unit}]</span>}
+                </div>
+              );
+            })}
+            {e.worked_substitution && (
+              <div className="mt-3 pt-3 border-t border-dashed border-foreground/15">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">Substitution</div>
+                <p className="text-sm leading-relaxed font-mono text-foreground/90" dangerouslySetInnerHTML={{ __html: formatHtml(e.worked_substitution) }} />
+              </div>
             )}
-            <span className="text-sm" dangerouslySetInnerHTML={{ __html: formatHtml(t.tip) }} />
           </div>
         </div>
       );
@@ -280,7 +276,40 @@ const ExaminerTipsSection = ({ tips, formatHtml }: { tips: TipItem[]; formatHtml
   </div>
 );
 
-// ─── Flashcards — flip deck ───────────────────────────────────────────────────
+// ─── Visual Summary ───────────────────────────────────────────────────────────
+const VisualSection = ({ vs, renderMath }: { vs: VisualSummary; renderMath:(s:string)=>string }) => (
+  <div className="rounded-xl bg-card border-2 border-dashed border-foreground/20 overflow-hidden">
+    {vs.caption && (
+      <div className="px-4 py-2 bg-amber-100/60 dark:bg-amber-900/30 font-handwritten text-lg text-foreground border-b-2 border-dashed border-foreground/15">
+        ✏️ {vs.caption}
+      </div>
+    )}
+    <div className="p-5 overflow-x-auto [&_table]:w-full [&_td]:px-3 [&_td]:py-2 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:bg-amber-200/40 [&_th]:font-bold [&_tr:nth-child(even)]:bg-foreground/[0.03] [&_table]:text-sm [&_table]:rounded-lg [&_svg]:max-w-full [&_svg]:mx-auto"
+         dangerouslySetInnerHTML={{ __html: renderMath(vs.content) }} />
+  </div>
+);
+
+// ─── Examiner Tips — horizontal cards with command-word badge ─────────────────
+const ExaminerTipsSection = ({ tips, formatHtml }: { tips: TipItem[]; formatHtml:(s:string)=>string }) => (
+  <div className="space-y-2.5">
+    {tips.map((t, i) => {
+      const a = ACCENTS[i % ACCENTS.length];
+      return (
+        <div key={i} className={`flex items-start gap-3 rounded-xl bg-card border-l-4 ${a.rail} border-y border-r border-foreground/10 p-3 shadow-sm`}>
+          {t.command_word && (
+            <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider ${a.chip}`}>
+              {t.command_word}
+            </span>
+          )}
+          <div className="flex-1 text-sm leading-relaxed text-foreground/90 pt-0.5"
+               dangerouslySetInnerHTML={{ __html: formatHtml(t.tip) }} />
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ─── Flashcards — true 3D flip deck ───────────────────────────────────────────
 const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHtml:(s:string)=>string }) => {
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -288,167 +317,131 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 
   if (!started) {
     return (
-      <div className="text-center py-6">
-        <div className="flex justify-center gap-1.5 flex-wrap mb-4">
+      <div className="text-center py-8 rounded-xl bg-gradient-to-br from-amber-100/60 to-rose-100/60 dark:from-amber-950/20 dark:to-rose-950/20 border-2 border-dashed border-foreground/20">
+        <div className="font-handwritten text-3xl mb-2">Ready to revise?</div>
+        <div className="flex justify-center gap-1.5 flex-wrap mb-4 max-w-xs mx-auto">
           {cards.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full ${SECTION_PALETTES[i % SECTION_PALETTES.length].dot}`} />
+            <div key={i} className={`w-2 h-2 rounded-full ${ACCENTS[i % ACCENTS.length].dot}`} />
           ))}
         </div>
-        <p className="text-sm text-muted-foreground mb-4">{cards.length} flashcards ready</p>
+        <p className="text-sm text-muted-foreground mb-5">{cards.length} flashcards in this deck</p>
         <button
           onClick={() => { setStarted(true); setIdx(0); setFlipped(false); }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-foreground text-background font-bold text-sm hover:opacity-90 transition shadow-lg"
         >
-          <Star className="h-4 w-4" /> Start flashcards
+          <Sparkles className="h-4 w-4" /> Start flashcards
         </button>
       </div>
     );
   }
 
   const card = cards[idx];
-  const pal = SECTION_PALETTES[idx % SECTION_PALETTES.length];
+  const a = ACCENTS[idx % ACCENTS.length];
 
   return (
     <div className="select-none">
-      <div className="text-center text-xs font-mono text-muted-foreground mb-3">{idx + 1} / {cards.length}</div>
-      <div
-        onClick={() => setFlipped(f => !f)}
-        className={`rounded-2xl border-2 ${pal.border} ${flipped ? "bg-emerald-50 dark:bg-emerald-950/30" : pal.bg} min-h-[140px] flex flex-col items-center justify-center p-6 cursor-pointer transition-all hover:shadow-lg`}
-      >
-        <div className="text-[10px] uppercase tracking-widest font-mono mb-3 text-muted-foreground">
-          {flipped ? "Answer" : "Question"}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-mono text-muted-foreground">{idx + 1} / {cards.length}</span>
+        <button onClick={() => { setStarted(false); setIdx(0); setFlipped(false); }}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+          <RotateCcw className="h-3 w-3" /> Restart
+        </button>
+      </div>
+      <div className="flip-card h-56" onClick={() => setFlipped(f => !f)}>
+        <div className={`flip-card-inner ${flipped ? "" : ""}`} style={{ transform: flipped ? "rotateY(180deg)" : "rotateY(0)" }}>
+          {/* FRONT — question on coloured background */}
+          <div className={`flip-face ${a.soft} border-2 ${a.rail} rounded-2xl shadow-md flex flex-col items-center justify-center p-6 cursor-pointer`}>
+            <div className={`text-[10px] font-bold uppercase tracking-widest mb-3 px-2 py-0.5 rounded-full ${a.chip}`}>Question</div>
+            <p className="font-handwritten text-2xl text-center leading-tight text-foreground/90 max-w-md"
+               dangerouslySetInnerHTML={{ __html: formatHtml(card.q) }} />
+            <div className="text-[10px] text-muted-foreground mt-4 italic">tap to flip</div>
+          </div>
+          {/* BACK — answer on lighter background */}
+          <div className="flip-face back bg-card border-2 border-foreground/20 rounded-2xl shadow-md flex flex-col items-center justify-center p-6 cursor-pointer">
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-3 px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-950">Answer</div>
+            <p className="text-base text-center leading-relaxed text-foreground/90 max-w-md"
+               dangerouslySetInnerHTML={{ __html: formatHtml(card.a) }} />
+            <div className="text-[10px] text-muted-foreground mt-4 italic">tap to flip back</div>
+          </div>
         </div>
-        <p className="text-sm font-medium text-center leading-relaxed max-w-md"
-           dangerouslySetInnerHTML={{ __html: formatHtml(flipped ? card.a : card.q) }} />
-        <p className="text-[10px] text-muted-foreground mt-4">{flipped ? "Click to see question" : "Click to reveal answer"}</p>
       </div>
       <div className="flex items-center justify-between mt-4">
         <button
           onClick={() => { setIdx(i => Math.max(0, i - 1)); setFlipped(false); }}
           disabled={idx === 0}
-          className="px-4 py-1.5 rounded-lg border border-border text-xs font-medium disabled:opacity-40 hover:bg-secondary/40 transition-colors"
+          className="px-4 py-1.5 rounded-lg border border-foreground/15 text-sm font-medium disabled:opacity-40 hover:bg-foreground/5"
         >← Prev</button>
         <div className="flex gap-1">
           {cards.map((_, i) => (
             <button
               key={i}
               onClick={() => { setIdx(i); setFlipped(false); }}
-              className={`w-2 h-2 rounded-full transition-all ${i === idx ? pal.dot + " scale-125" : "bg-muted"}`}
+              className={`w-2 h-2 rounded-full transition-all ${i === idx ? a.dot + " scale-150" : "bg-muted"}`}
             />
           ))}
         </div>
-        {idx < cards.length - 1 ? (
-          <button
-            onClick={() => { setIdx(i => i + 1); setFlipped(false); }}
-            className="px-4 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-secondary/40 transition-colors"
-          >Next →</button>
-        ) : (
-          <button
-            onClick={() => { setStarted(false); setIdx(0); setFlipped(false); }}
-            className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
-          >Restart ↺</button>
-        )}
+        <button
+          onClick={() => { setIdx(i => Math.min(cards.length - 1, i + 1)); setFlipped(false); }}
+          disabled={idx === cards.length - 1}
+          className="px-4 py-1.5 rounded-lg border border-foreground/15 text-sm font-medium disabled:opacity-40 hover:bg-foreground/5"
+        >Next →</button>
       </div>
     </div>
   );
 };
 
-// ─── Main renderer ─────────────────────────────────────────────────────────────
+// ─── Main renderer ────────────────────────────────────────────────────────────
 export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate }: Props) {
-  let palIdx = 0;
-  const nextPal = () => SECTION_PALETTES[(palIdx++) % SECTION_PALETTES.length];
+  const meta = useMemo(() => subjectMeta(subject), [subject]);
 
-  const sections: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
-
-  if (notes.overview) {
-    nextPal();
-    sections.push({
-      id: "overview", title: "Overview", icon: <BookOpen className="h-4 w-4" />,
-      content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} />,
-    });
-  }
-
-  if (notes.key_definitions.length > 0) {
-    nextPal();
-    sections.push({
-      id: "defs", title: "Key Definitions", icon: <Hash className="h-4 w-4" />,
-      content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} i={palIdx} />,
-    });
-  }
-
-  if (notes.core_content.length > 0) {
-    nextPal();
-    sections.push({
-      id: "core", title: "Core Content", icon: <Target className="h-4 w-4" />,
-      content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} />,
-    });
-  }
-
-  if (notes.equations.length > 0) {
-    nextPal();
-    sections.push({
-      id: "eqs", title: "Equations", icon: <Zap className="h-4 w-4" />,
-      content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} />,
-    });
-  }
-
-  if (notes.visual_summary?.content) {
-    nextPal();
-    sections.push({
-      id: "visual", title: "Visual Summary", icon: <Star className="h-4 w-4" />,
-      content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} />,
-    });
-  }
-
-  if (notes.examiner_tips.length > 0) {
-    nextPal();
-    sections.push({
-      id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-4 w-4" />,
-      content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} />,
-    });
-  }
-
-  if (notes.flashcards.length > 0) {
-    nextPal();
-    sections.push({
-      id: "flash", title: "Flashcards", icon: <Star className="h-4 w-4" />,
-      content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} />,
-    });
-  }
-
-  // Reset palette counter for rendering
-  palIdx = 0;
+  const sections = useMemo(() => {
+    const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
+    if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
+    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
+    if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
+    if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
+    if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
+    if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
+    return out;
+  }, [notes, formatHtml, annotate, renderMath]);
 
   return (
     <div className="space-y-8">
-      {/* Topic title banner */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 p-6">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="text-xs font-mono uppercase tracking-widest text-primary mb-1 opacity-80">
-          {subject} · {unitLabel}
+      {/* ── Topic banner ─────────────────────────────────────────────────── */}
+      <div className={`relative rounded-2xl overflow-hidden p-7 bg-gradient-to-br ${meta.tint} border border-foreground/10 shadow-sm`}>
+        <div className="washi-tape h-4 w-40 absolute -top-1 right-8 rounded-sm" style={{ transform: "rotate(3deg)" }} />
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-3xl">{meta.emoji}</span>
+          <div className="font-marker text-sm uppercase tracking-widest text-foreground/70">
+            {subject} · {unitLabel}
+          </div>
         </div>
-        <h2 className="text-2xl font-extrabold tracking-tight">{topic}</h2>
-        {/* Quick-nav dots */}
-        <div className="flex gap-2 mt-4 flex-wrap">
-          {sections.map((s, i) => (
-            <a
-              key={s.id}
-              href={`#notes-${s.id}`}
-              className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${SECTION_PALETTES[i % SECTION_PALETTES.length].tag} border-transparent hover:opacity-80`}
-            >
-              {s.title}
-            </a>
-          ))}
+        <h2 className="font-handwritten text-5xl md:text-6xl font-bold leading-[1.05] text-foreground">
+          {topic}
+        </h2>
+        {/* Quick-nav pills */}
+        <div className="flex gap-2 mt-5 flex-wrap">
+          {sections.map((s, i) => {
+            const a = ACCENTS[i % ACCENTS.length];
+            return (
+              <a key={s.id} href={`#notes-${s.id}`}
+                 className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${a.chip} hover:scale-105 transition-transform shadow-sm`}>
+                <span className="opacity-70">{s.icon}</span>
+                {s.title}
+              </a>
+            );
+          })}
         </div>
       </div>
 
-      {/* Sections */}
+      {/* ── Sections, each on its own notebook page ─────────────────────── */}
       {sections.map((s, i) => {
-        const pal = SECTION_PALETTES[i % SECTION_PALETTES.length];
+        const a = ACCENTS[i % ACCENTS.length];
         return (
-          <section key={s.id} id={`notes-${s.id}`} className="scroll-mt-4">
-            <SectionHeader icon={s.icon} title={s.title} palette={pal} />
-            {s.content}
+          <section key={s.id} id={`notes-${s.id}`} className="scroll-mt-6">
+            <SectionHeader icon={s.icon} title={s.title} accent={a} n={i + 1} />
+            <div className="pl-2">{s.content}</div>
           </section>
         );
       })}
