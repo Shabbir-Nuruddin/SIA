@@ -1,27 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
-import { ArrowRight, Map as MapIcon, Zap, FileText, BookOpen, Star, StarHalf, ChevronDown } from "lucide-react";
+import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
+import { ArrowRight, Map as MapIcon, Zap, FileText, BookOpen, CheckCircle2, Star, StarHalf } from "lucide-react";
 
-const HERO_IMG = "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=2400&q=80";
-
-const MARQUEE_ITEMS = [
-  "📚 Edexcel IAL",
-  "🎓 Cambridge A-Level",
-  "📗 Cambridge IGCSE",
-  "📘 Edexcel IGCSE",
-  "✨ Built for the 2026 spec",
-  "🧪 Chemistry",
-  "🧬 Biology",
-  "⚡ Physics",
-  "📐 Mathematics",
-  "🎯 AI Mark Schemes",
-  "📝 Mock Papers",
-  "🗺️ Smart Roadmap",
-];
+// Hosted on Unsplash — no upload needed.
+const HERO_IMG = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=2400&q=80";
 
 const Stars = ({ value = 5 }: { value?: number }) => {
   const full = Math.floor(value);
@@ -58,8 +45,14 @@ const Avatar = ({ name }: { name: string }) => {
 const Landing = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const currency = useMemo(() => detectDefaultCurrency(), []);
+  const priceFree = formatCurrency(0, currency);
+  const pricePro = formatCurrency(39.99, currency);
+  const priceProAnnual = formatCurrency(299, currency);
+  const priceAdvanced = formatCurrency(129.99, currency);
+  const pricePromo = formatCurrency(19.99, currency);
 
+  // If a signed-in user lands here (e.g. after Google OAuth redirect), route them onward.
   useEffect(() => {
     if (loading || !user) return;
     let cancelled = false;
@@ -73,19 +66,15 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Marquee — very top ────────────────────────────────────────────── */}
-      <div className="bg-primary text-primary-foreground py-2 overflow-hidden">
-        <style>{`@keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }`}</style>
-        <div className="flex gap-10 whitespace-nowrap" style={{ animation: "marquee 35s linear infinite" }}>
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <span key={i} className="text-xs font-semibold tracking-wide shrink-0">
-              {item}
-            </span>
-          ))}
-        </div>
+      {/* Launch promo bar */}
+      <div className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground text-center text-xs md:text-sm font-semibold py-2 px-4">
+        🔥 Launch offer — use code{" "}
+        <span className="font-mono font-extrabold tracking-wider mx-1 bg-background/25 px-2 py-0.5 rounded">
+          REVISE50
+        </span>{" "}
+        for 50% off your first month. First 100 users only.
       </div>
-
-      {/* ── Nav ──────────────────────────────────────────────────────────── */}
+      {/* Nav */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/85 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
           <ApexLogo showTagline />
@@ -94,10 +83,10 @@ const Landing = () => {
               How it works
             </a>
             <a href="#features" className="hover:text-foreground transition">
-              What's inside
+              Features
             </a>
-            <a href="#story" className="hover:text-foreground transition">
-              The story
+            <a href="#pricing" className="hover:text-foreground transition">
+              Pricing
             </a>
           </nav>
           <div className="flex items-center gap-2">
@@ -108,80 +97,75 @@ const Landing = () => {
             </Link>
             <Link to="/auth?mode=signup">
               <Button size="sm" className="btn-primary">
-                Start free
+                Build my plan
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      {/* Hero — full viewport, image with dark overlay */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        <img src={HERO_IMG} alt="Students studying" className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src={HERO_IMG}
+          alt="A student studying at their desk late at night, laptop open"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(105deg,rgba(10,10,20,0.93) 0%,rgba(10,10,20,0.80) 55%,rgba(10,10,20,0.40) 100%)",
+              "linear-gradient(120deg, rgba(13,17,23,0.92) 0%, rgba(13,17,23,0.75) 60%, rgba(13,17,23,0.55) 100%)",
           }}
         />
         <div className="container relative py-24">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white mb-7 backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary mb-7 backdrop-blur">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
               </span>
-              Built by a 17-year-old student. For students.
+              Study smart, not endlessly — zero decision fatigue
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 text-white">
+
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.0] mb-6">
               Study less.
               <br />
-              <span
-                style={{
-                  background: "linear-gradient(90deg,#f59e0b,#f97316,#ec4899)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Score higher.
+              <span className="text-gradient">Score higher.</span>
+              <br />
+              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">
+                Stop guessing what to revise
+                <br />
+                we tell you, every single day.
               </span>
             </h1>
-            <p className="text-base md:text-xl text-white/80 max-w-[540px] mb-3 leading-relaxed font-medium">
-              Stop guessing what to revise.
+
+            <p className="text-base md:text-lg text-muted-foreground max-w-[560px] mb-9 leading-relaxed">
+              Most students burn weeks on the wrong topics. Make Me Revise builds a day by day plan from your exam date
+              backwards, sequenced by science, prioritised by your weak spots. You just open it and follow.
             </p>
-            <p className="text-sm md:text-base text-white/60 max-w-[540px] mb-9 leading-relaxed">
-              ApexRevise builds a day-by-day plan from your exam date backwards, sequenced by science, prioritised by
-              your weak spots. You just open it and follow.
-            </p>
+
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
               <Link to="/auth?mode=signup">
-                <Button
-                  size="lg"
-                  className="h-12 px-7 text-[15px] font-semibold group text-white"
-                  style={{ background: "linear-gradient(135deg,#7c3aed,#ec4899)", border: "none" }}
-                >
+                <Button size="lg" className="btn-primary h-12 px-7 text-[15px] font-semibold group">
                   Build my revision plan <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" />
                 </Button>
               </Link>
               <a href="#how">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-12 px-7 text-[15px] border-white/40 text-white bg-white/10 hover:bg-white/20"
-                >
+                <Button variant="outline" size="lg" className="h-12 px-7 text-[15px]">
                   See how it works
                 </Button>
               </a>
             </div>
-            <p className="text-xs text-white/40 font-mono uppercase tracking-wider">
-              Edexcel IAL · Cambridge A-Level · IGCSE · 2026 Spec
+
+            <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
+              Supports Edexcel IAL · CIE A-Level
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────────────── */}
+      {/* How it works */}
       <section id="how" className="py-20 md:py-28">
         <div className="container">
           <div className="max-w-2xl mb-14">
@@ -207,7 +191,7 @@ const Landing = () => {
               },
             ].map((s) => (
               <div key={s.n} className="surface p-6">
-                <div className="text-4xl font-extrabold text-primary/40 font-mono mb-3">{s.n}</div>
+                <div className="text-4xl font-extrabold text-gradient opacity-50 font-mono mb-3">{s.n}</div>
                 <h3 className="text-lg font-bold mb-2">{s.t}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
               </div>
@@ -216,7 +200,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────────────────────────────── */}
+      {/* Features */}
       <section id="features" className="py-20 md:py-28 border-t border-border/50">
         <div className="container">
           <div className="max-w-2xl mb-14">
@@ -226,28 +210,30 @@ const Landing = () => {
           <div className="grid md:grid-cols-2 gap-4">
             {[
               {
-                emoji: "🗺️",
+                icon: MapIcon,
                 title: "Your Personal Roadmap",
                 desc: "A complete day-by-day plan from today to your exam. Built around your syllabus. Updated based on how you're doing. You never have to wonder what to study next.",
               },
               {
-                emoji: "⚡",
+                icon: Zap,
                 title: "Topical Questions",
                 desc: "Practice questions for every topic, every board. Exam-style format. AI marking with real feedback and model answers — exactly like a real mark scheme.",
               },
               {
-                emoji: "📝",
+                icon: FileText,
                 title: "Full Mock Papers",
                 desc: "Timed mock papers generated to your spec. AI marks your answers. Shows you your grade, what you got wrong, and what to fix.",
               },
               {
-                emoji: "📖",
+                icon: BookOpen,
                 title: "Smart Notes",
                 desc: "AI-generated revision notes scoped exactly to your syllabus. Definitions, worked examples, examiner tips. Nothing irrelevant.",
               },
             ].map((f, i) => (
               <div key={i} className="surface surface-hover p-7">
-                <div className="text-3xl mb-4">{f.emoji}</div>
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-md mb-4 bg-primary/15 text-primary">
+                  <f.icon className="h-5 w-5" />
+                </div>
                 <h3 className="text-lg font-bold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
@@ -256,54 +242,175 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Founder story — Lovable gradient card style ───────────────────── */}
-      <section id="story" className="py-20 md:py-28 border-t border-border/50">
-        <div className="container max-w-4xl">
-          <div
-            className="rounded-3xl p-10 md:p-16 relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%)" }}
-          >
-            {/* Decorative circles */}
-            <div
-              className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-20"
-              style={{ background: "rgba(255,255,255,0.3)" }}
-            />
-            <div
-              className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full opacity-10"
-              style={{ background: "rgba(255,255,255,0.4)" }}
-            />
-            <div className="relative">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-white/70 mb-6 flex items-center gap-2">
-                <span className="w-6 h-px bg-white/40" /> From the founder
-              </div>
-              <blockquote
-                className="text-xl md:text-2xl font-semibold leading-relaxed text-white mb-8"
-                style={{ fontFamily: "'Georgia', serif" }}
-              >
-                "I'm 17. I know the panic the night before an exam. I know what it feels like to open a 60-page spec and
-                have no idea where to start. I know the stress, the late nights, the feeling that everyone else has it
-                figured out.
-                <br />
-                <br />I built ApexRevise because I needed it — and because no one was making it for students like us.
-                This is for every student who has ever felt overwhelmed. You've got this."
-              </blockquote>
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-extrabold bg-white/20 text-white border-2 border-white/40">
-                  SJ
-                </div>
-                <div>
-                  <div className="font-bold text-white text-lg" style={{ fontFamily: "'Georgia', serif" }}>
-                    Shabbir Jethajiwala
-                  </div>
-                  <div className="text-xs text-white/70">Founder & Student, ApexRevise</div>
-                </div>
-              </div>
+      {/* Pricing */}
+      <section id="pricing" className="py-20 md:py-28 border-t border-border/50">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-3">Three plans. One target grade.</h2>
+            <p className="text-muted-foreground text-sm">Start free. Upgrade when exam season hits. Cancel anytime.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 items-stretch">
+            {/* Starter */}
+            <div className="surface p-7 flex flex-col">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-1">Starter</div>
+              <div className="text-4xl font-extrabold mb-1">{priceFree}</div>
+              <div className="text-xs text-muted-foreground mb-6">Forever free</div>
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                {[
+                  "Roadmap for 1 subject",
+                  "10 AI-marked questions / day",
+                  "Notes for 3 topics / week",
+                  "AI tutor — 5 messages total (try it out)",
+                  "Built-in focus music + Pomodoro",
+                ].map((x) => (
+                  <li key={x} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup">
+                <Button variant="outline" className="w-full">
+                  Start free
+                </Button>
+              </Link>
             </div>
+
+            {/* Pro — highlighted */}
+            <div
+              className="surface p-7 flex flex-col border-primary/60 ring-2 ring-primary/40 relative shadow-2xl md:-translate-y-2"
+              style={{ background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card-hover)))" }}
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                Most popular
+              </div>
+              <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
+              <div className="text-4xl font-extrabold mb-1">
+                {pricePro}
+                <span className="text-base text-muted-foreground font-medium">/mo</span>
+              </div>
+              <div className="text-xs text-muted-foreground mb-1">
+                or {priceProAnnual}/year <span className="text-success font-semibold">· save 38%</span>
+              </div>
+              <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                {[
+                  "Everything in Starter",
+                  "Photo upload: AI marks your handwriting",
+                  "Unlimited subjects + roadmap rebuilds",
+                  "Unlimited AI-marked questions",
+                  "Unlimited mock papers + examiner feedback",
+                  "Unlimited notes — every topic",
+                  "Multiple active exams + urgency timers",
+                  "AI tutor — 200 messages / day",
+                ].map((x) => (
+                  <li key={x} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup">
+                <Button className="btn-primary w-full">Go Pro</Button>
+              </Link>
+            </div>
+
+            {/* Advanced */}
+            <div className="surface p-7 flex flex-col">
+              <div className="text-xs uppercase tracking-wider text-accent font-mono mb-1">Advanced</div>
+              <div className="text-4xl font-extrabold mb-1">
+                {priceAdvanced}
+                <span className="text-base text-muted-foreground font-medium">/mo</span>
+              </div>
+              <div className="text-xs text-muted-foreground mb-6">For top-grade hunters</div>
+              <ul className="space-y-2.5 text-sm mb-6 flex-1">
+                {[
+                  "Everything in Pro",
+                  "Unlimited AI tutor — no caps",
+                  "Deep-dive notes (more worked examples)",
+                  "Adaptive mocks tuned to weak spots",
+                  "Predicted-paper generator",
+                  "Full AI exam strategy report — personalised to your diagnostic, weak topics & target grade",
+                  "Early access to new features",
+                ].map((x) => (
+                  <li key={x} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                    {x}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/auth?mode=signup">
+                <Button variant="outline" className="w-full">
+                  Go Advanced
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* REVISE50 promo */}
+          <div className="mt-8 max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-primary/60 bg-gradient-to-br from-primary/15 via-accent/10 to-primary/15 p-6 text-center relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
+            <div className="text-[11px] uppercase tracking-widest font-mono text-primary font-bold mb-2">
+              🔥 Launch offer — first 100 users only
+            </div>
+            <div className="text-2xl md:text-3xl font-extrabold mb-1">50% off your first month</div>
+            <div className="text-sm text-muted-foreground mb-1">
+              Use code{" "}
+              <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">
+                REVISE50
+              </span>{" "}
+              at checkout
+            </div>
+            <div className="text-[11px] text-muted-foreground">First month from {pricePromo} · cancel anytime</div>
           </div>
         </div>
       </section>
 
-      {/* ── Testimonials ─────────────────────────────────────────────────── */}
+      {/* FAQ */}
+      <section className="py-20 md:py-24 border-t border-border/50">
+        <div className="container max-w-3xl">
+          <div className="text-center mb-10">
+            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">FAQ</div>
+            <h2 className="text-3xl md:text-4xl font-bold">Quick answers.</h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                q: "Which exam boards do you support?",
+                a: "Edexcel IAL and CIE A-Level for Maths, Biology, Chemistry and Physics.",
+              },
+              {
+                q: "How does the free trial work?",
+                a: "Start on Starter for free, no card. When you click Upgrade you enter your card and get 3 days of full Pro access. Cancel before day 3 and you pay nothing.",
+              },
+              {
+                q: "Is the AI marking actually accurate?",
+                a: "Yes — it follows the official mark-scheme phrasing for your board, awards mark-by-mark, and tells you exactly where you lost marks.",
+              },
+              { q: "Can I cancel anytime?", a: "Yes. One click in Settings. No retention questions, no friction." },
+              {
+                q: "Do you store my work?",
+                a: "Your roadmap, notes, mocks and questions are saved to your account so you can pick up where you left off on any device.",
+              },
+              {
+                q: "What's the REVISE50 code?",
+                a: "50% off your first month — first 100 users only. Apply it at checkout.",
+              },
+            ].map((f, i) => (
+              <details key={i} className="surface p-4 group">
+                <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-3">
+                  <span>{f.q}</span>
+                  <span className="text-primary text-lg group-open:rotate-45 transition-transform">+</span>
+                </summary>
+                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
       <section className="py-20 md:py-28 border-t border-border/50">
         <div className="container max-w-6xl">
           <div className="text-center mb-12">
@@ -317,37 +424,37 @@ const Landing = () => {
               {
                 stars: 5,
                 q: "I never knew where to start with revision. This told me exactly what to do every single day. My mock went from a C to a B in three weeks.",
-                n: "Fatima Al Mansoori",
+                n: "Aisha M.",
                 m: "Year 13 · Edexcel Biology & Chemistry",
               },
               {
                 stars: 5,
                 q: "The roadmap is the only reason I'm not panicking right now. It broke everything down. I just follow it.",
-                n: "Khalid Al Rashidi",
+                n: "James T.",
                 m: "Year 13 · Edexcel Maths & Physics",
               },
               {
                 stars: 4.5,
-                q: "The mock paper felt like a real exam. The AI feedback told me exactly why I lost marks. That's more useful than any mark scheme I've read.",
-                n: "Mariam Hassan",
-                m: "Year 12 · Cambridge Chemistry",
+                q: "The mock paper felt like a real exam. The AI feedback told me exactly why I lost marks. That's genuinely more useful than any mark scheme I've read on my own.",
+                n: "Priya S.",
+                m: "Year 12 · CIE Chemistry",
               },
               {
                 stars: 5,
                 q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.",
-                n: "Omar Al Zaabi",
-                m: "Year 13 · Cambridge Maths",
+                n: "Omar H.",
+                m: "Year 13 · CIE Maths",
               },
               {
                 stars: 4.5,
                 q: "The questions actually feel like real exam questions. Not generic. The feedback is detailed and matches what my teacher says.",
-                n: "Aisha Mahmoud",
+                n: "Zara L.",
                 m: "Year 13 · Edexcel Biology & Physics",
               },
               {
                 stars: 5,
                 q: "Every other revision site gives you resources and leaves you alone. This one tells you what to do with them.",
-                n: "Yousef Al Hamdan",
+                n: "Daniel W.",
                 m: "Year 13 · Edexcel Chemistry & Maths",
               },
             ].map((t, i) => (
@@ -357,7 +464,7 @@ const Landing = () => {
                 <div className="flex items-center gap-2.5 pt-3 border-t border-border">
                   <Avatar name={t.n} />
                   <div className="min-w-0">
-                    <div className="text-xs font-bold truncate">{t.n}</div>
+                    <div className="text-xs font-bold">{t.n}</div>
                     <div className="text-[11px] text-muted-foreground">{t.m}</div>
                   </div>
                 </div>
@@ -367,101 +474,29 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────────────── */}
-      <section className="py-20 md:py-24 border-t border-border/50">
-        <div className="container max-w-3xl">
-          <div className="text-center mb-10">
-            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">FAQ</div>
-            <h2 className="text-3xl md:text-4xl font-bold">Quick answers.</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              {
-                q: "Which exam boards do you support?",
-                a: "Edexcel IAL, Cambridge A-Level, Cambridge IGCSE and Edexcel IGCSE — for Maths, Biology, Chemistry and Physics.",
-              },
-              {
-                q: "How does the free plan work?",
-                a: "Start on Starter for free — no card required. You get a roadmap, daily questions, and 3 topic notes per week. Upgrade when you need more.",
-              },
-              {
-                q: "Is the AI marking actually accurate?",
-                a: "Yes — it follows the official mark-scheme phrasing for your board, awards mark-by-mark, and tells you exactly where you lost marks.",
-              },
-              { q: "Can I cancel anytime?", a: "Yes. One click in Settings. No retention questions, no friction." },
-              {
-                q: "Do you store my work?",
-                a: "Your roadmap, notes, mocks and questions are saved to your account so you can pick up on any device.",
-              },
-              {
-                q: "Which subjects are covered?",
-                a: "Maths, Biology, Chemistry and Physics across all supported boards. More subjects coming soon.",
-              },
-            ].map((f, i) => (
-              <div key={i} className="surface rounded-xl overflow-hidden">
-                <button
-                  className="w-full p-4 flex items-center justify-between gap-3 text-left"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                >
-                  <span className="font-semibold text-sm">{f.q}</span>
-                  <ChevronDown
-                    className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {openFaq === i && (
-                  <div className="px-4 pb-4">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{f.a}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Final CTA — matches site gradient, not random purple ─────────── */}
-      <section
-        className="py-24 border-t border-border/50 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg,#1a0533 0%,#2d0a4e 40%,#4a1078 100%)" }}
-      >
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 25% 50%,#7c3aed 0%,transparent 55%),radial-gradient(circle at 75% 50%,#ec4899 0%,transparent 55%)",
-          }}
-        />
-        <div className="container max-w-3xl text-center relative">
-          <div className="text-xs font-mono uppercase tracking-widest text-white/50 mb-4">Start today</div>
-          <h2
-            className="text-4xl md:text-5xl font-extrabold mb-4 text-white"
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            Your exams are closer
-            <br />
-            than you think.
-          </h2>
-          <p className="text-white/60 mb-8 text-lg">Start building your study plan today — it takes 2 minutes.</p>
+      {/* CTA */}
+      <section className="py-20 border-t border-border/50">
+        <div className="container max-w-3xl text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Stop deciding what to study.</h2>
+          <p className="text-muted-foreground mb-7">Get a plan in 2 minutes. Free to start.</p>
           <Link to="/auth?mode=signup">
-            <Button
-              size="lg"
-              className="h-14 px-10 text-lg font-bold text-white rounded-full"
-              style={{ background: "linear-gradient(135deg,#f59e0b,#f97316,#ec4899)", border: "none" }}
-            >
-              Get started free <ArrowRight className="ml-2 h-5 w-5" />
+            <Button size="lg" className="btn-primary h-12 px-8 text-[15px] font-semibold">
+              Build my revision plan <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="border-t border-border/50 py-10">
         <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
           <ApexLogo size={24} />
-          <p className="text-xs text-muted-foreground">© 2026 ApexRevise · Edexcel IAL & Cambridge A-Level</p>
+          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Supports Edexcel IAL & CIE A-Level</p>
           <div className="flex items-center gap-5 text-xs text-muted-foreground flex-wrap justify-center">
             <a href="#how" className="hover:text-foreground transition">
               How it works
+            </a>
+            <a href="#pricing" className="hover:text-foreground transition">
+              Pricing
             </a>
             <Link to="/terms" className="hover:text-foreground transition">
               Terms
