@@ -1,16 +1,20 @@
 // Edexcel International A-Level Chemistry (XCH11 / YCH11)
 // Topic names taken verbatim from the official specification (Issue 1, Sept 2017).
-// Each topic carries its full statement-level content for AI grounding.
+// Each topic carries its full statement-level content for AI grounding,
+// along with explicit include/exclude keywords for precise generation.
 
 export interface SyllabusStatement {
   ref: string;          // e.g. "1.2"
   text: string;         // verbatim assessment statement (paraphrased lightly only when needed for plaintext)
 }
+
 export interface SyllabusTopic {
   number: number;       // 1..18
   name: string;         // exact topic name from spec
   unit: number;         // 1..6
   statements: SyllabusStatement[];
+  includeKeywords?: string[]; // Specific keywords/phrases Gemini MUST ensure are in the notes
+  excludeKeywords?: string[]; // Specific keywords/phrases Gemini MUST ensure are ABSENT (typically from other units)
 }
 
 // Statements are condensed to plain text (no LaTeX/markdown) but follow the spec content.
@@ -31,6 +35,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "1.11", text: "CORE PRACTICAL 1: Measurement of the molar volume of a gas" },
       { ref: "1.12", text: "relate ionic and full equations, with state symbols, to observations from simple test-tube experiments (displacement, acid reactions, precipitation)" },
     ],
+    includeKeywords: ["mole", "Avogadro constant", "balanced equation", "empirical formula", "molecular formula", "molar mass", "percentage yield", "atom economy", "ideal gas equation"],
+    excludeKeywords: ["acid-base titration (Unit 4)", "Born-Haber cycle", "enthalpy", "kinetics", "organic mechanisms"]
   },
   {
     number: 2, unit: 1, name: "Atomic Structure and the Periodic Table",
@@ -54,6 +60,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "2.17", text: "represent first ionisation data graphically (including logarithms) for elements 1–36; explain 'periodic property'" },
       { ref: "2.18", text: "explain trends in melting/boiling temperatures across Periods 2 and 3, ionisation energy trends across periods, and decrease down a group" },
     ],
+    includeKeywords: ["atomic number", "mass number", "isotope", "mass spectrometer", "ionization energy (first, successive)", "s, p, d orbitals", "electronic configuration", "Periodic Table blocks", "melting point trends"],
+    excludeKeywords: ["Group 1/2/7 trends (Unit 2)", "redox reactions (Unit 2, 5)", "Born-Haber cycle", "lattice energy (Unit 4)"]
   },
   {
     number: 3, unit: 1, name: "Bonding and Structure",
@@ -76,10 +84,12 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "3.16", text: "principles of electron-pair repulsion theory to predict shapes of molecules and ions" },
       { ref: "3.17", text: "terms 'bond length' and 'bond angle'" },
       { ref: "3.18", text: "know shapes/bond angles of BeCl2, BCl3, CH4, NH3, NH4+, H2O, CO2, gaseous PCl5, SF6, C2H4" },
-      { ref: "3.19", text: "apply electron-pair repulsion theory to predict shapes/bond angles of analogous molecules and ions" },
+{ ref: "3.19", text: "apply electron-pair repulsion theory to predict shapes/bond angles of analogous molecules and ions" },
       { ref: "3.20", text: "metals are giant lattices of metal ions in a sea of delocalised electrons" },
       { ref: "3.21", text: "explain physical properties of metals (conductivity, melting points, malleability) in terms of metallic bonding" },
     ],
+    includeKeywords: ["ionic radius", "polarisation", "electronegativity", "VSEPR", "bond angles", "giant lattices", "delocalised electrons", "electron-pair repulsion", "dative covalent"],
+    excludeKeywords: ["intermolecular forces (Unit 2)", "hydrogen bonding (Unit 2)", "Born-Haber", "lattice energy (Unit 4)", "entropy"]
   },
   {
     number: 4, unit: 1, name: "Introductory Organic Chemistry and Alkanes",
@@ -92,6 +102,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "4.6", text: "free radical substitution of alkanes by chlorine and bromine; mechanism (initiation, propagation, termination)" },
       { ref: "4.7", text: "fractional distillation of crude oil; cracking; isomerisation; reforming" },
     ],
+    includeKeywords: ["homologous series", "skeletal formulae", "IUPAC naming", "structural isomerism", "free radicals", "homolytic fission", "fractional distillation", "cracking"],
+    excludeKeywords: ["nucleophilic substitution (Unit 2)", "SN1/SN2", "electrophilic addition", "optical isomerism (Unit 4)", "chirality", "benzene"]
   },
   {
     number: 5, unit: 1, name: "Alkenes",
@@ -105,6 +117,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "5.7", text: "addition polymerisation of alkenes; draw repeat unit from monomer and vice versa" },
       { ref: "5.8", text: "limit problems of polymer disposal: biodegradable polymers; removing toxic incineration gases" },
     ],
+    includeKeywords: ["pi bond", "sigma bond", "E-Z isomerism", "electrophilic addition", "carbocation stability", "bromine water test", "addition polymerisation", "repeat unit"],
+    excludeKeywords: ["nucleophilic substitution", "polymerisation of amino acids (Unit 5)", "condensation polymerisation", "infrared spectroscopy (Unit 2)"]
   },
   {
     number: 6, unit: 2, name: "Energetics",
@@ -121,6 +135,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "6.10", text: "calculate mean bond enthalpies from ΔH of reaction" },
       { ref: "6.11", text: "bond enthalpy data indicates which bond breaks first and reaction speed at room T" },
     ],
+    includeKeywords: ["enthalpy change", "standard conditions", "exothermic", "endothermic", "Hess's Law", "calorimetry", "bond enthalpy", "enthalpy cycle"],
+    excludeKeywords: ["entropy (Unit 4)", "Gibbs free energy (Unit 4)", "Born-Haber cycles (Unit 4)", "lattice energy", "feasibility"]
   },
   {
     number: 7, unit: 2, name: "Intermolecular Forces",
@@ -132,8 +148,9 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "7.5", text: "explain physical properties via intermolecular forces: alkane bp trends, branching, alcohols vs alkanes, HF–HI bp trend" },
       { ref: "7.6", text: "factors choosing solvents: water for ionic/alcohol; non-aqueous for like-with-like" },
     ],
-  },
-  {
+    includeKeywords: ["London forces", "induced dipole", "hydrogen bonding", "anomalous properties", "solubility", "boiling point trends"],
+    excludeKeywords: ["ionic bonding (Unit 1)", "covalent bonding (Unit 1)", "metallic bonding", "Giant covalent structures"] }
+   {
     number: 8, unit: 2, name: "Redox Chemistry and Groups 1, 2 and 7",
     statements: [
       { ref: "8.1", text: "oxidation number and rules for assigning it" },
@@ -158,6 +175,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "8.20", text: "disproportionation of chlorine in water and alkali; uses in water treatment and bleach" },
       { ref: "8.21", text: "reactions of solid halide ions with concentrated sulfuric acid; redox products" },
     ],
+    includeKeywords: ["oxidation number", "Roman numerals", "disproportionation", "half-equations", "thermal stability", "flame tests", "halide displacement", "silver nitrate test", "conc sulfuric acid with halides"],
+    excludeKeywords: ["standard electrode potentials (Unit 5)", "E-cell", "fuel cells", "transition metals", "KNDO4 titrations"]
   },
   {
     number: 9, unit: 2, name: "Introduction to Kinetics and Equilibria",
@@ -171,6 +190,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "9.7", text: "Le Chatelier's principle: effect of concentration, pressure, temperature; catalysts no effect on position" },
       { ref: "9.8", text: "industrial conditions chosen on rate vs yield (e.g. Haber, Contact)" },
     ],
+    includeKeywords: ["collision theory", "activation energy", "Maxwell-Boltzmann", "Le Chatelier's principle", "dynamic equilibrium", "homogeneous catalyst", "heterogeneous catalyst"],
+    excludeKeywords: ["rate equations (Unit 4)", "order of reaction", "rate constant k", "Arrhenius equation", "Kc calculations", "Kp calculations"]
   },
   {
     number: 10, unit: 2, name: "Organic Chemistry: Halogenoalkanes, Alcohols and Spectra",
@@ -194,6 +215,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "10.17", text: "interpret IR absorption bands for O–H, N–H, C=O, C–H, C–O" },
       { ref: "10.18", text: "CORE PRACTICALS in this topic: oxidation of an alcohol; tests for aldehydes/ketones" },
     ],
+    includeKeywords: ["SN1 and SN2 mechanism", "nucleophilic substitution", "hydrolysis", "potassium dichromate", "Tollens' reagent", "Fehling's reagent", "infrared spectroscopy", "fragmentation pattern", "M+ peak"],
+    excludeKeywords: ["carboxylic acid derivatives (Unit 4)", "acyl chlorides", "esters", "proton NMR (Unit 5)", "Carbon-13 NMR", "Grignard reagents"]
   },
   {
     number: 11, unit: 4, name: "Kinetics",
@@ -212,6 +235,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "11.12", text: "CORE PRACTICALS 9a/9b: iodine-propanone reaction by titration; Harcourt-Esson iodine clock" },
       { ref: "11.13", text: "CORE PRACTICAL 10: finding the activation energy of a reaction" },
     ],
+    includeKeywords: ["rate equation", "orders of reaction", "rate constant k", "half-life", "rate-determining step", "Arrhenius equation", "initial-rate method", "clock reactions"],
+    excludeKeywords: ["basic collision theory", "Maxwell-Boltzmann distribution (Unit 2)", "equilibrium position"]
   },
   {
     number: 12, unit: 4, name: "Entropy and Energetics",
@@ -226,8 +251,10 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "12.8", text: "compare experimental lattice energies to those calculated assuming pure ionic model; evidence for covalent character (polarisation)" },
       { ref: "12.9", text: "enthalpy changes of solution and hydration; use to calculate ΔH_sol from cycle" },
     ],
+    includeKeywords: ["entropy change", "total entropy", "lattice energy", "Born-Haber cycle", "pure ionic model", "enthalpy of solution", "enthalpy of hydration", "feasibility"],
+    excludeKeywords: ["Hess's Law (Unit 2)", "standard enthalpy of formation basics", "bond enthalpies (Unit 2)"]
   },
-  {
+    {
     number: 13, unit: 4, name: "Chemical Equilibria",
     statements: [
       { ref: "13.1", text: "equilibrium constant Kc and Kp expressions; units" },
@@ -236,6 +263,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "13.4", text: "calculate equilibrium amounts/concentrations using ICE tables" },
       { ref: "13.5", text: "interpret the size of K to predict extent of reaction" },
     ],
+    includeKeywords: ["equilibrium constant Kc", "Kp", "partial pressures", "equilibrium concentrations", "ICE tables", "extent of reaction", "effect of temperature on K", "effect of pressure on K"],
+    excludeKeywords: ["Le Chatelier's principle (Unit 2)", "rate equation (Unit 4 Kinetics)", "half-life", "orders of reaction", "acid-base equilibria (next topic)", "pH", "buffer solutions"]
   },
   {
     number: 14, unit: 4, name: "Acid-base Equilibria",
@@ -247,6 +276,8 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "14.5", text: "titration curves for strong/weak acid–base combinations; choice of indicator" },
       { ref: "14.6", text: "CORE PRACTICAL: pH titration to find concentration; identify equivalence point and indicator" },
     ],
+    includeKeywords: ["Brønsted-Lowry", "conjugate acid-base pair", "pH calculation", "Kw", "Ka", "pKa", "weak acids", "buffer solutions", "Henderson-Hasselbalch equation", "titration curves", "equivalence point", "indicator selection"],
+    excludeKeywords: ["redox titrations (Unit 5)", "standard electrode potentials", "Kc/Kp calculations (previous topic)", "lattice energy"]
   },
   {
     number: 15, unit: 4, name: "Organic Chemistry: Carbonyls, Carboxylic Acids and Chirality",
@@ -260,50 +291,79 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "15.7", text: "acyl chlorides and anhydrides: formation of esters, amides, carboxylic acids; relative reactivity" },
       { ref: "15.8", text: "chirality, optical isomerism, optical activity, racemic mixtures; significance in pharmaceuticals" },
     ],
+    includeKeywords: ["aldehydes", "ketones", "carboxylic acids", "esters", "acyl chlorides", "nucleophilic addition", "Tollens' reagent", "Fehling's solution", "2,4-DNP", "esterification mechanism", "saponification", "chirality", "optical isomerism", "racemic mixtures"],
+    excludeKeywords: ["alkanes (Unit 1)", "alkenes (Unit 1)", "halogenoalkanes (Unit 2)", "alcohols (Unit 2)", "SN1/SN2 mechanisms", "electrophilic addition", "benzene (Unit 5)", "polymers (Unit 5)", "amino acids"]
   },
   {
     number: 16, unit: 5, name: "Redox Equilibria, Transition Metals and Inorganic Chemistry",
     statements: [
-      { ref: "16.1", text: "standard electrode potentials; standard hydrogen electrode; measurement using a salt bridge" },
-      { ref: "16.2", text: "calculate Ecell; predict feasibility of redox reactions" },
-      { ref: "16.3", text: "limitations of E predictions: kinetics, non-standard conditions" },
-      { ref: "16.4", text: "fuel cells (H2/O2); advantages over conventional energy" },
-      { ref: "16.5", text: "transition metals definition (incomplete d-subshell ions); Sc and Zn excluded" },
-      { ref: "16.6", text: "variable oxidation states; coloured ions (d-d transitions); catalytic activity" },
-      { ref: "16.7", text: "complex ions: ligands (mono/bi/multidentate), coordination number, shapes (linear, tetrahedral, square planar, octahedral)" },
-      { ref: "16.8", text: "ligand substitution reactions; chelate effect; cis/trans isomerism in complexes; cisplatin" },
-      { ref: "16.9", text: "redox titrations using KMnO4 and Na2S2O3 (with starch indicator); calculations" },
-      { ref: "16.10", text: "CORE PRACTICALS: redox titrations" },
+      { ref: "16.1", text: "understand the terms 'oxidation number', 'standard electrode potential', 'standard cell potential', 'electromotive force (emf)' and 'fuel cell'" },
+      { ref: "16.2", text: "know the methods used to measure standard electrode potentials of metals or non-metals in contact with their ions in aqueous solution and ions of the same element in different oxidation states" },
+      { ref: "16.3", text: "calculate standard cell potentials (Ecell) from standard electrode potentials" },
+      { ref: "16.4", text: "use standard cell potentials to predict the thermodynamic feasibility of a reaction" },
+      { ref: "16.5", text: "understand the limitations of using standard cell potentials to predict the feasibility of a reaction, including kinetics and non-standard conditions" },
+      { ref: "16.6", text: "know that transition metals are d-block elements that form one or more stable ions with incompletely filled d-orbitals; know Sc and Zn are not transition metals" },
+      { ref: "16.7", text: "understand the typical properties of transition metals: variable oxidation states, formation of coloured ions, catalytic activity and complex ion formation" },
+      { ref: "16.8", text: "understand that d-orbitals split into two levels in a complex ion and that light absorption causes d-d transitions" },
+      { ref: "16.9", text: "understand the terms 'ligand', 'coordination number', 'monodentate', 'bidentate' and 'multidentate'" },
+      { ref: "16.10", text: "know the shapes of complex ions: octahedral, tetrahedral, square planar and linear" },
+      { ref: "16.11", text: "understand ligand exchange reactions and the chelate effect" },
+      { ref: "16.12", text: "CORE PRACTICAL 11: Redox titrations with iron(II) and potassium manganate(VII)" },
+      { ref: "16.13", text: "CORE PRACTICAL 12: Analysis of a commercial copper alloy" },
     ],
+    includeKeywords: ["standard electrode potential", "Ecell", "thermodynamic feasibility", "fuel cells", "d-d transitions", "ligand exchange", "coordination number", "chelate effect", "potassium manganate(VII) titration"],
+    excludeKeywords: ["Unit 2 redox basics", "Hess cycles", "Introduction to Kinetics", "Group 2 trends"]
   },
   {
     number: 17, unit: 5, name: "Organic Nitrogen Chemistry: Amines, Amides, Amino Acids and Proteins",
     statements: [
-      { ref: "17.1", text: "preparation of amines: from halogenoalkane + ammonia; reduction of nitriles; reduction of nitro compounds" },
-      { ref: "17.2", text: "basicity of aliphatic vs aromatic amines (electron donation/withdrawal)" },
-      { ref: "17.3", text: "reactions of amines with acids, acyl chlorides, halogenoalkanes" },
-      { ref: "17.4", text: "amides: hydrolysis; relationship with carboxylic acids" },
-      { ref: "17.5", text: "amino acids: zwitterions, isoelectric point, pH-dependent behaviour" },
-      { ref: "17.6", text: "peptide bond formation; primary, secondary, tertiary structure of proteins" },
-      { ref: "17.7", text: "polyamides and polyesters; condensation polymerisation; nylon, terylene; biodegradability" },
-      { ref: "17.8", text: "azo dyes: diazonium salts and coupling; uses" },
+      { ref: "17.1", text: "give the IUPAC names of amines, amides, amino acids and nitriles" },
+      { ref: "17.2", text: "describe the preparation of primary aliphatic amines from halogenoalkanes and by the reduction of nitriles" },
+      { ref: "17.3", text: "describe the preparation of aromatic amines by the reduction of nitrobenzene" },
+      { ref: "17.4", text: "explain the relative basicity of ammonia, primary aliphatic amines and primary aromatic amines" },
+      { ref: "17.5", text: "describe the reactions of amines with water, acids, acyl chlorides and halogenoalkanes" },
+      { ref: "17.6", text: "describe the formation of amides from acyl chlorides" },
+      { ref: "17.7", text: "describe the condensation polymerisation of dicarboxylic acids with diols or diamines" },
+      { ref: "17.8", text: "understand the structure of amino acids, the formation of zwitterions and the isoelectric point" },
+      { ref: "17.9", text: "describe the formation of peptides and proteins through condensation reactions" },
+      { ref: "17.10", text: "understand the primary, secondary and tertiary structures of proteins" },
     ],
+    includeKeywords: ["basicity of amines", "reduction of nitriles", "zwitterions", "isoelectric point", "condensation polymerisation", "peptide bond", "primary/secondary/tertiary protein structure", "nylon and terylene"],
+    excludeKeywords: ["Unit 1 Alkanes", "Unit 2 SN2 mechanism", "Unit 4 Carbonyls", "Aldehydes and Ketones"]
   },
   {
     number: 18, unit: 5, name: "Organic Synthesis, Aromatic Chemistry and Modern Analytical Techniques",
     statements: [
-      { ref: "18.1", text: "benzene structure: delocalised π system; evidence (enthalpy of hydrogenation, bond lengths)" },
-      { ref: "18.2", text: "electrophilic substitution mechanisms: nitration, halogenation, Friedel–Crafts alkylation/acylation" },
-      { ref: "18.3", text: "phenol: acidity vs alcohols; reactions with bromine water and FeCl3 test" },
-      { ref: "18.4", text: "directing effects of substituents on benzene ring (2,4 vs 3 positions)" },
-      { ref: "18.5", text: "synthetic routes: planning multi-step syntheses; functional group interconversions" },
-      { ref: "18.6", text: "TLC and column chromatography; Rf values; principles" },
-      { ref: "18.7", text: "high-resolution proton NMR: chemical shift, integration, splitting (n+1 rule); D2O exchange for OH/NH" },
-      { ref: "18.8", text: "carbon-13 NMR: number of unique carbons; chemical shifts" },
-      { ref: "18.9", text: "combine MS, IR, NMR data to identify organic structures" },
+      { ref: "18.1", text: "understand the structure of benzene in terms of the delocalisation of pi electrons and the evidence for this structure" },
+      { ref: "18.2", text: "describe the electrophilic substitution reactions of benzene: nitration, halogenation and Friedel-Crafts alkylation/acylation" },
+      { ref: "18.3", text: "understand the mechanism for the electrophilic substitution of benzene" },
+      { ref: "18.4", text: "describe the preparation and reactions of phenol" },
+      { ref: "18.5", text: "explain the relative ease of substitution of phenol compared to benzene" },
+      { ref: "18.6", text: "understand the directing effects of different groups on the benzene ring" },
+      { ref: "18.7", text: "describe multi-step synthetic routes for organic compounds" },
+      { ref: "18.8", text: "understand the principles of high-resolution proton NMR spectroscopy" },
+      { ref: "18.9", text: "interpret 13C and 1H NMR spectra to deduce the structure of organic molecules" },
+      { ref: "18.10", text: "use MS, IR and NMR data together to identify organic structures" },
     ],
+    includeKeywords: ["delocalised pi system", "electrophilic substitution", "Friedel-Crafts", "phenol reactivity", "directing effects", "chemical shift", "spin-spin splitting", "n+1 rule", "carbon-13 NMR"],
+    excludeKeywords: ["Unit 2 IR/MS basics", "Unit 1 geometric isomerism", "Alcohols basics", "Unit 4 chirality"]
   },
+  {
+    number: 19, unit: 6, name: "Practical Skills in Chemistry II",
+    statements: [
+      { ref: "19.1", text: "be able to describe the techniques and procedures used in the core practicals throughout the A2 course" },
+      { ref: "19.2", text: "be able to explain the safety precautions associated with specific practical procedures" },
+      { ref: "19.3", text: "understand how to plan and carry out organic preparations, including reflux, distillation, and purification techniques (washing, drying, recrystallisation)" },
+      { ref: "19.4", text: "be able to determine the purity of an organic solid by measuring its melting temperature" },
+      { ref: "19.5", text: "be able to use results from titrations to calculate purity, percentage by mass, and determine formulas" },
+      { ref: "19.6", text: "be able to analyze qualitative test results to identify inorganic and organic functional groups" },
+    ],
+    includeKeywords: ["recrystallisation", "reflux", "purification", "melting temperature check", "titration error analysis", "qualitative analysis", "safety and hazards"],
+    excludeKeywords: ["Unit 3 practical skills", "GCSE lab basics"]
+  }
 ];
+
+// --- Final Exports and Helpers ---
 
 export const TOPICS_BY_UNIT: Record<number, SyllabusTopic[]> = CHEMISTRY_TOPICS.reduce((acc, t) => {
   (acc[t.unit] ||= []).push(t);
@@ -321,7 +381,11 @@ export const chemistrySyllabusContext = (topic?: string): string => {
   if (topic) {
     const t = findChemistryTopic(topic);
     if (t) {
-      return `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\nOfficial assessment statements (your scope is LIMITED to these — do not include content outside this list):\n${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}`;
+      return `Edexcel International A-Level Chemistry — Unit ${t.unit}, Topic ${t.number}: ${t.name}\n` +
+             `Official assessment statements (your scope is LIMITED to these):\n` +
+             `${t.statements.map(s => `${s.ref} ${s.text}`).join("\n")}\n` +
+             `MUST INCLUDE: ${t.includeKeywords?.join(", ")}\n` +
+             `MUST EXCLUDE (from other units): ${t.excludeKeywords?.join(", ")}`;
     }
   }
   return CHEMISTRY_TOPICS.map(t => `Unit ${t.unit} · Topic ${t.number}: ${t.name}\n${t.statements.map(s => `  ${s.ref} ${s.text}`).join("\n")}`).join("\n\n");
