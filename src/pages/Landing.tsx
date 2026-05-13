@@ -1,4 +1,4 @@
-web application/stitch/projects/3603110588908651483/screens/bfe434cc9e3e4fbfab7a4550d7d2d516
+web application/stitch/projects/3603110588908651483/screens/4c25a9e9563a404b975cfeb6f7592023
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,7 @@ const Landing = () => {
           className="absolute inset-0 opacity-[0.06] pointer-events-none" 
           style={{ 
             backgroundImage: 'linear-gradient(#000 1px, transparent 1px)', 
-            backgroundSize: '100% 24px' // Denser lines as requested
+            backgroundSize: '100% 24px' 
           }} 
         />
         
@@ -141,7 +141,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* What's Inside - Verbatim from IMAGE_7 */}
+      {/* What's Inside */}
       <section id="inside" className="py-32 bg-white relative">
          <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none" 
@@ -173,7 +173,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Note from Shabbir - Preserved Verbatim from IMAGE_8 */}
+      {/* Note from Shabbir */}
       <section id="founder" className="py-32 bg-[#fffdf0] relative overflow-hidden">
         {/* Notebook Lines for this section - denser */}
         <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(180, 100, 50, 0.25) 1px, transparent 1px)', backgroundSize: '100% 24px' }} />
@@ -278,7 +278,7 @@ const Landing = () => {
         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </section>
 
-      {/* Footer - Updated to 2026 */}
+      {/* Footer */}
       <footer className="bg-slate-950 text-slate-500 py-12 border-t border-slate-900">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
