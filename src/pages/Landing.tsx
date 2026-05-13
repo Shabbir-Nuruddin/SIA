@@ -1,22 +1,30 @@
 import React, { useEffect } from "react";
 
 const LandingPage = () => {
-  // Injecting the font and icons via useEffect with optimized loading parameters
+  // Ensuring all fonts and material symbols are loaded correctly with priority
   useEffect(() => {
     const link = document.createElement("link");
-    // Using display=block to prevent the "flash of unstyled text" for icons
+    // Requesting the variable icon font with display=block to prevent text flickering
     link.href =
-      "https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block";
+      "<https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block>";
     link.rel = "stylesheet";
     document.head.appendChild(link);
   }, []);
 
+  /**
+   * AUTHENTICATION HANDLER
+   * Redirects the user to the unified /auth route for login or signup.
+   */
+  const handleAuthRedirect = () => {
+    window.location.href = "/auth";
+  };
+
   return (
     <div className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
       {/* 
-          CRITICAL CSS FIX:
-          I have explicitly defined the .material-symbols-outlined class below.
-          This forces the browser to use the icon font instead of showing text.
+          INTERNAL STYLES: 
+          Includes the critical fix for Material Symbols to ensure 
+          strings like "arrow_forward" render as icons, not text.
       */}
       <style
         dangerouslySetInnerHTML={{
@@ -26,7 +34,7 @@ const LandingPage = () => {
             to { transform: translateX(-50%); }
         }
         
-        /* THE ICON FIX */
+        /* ICON FIX: Explicitly forcing the Material Symbols font-family */
         .material-symbols-outlined {
             font-family: 'Material Symbols Outlined' !important;
             font-weight: normal;
@@ -96,7 +104,7 @@ const LandingPage = () => {
         }}
       />
 
-      {/* TOP MARQUEE BANNER */}
+      {/* TOP MARQUEE BANNER: SEAMLESS LOOP */}
       <div className="w-full bg-[#091426] py-2.5 overflow-hidden relative z-50 border-b border-black/10">
         <div className="marquee-content gap-12 text-white/90 text-[11px] font-medium tracking-[0.2em] uppercase items-center whitespace-nowrap">
           <MarqueeContent />
@@ -129,8 +137,16 @@ const LandingPage = () => {
             </a>
           </nav>
           <div className="flex items-center gap-6">
-            <button className="text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity">Log in</button>
-            <button className="bg-[#091426] text-white px-7 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-[#091426]/20 hover:scale-105 transition-all">
+            <button
+              onClick={handleAuthRedirect}
+              className="text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity"
+            >
+              Log in
+            </button>
+            <button
+              onClick={handleAuthRedirect}
+              className="bg-[#091426] text-white px-7 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-[#091426]/20 hover:scale-105 transition-all"
+            >
               Start Scoring
             </button>
           </div>
@@ -177,15 +193,21 @@ const LandingPage = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5">
-                <button className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group">
+                <button
+                  onClick={handleAuthRedirect}
+                  className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group"
+                >
                   Claim your Roadmap
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
                 </button>
-                <button className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm">
+                <a
+                  href="#inside"
+                  className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm flex items-center justify-center"
+                >
                   Explore Features
-                </button>
+                </a>
               </div>
 
               <div className="mt-12 flex items-center gap-4 text-[#45474c]">
@@ -233,25 +255,7 @@ const LandingPage = () => {
                   Stuck? Snap a photo for an instant explanation! 📸
                 </p>
               </div>
-
-              <div className="absolute top-1/2 -left-20 z-10 bg-white p-6 rounded-2xl shadow-xl transform rotate-6 border border-slate-100 max-w-[200px]">
-                <div className="flex gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="material-symbols-outlined text-[#f59e0b] text-sm"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      star
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs font-bold italic text-[#091426]">
-                  "I finally stopped jumping between websites. Everything is just... here."
-                </p>
-              </div>
               <div className="absolute top-0 left-1/4 washi-tape-amber h-6 w-24 z-30"></div>
-              <div className="absolute bottom-1/4 right-0 washi-tape-navy h-6 w-20 z-10"></div>
             </div>
           </div>
         </div>
@@ -342,7 +346,7 @@ const LandingPage = () => {
               rotate="-rotate-1"
               text="I used to waste an hour just deciding what to study. Now I open my roadmap and get straight to work. My mock results have never been better."
               author="Hamad Al-Tayer"
-              info="Dubai Student • Edexcel IAL"
+              info="Dubai Student"
               initials="HT"
               avatar="bg-amber-500"
             />
@@ -352,7 +356,7 @@ const LandingPage = () => {
               rotate="rotate-1"
               text="The snap-and-explain tool is a life-saver for late night Physics revision. It explains the mark scheme logic better than my textbook."
               author="Zainab Siddiqui"
-              info="Karachi Student • CIE A-Level"
+              info="Karachi Student"
               initials="ZS"
               avatar="bg-blue-500"
             />
@@ -362,7 +366,7 @@ const LandingPage = () => {
               rotate="-rotate-2"
               text="The all-in-one approach is exactly what I needed. I deleted 40 bookmarks because everything is synced on one dashboard now."
               author="Oliver Smith"
-              info="London Student • Edexcel GCE"
+              info="London Student"
               initials="OS"
               avatar="bg-pink-500"
             />
@@ -372,7 +376,7 @@ const LandingPage = () => {
               rotate="rotate-2"
               text="The Pomodoro timer makes the long study sessions feel manageable. I feel productive instead of just busy."
               author="Ayesha Khan"
-              info="Abu Dhabi Student • Edexcel IAL"
+              info="Abu Dhabi Student"
               initials="AK"
               avatar="bg-green-600"
             />
@@ -382,7 +386,7 @@ const LandingPage = () => {
               rotate="-rotate-1"
               text="The automated marking is incredibly helpful. It caught the specific phrasing I was missing in my Chemistry Unit 4 mock."
               author="Ibrahim J."
-              info="Sharjah Student • CIE IGCSE"
+              info="Sharjah Student"
               initials="IJ"
               avatar="bg-orange-500"
             />
@@ -392,7 +396,7 @@ const LandingPage = () => {
               rotate="rotate-1"
               text="A-Levels are stressful enough. Having one hub for notes, papers, and help just makes the whole journey easier."
               author="Lila M."
-              info="Dubai Student • Cambridge A-Level"
+              info="Dubai Student"
               initials="LM"
               avatar="bg-purple-500"
             />
@@ -400,7 +404,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FOUNDER NOTE SECTION: POLISHED TEXT */}
+      {/* FOUNDER NOTE SECTION */}
       <section id="story" className="py-20 bg-[#fff9ea] relative overflow-hidden">
         <div className="absolute top-10 left-1/2 -translate-x-32 w-24 h-8 bg-pink-300/60 rotate-2 z-10 shadow-sm"></div>
         <div className="absolute top-12 left-1/2 translate-x-32 w-24 h-8 bg-purple-300/60 -rotate-3 z-10 shadow-sm"></div>
@@ -425,17 +429,17 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FAQ SECTION: FIXED ICONS */}
+      {/* FAQ SECTION */}
       <section className="py-24 bg-[#f8f9fb] paper-texture">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
-            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
+            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Common Questions</h2>
           </div>
 
           <div className="space-y-4">
             <FAQItem
-              question="Can I really replace all my other revision sites?"
+              question="Can I really replace all my other revision websites?"
               answer="That is the mission. We have synchronized high-quality notes, topical banks, and expert AI mentoring into one dashboard. You won't need to hop between tabs ever again."
               isOpen={true}
             />
@@ -448,12 +452,8 @@ const LandingPage = () => {
               answer="Absolutely. Input your subjects and exam dates, and we build an adaptive schedule that prioritizes your weak spots using spaced repetition techniques."
             />
             <FAQItem
-              question="Which subjects are currently available?"
-              answer="We offer full syllabus support for Edexcel IAL, Edexcel UK GCE, and Cambridge International (CIE) across Physics, Biology, Chemistry, and Mathematics."
-            />
-            <FAQItem
-              question="How do the science-backed timers help me?"
-              answer="We use the Pomodoro technique combined with 'Interleaving'—alternating between topics—which is scientifically proven to improve long-term memory retention."
+              question="Does it support both IAL and CIE?"
+              answer="Absolutely. We have mapped the entire syllabus for Edexcel IAL, Edexcel UK GCE, and Cambridge (CIE) across Physics, Biology, Chemistry, and Mathematics."
             />
           </div>
         </div>
@@ -463,11 +463,14 @@ const LandingPage = () => {
       <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Master your syllabus today.</h2>
+          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Stop the site-hopping.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Get your roadmap. Ask your questions. Master your mocks. Everything you need is already here.
           </p>
-          <button className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]">
+          <button
+            onClick={handleAuthRedirect}
+            className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]"
+          >
             Begin the Journey
           </button>
         </div>
@@ -481,14 +484,14 @@ const LandingPage = () => {
             <p className="text-white/40">© 2026 Designed in the UAE • For the Global Scholar</p>
           </div>
           <div className="flex flex-wrap justify-center gap-8">
-            <a className="hover:text-[#f59e0b]" href="#">
-              Privacy
+            <a className="hover:text-[#f59e0b]" href="/privacy">
+              Privacy Hub
+            </a>
+            <a className="hover:text-[#f59e0b]" href="/terms">
+              User Terms
             </a>
             <a className="hover:text-[#f59e0b]" href="#">
-              Terms
-            </a>
-            <a className="hover:text-[#f59e0b]" href="#">
-              Support
+              Contact Support
             </a>
             <a className="hover:text-[#f59e0b]" href="#">
               Syllabus Hub
@@ -500,7 +503,7 @@ const LandingPage = () => {
   );
 };
 
-/* --- SUB-COMPONENTS --- */
+/* --- SUB-COMPONENTS TO MAINTAIN CLEAN CODE WITHOUT LOSING DETAIL --- */
 
 const MarqueeContent = () => (
   <>
