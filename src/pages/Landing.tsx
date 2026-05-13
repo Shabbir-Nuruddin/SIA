@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 
 const LandingPage = () => {
-  // Ensuring all fonts and material symbols are loaded correctly
+  // FIX 1: Updated the href to include display=block and variable font parameters
   useEffect(() => {
     const link = document.createElement("link");
     link.href =
-      "<https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap>";
+      "<https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block>";
     link.rel = "stylesheet";
     document.head.appendChild(link);
   }, []);
@@ -14,8 +14,7 @@ const LandingPage = () => {
     <div className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
       {/* 
           INTERNAL STYLES: 
-          Preserving the high-fidelity notebook aesthetic while 
-          optimizing the marquee for seamless infinite scroll.
+          Fixed the material-symbols-outlined class to prevent icons rendering as text.
       */}
       <style
         dangerouslySetInnerHTML={{
@@ -27,7 +26,7 @@ const LandingPage = () => {
         .marquee-content {
             display: flex;
             width: max-content;
-            animation: scroll 40s linear infinite;
+            animation: scroll 45s linear infinite;
         }
         .notebook-pattern {
             background-image: linear-gradient(#e2e8f0 1px, transparent 1px);
@@ -60,17 +59,32 @@ const LandingPage = () => {
             transform: translateY(-8px) rotate(0deg) scale(1.02);
             z-index: 10;
         }
+        
+        /* FIX 2: Explicitly defining the font-family for Material Symbols to stop "arrow_forward" text showing */
         .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
         }
+        
         .font-caveat { font-family: 'Caveat', cursive; }
         .font-patrick { font-family: 'Patrick Hand', cursive; }
       `,
         }}
       />
 
-      {/* TOP MARQUEE BANNER: REFRESHED WITH PRODUCT-FIRST HOOKS */}
+      {/* TOP MARQUEE BANNER */}
       <div className="w-full bg-[#091426] py-2.5 overflow-hidden relative z-50 border-b border-black/10">
         <div className="marquee-content gap-12 text-white/90 text-[11px] font-medium tracking-[0.2em] uppercase items-center whitespace-nowrap">
           <MarqueeContent />
@@ -173,7 +187,6 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* FLOATING PRODUCT PREVIEWS */}
             <div className="relative hidden lg:block">
               <div className="relative z-20 bg-white p-8 rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border border-[#c5c6cd]/20 transform rotate-2 max-w-md mx-auto">
                 <div className="w-full h-4 bg-[#091426]/5 rounded-full mb-6"></div>
@@ -206,23 +219,7 @@ const LandingPage = () => {
                   Photo any problem—I'll explain it instantly! 📸
                 </p>
               </div>
-
-              <div className="absolute top-1/2 -left-20 z-10 bg-white p-6 rounded-2xl shadow-xl transform rotate-6 border border-slate-100 max-w-[200px]">
-                <div className="flex gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className="material-symbols-outlined text-[#f59e0b] text-sm"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      star
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs font-bold italic">"The roadmap told me exactly what to study. No more stress."</p>
-              </div>
-              <div className="absolute top-0 left-1/4 washi-tape-amber h-6 w-24 z-30"></div>
-              <div className="absolute bottom-1/4 right-0 washi-tape-navy h-6 w-20 z-10"></div>
+              <div className="absolute top-1/4 left-1/4 washi-tape-amber h-6 w-24 z-30"></div>
             </div>
           </div>
         </div>
@@ -294,7 +291,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION: DIVERSE COLOR STICKY NOTES */}
+      {/* TESTIMONIALS SECTION */}
       <section id="testimonials" className="py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
         <div className="max-w-[1200px] mx-auto px-6 md:px-16">
           <div className="text-center mb-20">
@@ -379,7 +376,7 @@ const LandingPage = () => {
             <div className="text-amber-500 text-5xl font-serif mb-8 opacity-40">"</div>
             <div className="space-y-6 font-patrick text-2xl text-[#45474c] leading-relaxed">
               <p>
-                I build this because I was tired of 'site-hopping'. I saw my friends spending more time 'organizing'
+                I built this because I was tired of 'site-hopping'. I saw my friends spending more time 'organizing'
                 their study than actually studying. One tab for notes, one for papers, one for a timer. It's a mess.
                 Make Me Revise is my vision for a single, focused hub where you sit down, follow the roadmap, and win.
                 No distractions, just progress.
@@ -394,7 +391,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FAQ SECTION: HIGH-VALUE CONTEXT */}
+      {/* FAQ SECTION */}
       <section className="py-24 bg-[#f8f9fb] paper-texture">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
@@ -419,10 +416,6 @@ const LandingPage = () => {
             <FAQItem
               question="Does it support both IAL and CIE?"
               answer="Absolutely. We have mapped the entire syllabus for Edexcel IAL, Edexcel UK GCE, and Cambridge (CIE) across Physics, Biology, Chemistry, and Maths."
-            />
-            <FAQItem
-              question="What is the 'Clarity Compass'?"
-              answer="It's an upcoming feature designed to help you with the 'What's Next?' problem. It analyzes your A-Level performance and interests to suggest university courses and specific skills (like coding or design) you should learn before joining."
             />
           </div>
         </div>
