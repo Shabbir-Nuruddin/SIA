@@ -1,51 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ApexLogo } from "@/components/ApexLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
-import { detectDefaultCurrency, formatCurrency } from "@/lib/currency";
-import {
-  ArrowRight, Map as MapIcon, Zap, FileText, BookOpen,
-  CheckCircle2, Star, StarHalf
-} from "lucide-react";
-
-// Hosted on Unsplash — no upload needed.
-const HERO_IMG = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=2400&q=80";
-
-const Stars = ({ value = 5 }: { value?: number }) => {
-  const full = Math.floor(value);
-  const half = value % 1 >= 0.5;
-  return (
-    <div className="flex gap-0.5 text-amber-400 mb-3">
-      {Array.from({ length: full }).map((_, i) => <Star key={i} className="h-3.5 w-3.5" fill="currentColor" />)}
-      {half && <StarHalf className="h-3.5 w-3.5" fill="currentColor" />}
-    </div>
-  );
-};
-
-const Avatar = ({ name }: { name: string }) => {
-  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  const colors = ["#2563EB", "#16A34A", "#9333EA", "#F97316", "#D97706", "#DC2626"];
-  const color = colors[initials.charCodeAt(0) % colors.length];
-  return (
-    <div className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: color }}>
-      {initials}
-    </div>
-  );
-};
+import { ArrowRight } from "lucide-react";
 
 const Landing = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const currency = useMemo(() => detectDefaultCurrency(), []);
-  const priceFree = formatCurrency(0, currency);
-  const pricePro = formatCurrency(39.99, currency);
-  const priceProAnnual = formatCurrency(299, currency);
-  const priceAdvanced = formatCurrency(129.99, currency);
-  const pricePromo = formatCurrency(19.99, currency);
 
-  // If a signed-in user lands here (e.g. after Google OAuth redirect), route them onward.
   useEffect(() => {
     if (loading || !user) return;
     let cancelled = false;
@@ -56,289 +20,201 @@ const Landing = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Launch promo bar */}
-      <div className="bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground text-center text-xs md:text-sm font-semibold py-2 px-4">
-        🔥 Launch offer — use code <span className="font-mono font-extrabold tracking-wider mx-1 bg-background/25 px-2 py-0.5 rounded">REVISE50</span> for 50% off your first month. First 100 users only.
-      </div>
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Nav */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-14 items-center justify-between">
           <ApexLogo showTagline />
-          <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <a href="#how" className="hover:text-foreground transition">How it works</a>
-            <a href="#features" className="hover:text-foreground transition">Features</a>
-            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+            <a href="#inside" className="hover:text-foreground transition">What's inside</a>
+            <a href="#founder" className="hover:text-foreground transition">The story</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/auth"><Button variant="ghost" size="sm">Log in</Button></Link>
-            <Link to="/auth?mode=signup"><Button size="sm" className="btn-primary">Build my plan</Button></Link>
+            <Link to="/auth?mode=signup">
+              <Button size="sm" className="rounded-full bg-gradient-to-r from-violet-600 via-pink-500 to-amber-500 text-white border-0 hover:opacity-90">
+                Start free
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero — full viewport, image with dark overlay */}
+      {/* HERO */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        <img src={HERO_IMG} alt="A student studying at their desk late at night, laptop open" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(120deg, rgba(13,17,23,0.92) 0%, rgba(13,17,23,0.75) 60%, rgba(13,17,23,0.55) 100%)" }} />
-        <div className="container relative py-24">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary mb-7 backdrop-blur">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-              </span>
-              Study smart, not endlessly — zero decision fatigue
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, hsl(265 75% 62%) 0%, hsl(325 80% 65%) 45%, hsl(28 95% 62%) 100%)" }}
+        />
+        {/* Notebook lines overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.12] pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(transparent 31px, rgba(255,255,255,0.6) 31px, rgba(255,255,255,0.6) 32px)",
+            backgroundSize: "100% 32px",
+          }}
+        />
+        {/* Floating sticker emoji */}
+        <div className="absolute top-[12%] left-[6%] text-[110px] opacity-20 rotate-[-12deg] select-none pointer-events-none">📚</div>
+        <div className="absolute top-[20%] right-[8%] text-[140px] opacity-15 rotate-[15deg] select-none pointer-events-none">🧪</div>
+        <div className="absolute bottom-[18%] left-[12%] text-[120px] opacity-15 rotate-[8deg] select-none pointer-events-none">📐</div>
+        <div className="absolute bottom-[14%] right-[14%] text-[130px] opacity-20 rotate-[-18deg] select-none pointer-events-none">🧬</div>
+
+        <div className="container relative py-24 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-semibold text-white mb-8 backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+            Built by a 17-year-old student. For students.
+          </div>
+
+          <h1
+            className="text-white mb-6 leading-[0.95] drop-shadow-lg"
+            style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(3.5rem, 10vw, 8rem)", fontWeight: 700 }}
+          >
+            The revision app<br />built for your exams.
+          </h1>
+
+          <p className="text-lg md:text-2xl text-white/95 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+            AI notes, mock papers, and a smart study plan — tailored to Edexcel IAL and Cambridge A-Level.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <Link to="/auth?mode=signup">
+              <Button size="lg" className="rounded-full h-14 px-8 text-base font-bold bg-white text-violet-700 hover:bg-white/90 hover:scale-105 transition-transform shadow-xl">
+                Start for free <ArrowRight className="ml-1 h-5 w-5" />
+              </Button>
+            </Link>
+            <a href="#inside">
+              <Button size="lg" variant="outline" className="rounded-full h-14 px-8 text-base font-semibold border-2 border-white text-white bg-transparent hover:bg-white/10 hover:scale-105 transition-transform">
+                See how it works
+              </Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT'S INSIDE */}
+      <section id="inside" className="py-24 bg-gradient-to-b from-background to-amber-50/30 dark:to-violet-950/20">
+        <div className="container max-w-5xl">
+          <div className="text-center mb-14">
+            <div
+              className="text-foreground mb-3"
+              style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(2.5rem, 6vw, 4rem)", fontWeight: 700 }}
+            >
+              What's inside
             </div>
+            <p className="text-muted-foreground text-lg">Everything you need. Nothing you don't.</p>
+          </div>
 
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.0] mb-6">
-              Study less.<br />
-              <span className="text-gradient">Score higher.</span><br />
-              <span className="text-3xl md:text-5xl text-foreground/90 font-bold">Stop guessing what to revise<br />we tell you, every single day.</span>
-            </h1>
+          <div className="grid md:grid-cols-2 gap-5">
+            {[
+              { e: "📖", t: "AI Notes", d: "Topic-by-topic notes generated for your exact exam board and unit", c: "from-violet-500 to-purple-500" },
+              { e: "📝", t: "Mock Papers", d: "Original exam-style questions with full mark schemes", c: "from-pink-500 to-rose-500" },
+              { e: "🗺️", t: "Roadmap", d: "A personalised study plan that knows your weak spots", c: "from-amber-500 to-orange-500" },
+              { e: "🎯", t: "Exam FAQs", d: "The questions that actually come up, answered like a model student", c: "from-teal-500 to-emerald-500" },
+            ].map((f) => (
+              <div
+                key={f.t}
+                className={`relative rounded-2xl bg-card p-7 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all border-t-4 border-l border-r border-b border-border/50`}
+                style={{ borderTopColor: "transparent" }}
+              >
+                <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r ${f.c}`} />
+                <div className="text-5xl mb-4">{f.e}</div>
+                <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Patrick Hand', cursive" }}>{f.t}</h3>
+                <p className="text-muted-foreground leading-relaxed">{f.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <p className="text-base md:text-lg text-muted-foreground max-w-[560px] mb-9 leading-relaxed">
-              Most students burn weeks on the wrong topics. Make Me Revise builds a day by day plan from your exam date
-              backwards, sequenced by science, prioritised by your weak spots. You just open it and follow.
+      {/* FOUNDER NOTE */}
+      <section id="founder" className="py-24 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(40 80% 92%) 0%, hsl(28 90% 88%) 100%)" }}>
+        {/* Notebook lines */}
+        <div
+          className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(transparent 31px, rgba(180, 100, 50, 0.25) 31px, rgba(180, 100, 50, 0.25) 32px)",
+            backgroundSize: "100% 32px",
+          }}
+        />
+        {/* Washi tape strips */}
+        <div className="absolute top-6 left-1/4 w-32 h-8 bg-pink-400/60 rotate-[-4deg] shadow-md" />
+        <div className="absolute top-6 right-1/4 w-32 h-8 bg-violet-400/60 rotate-[3deg] shadow-md" />
+
+        <div className="container max-w-3xl relative">
+          <div className="bg-white/80 backdrop-blur rounded-2xl p-10 md:p-14 shadow-2xl relative" style={{
+            clipPath: "polygon(0 2%, 4% 0, 12% 1%, 25% 0, 40% 2%, 55% 0, 70% 1%, 85% 0, 100% 2%, 100% 98%, 92% 100%, 78% 99%, 60% 100%, 45% 99%, 28% 100%, 15% 99%, 0 98%)"
+          }}>
+            <div
+              className="text-amber-600/40 leading-none mb-2 select-none"
+              style={{ fontFamily: "'Caveat', cursive", fontSize: "8rem" }}
+            >
+              "
+            </div>
+            <p
+              className="text-foreground text-2xl md:text-3xl leading-relaxed mb-8 -mt-12"
+              style={{ fontFamily: "'Patrick Hand', cursive" }}
+            >
+              I'm 17. I know the panic the night before an exam. I know what it feels like to open a 60-page spec and have no idea where to start. I built MakeMeRevise because I needed it — and because no one was making it for students like us.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Link to="/auth?mode=signup">
-                <Button size="lg" className="btn-primary h-12 px-7 text-[15px] font-semibold group">
-                  Build my revision plan <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" />
-                </Button>
-              </Link>
-              <a href="#how">
-                <Button variant="outline" size="lg" className="h-12 px-7 text-[15px]">See how it works</Button>
-              </a>
-            </div>
-
-            <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-              Supports Edexcel IAL · CIE A-Level
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how" className="py-20 md:py-28">
-        <div className="container">
-          <div className="max-w-2xl mb-14">
-            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">How it works</div>
-            <h2 className="text-3xl md:text-4xl font-bold">From signup to your first session in two minutes.</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              { n: "01", t: "Tell us your exams", d: "Enter your subjects, exam board, and exam dates. Takes 2 minutes." },
-              { n: "02", t: "We build your roadmap", d: "AI analyses your syllabus, your time, and past paper patterns to create a day-by-day plan." },
-              { n: "03", t: "Follow the plan. Improve your grade.", d: "Each day: what to study, how long, with questions and notes built in. No decisions needed." },
-            ].map(s => (
-              <div key={s.n} className="surface p-6">
-                <div className="text-4xl font-extrabold text-gradient opacity-50 font-mono mb-3">{s.n}</div>
-                <h3 className="text-lg font-bold mb-2">{s.t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
+            <div className="flex items-end justify-end flex-col gap-1 pt-6 border-t border-amber-200">
+              <div
+                className="text-amber-700"
+                style={{ fontFamily: "'Caveat', cursive", fontSize: "3rem", fontWeight: 700, transform: "rotate(-4deg)" }}
+              >
+                Shabbir
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-20 md:py-28 border-t border-border/50">
-        <div className="container">
-          <div className="max-w-2xl mb-14">
-            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">What you get</div>
-            <h2 className="text-3xl md:text-4xl font-bold">Four tools. One target grade.</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {[
-              { icon: MapIcon, title: "Your Personal Roadmap", desc: "A complete day-by-day plan from today to your exam. Built around your syllabus. Updated based on how you're doing. You never have to wonder what to study next." },
-              { icon: Zap, title: "Topical Questions", desc: "Practice questions for every topic, every board. Exam-style format. AI marking with real feedback and model answers — exactly like a real mark scheme." },
-              { icon: FileText, title: "Full Mock Papers", desc: "Timed mock papers generated to your spec. AI marks your answers. Shows you your grade, what you got wrong, and what to fix." },
-              { icon: BookOpen, title: "Smart Notes", desc: "AI-generated revision notes scoped exactly to your syllabus. Definitions, worked examples, examiner tips. Nothing irrelevant." },
-            ].map((f, i) => (
-              <div key={i} className="surface surface-hover p-7">
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-md mb-4 bg-primary/15 text-primary">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <h3 className="text-lg font-bold mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-20 md:py-28 border-t border-border/50">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Three plans. One target grade.</h2>
-            <p className="text-muted-foreground text-sm">Start free. Upgrade when exam season hits. Cancel anytime.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4 items-stretch">
-            {/* Starter */}
-            <div className="surface p-7 flex flex-col">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-1">Starter</div>
-              <div className="text-4xl font-extrabold mb-1">{priceFree}</div>
-              <div className="text-xs text-muted-foreground mb-6">Forever free</div>
-              <ul className="space-y-2.5 text-sm mb-6 flex-1">
-                {[
-                  "Roadmap for 1 subject",
-                  "10 AI-marked questions / day",
-                  "Notes for 3 topics / week",
-                  "AI tutor — 5 messages total (try it out)",
-                  "Built-in focus music + Pomodoro",
-                ].map(x => (
-                  <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
-                ))}
-              </ul>
-              <Link to="/auth?mode=signup"><Button variant="outline" className="w-full">Start free</Button></Link>
-            </div>
-
-            {/* Pro — highlighted */}
-            <div className="surface p-7 flex flex-col border-primary/60 ring-2 ring-primary/40 relative shadow-2xl md:-translate-y-2"
-              style={{ background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card-hover)))" }}>
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
-                Most popular
-              </div>
-              <div className="text-xs uppercase tracking-wider text-primary font-mono mb-1">Pro</div>
-              <div className="text-4xl font-extrabold mb-1">{pricePro}<span className="text-base text-muted-foreground font-medium">/mo</span></div>
-              <div className="text-xs text-muted-foreground mb-1">or {priceProAnnual}/year <span className="text-success font-semibold">· save 38%</span></div>
-              <div className="text-xs text-muted-foreground mb-6">Cancel anytime</div>
-              <ul className="space-y-2.5 text-sm mb-6 flex-1">
-                {[
-                  "Everything in Starter",
-                  "Photo upload: AI marks your handwriting",
-                  "Unlimited subjects + roadmap rebuilds",
-                  "Unlimited AI-marked questions",
-                  "Unlimited mock papers + examiner feedback",
-                  "Unlimited notes — every topic",
-                  "Multiple active exams + urgency timers",
-                  "AI tutor — 200 messages / day",
-                ].map(x => (
-                  <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
-                ))}
-              </ul>
-              <Link to="/auth?mode=signup"><Button className="btn-primary w-full">Go Pro</Button></Link>
-            </div>
-
-            {/* Advanced */}
-            <div className="surface p-7 flex flex-col">
-              <div className="text-xs uppercase tracking-wider text-accent font-mono mb-1">Advanced</div>
-              <div className="text-4xl font-extrabold mb-1">{priceAdvanced}<span className="text-base text-muted-foreground font-medium">/mo</span></div>
-              <div className="text-xs text-muted-foreground mb-6">For top-grade hunters</div>
-              <ul className="space-y-2.5 text-sm mb-6 flex-1">
-                {[
-                  "Everything in Pro",
-                  "Unlimited AI tutor — no caps",
-                  "Deep-dive notes (more worked examples)",
-                  "Adaptive mocks tuned to weak spots",
-                  "Predicted-paper generator",
-                  "Full AI exam strategy report — personalised to your diagnostic, weak topics & target grade",
-                  "Early access to new features",
-                ].map(x => (
-                  <li key={x} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />{x}</li>
-                ))}
-              </ul>
-              <Link to="/auth?mode=signup"><Button variant="outline" className="w-full">Go Advanced</Button></Link>
+              <div className="text-sm text-muted-foreground font-medium">— Shabbir, Founder & Student</div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* REVISE50 promo */}
-          <div className="mt-8 max-w-2xl mx-auto rounded-2xl border-2 border-dashed border-primary/60 bg-gradient-to-br from-primary/15 via-accent/10 to-primary/15 p-6 text-center relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl pointer-events-none" />
-            <div className="text-[11px] uppercase tracking-widest font-mono text-primary font-bold mb-2">🔥 Launch offer — first 100 users only</div>
-            <div className="text-2xl md:text-3xl font-extrabold mb-1">50% off your first month</div>
-            <div className="text-sm text-muted-foreground mb-1">
-              Use code <span className="font-mono font-extrabold text-primary text-base bg-background/40 px-2 py-0.5 rounded border border-primary/40">REVISE50</span> at checkout
+      {/* SOCIAL PROOF MARQUEE */}
+      <section className="py-8 bg-violet-950 text-white overflow-hidden border-y border-violet-900">
+        <div className="flex whitespace-nowrap animate-marquee">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-12 px-6 text-base md:text-lg font-semibold shrink-0">
+              <span>📚 Edexcel IAL</span>
+              <span className="text-violet-400">·</span>
+              <span>🎓 Cambridge A-Level</span>
+              <span className="text-violet-400">·</span>
+              <span>📘 IGCSE</span>
+              <span className="text-violet-400">·</span>
+              <span>✨ Built for the 2025 spec</span>
+              <span className="text-violet-400">·</span>
             </div>
-            <div className="text-[11px] text-muted-foreground">First month from {pricePromo} · cancel anytime</div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 md:py-24 border-t border-border/50">
-        <div className="container max-w-3xl">
-          <div className="text-center mb-10">
-            <div className="text-xs text-primary font-mono uppercase tracking-widest mb-3">FAQ</div>
-            <h2 className="text-3xl md:text-4xl font-bold">Quick answers.</h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              { q: "Which exam boards do you support?", a: "Edexcel IAL and CIE A-Level for Maths, Biology, Chemistry and Physics." },
-              { q: "How does the free trial work?", a: "Start on Starter for free, no card. When you click Upgrade you enter your card and get 3 days of full Pro access. Cancel before day 3 and you pay nothing." },
-              { q: "Is the AI marking actually accurate?", a: "Yes — it follows the official mark-scheme phrasing for your board, awards mark-by-mark, and tells you exactly where you lost marks." },
-              { q: "Can I cancel anytime?", a: "Yes. One click in Settings. No retention questions, no friction." },
-              { q: "Do you store my work?", a: "Your roadmap, notes, mocks and questions are saved to your account so you can pick up where you left off on any device." },
-              { q: "What's the REVISE50 code?", a: "50% off your first month — first 100 users only. Apply it at checkout." },
-            ].map((f, i) => (
-              <details key={i} className="surface p-4 group">
-                <summary className="cursor-pointer font-semibold list-none flex items-center justify-between gap-3">
-                  <span>{f.q}</span>
-                  <span className="text-primary text-lg group-open:rotate-45 transition-transform">+</span>
-                </summary>
-                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 md:py-28 border-t border-border/50">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">What our early students are saying</h2>
-            <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">From our beta cohort — early access students</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { stars: 5, q: "I never knew where to start with revision. This told me exactly what to do every single day. My mock went from a C to a B in three weeks.", n: "Aisha M.", m: "Year 13 · Edexcel Biology & Chemistry" },
-              { stars: 5, q: "The roadmap is the only reason I'm not panicking right now. It broke everything down. I just follow it.", n: "James T.", m: "Year 13 · Edexcel Maths & Physics" },
-              { stars: 4.5, q: "The mock paper felt like a real exam. The AI feedback told me exactly why I lost marks. That's genuinely more useful than any mark scheme I've read on my own.", n: "Priya S.", m: "Year 12 · CIE Chemistry" },
-              { stars: 5, q: "I used to spend my whole study session deciding what to study. Now I just open the app and there it is. Sounds simple. Changed everything.", n: "Omar H.", m: "Year 13 · CIE Maths" },
-              { stars: 4.5, q: "The questions actually feel like real exam questions. Not generic. The feedback is detailed and matches what my teacher says.", n: "Zara L.", m: "Year 13 · Edexcel Biology & Physics" },
-              { stars: 5, q: "Every other revision site gives you resources and leaves you alone. This one tells you what to do with them.", n: "Daniel W.", m: "Year 13 · Edexcel Chemistry & Maths" },
-            ].map((t, i) => (
-              <div key={i} className="surface p-5">
-                <Stars value={t.stars} />
-                <p className="text-sm leading-relaxed mb-4">"{t.q}"</p>
-                <div className="flex items-center gap-2.5 pt-3 border-t border-border">
-                  <Avatar name={t.n} />
-                  <div className="min-w-0">
-                    <div className="text-xs font-bold">{t.n}</div>
-                    <div className="text-[11px] text-muted-foreground">{t.m}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 border-t border-border/50">
-        <div className="container max-w-3xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Stop deciding what to study.</h2>
-          <p className="text-muted-foreground mb-7">Get a plan in 2 minutes. Free to start.</p>
+      {/* FINAL CTA */}
+      <section className="py-28 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(265 60% 18%) 0%, hsl(280 55% 22%) 50%, hsl(160 50% 18%) 100%)" }}>
+        <div className="absolute top-10 right-10 text-[180px] opacity-10 rotate-12 select-none">⏰</div>
+        <div className="absolute bottom-10 left-10 text-[160px] opacity-10 -rotate-12 select-none">📚</div>
+        <div className="container max-w-3xl text-center relative">
+          <h2
+            className="text-white mb-5 leading-tight"
+            style={{ fontFamily: "'Caveat', cursive", fontSize: "clamp(2.8rem, 7vw, 5.5rem)", fontWeight: 700 }}
+          >
+            Your exams are closer<br />than you think.
+          </h2>
+          <p className="text-white/80 text-lg md:text-xl mb-10">
+            Start building your study plan today — it takes 2 minutes.
+          </p>
           <Link to="/auth?mode=signup">
-            <Button size="lg" className="btn-primary h-12 px-8 text-[15px] font-semibold">
-              Build my revision plan <ArrowRight className="ml-2 h-4 w-4" />
+            <Button size="lg" className="rounded-full h-16 px-10 text-lg font-bold bg-gradient-to-r from-amber-400 via-pink-500 to-violet-500 text-white border-0 hover:scale-105 transition-transform shadow-2xl">
+              Get started free <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
       </section>
 
-      <footer className="border-t border-border/50 py-10">
+      <footer className="border-t border-border/50 py-10 bg-background">
         <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
           <ApexLogo size={24} />
-          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Supports Edexcel IAL & CIE A-Level</p>
+          <p className="text-xs text-muted-foreground">© 2026 Make Me Revise · Edexcel IAL & Cambridge A-Level</p>
           <div className="flex items-center gap-5 text-xs text-muted-foreground flex-wrap justify-center">
-            <a href="#how" className="hover:text-foreground transition">How it works</a>
-            <a href="#pricing" className="hover:text-foreground transition">Pricing</a>
             <Link to="/terms" className="hover:text-foreground transition">Terms</Link>
             <Link to="/privacy" className="hover:text-foreground transition">Privacy</Link>
             <Link to="/refund" className="hover:text-foreground transition">Refunds</Link>
