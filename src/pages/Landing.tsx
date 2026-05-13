@@ -1,19 +1,19 @@
 import React, { useEffect } from "react";
 
 const LandingPage = () => {
-  // Ensuring all fonts and material symbols are loaded correctly with priority
+  // Injecting high-priority font links to prevent flickering and icon-text glitches
   useEffect(() => {
     const link = document.createElement("link");
-    // Requesting the variable icon font with display=block to prevent text flickering
+    // Using display=block and specific variable font weights for Material Symbols
     link.href =
-      "<https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block>";
+      "https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block";
     link.rel = "stylesheet";
     document.head.appendChild(link);
   }, []);
 
   /**
    * AUTHENTICATION HANDLER
-   * Redirects the user to the unified /auth route for login or signup.
+   * Pointing directly to your unified /auth route.
    */
   const handleAuthRedirect = () => {
     window.location.href = "/auth";
@@ -22,9 +22,8 @@ const LandingPage = () => {
   return (
     <div className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
       {/* 
-          INTERNAL STYLES: 
-          Includes the critical fix for Material Symbols to ensure 
-          strings like "arrow_forward" render as icons, not text.
+          CSS ENGINE: 
+          Restoring the full notebook aesthetic and fixing the icon ligature issue.
       */}
       <style
         dangerouslySetInnerHTML={{
@@ -34,7 +33,7 @@ const LandingPage = () => {
             to { transform: translateX(-50%); }
         }
         
-        /* ICON FIX: Explicitly forcing the Material Symbols font-family */
+        /* ICON FIX: Ensures text like "arrow_forward" becomes a glyph */
         .material-symbols-outlined {
             font-family: 'Material Symbols Outlined' !important;
             font-weight: normal;
@@ -56,7 +55,7 @@ const LandingPage = () => {
         .marquee-content {
             display: flex;
             width: max-content;
-            animation: scroll 40s linear infinite;
+            animation: scroll 45s linear infinite;
         }
 
         .notebook-pattern {
@@ -104,7 +103,7 @@ const LandingPage = () => {
         }}
       />
 
-      {/* TOP MARQUEE BANNER: SEAMLESS LOOP */}
+      {/* TOP MARQUEE BANNER */}
       <div className="w-full bg-[#091426] py-2.5 overflow-hidden relative z-50 border-b border-black/10">
         <div className="marquee-content gap-12 text-white/90 text-[11px] font-medium tracking-[0.2em] uppercase items-center whitespace-nowrap">
           <MarqueeContent />
@@ -167,7 +166,7 @@ const LandingPage = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
                 <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
-                  The Path of Least Resistance to an A*
+                  Stop Site-Hopping. Start Mastering.
                 </span>
               </div>
 
@@ -186,10 +185,9 @@ const LandingPage = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
-                Stop site-hopping between notes, timers, and past papers. We’ve unified{" "}
+                Exam timers, science-backed Pomodoros, an AI mentor, and automated mock marking. We’ve unified{" "}
                 <span className="text-[#091426] font-bold">Edexcel</span> and{" "}
-                <span className="text-[#091426] font-bold">Cambridge</span> resources into one high-performance command
-                center.
+                <span className="text-[#091426] font-bold">Cambridge</span> resources into one focused command center.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5">
@@ -217,7 +215,7 @@ const LandingPage = () => {
                   <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
                 <p className="text-sm font-medium">
-                  Join <span className="text-[#091426] font-bold">5,000+ Students</span> reclaiming their focus
+                  Join <span className="text-[#091426] font-bold">5,000+ A* students</span> reclaiming their focus
                 </p>
               </div>
             </div>
@@ -237,15 +235,15 @@ const LandingPage = () => {
                     </div>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="font-caveat text-[#091426] text-2xl">IAL Biology: Unit 5</p>
+                    <p className="font-caveat text-[#091426] text-2xl">IAL Chemistry: Unit 4</p>
                     <p className="font-patrick text-[#45474c] text-lg mt-2">
-                      "Next 25m: Mastering Synapses. The Roadmap is set."
+                      "Next 25m: Mastering Entropies. Your roadmap is synced."
                     </p>
                   </div>
                 </div>
                 <div className="mt-8 flex justify-end">
                   <div className="px-4 py-2 bg-[#091426] text-white text-xs font-bold rounded-full">
-                    Syllabus Synced
+                    Mark Scheme Synergized
                   </div>
                 </div>
               </div>
@@ -255,7 +253,24 @@ const LandingPage = () => {
                   Stuck? Snap a photo for an instant explanation! 📸
                 </p>
               </div>
+              <div className="absolute top-1/2 -left-20 z-10 bg-white p-6 rounded-2xl shadow-xl transform rotate-6 border border-slate-100 max-w-[200px]">
+                <div className="flex gap-1 mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className="material-symbols-outlined text-[#f59e0b] text-sm"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      star
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs font-bold italic text-[#091426]">
+                  "I stopped juggling bookmarks. Everything is just here."
+                </p>
+              </div>
               <div className="absolute top-0 left-1/4 washi-tape-amber h-6 w-24 z-30"></div>
+              <div className="absolute bottom-1/4 right-0 washi-tape-navy h-6 w-20 z-10"></div>
             </div>
           </div>
         </div>
@@ -267,17 +282,17 @@ const LandingPage = () => {
           <div className="text-center mb-16">
             <h2 className="text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
             <p className="text-[#45474c] font-medium mt-4 opacity-70">
-              Motivation is a myth. You need a better system.
+              Focus on the 20% of effort that gives you 80% of the results.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#a855f7] shadow-sm hover:shadow-xl transition-all">
+            <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#a855f7] shadow-sm hover:shadow-xl transition-all group">
               <div className="text-4xl mb-6">📅</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Modular Roadmaps</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Integrated calendars that map out your study sessions based on your actual exam dates. We tell you what
-                to study, so you can just focus on learning.
+                Syllabus-specific calendars that tell you exactly when to study each unit based on your actual exam
+                dates. Zero decision fatigue.
               </p>
             </div>
 
@@ -285,8 +300,8 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">⏳</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Flow-State Timers</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Built-in Pomodoro cycles with science-backed focus music. Eliminate distractions and master complex
-                units in high-intensity 25-minute bursts.
+                Integrated Pomodoro timers with science-backed focus music. Master complex units in high-intensity,
+                distracted-free 25-minute bursts.
               </p>
             </div>
 
@@ -294,8 +309,8 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">💡</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">24/7 Expert Mentor</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Stuck on a calculation? Upload a photo of the problem. Our mentor explains the logic using your board's
-                specific mark scheme keywords.
+                Snap a photo of any textbook or past paper problem. Our mentor explains the logic using your board's
+                specific keywords.
               </p>
             </div>
 
@@ -303,8 +318,8 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">📝</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Topic Generators</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Generate 10 fresh topical questions for any sub-unit instantly. No more hunting through years of
-                PDFs—practice exactly what you need.
+                Instantly generate 10 fresh questions for any sub-unit. Complete them, get marked, and track your
+                syllabus mastery in real-time.
               </p>
             </div>
 
@@ -312,8 +327,8 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">📊</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Automatic Marking</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Complete a mock and get it marked instantly. We analyze your answers against Examiner Reports to show
-                you exactly where you're losing marks.
+                Complete a mock and get it marked instantly. We analyze your phrasing against Examiner Reports to stop
+                you from losing silly marks.
               </p>
             </div>
 
@@ -321,8 +336,8 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">🚀</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Clarity Compass</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Future-proof your education. Use our interest-matching engine to map your current subjects to
-                high-growth university degrees and careers.
+                Future-proof your education. Use our engine to map your A-Level interests to university degrees and
+                high-growth careers.
               </p>
             </div>
           </div>
@@ -335,7 +350,7 @@ const LandingPage = () => {
           <div className="text-center mb-20">
             <h2 className="text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
             <p className="text-[#45474c] text-xs font-bold tracking-widest uppercase mt-4">
-              Real feedback from across the UAE, UK, and Pakistan
+              Real feedback from students who've stopped the site-hopping
             </p>
           </div>
 
@@ -429,12 +444,12 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FAQ SECTION */}
+      {/* FAQ SECTION: FIXED ICONS */}
       <section className="py-24 bg-[#f8f9fb] paper-texture">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
-            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Common Questions</h2>
+            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
           </div>
 
           <div className="space-y-4">
@@ -463,7 +478,7 @@ const LandingPage = () => {
       <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Stop the site-hopping.</h2>
+          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Master your syllabus today.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Get your roadmap. Ask your questions. Master your mocks. Everything you need is already here.
           </p>
@@ -503,7 +518,7 @@ const LandingPage = () => {
   );
 };
 
-/* --- SUB-COMPONENTS TO MAINTAIN CLEAN CODE WITHOUT LOSING DETAIL --- */
+/* --- SUB-COMPONENTS --- */
 
 const MarqueeContent = () => (
   <>
