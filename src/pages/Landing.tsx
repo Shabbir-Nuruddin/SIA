@@ -70,7 +70,7 @@ const LandingPage = () => {
         }}
       />
 
-      {/* TOP MARQUEE BANNER: REFINED FOR RELEVANCE */}
+      {/* TOP MARQUEE BANNER: FIXED CONTINUOUS ANIMATION */}
       <div className="w-full bg-[#091426] py-2.5 overflow-hidden relative z-50 border-b border-black/10">
         <div className="marquee-content gap-12 text-white/90 text-[11px] font-medium tracking-[0.2em] uppercase items-center whitespace-nowrap">
           <MarqueeContent />
@@ -85,27 +85,27 @@ const LandingPage = () => {
           <div className="flex flex-col">
             <span className="text-3xl font-caveat font-bold text-[#091426] leading-none">Make Me Revise</span>
             <span className="text-[9px] tracking-[0.3em] uppercase mt-1 text-[#45474c] font-bold">
-              The Examiner's Blueprint
+              UAE Pilot Phase • Open Access
             </span>
           </div>
           <nav className="hidden md:flex gap-10 items-center">
             <a className="text-[#45474c] hover:text-[#091426] transition-colors font-medium text-sm" href="#inside">
-              Inside the App
+              How it works
             </a>
             <a className="text-[#45474c] hover:text-[#091426] transition-colors font-medium text-sm" href="#story">
-              Our Mission
+              The Vision
             </a>
             <a
               className="text-[#45474c] hover:text-[#091426] transition-colors font-medium text-sm"
               href="#testimonials"
             >
-              Success Stories
+              Community
             </a>
           </nav>
           <div className="flex items-center gap-6">
             <button className="text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity">Log in</button>
             <button className="bg-[#091426] text-white px-7 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-[#091426]/20 hover:scale-105 transition-all">
-              Start free trial
+              Join the Pilot
             </button>
           </div>
         </div>
@@ -125,14 +125,14 @@ const LandingPage = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
                 <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
-                  The only platform built for IAL and Cambridge
+                  Currently piloting with students in the UAE
                 </span>
               </div>
 
               <h1 className="text-6xl md:text-8xl font-caveat text-[#091426] leading-[0.9] mb-8">
-                Master the mark scheme, <br />
+                The last revision tab <br />
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-[#f59e0b]">secure your A*.</span>
+                  <span className="relative z-10 text-[#f59e0b]">you'll ever open.</span>
                   <svg
                     className="absolute -bottom-2 left-0 w-full h-4 text-[#f59e0b]/20 -z-10"
                     preserveAspectRatio="none"
@@ -144,20 +144,20 @@ const LandingPage = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
-                Stop guessing what examiners want. Access syllabus-specific notes, precision mock papers, and
-                unit-by-unit roadmaps for <span className="text-[#091426] font-bold">Edexcel IAL</span> and{" "}
-                <span className="text-[#091426] font-bold">Cambridge International</span>.
+                Stop hopping between 5 different websites. Get notes, roadmaps, past papers, and a 24/7 tutor in{" "}
+                <span className="text-[#091426] font-bold underline decoration-[#f59e0b]/40">one single place.</span> We
+                tell you what to study, so you can focus on scoring.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5">
                 <button className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group">
-                  Begin your revision
+                  Start for free
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
                 </button>
                 <button className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm">
-                  Explore the curriculum
+                  View the Syllabus
                 </button>
               </div>
 
@@ -168,8 +168,7 @@ const LandingPage = () => {
                   <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
                 <p className="text-sm font-medium">
-                  Trusted by <span className="text-[#091426] font-bold">5,000+ students</span> aiming for top-tier
-                  universities
+                  Join <span className="text-[#091426] font-bold">5,000+ students</span> simplifying their A-Levels
                 </p>
               </div>
             </div>
@@ -181,7 +180,7 @@ const LandingPage = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-[#f59e0b]/10 rounded-xl flex items-center justify-center text-[#f59e0b]">
-                      <span className="material-symbols-outlined">menu_book</span>
+                      <span className="material-symbols-outlined">center_focus_strong</span>
                     </div>
                     <div className="flex-1">
                       <div className="h-3 w-1/2 bg-slate-100 rounded"></div>
@@ -189,22 +188,22 @@ const LandingPage = () => {
                     </div>
                   </div>
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p className="font-caveat text-[#091426] text-2xl">IAL Physics: Unit 4</p>
+                    <p className="font-caveat text-[#091426] text-2xl">Today's Mission</p>
                     <p className="font-patrick text-[#45474c] text-lg mt-2">
-                      "Key Keyword: 'Flux Linkage'. Ensure you mention the rate of change for 3 marks..."
+                      "14:00 - 15:30: Edexcel IAL Biology Unit 4. Just follow the roadmap."
                     </p>
                   </div>
                 </div>
                 <div className="mt-8 flex justify-end">
                   <div className="px-4 py-2 bg-[#091426] text-white text-xs font-bold rounded-full">
-                    Syllabus Check Complete
+                    Zero Thinking Required
                   </div>
                 </div>
               </div>
 
               <div className="absolute -top-10 -right-4 z-30 bg-[#f59e0b] p-4 rounded-xl shadow-lg transform -rotate-12 w-48">
                 <p className="font-patrick text-[#091426] text-xl leading-none">
-                  Don't miss the 6-mark question guide! 📚
+                  Photo a question and I'll explain it instantly! 📸
                 </p>
               </div>
 
@@ -214,13 +213,15 @@ const LandingPage = () => {
                     <span
                       key={i}
                       className="material-symbols-outlined text-[#f59e0b] text-sm"
-                      style={{ fontVariation_settings: "'FILL' 1" }}
+                      style={{ fontVariationSettings: "'FILL' 1" }}
                     >
                       star
                     </span>
                   ))}
                 </div>
-                <p className="text-xs font-bold italic">"Finally, notes that match exactly what's on the IAL units."</p>
+                <p className="text-xs font-bold italic">
+                  "I don't have to look for papers anymore. They're just there."
+                </p>
               </div>
               <div className="absolute top-0 left-1/4 washi-tape-amber h-6 w-24 z-30"></div>
               <div className="absolute bottom-1/4 right-0 washi-tape-navy h-6 w-20 z-10"></div>
@@ -229,63 +230,63 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* WHAT'S INSIDE SECTION */}
+      {/* WHAT'S INSIDE SECTION: PSYCHOLOGICALLY OPTIMIZED */}
       <section id="inside" className="py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-caveat text-[#332211]">Built for High Performance</h2>
+            <h2 className="text-5xl font-caveat text-[#332211]">All-in-One Clarity</h2>
             <p className="text-[#45474c] font-medium mt-4 opacity-70">
-              Focus on the 20% of content that gives you 80% of the marks.
+              Motivation is unreliable. Systems are permanent.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div className="bg-white rounded-[2rem] p-10 border-t-[6px] border-[#a855f7] shadow-sm hover:shadow-xl transition-all group">
-              <div className="text-4xl mb-6">📖</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Keyword-Optimized Notes</h3>
+              <div className="text-4xl mb-6">🗺️</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">The Daily Roadmap</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Unit-by-unit notes designed specifically for modular IAL and Cambridge linear specs, highlighting the
-                exact phrasing examiners reward.
+                Don't waste time deciding what to study. Wake up to a pre-built schedule that tells you exactly which
+                unit to master next.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-10 border-t-[6px] border-[#ef4444] shadow-sm hover:shadow-xl transition-all">
-              <div className="text-4xl mb-6">📝</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Precision Mock Papers</h3>
+              <div className="text-4xl mb-6">📸</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">24/7 Visual Mentor</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Practice with original questions that mimic the difficulty and style of recent IAL and CAIE exam series,
-                complete with examiner-style feedback.
+                Stuck on a hard question? Snap a photo and our mentor explains the logic instantly, using your board's
+                specific mark scheme.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-10 border-t-[6px] border-[#f97316] shadow-sm hover:shadow-xl transition-all">
-              <div className="text-4xl mb-6">🗺️</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Unit Roadmaps</h3>
+              <div className="text-4xl mb-6">📝</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Adaptive Mock Engine</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                A tailored study journey that tracks your mastery of specific units, ensuring you're fully prepared for
-                the June or January sittings.
+                Topical questions and full-length mocks generated dynamically. Stop hunting for PDFs—practice is now one
+                click away.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-10 border-t-[6px] border-[#10b981] shadow-sm hover:shadow-xl transition-all">
-              <div className="text-4xl mb-6">🎯</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Mark Scheme Mastery</h3>
+              <div className="text-4xl mb-6">📖</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Examiner-Style Notes</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Understand the logic behind the points. We break down complex mark schemes so you know exactly how to
-                structure your answers.
+                Notes that highlight the "Trap Keywords" students usually miss. We don't just teach you the science; we
+                teach you the marks.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION: AUTHENTIC & HUMAN */}
+      {/* TESTIMONIALS SECTION: TARGETED AT UAE/UK/PAKISTAN CONTEXTS */}
       <section id="testimonials" className="py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
         <div className="max-w-[1200px] mx-auto px-6 md:px-16">
           <div className="text-center mb-20">
-            <h2 className="text-5xl font-caveat text-[#091426]">Verified Student Success</h2>
+            <h2 className="text-5xl font-caveat text-[#091426]">Student Voices</h2>
             <p className="text-[#45474c] text-xs font-bold tracking-widest uppercase mt-4">
-              Real results from the IAL community
+              Success stories from our pilot group
             </p>
           </div>
 
@@ -294,67 +295,67 @@ const LandingPage = () => {
               color="#fff9c4"
               border="border-amber-400"
               rotate="-rotate-1"
-              text="I was stuck on a C grade for months. Within 6 weeks of using the roadmaps for Biology, I secured an A in my mocks. The unit focus is key."
-              author="Fatima Al Mansoori"
-              info="IAL Biology • Year 13"
-              initials="FA"
+              text="I used to spend 2 hours a day just looking for past papers. Now I open the app, follow the roadmap, and I'm done. My Physics grade is already up."
+              author="Hamad Al-Tayer"
+              info="Dubai Student • Edexcel IAL"
+              initials="HT"
               avatar="bg-amber-500"
             />
             <StickyNote
               color="#e3f2fd"
               border="border-blue-400"
               rotate="rotate-1"
-              text="The feedback on my practice papers helped me understand why my Physics Unit 5 answers were missing marks despite knowing the content."
-              author="Khalid Al Rashidi"
-              info="IAL Maths & Physics"
-              initials="KA"
+              text="The snap-and-explain feature is a lifesaver for late-night Chem revision. No more waiting for school the next day to ask a teacher."
+              author="Zainab Siddiqui"
+              info="Karachi Student • CIE A-Level"
+              initials="ZS"
               avatar="bg-blue-500"
             />
             <StickyNote
               color="#fce4ec"
               border="border-pink-400"
               rotate="-rotate-2"
-              text="Finally an app that respects the difference between Cambridge and Edexcel. The Chemistry notes are a game-changer for IAL."
-              author="Mariam Hassan"
-              info="Cambridge Chem • Year 12"
-              initials="MH"
+              text="Finally, one place for everything. I deleted my 50 bookmarked revision tabs. The cognitive load I've lost is huge."
+              author="Oliver Smith"
+              info="London Student • Edexcel GCE"
+              initials="OS"
               avatar="bg-pink-500"
             />
             <StickyNote
               color="#e8f5e9"
               border="border-green-400"
               rotate="rotate-2"
-              text="The January exam series used to terrify me. Having a roadmap that actually manages my unit-by-unit revision made it manageable."
-              author="Zainab Omar"
-              info="IAL Physics • Year 13"
-              initials="ZO"
+              text="The modular roadmaps are perfect for IAL. I know exactly when to finish Unit 1 so I can start Unit 2 without the stress."
+              author="Ayesha Khan"
+              info="Abu Dhabi Student • Edexcel IAL"
+              initials="AK"
               avatar="bg-green-600"
             />
             <StickyNote
               color="#fff3e0"
               border="border-orange-400"
               rotate="-rotate-1"
-              text="The mark scheme analyzer is incredible. It's like having a private tutor sitting next to you explaining the Examiner Reports."
-              author="Ahmed S."
-              info="Cambridge Maths • Year 12"
-              initials="AS"
+              text="The mock papers are actually challenging. They don't just repeat old questions—they make you think like an A* student."
+              author="Ibrahim J."
+              info="Sharjah Student • CIE IGCSE"
+              initials="IJ"
               avatar="bg-orange-500"
             />
             <StickyNote
               color="#f3e5f5"
               border="border-purple-400"
               rotate="rotate-1"
-              text="Perfect for modular exams. I could focus entirely on Unit 2 Chemistry without getting distracted by unrelated UK A-Level content."
-              author="Sarah Jenkins"
-              info="IAL Chemistry • Year 13"
-              initials="SJ"
+              text="Being part of the pilot has been great. It feels like the platform is actually listening to what students in our region need."
+              author="Lila M."
+              info="Dubai Student • Cambridge A-Level"
+              initials="LM"
               avatar="bg-purple-500"
             />
           </div>
         </div>
       </section>
 
-      {/* FOUNDER NOTE SECTION: RE-WRITTEN TO BE MORE AUTHENTIC */}
+      {/* FOUNDER NOTE: REWRITTEN FOR PILOT PHASE TRUST */}
       <section id="story" className="py-20 bg-[#fff9ea] relative overflow-hidden">
         <div className="absolute top-10 left-1/2 -translate-x-32 w-24 h-8 bg-pink-300/60 rotate-2 z-10 shadow-sm"></div>
         <div className="absolute top-12 left-1/2 translate-x-32 w-24 h-8 bg-purple-300/60 -rotate-3 z-10 shadow-sm"></div>
@@ -364,74 +365,69 @@ const LandingPage = () => {
             <div className="text-amber-500 text-5xl font-serif mb-8 opacity-40">"</div>
             <div className="space-y-6 font-patrick text-2xl text-[#45474c] leading-relaxed">
               <p>
-                I built MakeMeRevise because I was tired of using 'generic' revision sites that mixed up IAL and UK
-                A-Levels. I knew the stress of the January and June sittings, and the frustration of knowing the content
-                but failing the mark scheme. This isn't just an app—it's the system I wish I had to stop the panic and
-                start scoring what I deserved.
+                Living here in the UAE, I saw my friends drowning in tabs. One site for Biology notes, another for
+                Physics papers, and three more for ChatGPT help. We spend more time 'organizing' revision than actually
+                studying. I built MakeMeRevise to be the only tab you need. My goal is to eventually bring this to every
+                school in the region, but first, I want to prove it works with you.
               </p>
               <div className="w-full h-px bg-amber-100 my-8"></div>
               <div className="flex flex-col items-end">
                 <p className="text-4xl text-amber-600 italic font-bold">Shabbir</p>
-                <p className="text-lg text-[#45474c] mt-2 opacity-60">— Shabbir, Founder & Student</p>
+                <p className="text-lg text-[#45474c] mt-2 opacity-60">— Founder & Student</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ SECTION: FACTUAL & RELEVANT */}
+      {/* FAQ SECTION: REDESIGNED TO ELIMINATE SKEPTICISM */}
       <section className="py-24 bg-[#f8f9fb] paper-texture">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
-            <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">Expertise</span>
-            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Common Questions</h2>
+            <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
+            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
           </div>
 
           <div className="space-y-4">
             <FAQItem
-              question="Does this support both Edexcel IAL and Cambridge International?"
-              answer="Yes. We have dedicated tracks for both. While they share some content, the exam styles and mark scheme priorities differ significantly. We ensure your roadmap matches your exact syllabus."
+              question="Can I really replace all my other revision sites?"
+              answer="That's the mission. We've combined high-quality syllabus notes, topical question banks, and an instant tutor so you never have to leave the platform. It's the only A-Level hub you'll need."
               isOpen={true}
             />
             <FAQItem
-              question="How is IAL different from UK GCE A-Levels on the platform?"
-              answer="IAL is modular (Unit 1, 2, 3 etc.) while GCE is typically linear. We structure our roadmaps to match the modular nature of IAL, allowing you to focus on specific units for January or June sittings."
+              question="How does the 24/7 image-upload help work?"
+              answer="Snap a photo of any textbook or past paper question. Our specialized mentor analyzes the image and explains the answer using the specific marking style of Edexcel or Cambridge."
             />
             <FAQItem
-              question="Does the feedback understand specific mark scheme keywords?"
-              answer="Yes. Our analysis is trained on thousands of official examiner reports. It identifies when you have the right idea but haven't used the 'key terms' required to unlock the marks."
+              question="Is this pilot phase free for UAE students?"
+              answer="Yes! While we are in the pilot phase, we want as many students as possible to use it and give feedback before we roll it out to schools across the country."
             />
             <FAQItem
-              question="Can I use this for the 2025 and 2026 exam series?"
-              answer="Absolutely. We continuously monitor syllabus updates from Edexcel and CAIE to ensure all our notes and mocks remain perfectly aligned with the current exam cycle."
+              question="Which exam boards are covered?"
+              answer="We currently provide 1:1 syllabus support for Edexcel IAL, Edexcel GCE (UK), and Cambridge (CIE) A-Levels & IGCSEs."
             />
             <FAQItem
-              question="Which subjects are currently fully supported?"
-              answer="Currently, we offer deep support for Biology, Chemistry, Physics, and Mathematics (Pure, Statistics, and Mechanics). Further subjects like Economics are currently in beta."
+              question="How does the roadmap know what I should study?"
+              answer="Our roadmap tracks your mock scores and 'mastery level' for every unit. It automatically prioritizes the topics where you're losing the most marks."
             />
             <FAQItem
-              question="How much time should I spend on the app daily?"
-              answer="Students who use the adaptive roadmap for just 30-45 minutes a day alongside their regular schoolwork tend to see the most significant jump in their mock performance."
-            />
-            <FAQItem
-              question="Is there a way to track my UMS progress?"
-              answer="Our roadmap helps you estimate your performance level based on mock scores, helping you understand where you stand relative to the A and A* grade boundaries."
+              question="Can I really trust the mock marking?"
+              answer="Our engine is trained on examiner reports, not just general knowledge. It understands the specific 'key terms' required to get 6/6 marks on long-answer questions."
             />
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
+      {/* FINAL CTA: PSYCHOLOGICAL CLOSURE */}
       <section className="py-32 bg-[#091426] relative overflow-hidden">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Master your syllabus today.</h2>
+          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Revision doesn't have to be a mess.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
-            Join the students securing their university spots with targeted revision. Built by students who know the
-            struggle.
+            Get your roadmap. Ask your questions. Secure your A*. Join the pilot group today.
           </p>
           <button className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]">
-            Start free revision
+            Start My Roadmap
           </button>
         </div>
       </section>
@@ -442,21 +438,21 @@ const LandingPage = () => {
           <div className="flex flex-col items-center md:items-start">
             <span className="font-caveat text-3xl text-white font-bold">Make Me Revise</span>
             <p className="text-white/40 text-[10px] mt-2">
-              © 2026 Make Me Revise. Supporting the next generation of scholars.
+              © 2026 Make Me Revise. Designed in the UAE for the global A-Level cohort.
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-8 text-[10px] font-bold tracking-widest uppercase text-white/60">
             <a className="hover:text-[#f59e0b] transition-colors" href="#">
-              Privacy Policy
+              Privacy Hub
             </a>
             <a className="hover:text-[#f59e0b] transition-colors" href="#">
-              Terms of Use
+              User Terms
             </a>
             <a className="hover:text-[#f59e0b] transition-colors" href="#">
-              Support
+              Contact Founder
             </a>
             <a className="hover:text-[#f59e0b] transition-colors" href="#">
-              Subject Guides
+              Syllabus Guides
             </a>
           </div>
         </div>
@@ -470,28 +466,28 @@ const LandingPage = () => {
 const MarqueeContent = () => (
   <>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">school</span> Cambridge IAL Support
+      <span className="material-symbols-outlined text-[14px]">public</span> UAE Pilot Phase
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">book</span> Edexcel IAL Modular Units
+      <span className="material-symbols-outlined text-[14px]">school</span> Edexcel IAL & GCE
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px] text-[#f59e0b]">verified</span> Examiner-Grade Feedback
+      <span className="material-symbols-outlined text-[14px] text-[#f59e0b]">verified</span> Cambridge IGCSE & A-Level
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">science</span> Organic Chemistry Unit 4
+      <span className="material-symbols-outlined text-[14px]">science</span> Physics & Chemistry
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">psychology</span> Biology Unit 5 Mastery
+      <span className="material-symbols-outlined text-[14px]">psychology</span> Biology Mastery
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">bolt</span> Physics Unit-Specific Mocks
+      <span className="material-symbols-outlined text-[14px]">architecture</span> Pure & Applied Maths
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">architecture</span> Pure Math P1-P4 Roadmaps
+      <span className="material-symbols-outlined text-[14px]">camera_alt</span> Photo-Search Questions
     </span>
     <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined text-[14px]">history_edu</span> Mark Scheme Mastery
+      <span className="material-symbols-outlined text-[14px]">map</span> Auto-Generated Roadmaps
     </span>
   </>
 );
