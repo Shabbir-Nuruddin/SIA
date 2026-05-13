@@ -1,4 +1,4 @@
-web application/stitch/projects/3603110588908651483/screens/a87a535ad92f4516a1197eecfd51c931
+web application/stitch/projects/3603110588908651483/screens/0465019f519a4c218c857d671569a1ed
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ const Landing = () => {
 
       {/* HERO SECTION */}
       <section className="relative pt-20 pb-32 overflow-hidden">
-        {/* Denser Notebook Lines Pattern - 24px as requested */}
+        {/* Denser Notebook Lines Pattern - 24px */}
         <div 
           className="absolute inset-0 opacity-[0.06] pointer-events-none" 
           style={{ 
