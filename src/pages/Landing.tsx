@@ -1,4 +1,4 @@
-web application/stitch/projects/3603110588908651483/screens/d4633ae4543b414c9e43f5eb94902909
+web application/stitch/projects/3603110588908651483/screens/06f9e6a4b2c7487d8dd41643baa89141
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
