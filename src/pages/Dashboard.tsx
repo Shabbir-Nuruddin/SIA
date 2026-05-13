@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { format } from "date-fns";
-import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } from "lucide-react";
+import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Flame, Loader2, Play, SkipForward } from "lucide-react";
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
@@ -86,7 +86,7 @@ const Dashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
-  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean; current_streak?: number } | null>(null);
 
   const todayISO = getLocalDateString();
 
@@ -95,7 +95,7 @@ const Dashboard = () => {
     const [s, u, p, e] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
+      supabase.from("profiles").select("first_name,onboarded,tutorial_completed,current_streak").eq("id", user.id).single(),
       supabase.from("exams").select("id,name,exam_date,subject,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
