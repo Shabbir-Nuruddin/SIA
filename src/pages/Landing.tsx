@@ -1,8 +1,8 @@
-web application/stitch/projects/3603110588908651483/screens/0b5dc1046e0e41d897b7e6e7683a5f52
+web application/stitch/projects/3603110588908651483/screens/bfe434cc9e3e4fbfab7a4550d7d2d516
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, FileText, Map, MessageSquare, CheckCircle, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, BookOpen, FileText, Star, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
 
@@ -20,8 +20,8 @@ const Landing = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] font-sans text-slate-900 scroll-smooth selection:bg-amber-200">
-      {/* Top Banner */}
+    <div className="min-h-screen bg-[#f7f9fb] font-sans text-slate-900 scroll-smooth selection:bg-amber-200 overflow-x-hidden">
+      {/* Top Banner - Fixed Marquee Animation */}
       <div className="bg-amber-600 text-white py-2 overflow-hidden whitespace-nowrap border-b border-amber-700/20">
         <div className="flex animate-marquee gap-8 items-center text-xs font-bold tracking-wider uppercase">
           {Array.from({ length: 10 }).map((_, i) => (
@@ -37,7 +37,7 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Navigation Bar */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between max-w-7xl">
           <div className="flex flex-col">
@@ -45,13 +45,13 @@ const Landing = () => {
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 -mt-1">Revise Smart, Score Higher</span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#inside" className="hover:text-amber-600 transition-colors">What's inside</a>
-            <a href="#founder" className="hover:text-amber-600 transition-colors">The story</a>
+            <a href="#inside" className="hover:text-amber-600 transition-colors font-bold">What's inside</a>
+            <a href="#founder" className="hover:text-amber-600 transition-colors font-bold">The story</a>
           </nav>
           <div className="flex items-center gap-4">
             <Link to="/auth" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">Log in</Link>
             <Link to="/auth?mode=signup">
-              <Button size="sm" className="rounded-lg bg-slate-900 text-white hover:bg-slate-800 px-6 font-bold shadow-sm">
+              <Button size="sm" className="rounded-lg bg-slate-900 text-white hover:bg-slate-800 px-6 font-bold shadow-sm active:scale-95 transition-transform">
                 Start free
               </Button>
             </Link>
@@ -59,10 +59,16 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - High Fidelity Notebook Aesthetic */}
       <section className="relative pt-20 pb-32 overflow-hidden">
-        {/* Subtle Notebook Lines Pattern */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px)', backgroundSize: '100% 40px' }} />
+        {/* Increased Density Notebook Lines Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.06] pointer-events-none" 
+          style={{ 
+            backgroundImage: 'linear-gradient(#000 1px, transparent 1px)', 
+            backgroundSize: '100% 24px' // Denser lines as requested
+          }} 
+        />
         
         <div className="container mx-auto px-6 max-w-7xl relative">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -76,16 +82,16 @@ const Landing = () => {
                 <span className="text-amber-500 italic">built for your exams.</span>
               </h1>
               <p className="text-xl md:text-2xl text-slate-600 max-w-xl mb-10 leading-relaxed font-medium">
-                Stop drowning in textbooks. Get AI notes, custom mock papers, and a roadmap tailored to <span className="font-bold text-slate-900">Edexcel IAL</span> and <span className="font-bold text-slate-900">Cambridge A-Level</span>.
+                Stop drowning in textbooks. Get AI notes, custom mock papers, and a roadmap tailored to <span className="font-bold text-slate-900 underline decoration-amber-500/30">Edexcel IAL</span> and <span className="font-bold text-slate-900 underline decoration-amber-500/30">Cambridge A-Level</span>.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/auth?mode=signup">
-                  <Button size="lg" className="rounded-xl h-16 px-10 text-lg font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-xl group">
+                  <Button size="lg" className="rounded-xl h-16 px-10 text-lg font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-xl group transition-all duration-300 active:scale-95">
                     Start for free <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <a href="#inside">
-                  <Button size="lg" variant="outline" className="rounded-xl h-16 px-10 text-lg font-bold border-2 border-slate-200 text-slate-900 hover:bg-slate-50">
+                  <Button size="lg" variant="outline" className="rounded-xl h-16 px-10 text-lg font-bold border-2 border-slate-200 text-slate-900 hover:bg-slate-50 transition-all active:scale-95">
                     See how it works
                   </Button>
                 </a>
@@ -93,9 +99,8 @@ const Landing = () => {
               <div className="mt-12 flex items-center gap-4 text-sm font-bold text-slate-400">
                 <div className="flex -space-x-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] text-slate-500 font-bold overflow-hidden">
-                      {/* Avatar Placeholders */}
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} alt="Student" />
+                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
+                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 15}`} alt="Student" />
                     </div>
                   ))}
                 </div>
@@ -126,7 +131,7 @@ const Landing = () => {
                 </div>
               </div>
               {/* Sticky Note Decoration */}
-              <div className="absolute -top-6 -right-4 bg-amber-400 p-4 shadow-lg rotate-12 text-slate-900 font-bold text-xs max-w-[140px] z-20">
+              <div className="absolute -top-6 -right-4 bg-amber-400 p-4 shadow-lg rotate-12 text-slate-900 font-bold text-xs max-w-[140px] z-20 select-none">
                 Don't forget the mock paper tonight! 📚
               </div>
               {/* Accent Circles */}
@@ -136,9 +141,16 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* What's Inside - MATCHING IMAGE_7 EXACTLY */}
-      <section id="inside" className="py-32 bg-white">
-        <div className="container mx-auto px-6 max-w-6xl">
+      {/* What's Inside - Verbatim from IMAGE_7 */}
+      <section id="inside" className="py-32 bg-white relative">
+         <div 
+          className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+          style={{ 
+            backgroundImage: 'linear-gradient(#000 1px, transparent 1px)', 
+            backgroundSize: '100% 24px'
+          }} 
+        />
+        <div className="container mx-auto px-6 max-w-6xl relative">
           <div className="text-center mb-20">
             <h2 className="text-5xl font-bold text-slate-900 mb-4" style={{ fontFamily: "'Caveat', cursive" }}>What's inside</h2>
             <p className="text-slate-500 font-medium text-lg italic">Everything you need. Nothing you don't.</p>
@@ -151,7 +163,7 @@ const Landing = () => {
               { title: "Roadmap", icon: "🗺️", color: "border-orange-500", desc: "A personalised study plan that knows your weak spots" },
               { title: "Exam FAQs", icon: "🎯", color: "border-emerald-500", desc: "The questions that actually come up, answered like a model student" }
             ].map((feature, i) => (
-              <div key={i} className={`bg-white p-8 rounded-2xl border border-slate-100 shadow-lg border-t-4 ${feature.color} hover:-translate-y-1 transition-all`}>
+              <div key={i} className={`bg-white p-8 rounded-2xl border border-slate-100 shadow-lg border-t-4 ${feature.color} hover:-translate-y-1 transition-all duration-300`}>
                 <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="text-2xl font-bold mb-2 text-slate-900" style={{ fontFamily: "'Patrick Hand', cursive" }}>{feature.title}</h3>
                 <p className="text-slate-500 leading-relaxed font-medium">{feature.desc}</p>
@@ -161,10 +173,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Note from Shabbir - PRESERVED EXACTLY */}
+      {/* Note from Shabbir - Preserved Verbatim from IMAGE_8 */}
       <section id="founder" className="py-32 bg-[#fffdf0] relative overflow-hidden">
-        {/* Notebook Lines for this section */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(180, 100, 50, 0.25) 1px, transparent 1px)', backgroundSize: '100% 32px' }} />
+        {/* Notebook Lines for this section - denser */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(180, 100, 50, 0.25) 1px, transparent 1px)', backgroundSize: '100% 24px' }} />
         
         {/* Tape Decorations */}
         <div className="absolute top-8 left-1/4 w-32 h-8 bg-pink-300/40 -rotate-3 shadow-sm" />
@@ -172,7 +184,7 @@ const Landing = () => {
 
         <div className="container mx-auto px-6 max-w-3xl relative">
           <div className="bg-white p-12 md:p-16 shadow-2xl relative" style={{ clipPath: "polygon(0 2%, 100% 0, 98% 100%, 2% 98%)" }}>
-            <div className="text-amber-200 text-9xl absolute -top-8 -left-4 font-serif italic select-none">"</div>
+            <div className="text-amber-200 text-9xl absolute -top-8 -left-4 font-serif italic select-none opacity-50">"</div>
             <p className="text-2xl md:text-3xl text-slate-800 leading-relaxed font-medium mb-12 relative z-10" style={{ fontFamily: "'Patrick Hand', cursive" }}>
               I'm 17. I know the panic the night before an exam. I know what it feels like to open a 60-page spec and have no idea where to start. I built MakeMeRevise because I needed it — and because no one was making it for students like us.
             </p>
@@ -198,13 +210,13 @@ const Landing = () => {
               { name: "Khalid Al Rashidi", sub: "Year 13 • Maths & Physics", quote: "The AI feedback is actually smart. It doesn't just say 'wrong', it tells you why.", color: "bg-blue-50" },
               { name: "Mariam Hassan", sub: "Year 12 • Cambridge Chem", quote: "Best investment for my A-levels. It's so much better than generic revision sites.", color: "bg-rose-50" }
             ].map((t, i) => (
-              <div key={i} className={`${t.color} p-8 rounded-2xl border border-white shadow-sm transform ${i % 2 === 0 ? '-rotate-1' : 'rotate-1'}`}>
+              <div key={i} className={`${t.color} p-8 rounded-2xl border border-white shadow-sm transform transition-all duration-500 hover:scale-105 ${i % 2 === 0 ? '-rotate-1' : 'rotate-1'}`}>
                 <div className="flex gap-1 text-amber-400 mb-4">
                   {Array.from({ length: 5 }).map((_, star) => <Star key={star} size={14} fill="currentColor"/>)}
                 </div>
                 <p className="text-slate-800 font-medium italic mb-8 leading-relaxed">"{t.quote}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-xs font-bold text-slate-400 uppercase">{t.name.split(' ').map(n => n[0]).join('')}</div>
+                  <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-xs font-bold text-slate-400 uppercase border border-slate-100 shadow-sm">{t.name.split(' ').map(n => n[0]).join('')}</div>
                   <div>
                     <div className="text-sm font-bold text-slate-900">{t.name}</div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase">{t.sub}</div>
@@ -231,7 +243,7 @@ const Landing = () => {
               { q: "Can I cancel my subscription anytime?", a: "Absolutely. You can manage your subscription directly from your dashboard with no hidden fees." }
             ].map((faq, i) => (
               <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                <button className="w-full px-6 py-5 flex items-center justify-between text-left group">
+                <button className="w-full px-6 py-5 flex items-center justify-between text-left group transition-colors hover:bg-slate-50">
                   <span className="font-bold text-slate-800">{faq.q}</span>
                   <ChevronDown className="text-slate-400 group-hover:text-slate-900 transition-colors" size={20}/>
                 </button>
@@ -257,7 +269,7 @@ const Landing = () => {
             Join the students securing their university spots today. Built by a student who's been exactly where you are.
           </p>
           <Link to="/auth?mode=signup">
-            <Button size="lg" className="rounded-xl h-20 px-16 text-xl font-bold bg-amber-500 text-slate-900 hover:bg-amber-400 shadow-[0_0_50px_rgba(245,158,11,0.2)]">
+            <Button size="lg" className="rounded-xl h-20 px-16 text-xl font-bold bg-amber-500 text-slate-900 hover:bg-amber-400 shadow-[0_0_50px_rgba(245,158,11,0.2)] transition-all active:scale-95">
               Start for free
             </Button>
           </Link>
@@ -266,7 +278,7 @@ const Landing = () => {
         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </section>
 
-      {/* Footer */}
+      {/* Footer - Updated to 2026 */}
       <footer className="bg-slate-950 text-slate-500 py-12 border-t border-slate-900">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
