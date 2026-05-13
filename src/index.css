@@ -343,6 +343,56 @@ html.theme-paper { color-scheme: light; }
   .animate-in-up { animation: in-up 0.5s var(--tx-spring) both; }
   .animate-fade-in { animation: fade-in 0.4s ease-out both; }
   .animate-slow-pulse { animation: slow-pulse 2.4s ease-in-out infinite; }
+
+  /* ===== Warm "study notebook" design language ===== */
+  .warm-gradient {
+    background-image: linear-gradient(135deg,
+      hsl(265 75% 62%) 0%,
+      hsl(325 80% 65%) 45%,
+      hsl(28 95% 62%) 100%);
+  }
+  .warm-gradient-soft {
+    background-image: linear-gradient(135deg,
+      hsl(265 75% 62% / 0.18) 0%,
+      hsl(325 80% 65% / 0.18) 45%,
+      hsl(28 95% 62% / 0.18) 100%);
+  }
+  .warm-gradient-text {
+    background-image: linear-gradient(135deg, hsl(265 75% 55%), hsl(325 80% 58%) 50%, hsl(28 95% 52%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .pill-nav {
+    @apply flex items-center gap-3 px-3 py-2 rounded-full text-sm transition-all;
+  }
+  .pill-nav-active {
+    background-image: linear-gradient(135deg, hsl(265 75% 62%), hsl(325 80% 65%));
+    color: white;
+    box-shadow: 0 4px 14px hsl(325 80% 60% / 0.35);
+  }
+
+  .quick-card {
+    @apply rounded-2xl p-5 border-l-4 transition-all;
+    background: hsl(var(--card));
+    box-shadow: 0 2px 6px hsl(0 0% 0% / 0.06);
+  }
+  .quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px hsl(0 0% 0% / 0.10); }
+  .quick-card.amber  { border-left-color: hsl(28 95% 58%);  }
+  .quick-card.violet { border-left-color: hsl(265 75% 62%); }
+  .quick-card.teal   { border-left-color: hsl(178 65% 48%); }
+  .quick-card.rose   { border-left-color: hsl(340 80% 62%); }
+  .quick-card.sky    { border-left-color: hsl(205 85% 58%); }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold;
+  }
+  .chip-amber  { background: hsl(28 95% 88%);  color: hsl(28 80% 28%); }
+  .chip-violet { background: hsl(265 75% 90%); color: hsl(265 60% 30%); }
+  .chip-teal   { background: hsl(178 65% 85%); color: hsl(178 60% 22%); }
+  .chip-rose   { background: hsl(340 80% 90%); color: hsl(340 60% 32%); }
+  .chip-sky    { background: hsl(205 85% 88%); color: hsl(205 70% 28%); }
 }
 
 @keyframes in-up {

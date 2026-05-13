@@ -10,6 +10,9 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        display: ['Caveat', 'Patrick Hand', 'cursive'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+        marker: ['Patrick Hand', 'Kalam', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",

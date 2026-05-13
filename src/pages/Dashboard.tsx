@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { format } from "date-fns";
-import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Loader2, Play, SkipForward } from "lucide-react";
+import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Flame, Loader2, Play, SkipForward } from "lucide-react";
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
@@ -86,7 +86,7 @@ const Dashboard = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
-  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean } | null>(null);
+  const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean; current_streak?: number } | null>(null);
 
   const todayISO = getLocalDateString();
 
@@ -95,7 +95,7 @@ const Dashboard = () => {
     const [s, u, p, e] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
-      supabase.from("profiles").select("first_name,onboarded,tutorial_completed").eq("id", user.id).single(),
+      supabase.from("profiles").select("first_name,onboarded,tutorial_completed,current_streak").eq("id", user.id).single(),
       supabase.from("exams").select("id,name,exam_date,subject,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
@@ -195,25 +195,46 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
-        {/* Greeting */}
-        <div className="mb-6">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">
+        {/* Hero banner — warm gradient */}
+        <div className="warm-gradient rounded-3xl p-6 md:p-8 mb-6 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute -right-8 -top-8 text-[140px] opacity-20 select-none pointer-events-none">📚</div>
+          <div className="text-xs uppercase tracking-[0.2em] font-mono opacity-80">
             {format(new Date(), "EEEE · d MMMM")}
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold mt-1">
-            {greet}, {name}.
+          <h1 className="font-display text-4xl md:text-5xl mt-1 leading-tight">
+            {greet}, {name}! <span className="inline-block">📚</span>
           </h1>
-          <p className="text-muted-foreground mt-1 text-[15px]">{greetTail}</p>
+          <p className="mt-2 text-white/90 text-[15px] max-w-2xl">{greetTail}</p>
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <span className="chip chip-amber"><Flame className="h-3 w-3" />{(profile?.current_streak ?? 0)} day streak</span>
+            {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
+            <span className="chip chip-teal">✓ {completedCount}/{sessions.length} today</span>
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {[
+            { to: "/notes",       label: "Continue Notes",     emoji: "📖", color: "violet" },
+            { to: "/questions",   label: "Practice Questions", emoji: "📝", color: "amber"  },
+            { to: "/mock-papers", label: "Mock Paper",         emoji: "🎯", color: "rose"   },
+            { to: "/roadmap",     label: "My Roadmap",         emoji: "🗺️", color: "teal"   },
+          ].map(q => (
+            <Link key={q.to} to={q.to} className={`quick-card ${q.color} block`}>
+              <div className="text-3xl mb-1">{q.emoji}</div>
+              <div className="font-display text-xl leading-tight">{q.label}</div>
+            </Link>
+          ))}
         </div>
 
         {!hasExams && (
-          <div className="surface p-4 mb-5 flex flex-wrap items-center gap-3 border-l-4" style={{ borderLeftColor: "hsl(var(--accent))" }}>
+          <div className="quick-card amber mb-5 flex flex-wrap items-center gap-3">
             <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
             <div className="flex-1 min-w-[200px] text-sm">
               <div className="font-semibold">No exam dates set yet.</div>
               <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score, and countdowns reflect what actually matters.</div>
             </div>
-            <Link to="/exams"><Button size="sm" className="btn-primary">Add exam dates</Button></Link>
+            <Link to="/exams"><Button size="sm" className="btn-primary rounded-full">Add exam dates</Button></Link>
           </div>
         )}
 
