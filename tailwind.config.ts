@@ -8,11 +8,11 @@ export default {
     container: { center: true, padding: "1.5rem", screens: { "2xl": "1400px" } },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['Caveat', 'Patrick Hand', 'cursive'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
-        marker: ['Patrick Hand', 'Kalam', 'cursive'],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
+        display: ["Caveat", "Patrick Hand", "cursive"],
+        body: ["Inter", "system-ui", "sans-serif"],
+        marker: ["Patrick Hand", "Kalam", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -83,3 +83,40 @@ export default {
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#091426",
+        secondary: "#f59e0b",
+        background: "#fdfcf8",
+        surface: "#ffffff",
+        "on-surface": "#191c1e",
+        "on-surface-variant": "#45474c",
+        "outline-variant": "#c5c6cd",
+      },
+      fontFamily: {
+        "note-text": ["Patrick Hand", "cursive"],
+        "label-caps": ["Inter", "sans-serif"],
+        "body-md": ["Inter", "sans-serif"],
+        "headline-lg": ["Caveat", "cursive"],
+        "headline-md": ["Caveat", "cursive"],
+        "headline-xl": ["Caveat", "cursive"],
+      },
+      spacing: {
+        gutter: "24px",
+        "max-width": "1200px",
+        "margin-mobile": "16px",
+        "margin-desktop": "64px",
+      },
+    },
+  },
+  plugins: [require("@tailwindcss/forms"), require("@tailwindcss/container-queries")],
+};
