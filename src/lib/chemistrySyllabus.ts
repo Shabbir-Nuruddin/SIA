@@ -149,7 +149,7 @@ export const CHEMISTRY_TOPICS: SyllabusTopic[] = [
       { ref: "7.6", text: "factors choosing solvents: water for ionic/alcohol; non-aqueous for like-with-like" },
     ],
     includeKeywords: ["London forces", "induced dipole", "hydrogen bonding", "anomalous properties", "solubility", "boiling point trends"],
-    excludeKeywords: ["ionic bonding (Unit 1)", "covalent bonding (Unit 1)", "metallic bonding", "Giant covalent structures"] }
+    excludeKeywords: ["ionic bonding (Unit 1)", "covalent bonding (Unit 1)", "metallic bonding", "Giant covalent structures"] },
    {
     number: 8, unit: 2, name: "Redox Chemistry and Groups 1, 2 and 7",
     statements: [
