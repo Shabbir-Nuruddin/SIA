@@ -159,7 +159,7 @@ export const MusicPlayer = () => {
     pathname === "/" ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/diagnostic") ||
+    
     pathname.startsWith("/mock-papers/exam");
   if (hide) return null;
 

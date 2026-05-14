@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { MaintenanceGate } from "@/components/MaintenanceGate";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
-import Diagnostic from "./pages/Diagnostic";
+
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Questions from "./pages/Questions";
@@ -50,7 +50,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<AuthPage />} />
-              <Route path="/diagnostic" element={<Diagnostic />} />
+              
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/questions" element={<Questions />} />
