@@ -13,5 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-User-agent: facebookexternalhit
-Allow: /
+Sitemap: https://makemerevise.com/sitemap.xml
