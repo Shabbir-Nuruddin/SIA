@@ -572,6 +572,45 @@ export type Database = {
           },
         ]
       }
+      notes_generation_log: {
+        Row: {
+          forbidden_keywords_found: string[]
+          id: string
+          qualification: string
+          seed: string
+          subject: string
+          trigger: string
+          ts: string
+          unit_topic: string
+          unit_topic_name: string | null
+          validation_passed: boolean
+        }
+        Insert: {
+          forbidden_keywords_found?: string[]
+          id?: string
+          qualification: string
+          seed: string
+          subject: string
+          trigger: string
+          ts?: string
+          unit_topic: string
+          unit_topic_name?: string | null
+          validation_passed: boolean
+        }
+        Update: {
+          forbidden_keywords_found?: string[]
+          id?: string
+          qualification?: string
+          seed?: string
+          subject?: string
+          trigger?: string
+          ts?: string
+          unit_topic?: string
+          unit_topic_name?: string | null
+          validation_passed?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
