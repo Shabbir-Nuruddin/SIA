@@ -11,6 +11,14 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
+const ADMIN_EMAIL = "nuruddinshabbir3@gmail.com";
+
+const gateNonAdmin = async (email: string | null | undefined) => {
+  if ((email || "").toLowerCase() === ADMIN_EMAIL) return false;
+  await supabase.auth.signOut();
+  toast.error("Make Me Revise is under maintenance — back online soon.");
+  return true;
+};
 
 const AuthPage = () => {
   const [params] = useSearchParams();
