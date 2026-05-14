@@ -65,7 +65,8 @@ const AuthPage = () => {
           return;
         }
         toast.success(`Welcome to MMR, ${fn}. Let's set up your revision plan.`);
-        navigate("/diagnostic");
+        if (await gateNonAdmin(data.user?.email)) return;
+        navigate("/onboarding");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -75,6 +76,7 @@ const AuthPage = () => {
           }
           throw error;
         }
+        if (await gateNonAdmin(data.user?.email)) return;
         const route = data.user ? await getPostAuthRoute(data.user.id) : "/dashboard";
         navigate(route);
       }
