@@ -281,20 +281,38 @@ export const SUBJECTS: Record<SubjectCode, SubjectMeta> = {
   },
 };
 
+// IGCSE syllabus files use { topics: [{title, subtopics}] }, but onboarding
+// expects SubjectMeta with units[]. Adapter: each top-level topic becomes a unit.
+const EMOJI: Record<SubjectCode, string> = { mathematics: "∑", biology: "🧬", chemistry: "🧪", physics: "⚛" };
+const adaptIgcse = (raw: any, code: SubjectCode, spec: string): SubjectMeta => ({
+  code,
+  name: raw.name,
+  emoji: EMOJI[code],
+  spec,
+  units: (raw.topics || []).map((t: any, i: number) => ({
+    number: i + 1,
+    unitCode: `T${i + 1}`,
+    name: t.title,
+    paperLabel: `Topic ${i + 1}`,
+    durationMinutes: 60,
+    topics: (t.subtopics || []).map((s: any) => s.title),
+  })),
+});
+
 // === IGCSE CIE CATALOGUE ===
-export const IGCSE_CIE_SUBJECTS: any = {
-  mathematics: cieMaths0580,
-  biology: cieBiology0610,
-  chemistry: cieChemistry0620,
-  physics: ciePhysics0625,
+export const IGCSE_CIE_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
+  mathematics: adaptIgcse(cieMaths0580, "mathematics", "0580"),
+  biology: adaptIgcse(cieBiology0610, "biology", "0610"),
+  chemistry: adaptIgcse(cieChemistry0620, "chemistry", "0620"),
+  physics: adaptIgcse(ciePhysics0625, "physics", "0625"),
 };
 
 // === IGCSE EDEXCEL CATALOGUE ===
-export const IGCSE_EDEXCEL_SUBJECTS: any = {
-  mathematics: edexcelMaths4MA1,
-  biology: edexcelBiology4BI1,
-  chemistry: edexcelChemistry4CH1,
-  physics: edexcelPhysics4PH1,
+export const IGCSE_EDEXCEL_SUBJECTS: Record<SubjectCode, SubjectMeta> = {
+  mathematics: adaptIgcse(edexcelMaths4MA1, "mathematics", "4MA1"),
+  biology: adaptIgcse(edexcelBiology4BI1, "biology", "4BI1"),
+  chemistry: adaptIgcse(edexcelChemistry4CH1, "chemistry", "4CH1"),
+  physics: adaptIgcse(edexcelPhysics4PH1, "physics", "4PH1"),
 };
 
 export const SUBJECT_LIST: SubjectMeta[] = Object.values(SUBJECTS);
