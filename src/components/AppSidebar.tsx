@@ -15,14 +15,14 @@ import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
 
 const items: { to: string; icon: any; label: string; color: string; proOnly?: boolean; adminOnly?: boolean }[] = [
   { to: "/dashboard",   icon: Home,         label: "Today's Plan",     color: "265 75% 62%" },
-  { to: "/roadmap",     icon: Calendar,     label: "Roadmap",          color: "205 85% 58%" },
+  { to: "/roadmap",     icon: Calendar,     label: "Roadmap",          color: "205 85% 58%", adminOnly: true },
   { to: "/exams",       icon: GraduationCap,label: "Exams",            color: "340 80% 62%" },
   { to: "/questions",   icon: Zap,          label: "Topical Questions",color: "28 95% 58%"  },
-  { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%" },
+  { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%", adminOnly: true },
   { to: "/notes",       icon: BookOpen,     label: "Notes",            color: "265 75% 62%" },
-  { to: "/podcast",     icon: Headphones,   label: "Podcast",          color: "325 80% 62%" },
+  { to: "/podcast",     icon: Headphones,   label: "Podcast",          color: "325 80% 62%", adminOnly: true },
   { to: "/papers",      icon: LinkIcon,     label: "Past Papers",      color: "205 85% 58%" },
-  { to: "/faq",         icon: MessageCircle,label: "Exam FAQs",        color: "178 65% 48%", proOnly: true },
+  { to: "/faq",         icon: MessageCircle,label: "Exam FAQs",        color: "178 65% 48%", adminOnly: true },
   { to: "/feedback",    icon: MessageSquare,label: "Feedback",         color: "28 95% 58%"  },
   { to: "/pricing",     icon: Sparkles,     label: "Plans",            color: "340 80% 62%" },
   { to: "/settings",    icon: Settings,     label: "Settings",         color: "215 14% 50%" },
@@ -120,26 +120,28 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
         })}
       </nav>
 
-      {/* Clarity Compass — premium amber */}
-      <div className="px-1 pb-3 pt-2">
-        <NavLink
-          to="/clarity-compass"
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
-              isActive
-                ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 shadow-lg shadow-amber-400/30"
-                : "border border-amber-400/40 bg-amber-50/40 hover:bg-amber-100/60 text-amber-900 dark:text-amber-200 dark:bg-amber-500/10"
-            }`
-          }
-        >
-          <Star className="h-4 w-4 shrink-0 fill-current" />
-          <div className="flex-1">
-            <div className="font-semibold text-[12px] flex items-center gap-1">Clarity Compass <Compass className="h-3 w-3" /></div>
-            <div className="text-[10px] opacity-80 leading-tight">Discover your career path</div>
-          </div>
-        </NavLink>
-      </div>
+      {/* Clarity Compass — admin-only preview */}
+      {isAdmin && (
+        <div className="px-1 pb-3 pt-2">
+          <NavLink
+            to="/clarity-compass"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
+                isActive
+                  ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 shadow-lg shadow-amber-400/30"
+                  : "border border-amber-400/40 bg-amber-50/40 hover:bg-amber-100/60 text-amber-900 dark:text-amber-200 dark:bg-amber-500/10"
+              }`
+            }
+          >
+            <Star className="h-4 w-4 shrink-0 fill-current" />
+            <div className="flex-1">
+              <div className="font-semibold text-[12px] flex items-center gap-1">Clarity Compass <Compass className="h-3 w-3" /></div>
+              <div className="text-[10px] opacity-80 leading-tight">Discover your career path</div>
+            </div>
+          </NavLink>
+        </div>
+      )}
 
       {/* Profile */}
       <div className="mt-1 pt-3 border-t border-sidebar-border/60 space-y-2">

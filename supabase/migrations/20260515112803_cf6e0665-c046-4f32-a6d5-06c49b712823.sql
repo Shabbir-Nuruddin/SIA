@@ -1,0 +1,1 @@
+TRUNCATE TABLE public.roadmap_nodes, public.roadmap_sessions, public.study_sessions, public.topic_notes, public.cached_topic_notes, public.notes_generation_log, public.note_annotations RESTART IDENTITY CASCADE;

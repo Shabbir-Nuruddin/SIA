@@ -8,7 +8,7 @@ import { formattedHtmlProps, toPlainText, toFormattedHtml, renderMathInString } 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download,
+  BookOpen, Loader2, Sparkles, Highlighter, Trash2,
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -242,6 +242,8 @@ const NotesPage = () => {
           const t = findChemistryTopic(topic);
           if (t) syllabus_context = t.statements.map(s => `${s.ref} ${s.text}`).join("\n");
         }
+        // When the user clicks Regenerate (forceRefresh), tell the edge function
+        // to bypass + overwrite its shared cache so we get a brand-new generation.
         const { data, error } = await supabase.functions.invoke("ai-notes", {
           body: {
             subject,
@@ -251,6 +253,7 @@ const NotesPage = () => {
             syllabus_context,
             board,
             level: unit >= 4 ? "A2-Level (IA2)" : "AS-Level (IAS)",
+            trigger: forceRefresh ? "cache_clear" : "initial",
           },
         });
         if (error) throw new Error(error.message || "Notes service unavailable");
@@ -341,74 +344,7 @@ const NotesPage = () => {
     return out;
   };
 
-  const downloadPdf = async () => {
-    if (!notes || !subjectParam || !unitParam || !topicParam) return;
-    const { jsPDF } = await import("jspdf");
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const margin = 48;
-    let y = margin;
-    const sub = SUBJECTS[subjectParam];
-    const studentName = await getStudentName();
-
-    const writeLine = (text: string, size: number, bold = false, gap = 6) => {
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.setFontSize(size);
-      const lines = doc.splitTextToSize(toPlainText(text), pageW - margin * 2);
-      for (const ln of lines) {
-        if (y > pageH - margin - 30) { footer(); doc.addPage(); y = margin; }
-        doc.text(ln, margin, y);
-        y += size * 1.2;
-      }
-      y += gap;
-    };
-    const footer = () => {
-      doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(120);
-      doc.text(`Make Me Revise · ${studentName} · ${sub?.name ?? ""} U${unitParam} — ${topicParam}`, margin, pageH - 24);
-      doc.setTextColor(0);
-    };
-
-    writeLine(`${sub?.name ?? ""} — Unit ${unitParam}`, 10, false, 0);
-    writeLine(topicParam, 22, true, 16);
-
-    if (notes.overview) { writeLine("Overview", 14, true); writeLine(notes.overview, 11, false, 8); }
-
-    if (notes.key_definitions.length) {
-      writeLine("Key definitions", 14, true);
-      notes.key_definitions.forEach(d => {
-        writeLine(`${d.term}: ${d.mark_scheme}`, 11, false, 2);
-        if (d.plain_english) writeLine(`Plain English: ${d.plain_english}`, 10, false, 2);
-        if (d.common_mistake) writeLine(`Common mistake: ${d.common_mistake}`, 10, false, 4);
-      });
-    }
-
-    if (notes.core_content.length) {
-      writeLine("Core content", 14, true);
-      notes.core_content.forEach((c, i) => {
-        writeLine(`${i + 1}. ${c.statement}${c.typical_marks ? ` [${c.typical_marks} marks]` : ""}`, 12, true, 2);
-        if (c.worked_example) writeLine(`Worked: ${c.worked_example}`, 10, false, 2);
-        if (c.wrong_approach) writeLine(`Avoid: ${c.wrong_approach}`, 10, false, 4);
-      });
-    }
-
-    if (notes.equations.length) {
-      writeLine("Equations", 14, true);
-      notes.equations.forEach(e => {
-        writeLine(e.equation, 11, true, 2);
-        e.variables.forEach(v => writeLine(`  ${v.symbol} = ${v.meaning} (${v.unit})`, 10, false, 1));
-        if (e.worked_substitution) writeLine(`Substitution: ${e.worked_substitution}`, 10, false, 4);
-      });
-    }
-
-    if (notes.examiner_tips.length) {
-      writeLine("Examiner tips", 14, true);
-      notes.examiner_tips.forEach(t => writeLine(`• ${t.command_word ? `[${t.command_word}] ` : ""}${t.tip}`, 11, false, 2));
-    }
-
-    footer();
-    doc.save(`MakeMeRevise-${subjectParam}-U${unitParam}-${topicParam.replace(/[^a-z0-9]+/gi, "-")}.pdf`);
-  };
+  // PDF export removed.
 
   const getStudentName = async (): Promise<string> => {
     if (!user) return "Student";
@@ -530,9 +466,6 @@ const NotesPage = () => {
                 <div className="flex items-center justify-end gap-2 mb-6">
                   <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">
                     <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Regenerate
-                  </Button>
-                  <Button onClick={downloadPdf} variant="outline" size="sm">
-                    <Download className="h-3.5 w-3.5 mr-1.5" />PDF
                   </Button>
                 </div>
 

@@ -958,6 +958,7 @@ export const CIE_ALEVEL_SYLLABUS: CIESyllabusDatabase = {
         'Evaluating conclusions — does data support hypothesis within uncertainty? limitations: extrapolation invalid beyond data range; correlation ≠ causation; confounding variables; sample size insufficient; anomalies may be due to specific experimental issue',
         'Context note — Paper 5 often uses contexts outside chemistry syllabus; skills are transferable; apply to novel situations',
       ],
+      forbiddenTopics: [],
       requiredKeywords: [
         'independent variable', 'dependent variable', 'control variable',
         'systematic error', 'random error', 'control experiment blank',

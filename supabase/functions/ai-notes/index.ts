@@ -251,9 +251,18 @@ serve(async (req) => {
       };
     }
 
-    // --- CACHE LOOKUP ---
+    // --- CACHE LOOKUP / INVALIDATION ---
     const cacheBoard = board.includes("cie") ? "cie" : "edexcel";
-    if (triggerKind === "initial") {
+    if (triggerKind === "cache_clear") {
+      // Hard-delete the cached row so the next call is a true regeneration
+      // against the latest syllabus rules.
+      await admin.from("cached_topic_notes")
+        .delete()
+        .eq("board", cacheBoard)
+        .eq("subject", subject)
+        .eq("unit_number", unit_number)
+        .eq("topic", topic);
+    } else {
       const { data: cached } = await admin.from("cached_topic_notes")
         .select("content")
         .eq("board", cacheBoard)
@@ -262,8 +271,8 @@ serve(async (req) => {
         .eq("topic", topic)
         .maybeSingle();
       if (cached?.content) {
-        return new Response(JSON.stringify(cached.content), { 
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        return new Response(JSON.stringify(cached.content), {
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" }
         });
       }
     }

@@ -11,14 +11,6 @@ import { toast } from "sonner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
-const ADMIN_EMAIL = "nuruddinshabbir3@gmail.com";
-
-const gateNonAdmin = async (email: string | null | undefined) => {
-  if ((email || "").toLowerCase() === ADMIN_EMAIL) return false;
-  await supabase.auth.signOut();
-  toast.error("Make Me Revise is under maintenance — back online soon.");
-  return true;
-};
 
 const AuthPage = () => {
   const [params] = useSearchParams();
@@ -65,7 +57,6 @@ const AuthPage = () => {
           return;
         }
         toast.success(`Welcome to MMR, ${fn}. Let's set up your revision plan.`);
-        if (await gateNonAdmin(data.user?.email)) return;
         navigate("/onboarding");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -76,7 +67,6 @@ const AuthPage = () => {
           }
           throw error;
         }
-        if (await gateNonAdmin(data.user?.email)) return;
         const route = data.user ? await getPostAuthRoute(data.user.id) : "/dashboard";
         navigate(route);
       }
