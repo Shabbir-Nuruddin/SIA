@@ -1557,6 +1557,19 @@ export function buildSystemPrompt(
       ? '\nNOTE: This content is assessed on Paper 1 ONLY (core content).'
       : '\nNOTE: This content is assessed on both Paper 1 (core) and Paper 2 (extension — bold statements).';
 
+  const isMaths = /math/i.test(subject);
+  const overviewRule = isMaths
+    ? `### OVERVIEW RULE (MATHS):
+- Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
+- Move all the depth into the "core_content" array: AT LEAST 8 worked examples covering different question types from this topic. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step), "wrong_approach" = a common student mistake.
+- Include AT LEAST 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
+    : `### OVERVIEW RULE (SCIENCE):
+- Write the "overview" field as 5 to 7 paragraphs (separate paragraphs with a blank line) of student-friendly theory, in the style of Save My Exams or Physics & Maths Tutor.
+- Tone: explain the *why* behind the concepts, link cause and effect, use clear analogies where helpful. NOT a lecture, NOT teacher-facing — written for a student to actually learn from.
+- On-point and exam-relevant: only include theory that gets tested. No filler, no tangents.
+- Each paragraph: 4 to 6 sentences. Define every technical term the first time it appears.
+- Do NOT just rephrase the bullet points from ALLOWED TOPICS — synthesise them into flowing explanation a student can read and remember.`;
+
   return `You are a world-class Pearson Edexcel IGCSE Subject Expert and Examiner.
 Your task is to generate high-fidelity revision notes for: ${topic.code} — ${topic.title}.
 
@@ -1566,6 +1579,8 @@ Your task is to generate high-fidelity revision notes for: ${topic.code} — ${t
 3. **No Previewing**: Do not mention concepts beyond the scope of ${topic.code}.
 4. **Keyword Density**: Naturally integrate all REQUIRED KEYWORDS into your technical explanations.
 5. **Practical Skills**: Include the required practical investigations as a dedicated section — examiners test these in written papers.
+
+${overviewRule}
 
 ### DATA METADATA:
 - QUALIFICATION: Pearson Edexcel International GCSE (9-1)
@@ -1591,9 +1606,8 @@ BOUNDARY RULES:
 - Only include content explicitly listed in ALLOWED TOPICS
 - Do not introduce A-Level concepts or IGCSE content from other topics
 - Every formula, definition, and diagram description must trace to the ALLOWED list
-- Do not include overview/introduction paragraphs — go straight to definitions and content
-- Extension content (bold/B/C/P reference in specification) should be clearly labelled "Extension (Paper 2 only)"
-- Structure: Definitions → Core Content → Extension Content (Paper 2) → Equations → Practical Skills → Examiner Tips → Flashcards`;
+- Extension content (bold/B/C/P reference) should be clearly labelled "Extension (Paper 2 only)"
+- Structure: Overview → Definitions → Core Content → Extension Content (Paper 2) → Equations → Practical Skills → Examiner Tips → Flashcards`;
 }
 
 /**

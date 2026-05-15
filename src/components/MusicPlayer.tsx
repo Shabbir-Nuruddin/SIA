@@ -23,21 +23,22 @@ interface Track {
   url: string;
 }
 
-// Royalty-free. Pixabay Audio Licence. These URLs work in browsers (CDN blocks curl/bots but serves browsers fine).
+// Royalty-free tracks served from incompetech.com (Kevin MacLeod, CC BY).
+// Verified to return HTTP 200 from a normal browser User-Agent.
 const TRACKS: Track[] = [
-  { id: "lofi-study",       title: "Lofi Study Beats",           vibe: "Chill · Focus",                  url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
-  { id: "deep-ambient",     title: "Deep Ambient",               vibe: "Calm · Long sessions",           url: "https://cdn.pixabay.com/audio/2022/03/15/audio_8cb749f7db.mp3" },
-  { id: "piano-focus",      title: "Piano for Focus",            vibe: "Soft · Study",                   url: "https://cdn.pixabay.com/audio/2021/11/13/audio_cb31e5a2a6.mp3" },
-  { id: "cinematic-calm",   title: "Cinematic Calm",             vibe: "Atmospheric · Deep work",        url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
-  { id: "ambient-flow",     title: "Ambient Flow",               vibe: "Smooth · Deep focus",            url: "https://cdn.pixabay.com/audio/2022/08/23/audio_d16737dc28.mp3" },
-  { id: "instrumental-1",   title: "Instrumental Focus",         vibe: "Mellow · Steady",                url: "https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3" },
-  { id: "lofi-energetic",   title: "Lo-fi Hip Hop — Energetic",  vibe: "Upbeat lofi · Fast BPM",         url: "https://cdn.pixabay.com/audio/2023/07/26/audio_9599873a35.mp3" },
-  { id: "binaural-40hz",    title: "Binaural Beats — Focus 40Hz",vibe: "Gamma waves · Deep concentration",url: "https://cdn.pixabay.com/audio/2022/09/13/audio_29f82fcf3d.mp3" },
-  { id: "study-trap",       title: "Study Trap — Fast BPM",      vibe: "Instrumental trap · No lyrics",  url: "https://cdn.pixabay.com/audio/2023/03/18/audio_5ff59ae74c.mp3" },
-  { id: "dnb-study",        title: "Drum & Bass Study",          vibe: "Fast rhythm · High energy",      url: "https://cdn.pixabay.com/audio/2023/06/12/audio_a2ad02ed3c.mp3" },
-  { id: "late-night",       title: "Late Night Drift",           vibe: "Soft · Late session",            url: "https://cdn.pixabay.com/audio/2022/10/30/audio_8880d42b1d.mp3" },
-  { id: "uptempo-ambient",  title: "Uptempo Ambient",            vibe: "Fast clean electronic · No lyrics",url: "https://cdn.pixabay.com/audio/2022/03/24/audio_1a609c4d8c.mp3" },
-  { id: "nature-calm",      title: "Nature & Focus",             vibe: "Binaural · Nature sounds",       url: "https://cdn.pixabay.com/audio/2022/06/07/audio_b9bfb58a2c.mp3" },
+  { id: "lobby-time",      title: "Lobby Time",            vibe: "Chill · Focus",                 url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lobby%20Time.mp3" },
+  { id: "deliberate",      title: "Deliberate Thought",    vibe: "Calm · Long sessions",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deliberate%20Thought.mp3" },
+  { id: "healing",         title: "Healing",               vibe: "Soft · Study",                  url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Healing.mp3" },
+  { id: "floating-cities", title: "Floating Cities",       vibe: "Atmospheric · Deep work",       url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3" },
+  { id: "inspired",        title: "Inspired",              vibe: "Smooth · Deep focus",           url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Inspired.mp3" },
+  { id: "carefree",        title: "Carefree",              vibe: "Mellow · Steady",               url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3" },
+  { id: "hep-cats",        title: "Hep Cats",              vibe: "Upbeat jazz · Energetic",       url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hep%20Cats.mp3" },
+  { id: "backbay",         title: "Backbay Lounge",        vibe: "Lounge · Smooth tempo",         url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Backbay%20Lounge.mp3" },
+  { id: "bossa",           title: "Bossa Antigua",         vibe: "Bossa nova · Light",            url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bossa%20Antigua.mp3" },
+  { id: "investigations",  title: "Investigations",        vibe: "Cinematic · Deep concentration", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Investigations.mp3" },
+  { id: "local-forecast",  title: "Local Forecast",        vibe: "Bright · Clean focus",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast%20-%20Elevator.mp3" },
+  { id: "easy-lemon",      title: "Easy Lemon",            vibe: "Light · Background",            url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Easy%20Lemon%2030%20second.mp3" },
+  { id: "cipher2",         title: "Cipher 2",              vibe: "Tense · Late session",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cipher2.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";
@@ -78,25 +79,17 @@ function getAudio(): HTMLAudioElement {
   if (audioEl) return audioEl;
   const a = new Audio();
   a.loop = true;
-  a.preload = "none"; // Don't preload — let user trigger
-  a.crossOrigin = "anonymous"; // Required for some CDNs
+  a.preload = "none";
+  // Intentionally NOT setting crossOrigin: many royalty-free CDNs do not send
+  // CORS headers, and we don't need pixel-level audio access — just playback.
   audioEl = a;
   return a;
 }
 
-// Safe play: tries crossOrigin first, falls back to no-cors on failure
+// Safe play: just set src and play. No CORS dance.
 async function safePlay(audio: HTMLAudioElement, url: string): Promise<void> {
-  audio.src = url;
-  audio.crossOrigin = "anonymous";
-  try {
-    await audio.play();
-    return;
-  } catch (e1) {
-    // Try without crossOrigin header (some CDNs reject CORS preflight)
-    audio.crossOrigin = "";
-    audio.src = url;
-    await audio.play();
-  }
+  if (audio.src !== url) audio.src = url;
+  await audio.play();
 }
 
 export const MusicPlayer = () => {

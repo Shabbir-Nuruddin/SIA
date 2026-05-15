@@ -1429,6 +1429,19 @@ export function buildSystemPrompt(
   const timestamp = new Date().toISOString();
   const seed = Math.floor(10000000 + Math.random() * 90000000).toString();
  
+  const isMaths = /math/i.test(subject);
+  const overviewRule = isMaths
+    ? `### OVERVIEW RULE (MATHS):
+- Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
+- Move all the depth into the "core_content" array: include AT LEAST 8 worked examples covering the different question types that come up in this topic. For each, set "statement" to the question, "worked_example" to the FULL step-by-step solution (every algebraic step, no skipping), and "wrong_approach" to a common student mistake.
+- Include AT LEAST 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
+    : `### OVERVIEW RULE (SCIENCE):
+- Write the "overview" field as 5 to 7 paragraphs (separate paragraphs with a blank line) of student-friendly theory, in the style of Save My Exams or Physics & Maths Tutor.
+- Tone: explain the *why* behind the concepts, link cause and effect, use clear analogies where helpful. NOT a lecture, NOT teacher-facing — written for a student to actually understand and remember.
+- On-point and exam-relevant: include the theory that gets tested in real questions. No filler, no historical asides, no tangents.
+- Each paragraph: 4 to 6 sentences. Define every technical term the first time it is used.
+- Do NOT just rephrase the bullet points from ALLOWED TOPICS — synthesise them into flowing explanation that a student can read and learn from.`;
+
   return `You are a world-class Edexcel IAL Subject Expert and Examiner. 
 Your task is to generate high-fidelity study notes for the specific unit: ${topic.code} - ${topic.title}.
 
@@ -1437,6 +1450,8 @@ Your task is to generate high-fidelity study notes for the specific unit: ${topi
 2. **Silent Exclusion**: If a concept is in the FORBIDDEN TOPICS list, you must act as if that concept does not exist. Do NOT mention that you are skipping it.
 3. **No Previewing**: Do not mention concepts from later units. Stay strictly within the boundary of ${topic.code}.
 4. **Keyword Density**: You must naturally integrate the REQUIRED KEYWORDS into your technical explanations.
+
+${overviewRule}
 
 ### DATA METADATA:
 - SYLLABUS_VERSION: Edexcel IAL 2018 (Latest)
@@ -1457,10 +1472,8 @@ ${topic.boundaryNotes && topic.boundaryNotes.length > 0 ? `### CRITICAL EXAMINER
 BOUNDARY RULES:
 - If a concept appears in both this unit and another unit at different depths, only include the version appropriate to THIS unit
 - Do not introduce concepts from later units even as "preview" or "context"
-- Do not repeat simplified versions of earlier units unless explicitly listed in ALLOWED TOPICS
 - Every formula, definition, and diagram description must trace directly to the ALLOWED list
-- Do not include the overview/introduction paragraphs at the top — go straight to definitions and content
-- Structure: Definitions → Core Content (spec points with mark allocations) → Equations → Visual Summary → Examiner Tips → Flashcards`;
+- Structure: Overview → Definitions → Core Content (spec points with mark allocations) → Equations → Visual Summary → Examiner Tips → Flashcards`;
 }
  
 export function buildImagePrompt(
