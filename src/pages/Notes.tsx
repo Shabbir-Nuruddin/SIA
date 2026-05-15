@@ -8,7 +8,7 @@ import { formattedHtmlProps, toPlainText, toFormattedHtml, renderMathInString } 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  BookOpen, Loader2, Sparkles, Highlighter, Trash2, Download,
+  BookOpen, Loader2, Sparkles, Highlighter, Trash2,
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";

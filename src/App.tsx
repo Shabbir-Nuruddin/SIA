@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { MaintenanceGate } from "@/components/MaintenanceGate";
+import { RequireAdmin } from "@/components/RequireAdmin";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
 
@@ -46,41 +46,40 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <MaintenanceGate>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<AuthPage />} />
-              
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/questions" element={<Questions />} />
-              <Route path="/mock-papers" element={<MockPapers />} />
-              <Route path="/mock-papers/new" element={<NewMockPaper />} />
-              <Route path="/mock-papers/exam/:id" element={<MockExam />} />
-              <Route path="/mock-papers/:id/results" element={<MockResults />} />
-              <Route path="/roadmap" element={<Roadmap />} />
-              <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/podcast" element={<Podcast />} />
-              <Route path="/papers" element={<PastPapers />} />
-              <Route path="/faq" element={<RequirePro featureName="Exam FAQs"><FAQ /></RequirePro>} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/exams" element={<Exams />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/feedback" element={<Feedback />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/refund" element={<Refund />} />
-              <Route path="/clarity-compass" element={<ClarityCompassHome />} />
-              <Route path="/clarity-compass/onboarding" element={<ClarityOnboarding />} />
-              <Route path="/clarity-compass/quiz" element={<ClarityQuiz />} />
-              <Route path="/clarity-compass/results" element={<ClarityResults />} />
-              <Route path="/clarity-compass/roadmap" element={<ClarityRoadmap />} />
-              <Route path="/clarity-compass/profile" element={<ClarityProfile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MaintenanceGate>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<AuthPage />} />
+
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/questions" element={<Questions />} />
+            {/* Admin-only previews */}
+            <Route path="/mock-papers" element={<RequireAdmin><MockPapers /></RequireAdmin>} />
+            <Route path="/mock-papers/new" element={<RequireAdmin><NewMockPaper /></RequireAdmin>} />
+            <Route path="/mock-papers/exam/:id" element={<RequireAdmin><MockExam /></RequireAdmin>} />
+            <Route path="/mock-papers/:id/results" element={<RequireAdmin><MockResults /></RequireAdmin>} />
+            <Route path="/roadmap" element={<RequireAdmin><Roadmap /></RequireAdmin>} />
+            <Route path="/roadmap/topic/:nodeId/notes" element={<RequireAdmin><RoadmapTopicNotes /></RequireAdmin>} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/podcast" element={<RequireAdmin><Podcast /></RequireAdmin>} />
+            <Route path="/papers" element={<PastPapers />} />
+            <Route path="/faq" element={<RequireAdmin><FAQ /></RequireAdmin>} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/exams" element={<Exams />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/refund" element={<Refund />} />
+            <Route path="/clarity-compass" element={<RequireAdmin><ClarityCompassHome /></RequireAdmin>} />
+            <Route path="/clarity-compass/onboarding" element={<RequireAdmin><ClarityOnboarding /></RequireAdmin>} />
+            <Route path="/clarity-compass/quiz" element={<RequireAdmin><ClarityQuiz /></RequireAdmin>} />
+            <Route path="/clarity-compass/results" element={<RequireAdmin><ClarityResults /></RequireAdmin>} />
+            <Route path="/clarity-compass/roadmap" element={<RequireAdmin><ClarityRoadmap /></RequireAdmin>} />
+            <Route path="/clarity-compass/profile" element={<RequireAdmin><ClarityProfile /></RequireAdmin>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
