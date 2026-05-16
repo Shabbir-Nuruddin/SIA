@@ -1,0 +1,1572 @@
+// ============================================================
+// syllabusData_uk_alevel.ts
+// PLACE THIS FILE AT: src/lib/syllabusData_uk_alevel.ts
+//
+// HOW TO USE:
+//   import { UK_ALEVEL_SYLLABUS } from '@/lib/syllabusData_uk_alevel'
+//   import { buildSystemPrompt, buildImagePrompt } from '@/lib/syllabusData_uk_alevel'
+//
+// SOURCES: All content verified against current official UK specifications.
+// Computer Science: AQA 7517 (2023-2025), OCR H446 (2023-2025)
+// Physics: AQA 7408 (2023-2025), Edexcel 9PH0 (2023-2025)
+// Mathematics: AQA 7357 (2023-2025), Edexcel 9MA0 (2023-2025), OCR H240 (MEI)
+//
+// STRUCTURE:
+//   AS = Year 1 content (also examined standalone in some boards)
+//   A2 = Year 2 content (A Level only)
+//   All units include: code, title, level, allowedTopics,
+//                      forbiddenTopics, requiredKeywords, boundaryNotes
+//
+// BOARDS COVERED:
+//   Computer Science: AQA 7517 (primary) with OCR H446 cross-references
+//   Physics:          AQA 7408 (primary) with Edexcel 9PH0 cross-references
+//   Mathematics:      AQA 7357 + Edexcel 9MA0 (combined; core content identical)
+// ============================================================
+
+export interface TopicData {
+  code: string;
+  title: string;
+  level: 'AS' | 'A2' | 'Practical' | 'Year1' | 'Year2';
+  paper: string;
+  allowedTopics: string[];
+  forbiddenTopics: string[];
+  requiredKeywords: string[];
+  boundaryNotes?: string[];
+}
+
+export interface SubjectData {
+  [unitKey: string]: TopicData;
+}
+
+export interface UKALevelDatabase {
+  [subject: string]: SubjectData;
+}
+
+// ============================================================
+// UK A LEVEL SYLLABUS DATABASE
+// ============================================================
+
+export const UK_ALEVEL_SYLLABUS: UKALevelDatabase = {
+
+  // ===========================================================
+  // UK A LEVEL COMPUTER SCIENCE
+  // AQA 7517 — assessed across two papers + NEA (non-exam assessment)
+  // Paper 1: On-screen programming (2h30m) — problem solving, algorithms, programming
+  // Paper 2: Written paper (2h30m) — theory topics
+  // NEA: Programming project (~70 hours; internally assessed, externally moderated)
+  // ===========================================================
+  computer_science: {
+
+    unit1_fundamentals_programming: {
+      code: 'AQA-CS-1',
+      title: 'Fundamentals of Programming',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        // PROGRAMMING CONCEPTS
+        'Variables and data types — integer (whole numbers; e.g. int in Python/Java; no decimal); real/float (decimal numbers; floating point representation); Boolean (True/False; logical operations); character (single character; ASCII); string (sequence of characters; ordered; indexed from 0); casting between types (int(), float(), str(), bool()); declaring and initialising variables; constants (values that do not change during execution; named convention in capitals); scope of variables: local (declared inside function; accessible only within that function) vs global (declared outside all functions; accessible everywhere; use global keyword in Python to modify)',
+        'Sequence, selection and iteration — sequence: statements executed in order; selection: IF, ELIF, ELSE statements; nested conditions; boolean expressions using AND, OR, NOT; comparison operators (==, !=, <, >, <=, >=); iteration: FOR loop (definite; known number of iterations; FOR i IN RANGE(start, stop, step)); WHILE loop (indefinite; condition checked before each iteration); DO-WHILE / REPEAT-UNTIL (condition checked after each iteration; always executes at least once); nested loops; BREAK (exit loop immediately); CONTINUE (skip to next iteration)',
+        'Subroutines — procedures (subroutine that does not return a value; may have side effects); functions (subroutine that returns a value; pure functions have no side effects); parameters (variables in subroutine definition) vs arguments (values passed when calling); passing by value (copy of value passed; original unchanged); passing by reference (memory address passed; original can be modified); return values; calling subroutines; benefits: modularity; reuse; easier testing and debugging; abstraction; decomposition',
+        'Arithmetic and comparison operators — addition (+); subtraction (−); multiplication (*); division (/ gives float in Python 3; DIV or // for integer division); modulo/remainder (MOD or %); exponentiation (**); integer division: 17 DIV 5 = 3; modulo: 17 MOD 5 = 2; operator precedence (BIDMAS: brackets; indices/exponents; division/multiplication; addition/subtraction)',
+        'String operations — concatenation (joining strings); length (LEN); substring/slice (str[start:stop:step] in Python); indexing (str[index]); upper/lower case conversion (.upper(), .lower()); find/search (.find(), .index()); split and join (.split(), .join()); checking membership (IN operator); ASCII value: ORD(char) → integer; CHR(integer) → character; string comparison uses lexicographic (dictionary) ordering based on ASCII values',
+        'Arrays and lists — one-dimensional array/list: ordered sequence of elements; same data type in arrays (static typing); Python lists can mix types; indexed from 0; accessing elements (arr[index]); modifying elements (arr[index] = value); 2D arrays/lists: array of arrays; accessed with two indices (arr[row][col]); traversing with nested loops; common operations: append, remove, insert, pop, sort, length; difference between arrays (fixed size, fixed type) and lists (dynamic size, flexible)',
+        'File handling — opening files (OPEN filename FOR READ/WRITE/APPEND); reading: read entire file, read line by line; writing: write string to file, writeline; closing files (always close to save changes and free resources); CSV files: comma-separated values; parsing with split(","); EOF (end of file) detection; exception handling in file operations',
+        'Exception handling — try/except (try: block of code; except ExceptionType: error handling); types of exceptions: TypeError, ValueError, IndexError, FileNotFoundError, ZeroDivisionError; FINALLY clause: always executes (cleanup); RAISE: raising exceptions manually; benefits: prevents program crashing; user-friendly error messages; graceful degradation',
+        'Object-oriented programming (OOP) — class: blueprint/template for creating objects; defines attributes (data/properties) and methods (functions/behaviour); object: instance of a class; instantiation: creating an object from a class (myObj = MyClass()); __init__ method: constructor; called automatically when object created; sets initial attribute values; self: reference to current object instance; accessing attributes: myObj.attribute; calling methods: myObj.method(); encapsulation: bundling data and methods together; hiding internal implementation',
+        'OOP — inheritance and polymorphism — inheritance: child class inherits attributes and methods from parent class; child extends or overrides parent; super(): call parent class method; polymorphism: same method name behaves differently in different classes (method overriding); IS-A relationship (dog IS-A animal); HAS-A relationship (car HAS-A engine); advantages: code reuse; extensibility; models real-world relationships; abstraction: hiding complex implementation behind simple interface; abstract classes: cannot be instantiated directly; define common interface for subclasses',
+        'Recursion — subroutine that calls itself; base case: condition that stops recursion (without it: infinite recursion → stack overflow); recursive case: call to self with reduced problem; call stack: each call adds a frame; how recursion works: Fibonacci (fib(n) = fib(n-1) + fib(n-2); base case fib(0)=0, fib(1)=1); factorial (n! = n × (n-1)!; base case 0!=1); binary search (recursive version); quicksort; advantages: elegant code for naturally recursive problems; disadvantages: overhead from function calls; stack overflow risk; harder to trace; iterative equivalents usually more efficient',
+        'IDE features — code editor with syntax highlighting; auto-completion; indentation; debugging tools: breakpoints (pause execution at specific line); stepping through code (step over, step into, step out); watching variable values; call stack inspection; interpreter vs compiler; run/execute; error messages: syntax errors (caught before running); runtime errors (occur during execution); logic errors (program runs but gives wrong output)',
+      ],
+      forbiddenTopics: [
+        'Assembly language programming — covered in unit on low-level programming',
+        'Hardware components (CPU, RAM) — covered in computer systems units',
+        'Network protocols — covered in networks unit',
+        'Database theory (SQL, normalisation) — covered in databases unit',
+        'Cryptography algorithms — covered in security unit',
+        'Big O notation formally — covered in algorithms unit',
+        'Parallel and concurrent programming — A2 extension only',
+      ],
+      requiredKeywords: [
+        'integer', 'float', 'Boolean', 'string', 'character', 'casting', 'local scope', 'global scope',
+        'selection', 'iteration', 'FOR loop', 'WHILE loop', 'REPEAT-UNTIL', 'nested loop',
+        'procedure', 'function', 'parameter', 'argument', 'return value', 'pass by value', 'pass by reference',
+        'DIV', 'MOD', 'integer division', 'modulo', 'operator precedence',
+        'concatenation', 'substring', 'ORD', 'CHR', 'ASCII', 'lexicographic',
+        'array', 'list', '2D array', 'indexed from 0',
+        'file handling', 'open', 'read', 'write', 'close', 'CSV', 'EOF',
+        'try', 'except', 'exception handling', 'TypeError', 'ValueError',
+        'class', 'object', 'instance', 'constructor', '__init__', 'self', 'encapsulation',
+        'inheritance', 'polymorphism', 'super()', 'IS-A', 'HAS-A', 'abstraction',
+        'recursion', 'base case', 'recursive case', 'call stack', 'stack overflow',
+        'breakpoint', 'syntax error', 'runtime error', 'logic error',
+      ],
+      boundaryNotes: [
+        'Pseudocode must follow AQA pseudocode format in exams — students should practise both pseudocode and Python.',
+        'Pass by value vs pass by reference: Python passes objects by reference but immutables appear pass-by-value — explain clearly.',
+        'Recursion: always identify base case and recursive case explicitly.',
+        'OOP: encapsulation, inheritance, polymorphism and abstraction are the four pillars — all must be defined.',
+      ],
+    },
+
+    unit2_fundamentals_data_structures: {
+      code: 'AQA-CS-2',
+      title: 'Fundamentals of Data Structures',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // QUEUES
+        'Queue — FIFO (First In First Out) data structure; items added at rear (enqueue); items removed from front (dequeue); front pointer and rear pointer; operations: enqueue (add to rear), dequeue (remove from front), peek/front (view front without removing), isEmpty (check if no elements), isFull (for static implementations); implementations: linear queue (array-based; problem: space not reused after dequeue; items not physically moved); circular queue (array-based; rear pointer wraps around to start when end reached; modulo arithmetic: rear = (rear + 1) MOD maxSize; efficient space use); priority queue (items assigned priority; higher priority dequeued first; regardless of arrival order); applications: print spooler; keyboard buffer; CPU scheduling; breadth-first search (BFS)',
+        // STACKS
+        'Stack — LIFO (Last In First Out) data structure; items added and removed from top only; top pointer tracks current top; operations: push (add item to top; top = top + 1; check for stack overflow — isFull), pop (remove item from top; top = top − 1; check for stack underflow — isEmpty), peek (view top item without removing), isEmpty, isFull; implementations: array with top pointer; linked list; applications: function call stack (storing return addresses and local variables); undo operations in editors; expression evaluation (infix to postfix); backtracking algorithms; depth-first search (DFS); recursion implementation',
+        // LINKED LISTS
+        'Linked list — collection of nodes; each node contains: data field and pointer/next field (address of next node); head pointer points to first node; last node points to null/None; advantages over arrays: dynamic size (no need to declare size in advance); efficient insertion and deletion at any position (just update pointers; O(1) if position known); disadvantages: no random access (must traverse from head — O(n)); extra memory for pointers; traversal: start at head; follow next pointers until null; inserting node: update pointers to include new node; deleting node: update previous node\'s pointer to skip deleted node; singly linked list (one-directional); doubly linked list (nodes have prev and next pointer; can traverse both ways); practical implementation with arrays (two arrays: data and next; freelist for available spaces)',
+        // TREES
+        'Trees — hierarchical data structure; root (top node; no parent); nodes (contain data); edges/branches (connect nodes); parent/child relationship; leaf nodes (no children); subtrees; depth/height; binary tree: each node has at most two children (left child, right child); binary search tree (BST): ordered; left subtree < node value < right subtree; allows efficient searching (O(log n) if balanced); BST operations: insert (follow left/right rule recursively until null space found); search (compare; go left if smaller, right if larger, until found or null); delete (three cases: leaf node; node with one child; node with two children — replace with in-order successor); tree traversals: pre-order (root, left, right — NLR); in-order (left, root, right — LNR; gives ascending order for BST); post-order (left, right, root — LRN; useful for evaluating expressions); applications: file systems; decision trees; game trees; expression trees; Huffman coding',
+        // HASH TABLES
+        'Hash tables — data structure for fast key-value lookup; hash function: maps key → index in array; ideal: O(1) average for insert, search, delete; hash function properties: deterministic (same key always same index); fast to compute; distributes keys uniformly; minimises collisions; example hash functions: key MOD tableSize (for integer keys); summing ASCII values of characters MOD tableSize; collision: two different keys hash to same index; collision resolution: linear probing (if index occupied, try index+1, +2, ... until empty space — simple but causes clustering); quadratic probing (try index+1², +2², +3²... — reduces clustering); chaining/open hashing (each index stores a linked list of colliding entries; no array size limit); load factor = number of entries / table size; as load factor increases, collisions more likely; rehashing: when load factor too high, create larger table and re-insert all entries; applications: symbol tables in compilers; database indexing; sets; caches; Python dictionaries',
+        // GRAPHS
+        'Graphs — collection of vertices (nodes) and edges (connections); types: undirected graph (edges have no direction; A−B same as B−A); directed graph/digraph (edges have direction; A→B ≠ B→A); weighted graph (edges have numerical weight/cost; e.g. distances); unweighted graph; connected graph (path exists between every pair of vertices); disconnected; cyclic (contains cycles); acyclic (no cycles); DAG (directed acyclic graph); tree is a special case of DAG; representations: adjacency matrix (2D array; matrix[i][j] = 1/weight if edge exists, 0 otherwise; space O(V²); O(1) edge lookup; inefficient for sparse graphs; symmetric for undirected); adjacency list (list of neighbours for each vertex; space O(V+E); efficient for sparse graphs; O(degree) edge lookup); applications: social networks; maps and navigation; internet routing; dependencies; scheduling',
+        // ABSTRACT DATA TYPES
+        'Abstract data types (ADTs) — mathematical model of data type; defines operations and behaviour without specifying implementation; ADT specifies WHAT operations do, not HOW they are implemented; examples: Stack ADT (push, pop, peek, isEmpty, isFull); Queue ADT (enqueue, dequeue, peek, isEmpty, isFull); List ADT; Set ADT; Map/Dictionary ADT; encapsulation of data structure; benefits: separation of interface from implementation; implementation can change without affecting users; information hiding; types already covered: stack, queue, linked list, tree, graph, hash table all as ADTs; dictionaries/hash maps: key-value pairs; O(1) average operations',
+      ],
+      forbiddenTopics: [
+        'AVL trees and self-balancing trees — A2 extension only',
+        'Red-black trees — beyond specification',
+        'Advanced graph algorithms (Bellman-Ford, Floyd-Warshall) — not in AQA specification',
+        'B-trees — database extension, not A Level CS core',
+        'Heaps as a data structure — not explicitly in AQA 7517 core',
+        'Trie data structure — not in specification',
+      ],
+      requiredKeywords: [
+        'FIFO', 'LIFO', 'queue', 'stack', 'enqueue', 'dequeue', 'push', 'pop', 'peek',
+        'circular queue', 'priority queue', 'modulo arithmetic',
+        'linked list', 'node', 'pointer', 'head pointer', 'null', 'traversal',
+        'singly linked', 'doubly linked', 'freelist',
+        'binary tree', 'binary search tree', 'root', 'leaf', 'left child', 'right child',
+        'pre-order', 'in-order', 'post-order',
+        'hash table', 'hash function', 'collision', 'linear probing', 'chaining', 'load factor',
+        'graph', 'vertex', 'edge', 'directed', 'undirected', 'weighted',
+        'adjacency matrix', 'adjacency list',
+        'abstract data type', 'ADT', 'interface', 'implementation',
+      ],
+      boundaryNotes: [
+        'Stack overflow: occurs when pushing to full stack; stack underflow: popping from empty stack — both must be handled.',
+        'BST in-order traversal gives sorted order — this is a key property to know.',
+        'Hash table: distinguish between open addressing (linear/quadratic probing) and chaining — both required.',
+        'Adjacency matrix vs list: matrix better for dense graphs; list better for sparse — justify choice.',
+      ],
+    },
+
+    unit3_algorithms: {
+      code: 'AQA-CS-3',
+      title: 'Algorithms',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // ALGORITHM DESIGN
+        'Algorithm design techniques — decomposition: breaking complex problem into smaller sub-problems; each sub-problem solved independently; combine solutions; abstraction: identifying essential features; removing irrelevant detail; creating models; pattern recognition: identifying similarities between problems; solutions to one can apply to others; generalisation: extending solution to broader class of problems; divide and conquer: split problem in half repeatedly; solve each half; combine (used in merge sort, binary search, quicksort); greedy algorithms: make locally optimal choice at each step; hope to find global optimum; Dijkstra\'s algorithm is greedy; dynamic programming: break into overlapping subproblems; store solutions to avoid recomputation (memoisation/tabulation); used in some shortest path algorithms',
+        // SEARCHING
+        'Linear search — check each element in turn from first to last; O(n) time complexity; works on unsorted and sorted data; simple to implement; inefficient for large datasets; pseudocode: FOR each element: IF element = target THEN return index; after loop: return -1 (not found)',
+        'Binary search — requires sorted data; compare target with middle element; if equal: found; if target < middle: search left half; if target > middle: search right half; repeat until found or subarray empty; O(log n) time; significantly faster than linear for large sorted datasets; pseudocode: low = 0; high = n-1; WHILE low <= high: mid = (low + high) DIV 2; IF arr[mid] = target THEN return mid; ELSE IF arr[mid] < target THEN low = mid + 1; ELSE high = mid − 1; RETURN -1; can be implemented iteratively or recursively',
+        // SORTING
+        'Bubble sort — compare adjacent elements; swap if in wrong order; largest bubbles to end after each pass; repeat for n-1 passes; optimisation: if no swaps in a pass, already sorted (stop early); time complexity: O(n²) worst and average; O(n) best (already sorted with optimisation); space: O(1) (in-place); stable sort; simple but inefficient for large data',
+        'Insertion sort — build sorted portion at left; for each element: remove from unsorted; insert into correct position in sorted portion by shifting larger elements right; time: O(n²) worst/average; O(n) best (nearly sorted); O(1) space; stable; efficient for small or nearly sorted datasets; works well in practice for small n',
+        'Merge sort — divide and conquer; split array in half recursively until single elements; merge pairs of sorted subarrays into larger sorted subarrays; repeat until fully sorted; time: O(n log n) all cases; space: O(n) extra space for merging; stable; efficient and predictable; not in-place; merge step: two pointers compare heads of both halves; smaller added to result; repeat',
+        'Quicksort — divide and conquer; choose pivot; partition: elements smaller than pivot left, larger right (pivot in correct final position); recursively quicksort left and right partitions; time: O(n log n) average; O(n²) worst (if pivot always min or max — bad choice); O(log n) space average (recursive call stack); in-place; not stable; generally fastest in practice; pivot choice strategies: first element, last element, middle, random, median-of-three',
+        // GRAPH ALGORITHMS
+        'Depth-first search (DFS) — explore as far as possible along each branch before backtracking; uses stack (implicit via recursion or explicit); mark visited nodes to avoid cycles; algorithm: push start node; WHILE stack not empty: pop node; if not visited: mark visited; process node; push unvisited neighbours; applications: topological sort; finding connected components; detecting cycles; maze solving; time: O(V + E)',
+        'Breadth-first search (BFS) — explore all neighbours at current depth before going deeper; uses queue; mark visited nodes; algorithm: enqueue start node; WHILE queue not empty: dequeue node; if not visited: mark visited; process; enqueue unvisited neighbours; finds shortest path in unweighted graph; applications: shortest path; network broadcasting; web crawling; finding nearby nodes in social network; time: O(V + E)',
+        'Dijkstra\'s shortest path algorithm — finds shortest path from source to all other vertices in weighted graph (non-negative weights); greedy algorithm; algorithm: initialise all distances to infinity; source distance = 0; priority queue of (distance, vertex); WHILE queue not empty: take vertex u with minimum distance; for each neighbour v: if dist[u] + weight(u,v) < dist[v]: update dist[v]; update previous[v]; re-add to priority queue; reconstructing path: follow previous[] pointers from destination back to source; time: O((V + E) log V) with binary heap; does NOT work with negative weights (use Bellman-Ford instead)',
+        'A* search — extension of Dijkstra\'s; uses heuristic h(n) to estimate distance from node n to goal; f(n) = g(n) + h(n) where g(n) = actual cost from start to n; prioritises nodes with lower f; faster than Dijkstra if good heuristic; admissible heuristic: never overestimates actual cost (ensures optimal path); example: Euclidean distance as heuristic for map navigation; widely used in games and navigation',
+        // COMPLEXITY
+        'Time complexity and Big O notation — measures how execution time scales with input size n; Big O: worst-case asymptotic complexity; ignore constants and lower-order terms; O(1) constant (direct access, hash table lookup); O(log n) logarithmic (binary search, balanced BST operations); O(n) linear (linear search, traversal); O(n log n) linearithmic (merge sort, quicksort average); O(n²) quadratic (bubble sort, insertion sort worst, nested loops); O(2ⁿ) exponential (brute-force travelling salesman, some recursive algorithms); O(n!) factorial (permutations); comparing algorithms: prefer lower Big O for large n; constant factors matter for small n; space complexity: amount of memory used; O(1) in-place sorting; O(n) merge sort (extra array); O(log n) recursive quicksort (call stack)',
+        'Tractable vs intractable problems — tractable: solvable in polynomial time O(nᵏ) for some k; feasible for large inputs; intractable: no known polynomial-time algorithm; grows too fast for large n; exponential or factorial time; examples: TSP (Travelling Salesman Problem) — O(n!); graph colouring; knapsack problem (decision version); NP-complete problems: class of problems equivalent in difficulty; solution verifiable in polynomial time but no known polynomial solution; if one NP-complete problem solved in polynomial time, all are; P vs NP: unsolved question — is P (polynomial) = NP (non-deterministic polynomial)? Most believe P ≠ NP; practical handling of intractable problems: heuristic algorithms (approximate; near-optimal solution in reasonable time); e.g. nearest-neighbour for TSP',
+      ],
+      forbiddenTopics: [
+        'Heap sort — not explicitly required in AQA 7517',
+        'Shell sort — not in specification',
+        'Radix sort — not in specification',
+        'Bellman-Ford algorithm — not in AQA core (mentioned only for negative weights)',
+        'Floyd-Warshall — not in specification',
+        'Red-black trees, AVL trees — not in AQA specification',
+        'Amortised analysis — A2 extension only',
+        'NP-hardness formal proofs — beyond specification',
+      ],
+      requiredKeywords: [
+        'decomposition', 'abstraction', 'pattern recognition', 'divide and conquer', 'greedy algorithm',
+        'linear search', 'O(n)', 'binary search', 'O(log n)', 'sorted data',
+        'bubble sort', 'O(n²)', 'swap', 'pass',
+        'insertion sort', 'sorted portion', 'shift',
+        'merge sort', 'O(n log n)', 'split', 'merge', 'stable',
+        'quicksort', 'pivot', 'partition', 'in-place',
+        'DFS', 'depth-first search', 'stack', 'backtracking',
+        'BFS', 'breadth-first search', 'queue', 'shortest path unweighted',
+        'Dijkstra', 'shortest path weighted', 'priority queue', 'non-negative weights',
+        'A* search', 'heuristic', 'admissible', 'f(n) = g(n) + h(n)',
+        'Big O notation', 'time complexity', 'space complexity', 'O(1)', 'O(n²)', 'O(2ⁿ)',
+        'tractable', 'intractable', 'polynomial time', 'NP-complete', 'P vs NP',
+        'heuristic algorithm', 'TSP', 'travelling salesman',
+      ],
+      boundaryNotes: [
+        'Merge sort is O(n log n) in ALL cases; quicksort is O(n²) worst case — this distinction is examined.',
+        'Dijkstra requires non-negative weights — must state this condition.',
+        'Big O: focus on WORST case unless stated otherwise; drop constants (2n is O(n) not O(2n)).',
+        'NP-complete: problems verifiable in polynomial time but no known polynomial solution.',
+      ],
+    },
+
+    unit4_theory_computation: {
+      code: 'AQA-CS-4',
+      title: 'Theory of Computation',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // ABSTRACTION AND MODELLING
+        'Abstraction in problem solving — removing unnecessary detail; focusing on relevant aspects; levels of abstraction; creating models; representational abstraction: mapping real-world problem to data structures and algorithms; abstraction layers: hardware → OS → applications; procedural abstraction (subroutines hide implementation); data abstraction (ADTs); information hiding; computational thinking: using computer science concepts to solve problems; formulating problems in way computers can solve',
+        // REGULAR LANGUAGES
+        'Regular expressions — pattern-matching language for describing sets of strings; symbols: literal characters; . (any single character); * (zero or more occurrences of previous); + (one or more); ? (zero or one); | (alternation — OR); () (grouping); [] (character class; e.g. [aeiou] matches any vowel; [a-z] matches any lowercase letter); [^] (negation); ^ (start of string); $ (end of string); examples: a* (zero or more a\'s); ab+ (a followed by one or more b\'s); (ab)* (zero or more repetitions of ab); a|b (either a or b); [0-9]+ (one or more digits); validation uses (email format, phone numbers, postcodes); NFA/DFA equivalence to regular expressions',
+        'Finite state machines (FSMs) — abstract model of computation; components: finite set of states; input alphabet (set of possible inputs); transition function (current state + input → next state); start state; set of accepting/final states; DFA (deterministic FSA): exactly one transition per state per input; no ambiguity; NFA (non-deterministic FSA): can have zero or multiple transitions per state per input; ε-transitions (move without consuming input); NFAs and DFAs are equivalent in power (both recognise exactly the regular languages); state transition diagrams: circles = states; arrows = transitions; double circles = accepting states; arrow with no source = start state; FSM applications: lexical analysis (tokenising source code); pattern matching; protocol design; vending machines; traffic lights',
+        'Mealy and Moore machines — output automata; Moore machine: output depends only on current state; output associated with state; Mealy machine: output depends on current state AND current input; output associated with transitions; converting between Mealy and Moore; applications: sequence detectors; circuit design',
+        // CONTEXT-FREE LANGUAGES
+        'Context-free grammars (CFGs) — formal grammar for describing context-free languages; more powerful than regular expressions; components: terminals (actual symbols in language); non-terminals (symbols that can be replaced); production rules (non-terminal → sequence of terminals and non-terminals); start symbol; Backus-Naur Form (BNF): notation for CFGs; ::= means "can be replaced by"; | means "or"; recursive productions allow infinite language from finite rules; example: <digit> ::= 0|1|2|3|4|5|6|7|8|9; <integer> ::= <digit> | <integer><digit>; Extended BNF (EBNF): adds repetition {}, optional [], grouping (); parse trees: tree representation of derivation; shows structure of string in grammar; ambiguous grammar: string has more than one parse tree; most programming language syntax defined by CFG; regular languages ⊂ context-free languages',
+        // TURING MACHINES
+        'Turing machines — theoretical model of computation (Alan Turing, 1936); components: infinite tape divided into cells (each holds symbol from alphabet); read/write head (reads current cell; can write; can move left or right); finite set of states (including start state and halt state); transition function (current state + symbol read → new state + symbol to write + direction of head movement); language recognised: set of all inputs that lead to accept state (halt); Turing machine as universal computer; Church-Turing thesis: any effectively calculable function can be computed by a Turing machine; all general-purpose computers are equivalent to Turing machines; universal Turing machine (UTM): can simulate any other Turing machine given its description and input; basis for von Neumann architecture; halting problem: given a program and input, will the program halt or run forever? Proven by Turing to be undecidable (no algorithm can solve it for all cases); Turing completeness: a system is Turing complete if it can simulate any Turing machine; most programming languages are Turing complete',
+        // DECIDABILITY AND COMPUTABILITY
+        'Decidability — decision problem: problem with yes/no answer; decidable: there exists an algorithm that always halts with correct yes/no answer; undecidable: no such algorithm exists; the halting problem is undecidable (Turing proved by diagonalisation/contradiction); Rice\'s theorem: any non-trivial semantic property of programs is undecidable; semi-decidable: algorithm halts with yes if answer is yes; may not halt if answer is no; computability: what problems CAN be solved by computers in principle; distinct from tractability (what CAN be solved efficiently)',
+        // SETS AND LANGUAGES
+        'Sets and language theory — set: unordered collection of distinct elements; set operations: union (A ∪ B), intersection (A ∩ B), difference (A − B), complement (A\'), subset (A ⊆ B); Cartesian product (A × B): set of all ordered pairs; empty set ∅; cardinality: number of elements; infinite sets: countably infinite (integers, rationals) vs uncountably infinite (reals); Cantor\'s diagonalisation; formal language: set of strings over an alphabet; alphabet Σ: finite set of symbols; string: finite sequence of symbols from alphabet; Kleene star Σ*: set of all strings over Σ (including empty string ε); language L ⊆ Σ*; regular languages: recognised by finite automata / described by regular expressions; context-free languages: recognised by pushdown automata / described by CFGs; recursively enumerable: recognised by Turing machine',
+      ],
+      forbiddenTopics: [
+        'Pushdown automata (PDA) in detail — AQA mentions context-free but not PDA operations',
+        'Linear bounded automata — beyond AQA specification',
+        'Formal proofs of undecidability beyond halting problem — extension',
+        'Lambda calculus — not in AQA specification',
+        'Type theory — not in specification',
+      ],
+      requiredKeywords: [
+        'abstraction', 'computational thinking', 'representational abstraction',
+        'regular expression', 'pattern matching', 'character class', 'alternation', 'Kleene star',
+        'finite state machine', 'FSM', 'DFA', 'NFA', 'states', 'transitions', 'accepting state', 'start state',
+        'state transition diagram', 'ε-transition', 'regular language',
+        'context-free grammar', 'CFG', 'BNF', 'EBNF', 'terminal', 'non-terminal', 'production rule',
+        'parse tree', 'ambiguous grammar',
+        'Turing machine', 'tape', 'read/write head', 'transition function', 'halt state',
+        'Church-Turing thesis', 'universal Turing machine', 'halting problem', 'undecidable',
+        'decidable', 'semi-decidable', 'computability',
+        'set', 'union', 'intersection', 'Cartesian product', 'alphabet', 'Kleene star Σ*',
+        'formal language', 'recursively enumerable',
+      ],
+      boundaryNotes: [
+        'Halting problem: proved undecidable by contradiction — if a program H solves it, apply H to itself → contradiction.',
+        'DFA vs NFA: both recognise same class (regular languages) but DFA deterministic; NFA may be simpler to design.',
+        'BNF notation: ::= means "is defined as"; | means OR; <> encloses non-terminals.',
+        'Turing completeness: any language that can implement conditionals, loops, and arbitrary memory is Turing complete.',
+      ],
+    },
+
+    unit5_computer_systems: {
+      code: 'AQA-CS-5',
+      title: 'Fundamentals of Computer Systems',
+      level: 'Year1',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // HARDWARE AND SOFTWARE
+        'Hardware and software — hardware: physical components of a computer system; software: programs and data that run on hardware; system software: operating system; compilers/interpreters; utility programs; device drivers; application software: programs for end users; relationship: hardware executes instructions; software provides instructions; firmware: software embedded in hardware (ROM); BIOS (Basic Input/Output System): initialises hardware; loads OS from disk; modern systems use UEFI',
+        'Operating system (OS) — software that manages hardware resources and provides environment for applications; functions: process management (creating, scheduling, terminating processes; allocating CPU time); memory management (allocating/deallocating RAM; virtual memory; paging); file system management (organising files on storage; directories; read/write/delete); device management (device drivers; I/O control); security (user authentication; access control; encryption); user interface (CLI: command line; GUI: graphical); OS types: single-user/multi-user; single-tasking/multi-tasking; real-time (RTOS for time-critical systems); batch processing; distributed; examples: Windows, macOS, Linux (Unix-based), Android, iOS',
+        'CPU architecture — central processing unit; von Neumann architecture: CPU + memory + I/O; stored program concept: instructions and data stored together in same memory; fetch-decode-execute (FDE) cycle; components of CPU: ALU (arithmetic logic unit: performs arithmetic +, −, ×, ÷ and logic AND, OR, NOT, XOR operations); control unit (CU: directs operations; generates control signals; manages FDE cycle); registers (small, very fast temporary storage inside CPU): PC (program counter: holds address of next instruction to fetch); MAR (memory address register: holds address being accessed in memory); MDR (memory data register: holds data being read/written to memory); CIR (current instruction register: holds current instruction being decoded/executed); accumulator (ACC: holds result of ALU operations; used in intermediate calculations); general-purpose registers; status register (condition codes: carry, zero, negative, overflow flags)',
+        'Fetch-decode-execute cycle — FETCH: PC content (address of next instruction) copied to MAR; memory read: instruction at MAR address fetched to MDR; MDR content copied to CIR; PC incremented (PC = PC + 1; points to next instruction); DECODE: CU decodes instruction in CIR (interprets opcode and operand); EXECUTE: CU carries out instruction (ALU performs operation if needed; result stored in ACC or register; memory written if STORE instruction; PC updated if branch/jump instruction); cycle repeats; pipelining: overlapping FDE stages for different instructions simultaneously; increases throughput; hazards: data hazard, control hazard, structural hazard',
+        'Memory — RAM (random access memory: volatile; read/write; stores currently running programs and data); ROM (read only memory: non-volatile; fixed content; stores firmware/BIOS); cache memory: very fast SRAM between CPU and RAM; reduces average memory access time; temporal locality (recently used data likely used again); spatial locality (nearby data likely used); L1 cache (fastest, smallest, in CPU core); L2 cache (larger, slower, in CPU or nearby); L3 cache (shared between cores); virtual memory: using secondary storage as extension of RAM; pages swapped between RAM and disk (paging); allows running programs larger than RAM; thrashing: excessive paging hurts performance; flash memory: non-volatile; electrically erasable; SSDs; USB drives',
+        'Secondary storage — non-volatile; persistent data; HDD (hard disk drive: magnetic platters; read/write heads; sectors/tracks; slower; mechanical; large capacity; cheap per GB); SSD (solid state drive: NAND flash; no moving parts; faster; more expensive per GB; lighter; silent; more reliable); optical discs (CD, DVD, Blu-ray: laser reads/writes; lower capacity; portable); cloud storage (data stored on remote servers; accessed over internet; scalable; subscription model; data privacy concerns)',
+        'Logic gates and Boolean algebra — NOT gate (¬A; output = complement of input); AND gate (A · B; output 1 only if both inputs 1); OR gate (A + B; output 1 if either input 1); NAND gate (¬(A·B)); NOR gate (¬(A+B)); XOR gate (A ⊕ B; output 1 if inputs different); XNOR gate (¬(A⊕B)); truth tables (all combinations of inputs and outputs); Boolean algebra: A · 0 = 0; A · 1 = A; A + 0 = A; A + 1 = 1; A · A = A; A + A = A; A · ¬A = 0; A + ¬A = 1; De Morgan\'s laws: ¬(A·B) = ¬A + ¬B; ¬(A+B) = ¬A · ¬B; double negation: ¬(¬A) = A; distributive: A·(B+C) = A·B + A·C; sum of products (SOP) form; Karnaugh maps (K-maps): 2, 3 and 4 variable; grouping 1s in powers of 2 (1, 2, 4, 8); minimising Boolean expressions; half adder and full adder circuits',
+        'Number systems — denary (base 10); binary (base 2; 0 and 1); hexadecimal (base 16; 0-9, A-F); converting between bases: denary to binary (repeated division by 2; remainders give binary digits); binary to denary (sum of place values: 128, 64, 32, 16, 8, 4, 2, 1); hexadecimal: each hex digit = 4 binary digits; denary to hex (via binary or repeated division by 16); binary arithmetic: addition (0+0=0; 0+1=1; 1+0=1; 1+1=10; carry); overflow (result too large for number of bits); two\'s complement: representing negative numbers; invert all bits then add 1; MSB (most significant bit) = sign bit (1 = negative); range for n-bit two\'s complement: −2^(n-1) to 2^(n-1) − 1; subtraction using two\'s complement addition; unsigned vs signed integers',
+        'Data representation — character encoding: ASCII (7-bit; 128 characters; uppercase A=65; lowercase a=97; 0=48); extended ASCII (8-bit; 256 characters); Unicode (UTF-8, UTF-16, UTF-32; millions of characters; backward compatible with ASCII); images: bitmap (grid of pixels; each pixel stored as binary colour value; colour depth: bits per pixel; resolution: pixels per unit area; file size = width × height × colour depth; lossy vs lossless compression); vector graphics (mathematical description of shapes; scalable without quality loss; smaller file for simple images); sound: sampling (measuring amplitude at regular intervals); sample rate (Hz; higher = more accurate; CD = 44.1 kHz); sample resolution/bit depth (bits per sample; more bits = more levels; 16-bit = 65536 levels); file size = sample rate × bit depth × duration × channels; Nyquist theorem: sample rate must be at least twice highest frequency to avoid aliasing',
+        'Compression — lossy compression: permanently removes data; smaller file; quality loss; irreversible; used for images (JPEG), audio (MP3), video (MP4/H.264); lossless compression: no data lost; can reconstruct original exactly; used for text, executables, ZIP; run-length encoding (RLE): replace repeated sequences with count and value; e.g. AAABBBCC → 3A3B2C; effective for images with large uniform areas; Huffman coding: assign shorter codes to more frequent characters; builds binary tree from character frequencies; no code is prefix of another (prefix-free); reduces average bits per character; optimal prefix-free code; dictionary-based compression (LZW): build dictionary of repeated sequences; encode future occurrences with dictionary index',
+      ],
+      forbiddenTopics: [
+        'RISC vs CISC processor architecture detail — A2 unit',
+        'GPU architecture — A2 extension only',
+        'Quantum computing — beyond specification',
+        'Network hardware detail — covered in networks unit',
+        'Interrupt handling mechanism in detail — A2 unit',
+        'Memory management in OS (paging tables structure) — brief mention sufficient at AS',
+      ],
+      requiredKeywords: [
+        'hardware', 'software', 'system software', 'application software', 'firmware', 'BIOS', 'UEFI',
+        'operating system', 'process management', 'memory management', 'file system', 'device management',
+        'von Neumann', 'stored program', 'fetch-decode-execute', 'FDE cycle',
+        'ALU', 'control unit', 'PC', 'MAR', 'MDR', 'CIR', 'accumulator', 'register',
+        'RAM', 'ROM', 'cache', 'L1 L2 L3', 'virtual memory', 'paging', 'flash memory',
+        'HDD', 'SSD', 'secondary storage',
+        'logic gate', 'NOT', 'AND', 'OR', 'NAND', 'NOR', 'XOR', 'truth table',
+        'De Morgan\'s laws', 'Boolean algebra', 'sum of products', 'Karnaugh map',
+        'binary', 'hexadecimal', 'two\'s complement', 'overflow', 'sign bit',
+        'ASCII', 'Unicode', 'UTF-8', 'pixel', 'colour depth', 'resolution', 'sampling', 'bit depth',
+        'lossy', 'lossless', 'run-length encoding', 'Huffman coding',
+      ],
+      boundaryNotes: [
+        'Two\'s complement: for 8-bit, range is −128 to +127; MSB is sign bit; conversion: flip all bits then add 1.',
+        'File size for images: width × height × colour depth (in bits) → divide by 8 for bytes.',
+        'Nyquist theorem: sample rate ≥ 2 × maximum frequency — must state this precisely.',
+        'Huffman coding: shorter codes for more frequent characters; lossless; prefix-free.',
+      ],
+    },
+
+    unit6_communication_networking: {
+      code: 'AQA-CS-6',
+      title: 'Fundamentals of Communication and Networking',
+      level: 'Year1',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // COMMUNICATION
+        'Communication basics — serial transmission: bits sent one at a time down single wire; slower; cheaper; used for long distances (USB, Ethernet, Wi-Fi); parallel transmission: multiple bits sent simultaneously down multiple wires; faster over short distances; more expensive; synchronisation issues; used internally in buses; simplex: one direction only (TV broadcast, keyboard to PC); half-duplex: both directions but not simultaneously (walkie-talkie); full-duplex: both directions simultaneously (telephone, Ethernet); synchronous transmission: data sent with shared clock signal; precise timing; efficient; asynchronous transmission: data sent when ready; start and stop bits frame each byte; no shared clock; more overhead; baud rate: number of signal changes per second (not same as bit rate unless each signal = 1 bit); bit rate: bits transmitted per second (bps); bandwidth: maximum data rate; latency: delay between sending and receiving; throughput: actual data rate achieved',
+        'Network topologies — bus topology: all devices on single cable (backbone); simple and cheap; single point of failure (cable fails → whole network down); collisions; half-duplex; used in older Ethernet; star topology: all devices connected to central switch/hub; hub: broadcasts to all ports; switch: forwards to specific port (uses MAC address table); most common modern LAN topology; if switch fails → whole network down; but device failure only affects that device; ring topology: devices connected in circular loop; token ring: only device holding token can transmit; no collisions; can be slow; failure of one device can break ring; mesh topology: devices connected to multiple others; full mesh: every device connected to all others; partial mesh; high redundancy; fault tolerant; expensive; used in WANs and internet backbone; tree/hierarchical: hybrid of bus and star; used in large organisations',
+        'Network hardware — NIC (network interface card): hardware allowing device to connect to network; each has unique MAC address (48-bit; hardware address); hub: layer 1 device; broadcasts to all connected devices; creates collision domain; switch: layer 2 device; uses MAC address table; forwards frames to specific port; reduces collisions; router: layer 3 device; connects different networks; uses IP addresses; routes packets between networks; performs NAT; contains routing table; wireless access point (WAP): connects wireless devices to wired network; repeater: amplifies signal to extend range; modem (modulator-demodulator): converts digital signals to analogue (and back) for telephone lines',
+        // PROTOCOLS
+        'Protocol layering — TCP/IP model (4 layers): Application layer (user-facing protocols; HTTP, HTTPS, FTP, SMTP, IMAP, DNS, SSH, Telnet); Transport layer (end-to-end communication; TCP: connection-oriented; reliable; flow control; error checking; three-way handshake; UDP: connectionless; unreliable; faster; used for streaming, gaming, DNS); Internet/Network layer (IP addressing; routing; IP packets; IPv4 and IPv6; ICMP for error reporting); Link/Network Access layer (physical transmission; MAC addresses; Ethernet frames; Wi-Fi)',
+        'Key protocols — HTTP (Hypertext Transfer Protocol: requesting and serving web pages; stateless; port 80); HTTPS (HTTP Secure: HTTP over TLS/SSL; encrypted; port 443; certificate-based authentication); FTP (File Transfer Protocol: transferring files; port 20/21; uses two channels: control and data); SMTP (Simple Mail Transfer Protocol: sending email; port 25/587); IMAP (Internet Message Access Protocol: receiving email from server; messages stay on server; port 143/993); POP3 (Post Office Protocol: downloads email from server; removes from server; port 110/995); DNS (Domain Name System: translates domain names to IP addresses; distributed hierarchical database; recursive and iterative resolution); SSH (Secure Shell: encrypted remote access; port 22)',
+        'IP addressing — IP address: logical address identifying device on network; IPv4: 32-bit; four octets (e.g. 192.168.1.1); ~4.3 billion addresses; exhausted; IPv6: 128-bit; hexadecimal groups (e.g. 2001:0db8:85a3::8a2e:0370:7334); vastly more addresses; subnet mask: identifies network and host portions; CIDR notation (e.g. /24 means 24 bits for network); private IP ranges (10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16 — not routable on internet); NAT (Network Address Translation: maps private IP to public IP; conserves IPv4 addresses); DHCP: automatically assigns IP addresses; DNS: maps domain name to IP; MAC address: hardware address; 48-bit; six hex pairs; ARP (Address Resolution Protocol: maps IP address to MAC address on local network)',
+        // SECURITY
+        'Network security — threats: eavesdropping (intercepting data in transit); man-in-the-middle attack (intercepting and potentially altering communication); denial of service (DoS/DDoS: overwhelming server with requests → unavailable); SQL injection (malicious SQL in input fields → database access); cross-site scripting (XSS: injecting malicious scripts into web pages); phishing (fraudulent emails/websites to steal credentials); social engineering (manipulating people to reveal information); malware (viruses, worms, trojans, ransomware, spyware, adware); countermeasures: firewall (filters network traffic based on rules; packet filtering; stateful inspection; application layer); encryption (TLS/SSL; WPA2/3 for Wi-Fi; VPN); authentication (passwords; multi-factor authentication; certificates); access control lists (ACL); intrusion detection systems (IDS); intrusion prevention systems (IPS); HTTPS and digital certificates; penetration testing',
+        // ENCRYPTION
+        'Encryption — converting plaintext to ciphertext; symmetric encryption: same key for encryption and decryption; fast; key distribution problem; AES (Advanced Encryption Standard: block cipher; 128/192/256-bit keys; current standard); DES (Data Encryption Standard: older; 56-bit key; broken); asymmetric encryption (public key cryptography): public key (shared openly; used to encrypt); private key (kept secret; used to decrypt); RSA algorithm; slower than symmetric; used for key exchange and digital signatures; hybrid encryption: asymmetric used to exchange symmetric session key; then symmetric encryption for bulk data (TLS does this); digital signatures: sender encrypts hash of message with private key; receiver decrypts with sender\'s public key; verifies authenticity and integrity; digital certificates: issued by certificate authority (CA); binds public key to identity; X.509 format; chain of trust; hashing: one-way function (MD5 — broken; SHA-1 — deprecated; SHA-256/SHA-3 — current standard); verifying data integrity; not encryption; password hashing with salt',
+      ],
+      forbiddenTopics: [
+        'Detailed TCP three-way handshake steps — brief mention sufficient',
+        'BGP and routing protocol internals — A2 extension',
+        'Quantum cryptography — beyond specification',
+        'Full RSA algorithm mathematics — brief concept sufficient',
+        'IPv6 address autoconfiguration — A2 extension',
+      ],
+      requiredKeywords: [
+        'serial', 'parallel', 'simplex', 'half-duplex', 'full-duplex',
+        'synchronous', 'asynchronous', 'baud rate', 'bit rate', 'bandwidth', 'latency',
+        'bus topology', 'star topology', 'ring topology', 'mesh topology',
+        'NIC', 'MAC address', 'hub', 'switch', 'router', 'WAP', 'modem',
+        'TCP/IP model', 'application layer', 'transport layer', 'internet layer', 'link layer',
+        'TCP', 'UDP', 'HTTP', 'HTTPS', 'FTP', 'SMTP', 'IMAP', 'DNS', 'SSH',
+        'IPv4', 'IPv6', 'subnet mask', 'CIDR', 'NAT', 'DHCP', 'ARP',
+        'firewall', 'encryption', 'authentication', 'malware', 'phishing', 'DoS DDoS',
+        'symmetric encryption', 'asymmetric encryption', 'public key', 'private key', 'RSA',
+        'digital signature', 'digital certificate', 'CA', 'TLS', 'SSL',
+        'hashing', 'SHA-256', 'salt', 'one-way function',
+      ],
+      boundaryNotes: [
+        'TCP vs UDP: TCP reliable, ordered, connection-oriented; UDP fast, connectionless, unreliable — know which protocol uses each.',
+        'Symmetric encryption: fast but key distribution problem; asymmetric: slow but solves key distribution.',
+        'Digital signature uses PRIVATE key to sign; PUBLIC key to verify — opposite of encryption.',
+        'Hub broadcasts to all; switch uses MAC table to forward to specific port — key distinction.',
+      ],
+    },
+
+    unit7_databases: {
+      code: 'AQA-CS-7',
+      title: 'Fundamentals of Databases',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // DATABASE CONCEPTS
+        'Database concepts — structured collection of data; managed by DBMS (Database Management System); advantages over flat files: reduced redundancy; data integrity; data independence; concurrent access; security; backup and recovery; flat file: single table; all data in one table; redundancy; anomalies; relational database: multiple related tables; linked by keys; minimises redundancy; entity: thing about which data is stored; attribute: property of entity; entity-relationship (E-R) diagram: shows entities, attributes, relationships; relationship types: one-to-one (1:1); one-to-many (1:M); many-to-many (M:M — resolved by junction/link table)',
+        'Keys — primary key: unique identifier for each record; cannot be null; single attribute or composite; foreign key: attribute in one table that references primary key of another table; creates link between tables; referential integrity: foreign key must reference existing primary key value (or be null); composite key: primary key made of two or more attributes; candidate key: any attribute(s) that could be primary key; secondary key: indexed for searching but not primary key',
+        'Normalisation — process of organising database to reduce redundancy and improve integrity; 1NF (First Normal Form): no repeating groups; each cell contains single atomic value; primary key defined; 2NF (Second Normal Form): must be 1NF; no partial dependencies (all non-key attributes fully dependent on whole primary key; only relevant for composite keys); 3NF (Third Normal Form): must be 2NF; no transitive dependencies (non-key attribute depends only on primary key, not on another non-key attribute); normalised databases: less redundancy; easier to update; may require more joins; denormalisation: intentional redundancy for performance',
+        // SQL
+        'SQL — Structured Query Language; standard language for relational databases; DDL (Data Definition Language): CREATE, ALTER, DROP; DML (Data Manipulation Language): SELECT, INSERT, UPDATE, DELETE; SELECT statement: SELECT column(s) FROM table WHERE condition ORDER BY column ASC/DESC LIMIT n; SELECT *: all columns; SELECT DISTINCT: unique values; filtering: WHERE with comparison operators (=, <, >, <=, >=, <>, BETWEEN, IN, LIKE, IS NULL); logical operators: AND, OR, NOT; LIKE: pattern matching (% = any sequence; _ = any single character); JOIN: combining tables; INNER JOIN: only rows with matching values in both tables; LEFT JOIN: all rows from left + matching from right (null if no match); RIGHT JOIN: all rows from right + matching from left; ORDER BY; GROUP BY (aggregate functions); HAVING (filter on groups); aggregate functions: COUNT(*), SUM(col), AVG(col), MIN(col), MAX(col); nested queries/subqueries; INSERT INTO table VALUES (...) or INSERT INTO table (cols) SELECT; UPDATE table SET col=val WHERE condition; DELETE FROM table WHERE condition; CREATE TABLE: define columns with data types and constraints; PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE',
+        // TRANSACTIONS AND CONCURRENCY
+        'ACID properties and transactions — transaction: sequence of database operations treated as single unit; ACID: Atomicity (all operations in transaction succeed or all rolled back; no partial completion); Consistency (database goes from one valid state to another; constraints satisfied); Isolation (concurrent transactions do not interfere with each other; appear serial); Durability (committed transactions permanent; survive system failure); commit: save transaction; rollback: undo transaction; deadlock: two transactions each waiting for other to release a lock; detection and resolution; concurrency issues: lost update (two transactions read same data; both write back; one update lost); uncommitted dependency (dirty read: reading data from uncommitted transaction); inconsistent analysis (reading data while another transaction is modifying it); record locking: lock records being accessed; pessimistic locking; timestamp ordering',
+        'Database security — user accounts and authentication; access levels (read-only, read-write, admin); views: virtual tables restricting data visible to users; encryption of sensitive data; audit trails; SQL injection prevention (parameterised queries / prepared statements; input validation; principle of least privilege)',
+      ],
+      forbiddenTopics: [
+        'BCNF (Boyce-Codd Normal Form) — not in AQA 7517 core specification',
+        '4NF, 5NF — not in specification',
+        'NoSQL databases — not in AQA core',
+        'Query optimisation internals — beyond specification',
+        'Distributed databases — A2 extension',
+        'Stored procedures and triggers in detail — brief mention sufficient',
+      ],
+      requiredKeywords: [
+        'DBMS', 'entity', 'attribute', 'relationship', 'E-R diagram',
+        'one-to-many', 'many-to-many', 'junction table',
+        'primary key', 'foreign key', 'referential integrity', 'composite key',
+        'normalisation', '1NF', '2NF', '3NF', 'partial dependency', 'transitive dependency',
+        'SQL', 'SELECT', 'FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'HAVING', 'LIKE',
+        'INNER JOIN', 'LEFT JOIN', 'aggregate function', 'COUNT', 'SUM', 'AVG',
+        'INSERT', 'UPDATE', 'DELETE', 'CREATE TABLE',
+        'ACID', 'atomicity', 'consistency', 'isolation', 'durability',
+        'transaction', 'commit', 'rollback', 'deadlock', 'record locking',
+        'lost update', 'dirty read', 'SQL injection', 'parameterised query',
+      ],
+      boundaryNotes: [
+        '2NF: partial dependency only applies when primary key is composite — if simple key, 1NF → 2NF automatically.',
+        '3NF: transitive dependency — A depends on B which depends on primary key C; A should be in separate table.',
+        'INNER JOIN returns only matching rows; LEFT JOIN returns all left table rows — critical distinction.',
+        'Parameterised queries prevent SQL injection — must state WHY not just HOW.',
+      ],
+    },
+
+    unit8_legal_ethical: {
+      code: 'AQA-CS-8',
+      title: 'Consequences of Uses of Computing',
+      level: 'Year1',
+      paper: 'Paper 2',
+      allowedTopics: [
+        'Legal issues — Computer Misuse Act 1990 (UK): three offences: Section 1 — unauthorised access to computer material (e.g. hacking); Section 2 — unauthorised access with intent to commit further offences (e.g. hacking to commit fraud); Section 3 — unauthorised modification of computer material (e.g. installing malware, deleting files, ransomware); penalties up to 10 years imprisonment; Police and Justice Act 2006 amended to include DoS attacks; Data Protection Act 2018 / UK GDPR: regulates processing of personal data; principles: lawfulness, fairness, transparency; purpose limitation; data minimisation; accuracy; storage limitation; integrity and security; accountability; rights of data subjects: access, rectification, erasure (right to be forgotten), portability; data controller and data processor responsibilities; Privacy and Electronic Communications Regulations (PECR): governs electronic marketing, cookies; Freedom of Information Act 2000: right to request information from public bodies; Copyright, Designs and Patents Act 1988: protects software; fair use exceptions; licences: proprietary (paid; restricted); open source (free to view/modify/distribute; GPL, MIT, Apache); freeware (free to use; not open source); shareware (try before buy); Creative Commons; Regulation of Investigatory Powers Act (RIPA 2000): lawful interception; IPPA 2016 (Investigatory Powers Act / Snoopers\' Charter)',
+        'Ethical issues — privacy: CCTV; facial recognition; location tracking by apps; smart devices (IoT); data harvesting by companies; algorithmic bias: AI systems reflecting biases in training data (facial recognition less accurate for darker skin tones; biased hiring algorithms); transparency of AI decisions; accountability; digital divide: unequal access to technology due to income, geography, age; educational and economic consequences; social impact of automation: job displacement; new job creation; changing nature of work; net effect debated; environmental impact: energy consumption of data centres and cloud computing; e-waste; carbon footprint of streaming and AI; responsible disposal of electronics; moral responsibility of software developers; whistleblowing; open vs closed standards; net neutrality; censorship and freedom of expression online',
+        'Impacts of technology — artificial intelligence: machine learning; deep learning; applications (medical diagnosis, self-driving cars, voice assistants, recommendation systems, fraud detection); ethical concerns (transparency, bias, job automation, surveillance); robotics in industry and healthcare; surveillance capitalism: companies monetising user data; filter bubbles and echo chambers (algorithms reinforcing existing views); fake news and disinformation; social media effects on mental health; blockchain and cryptocurrency; cybercrime economics',
+      ],
+      forbiddenTopics: [
+        'Detailed case law beyond listed acts — not required',
+        'International law and treaties — brief awareness only',
+        'Political theory — beyond scope',
+      ],
+      requiredKeywords: [
+        'Computer Misuse Act', 'unauthorised access', 'Section 1', 'Section 2', 'Section 3',
+        'Data Protection Act', 'UK GDPR', 'personal data', 'data controller', 'data processor',
+        'right to erasure', 'data minimisation', 'purpose limitation',
+        'Copyright Act', 'proprietary licence', 'open source', 'Creative Commons',
+        'Freedom of Information Act',
+        'privacy', 'algorithmic bias', 'digital divide', 'automation', 'job displacement',
+        'environmental impact', 'e-waste', 'energy consumption',
+        'artificial intelligence', 'machine learning', 'surveillance capitalism',
+      ],
+      boundaryNotes: [
+        'Computer Misuse Act: know all three sections and their offences precisely.',
+        'UK GDPR replaced Data Protection Act 1998 — reference DPA 2018 / UK GDPR.',
+        'Ethical questions require balanced argument — state both positive and negative impacts.',
+      ],
+    },
+
+    unit9_nea: {
+      code: 'AQA-CS-NEA',
+      title: 'Non-Exam Assessment — Programming Project',
+      level: 'Year2',
+      paper: 'NEA Coursework',
+      allowedTopics: [
+        // NEA REQUIREMENTS AND SECTIONS
+        'Project identification and analysis — identifying a real problem or need; clear statement of problem; identifying stakeholder(s); gathering requirements through interviews, questionnaires, observation; functional requirements (what system must do); non-functional requirements (performance, security, usability, reliability); success criteria: measurable objectives the solution must meet; analysis of current system (if replacing existing); scope: what will and will not be included; justification of computational approach',
+        'Design — decomposing the problem; modular design; structure chart or hierarchy chart; algorithm design (pseudocode or flowcharts for key algorithms); data structures chosen and justified; UI/UX design (mockups, wireframes; user interface screens); data flow diagrams; entity-relationship diagrams for databases; object class diagrams for OOP; test plan: types of tests (normal, boundary, erroneous) with expected outcomes; prototyping; hardware and software requirements',
+        'Development — implementing the design; annotated code (comments explaining logic, not just what code does); evidence of iterative development; programming techniques used: data structures; algorithms; OOP; recursion; file handling; SQL databases; multiple programming constructs (selection, iteration, subroutines); screen captures of development process; code listings; version control recommended',
+        'Testing — following the test plan; types of tests: normal/valid data (typical input within expected range); boundary data (values at edge of acceptable range — e.g. maximum and minimum values); erroneous data (data outside acceptable range or wrong type — system should handle without crashing); evidence: input used; expected output; actual output; pass/fail; testing against success criteria; testing with stakeholder; identifying and correcting bugs; debugging evidence',
+        'Evaluation — assessing solution against success criteria (each criterion: met/partially met/not met with justification); feedback from stakeholder; limitations of current solution; possible improvements; technical knowledge demonstrated; usability evaluation; performance evaluation; discussion of whether computational approach was appropriate; reflection on development process',
+        'Technical skills demonstrated — complex data structures (2D arrays, stacks, queues, linked lists, graphs, trees, hash tables); file handling (reading, writing, CSV, binary); database interaction (SQL queries, parameterised queries); OOP with multiple classes and inheritance; recursive algorithms; sorting and searching algorithms; API usage; GUI development; error handling and exception management; security features (input validation, hashing passwords)',
+        'Mark scheme overview — Section A: Analysis (4 marks); Section B: Design (7 marks); Section C: Development (32 marks — main section; assessed on technical complexity, correctness, quality of code); Section D: Testing (8 marks); Section E: Evaluation (4 marks); total 55 marks; moderated externally by AQA; skeleton program from AQA not required for NEA (unlike GCSE); choice of language: Python (most common), Java, C#, C++, VB.NET; any Turing-complete language acceptable but Python recommended for support',
+      ],
+      forbiddenTopics: [
+        'Specific project topics — NEA is open-ended; any computational problem acceptable',
+        'Hardware projects only — must have significant software component',
+        'Projects with no identifiable problem — must have clear stakeholder and purpose',
+      ],
+      requiredKeywords: [
+        'functional requirements', 'non-functional requirements', 'success criteria', 'stakeholder',
+        'decomposition', 'modular design', 'structure chart', 'pseudocode', 'flowchart',
+        'normal data', 'boundary data', 'erroneous data', 'test plan', 'expected output', 'actual output',
+        'iterative development', 'annotated code', 'comments',
+        'evaluation against success criteria', 'limitations', 'improvements',
+        'complex data structure', 'OOP', 'recursive algorithm', 'file handling', 'SQL',
+      ],
+      boundaryNotes: [
+        'Development section (32 marks) is where most marks are — prioritise technical complexity.',
+        'Testing must include ALL three types: normal, boundary AND erroneous data for each test.',
+        'Evaluation must reference success criteria by name/number — generic evaluation scores poorly.',
+        'Code must be annotated — marks awarded for quality of comments, not just working code.',
+      ],
+    },
+
+    unit10_assembly_lowlevel: {
+      code: 'AQA-CS-10',
+      title: 'Fundamentals of Computer Organisation and Architecture',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // PROCESSOR ORGANISATION
+        'Internal hardware — CPU, memory (RAM, ROM, cache), buses, ALU, CU, registers (covered in AS unit); additional detail: buses: address bus (carries memory address; unidirectional from CPU; width determines addressable memory: 32-bit → 4 GB; 64-bit → 16 EB); data bus (carries data; bidirectional; width = word size — how many bits transferred per cycle); control bus (carries control signals: read, write, clock, interrupt, reset, memory/IO select; bidirectional); clock: generates regular pulses; synchronises all components; clock speed: cycles per second (Hz); one instruction may take multiple clock cycles; overclocking: running at higher frequency than rated; increases performance but heat and instability; factors affecting CPU performance: clock speed; number of cores; cache size and speed; word size; instruction set efficiency; CPU interaction with memory: CPU places address on address bus; asserts read/write on control bus; data transferred via data bus',
+        'Instruction set architecture — machine code: binary instructions directly executed by CPU; instruction format: opcode (what to do) + operand (data or address); addressing modes: immediate (operand is actual data value; e.g. LDA #5; no memory access for data); direct (operand is memory address; CPU fetches data from that address; e.g. LDA 100); indirect (operand is address of address; CPU fetches address, then fetches data; adds extra memory access; more flexible); indexed (add index register to base address; useful for arrays: base + offset); register (operand is register name; fast; no memory access); assembly language: mnemonic representation of machine code; one-to-one correspondence; assembler translates to machine code; examples using AQA assembly language: LDR Rd, <address> (load from memory); STR Rd, <address> (store to memory); MOV Rd, <operand> (move); ADD Rd, Rn, <operand> (add); SUB Rd, Rn, <operand> (subtract); MUL Rd, Rn, Rm (multiply); DIV Rd, Rn, Rm (divide); AND, ORR, EOR, MVN (bitwise); LSL, LSR (logical shift left/right — multiply/divide by power of 2); CMP Rn, <operand> (compare — sets condition flags); B <label> (branch always); BEQ, BNE, BGT, BLT (branch if equal/not equal/greater/less); B <label> (unconditional branch; like GOTO); HALT',
+        'RISC vs CISC — RISC (Reduced Instruction Set Computer): small set of simple instructions; each executes in one clock cycle; fixed instruction length; load-store architecture (only load/store access memory; all operations on registers); more registers; relies on compiler optimisation; pipelining efficient; examples: ARM (used in mobile devices, Raspberry Pi); CISC (Complex Instruction Set Computer): large set of complex instructions; variable length; instructions may take many cycles; instructions can access memory directly; fewer registers; hardware does complex operations; examples: x86 (Intel/AMD); trade-offs: RISC — simpler hardware, faster clock, better pipelining; CISC — fewer instructions per program, backward compatibility; modern CPUs blur line (CISC processors translate to RISC micro-ops internally)',
+        'Pipelining — overlapping FDE stages for different instructions; stages run simultaneously; 4-stage pipeline: fetch, decode, execute, write-back; throughput: one instruction completed per cycle (ideally); pipeline hazards: data hazard (instruction needs result of previous not yet complete; forwarding, stalling); control hazard (branch instruction; don\'t know next instruction until branch resolved; branch prediction; speculative execution); structural hazard (two instructions need same hardware resource); branch prediction: predict which way branch will go; speculatively execute predicted path; if wrong: flush pipeline and start correct path (pipeline stall penalty)',
+        // TYPES OF PROCESSOR
+        'Types of processor — multi-core processors: multiple processor cores on single chip; each core is independent CPU; can execute different threads simultaneously; true parallelism; OS manages scheduling across cores; performance scales less than linearly (some tasks serial; Amdahl\'s law); GPU (Graphics Processing Unit): thousands of small cores; highly parallel; SIMD (single instruction, multiple data); suited for graphics, matrix operations, AI training; not good for sequential code; co-processor: special-purpose processor alongside main CPU; FPU (floating point unit); neural processing unit (NPU) for AI inference; ASICs (Application-Specific Integrated Circuits): custom chips for one task; extremely efficient; used in Bitcoin mining, signal processing; FPGAs (Field-Programmable Gate Arrays): reconfigurable hardware; programmed after manufacture; intermediate between ASIC and CPU; used in prototyping and signal processing',
+        // STORAGE
+        'Input/output devices — input: keyboard, mouse, touchscreen (capacitive: detects electrical changes; resistive: pressure), scanner, camera, microphone, sensors (temperature, pressure, light); output: monitor (LCD, OLED, refresh rate, resolution), printer (inkjet, laser, 3D printing), speakers, haptic feedback; secondary storage (covered in AS); RAID (Redundant Array of Independent Disks): RAID 0 — data striped across multiple disks; increased speed; no redundancy; RAID 1 — data mirrored; full redundancy; uses 2× storage; RAID 5 — striped with distributed parity; tolerates one disk failure; minimum 3 disks; RAID 10 — mirror of stripes',
+      ],
+      forbiddenTopics: [
+        'Cache replacement policies (LRU, FIFO) in detail — A2 extension',
+        'Specific instruction set opcodes beyond AQA\'s own assembly language — not required',
+        'Superscalar execution detail — A2 extension',
+        'Memory management unit (MMU) hardware detail — A2 extension',
+      ],
+      requiredKeywords: [
+        'address bus', 'data bus', 'control bus', 'clock speed', 'word size', 'overclocking',
+        'opcode', 'operand', 'addressing mode', 'immediate', 'direct', 'indirect', 'indexed',
+        'assembly language', 'assembler', 'LDR', 'STR', 'MOV', 'ADD', 'SUB', 'CMP', 'B', 'BEQ',
+        'RISC', 'CISC', 'load-store', 'fixed instruction length', 'ARM', 'x86',
+        'pipelining', 'data hazard', 'control hazard', 'branch prediction', 'flush',
+        'multi-core', 'GPU', 'SIMD', 'ASIC', 'FPGA',
+        'RAID 0', 'RAID 1', 'RAID 5', 'striping', 'mirroring', 'parity',
+      ],
+      boundaryNotes: [
+        'Address bus width determines addressable memory: 2^n bytes for n-bit bus.',
+        'RISC: load-store means ONLY LDR/STR access memory; all arithmetic on registers.',
+        'AQA assembly language is a simplified made-up language — not ARM or x86 exactly.',
+        'Pipelining ideal: one instruction completed per cycle; hazards cause stalls.',
+      ],
+    },
+  },
+
+  // ===========================================================
+  // UK A LEVEL PHYSICS
+  // AQA 7408 (primary) | Edexcel 9PH0 (cross-referenced)
+  // Paper 1: Particles, quantum phenomena, electricity, waves, mechanics (2h)
+  // Paper 2: Thermal physics, fields, nuclear (2h)
+  // Paper 3: Practical skills + optional topic (2h)
+  // ===========================================================
+  physics: {
+
+    unit1_measurements_errors: {
+      code: 'AQA-PHY-1',
+      title: 'Measurements and their Errors',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 3',
+      allowedTopics: [
+        'SI units — seven base units: kilogram (mass), metre (length), second (time), ampere (current), kelvin (temperature), mole (amount of substance), candela (luminous intensity); derived units expressed in terms of base units; checking equations for homogeneity (dimensional analysis): LHS and RHS must have same dimensions; cannot confirm equation is correct but can show it is definitely wrong if dimensions disagree',
+        'Estimation — estimating physical quantities: common estimates (height of person ~1.7 m; mass ~70 kg; walking speed ~1.5 m/s; temperature of room ~300 K; number of cells in body ~37 trillion; wavelength of visible light ~500 nm); orders of magnitude; reasonableness checks; estimation skills important for checking answers',
+        'Uncertainty — random uncertainty: scatter of repeated measurements around mean; reduces with more measurements; systematic uncertainty: consistent offset (zero error, calibration error, parallax); mean = best estimate; range method for uncertainty: uncertainty ≈ ½ × range; percentage uncertainty = (absolute uncertainty / value) × 100%; combining uncertainties: addition/subtraction: add absolute uncertainties; multiplication/division: add percentage uncertainties; power: multiply percentage uncertainty by power; reading uncertainties from graphs: maximum and minimum gradient lines; uncertainty in y-intercept from these lines',
+        'Graphs and data analysis — plotting graphs: axes labelled with quantity and unit (e.g. "velocity v/ms⁻¹"); scale chosen to use > half the grid; points plotted correctly; best-fit straight line (or curve); gradient calculated using large triangle (use two points ON the line, not data points); y-intercept read from graph or extrapolated; linearising: if y = kxⁿ → plot log y vs log x (gradient = n); if y = Ae^(bx) → plot ln y vs x (gradient = b); error bars showing uncertainty; anomalous points identified and commented on',
+        'Significant figures and scientific notation — recording measurements to appropriate sig figs (matched to instrument precision); scientific notation: A × 10ⁿ where 1 ≤ A < 10; converting between units including prefixes; consistency between calculated answer and data precision; do not round intermediate values',
+      ],
+      forbiddenTopics: [
+        'Statistical tests (t-test, chi-squared) — not required for physics A Level',
+        'Standard deviation calculation — not specifically required; range method used',
+        'Formal dimensional analysis beyond homogeneity check — A2 extension',
+      ],
+      requiredKeywords: [
+        'SI base units', 'kilogram', 'metre', 'second', 'ampere', 'kelvin',
+        'dimensional analysis', 'homogeneity',
+        'random uncertainty', 'systematic uncertainty', 'zero error', 'calibration error',
+        'absolute uncertainty', 'percentage uncertainty', 'combining uncertainties',
+        'mean', 'range', 'error bar', 'anomalous result',
+        'gradient', 'y-intercept', 'best-fit line', 'linearising',
+        'log y vs log x', 'ln y vs x', 'significant figures', 'scientific notation',
+      ],
+      boundaryNotes: [
+        'Percentage uncertainty: always positive; represents relative size of uncertainty.',
+        'Linearising log-log: gradient gives power n; y-intercept gives log k.',
+        'Uncertainty from graph: draw steepest and shallowest best-fit lines; range of gradients gives uncertainty.',
+      ],
+    },
+
+    unit2_particles_quantum: {
+      code: 'AQA-PHY-2',
+      title: 'Particles and Quantum Phenomena',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        // PARTICLES
+        'Particles and antiparticles — matter: quarks and leptons; antimatter: equal and opposite quantum numbers; pair production: photon → particle + antiparticle (requires Eγ ≥ 2m₀c²); annihilation: particle + antiparticle → two photons (minimum; conservation of energy and momentum; each photon energy = m₀c²); positron (antielectron: same mass, opposite charge); antiproton; antineutron; antineutrino; E = mc² (mass-energy equivalence)',
+        'Quarks and hadrons — fundamental particles: quarks (have colour charge; never found free; experience strong nuclear force); quark types (flavours) at A Level: up (u): charge +⅔e; down (d): charge −⅓e; strange (s): charge −⅓e; antiquarks have opposite charge; hadrons: particles made of quarks; experience strong force; two types: baryons (three quarks; e.g. proton uud = +1e; neutron udd = 0; baryon number +1; each quark = +⅓); mesons (quark + antiquark; baryon number 0; e.g. pion π⁺ = ud̄; π⁻ = ūd; π⁰ = uū or dd̄ mixture); conservation laws in particle interactions: charge Q, baryon number B, lepton number L (electron lepton number Le and muon lepton number Lµ), strangeness S (conserved in strong and electromagnetic, NOT in weak); all interactions conserve Q, B and L; strangeness only conserved in strong/EM',
+        'Leptons — fundamental particles; do not experience strong force; electron (e⁻); muon (µ⁻); tau (τ⁻) — each with associated neutrino (νe, νµ, ντ); electron lepton number Le: electron and electron neutrino = +1; their antiparticles = −1; muon lepton number Lµ similarly; conservation: Le and Lµ conserved separately; examples: beta-minus decay (n → p + e⁻ + ν̄e): Le: 0 → 0 + 1 + (−1) = 0 ✓; beta-plus decay (p → n + e⁺ + νe): Le: 0 → 0 + (−1) + 1 = 0 ✓; muon decay (µ⁻ → e⁻ + ν̄e + νµ): Lµ: 1 → 0 + 0 + 1 ✓; Le: 0 → 1 + (−1) + 0 ✓',
+        'Forces and exchange particles — four fundamental forces; strong nuclear force: holds nucleus together; mediated by gluons (between quarks) or pions/virtual pions (between nucleons); short range (<10⁻¹⁵ m); attractive between nucleons up to ~0.5 fm; repulsive below ~0.5 fm (prevents collapse); electromagnetic force: between charged particles; photon (γ) as exchange particle; infinite range; weak nuclear force: responsible for beta decay and neutrino interactions; W⁺ and W⁻ bosons as exchange particles; very short range; gravitational force: between masses; graviton (hypothetical; not yet detected); infinite range; weakest; Feynman diagrams: represent particle interactions; time flows left to right (or upward); particles are lines; exchange particles are vertices; wavy/dashed lines for exchange particles; examples: β⁻ decay (n → p + e⁻ + ν̄e via W⁻ boson); β⁺ decay (p → n + e⁺ + νe via W⁺ boson); electron capture (p + e⁻ → n + νe via W⁺); electron-proton collision',
+        // QUANTUM PHENOMENA
+        'Photoelectric effect — emission of electrons from metal surface when irradiated with electromagnetic radiation; observations: threshold frequency f₀ (below this, no emission regardless of intensity); instantaneous emission (no delay even at low intensity); maximum KE of emitted electrons independent of intensity; KE increases with frequency; Einstein\'s photon explanation: light consists of discrete packets (photons) each of energy E = hf; one photon absorbed by one electron; work function φ = hf₀ (minimum energy to release electron from surface); Einstein\'s equation: hf = φ + EKmax; stopping potential Vs: voltage to stop most energetic electrons; eVs = EKmax; intensity ∝ number of photons per second (not photon energy); evidence for particle nature of light; Millikan\'s experiment confirmed Einstein\'s equation',
+        'Wave-particle duality — light shows wave behaviour (interference, diffraction) and particle behaviour (photoelectric effect, Compton scattering); de Broglie hypothesis: all matter has associated wavelength; de Broglie wavelength λ = h/p = h/mv (h = Planck\'s constant = 6.63×10⁻³⁴ J s; p = momentum; m = mass; v = velocity); evidence: electron diffraction (electrons diffracted by crystal lattice; pattern only explained by wave behaviour; wavelength ≈ atomic spacing when accelerated through ~100 V); duality: quantum objects are neither purely waves nor purely particles; complementarity principle',
+        'Energy levels and spectra — electrons in atoms occupy discrete energy levels; ground state: lowest energy level (most negative); excited states: higher energy levels; ionisation energy: energy to remove electron from atom to infinity; emission spectra: electron falls from higher to lower energy level → photon emitted; E = hf = hc/λ; energy of photon = difference in energy levels; line spectra: each element has unique set of energy levels → unique spectrum; evidence for quantised energy levels; absorption spectra: photon absorbed → electron jumps to higher level; dark lines at same wavelengths as emission lines; fluorescence: absorption at one wavelength; emission at longer wavelength (UV → visible); phosphorescence: delayed emission; lasers: stimulated emission → coherent, monochromatic, intense light',
+      ],
+      forbiddenTopics: [
+        'Charm, bottom, top quarks — not in AQA A Level specification',
+        'Colour charge in detail (QCD) — not in specification',
+        'Quark confinement mechanism — brief mention sufficient',
+        'W and Z boson masses — not required',
+        'Schrödinger equation — beyond A Level specification',
+        'Heisenberg uncertainty principle formally — A2 extension only',
+        'Nuclear physics (fission, fusion, radioactive decay) — Paper 2 unit',
+      ],
+      requiredKeywords: [
+        'quark', 'up', 'down', 'strange', 'charge +⅔e', 'charge −⅓e',
+        'hadron', 'baryon', 'meson', 'proton uud', 'neutron udd', 'pion',
+        'lepton', 'electron', 'muon', 'neutrino', 'electron lepton number', 'muon lepton number',
+        'baryon number', 'strangeness', 'conservation laws',
+        'strong force', 'electromagnetic force', 'weak force', 'gravitational force',
+        'gluon', 'photon', 'W boson', 'graviton',
+        'Feynman diagram', 'beta-minus decay', 'beta-plus decay', 'electron capture',
+        'photoelectric effect', 'threshold frequency', 'work function', 'Einstein\'s equation',
+        'hf = φ + EKmax', 'stopping potential', 'photon', 'E = hf',
+        'de Broglie wavelength', 'λ = h/p', 'wave-particle duality', 'electron diffraction',
+        'energy levels', 'ground state', 'ionisation', 'emission spectrum', 'absorption spectrum',
+        'E = hf = hc/λ', 'line spectra',
+      ],
+      boundaryNotes: [
+        'Conservation in particle physics: ALWAYS check Q, B, Le, Lµ for every interaction.',
+        'Strangeness: conserved in strong/EM but NOT in weak — this is a defining property of weak force.',
+        'Photoelectric effect: intensity affects NUMBER of electrons emitted, NOT their maximum KE.',
+        'de Broglie: applies to ALL matter — electrons, protons, even people (but wavelength negligible for large masses).',
+      ],
+    },
+
+    unit3_waves: {
+      code: 'AQA-PHY-3',
+      title: 'Waves',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        // WAVE PROPERTIES
+        'Wave characteristics — progressive (travelling) wave: transfers energy from one place to another; medium particles oscillate about equilibrium; amplitude A: maximum displacement from equilibrium (m); wavelength λ: minimum distance between two points in phase (m); frequency f: oscillations per second (Hz); period T = 1/f (s); wave speed v = fλ (m s⁻¹); phase: position in oscillation cycle (radians or degrees); path difference; phase difference Δφ = (2π/λ) × path difference; in phase: Δφ = 0, 2π, 4π...; antiphase: Δφ = π, 3π...; intensity I ∝ A²; I = P/A (power per unit area; Wm⁻²)',
+        'Transverse and longitudinal waves — transverse: particle oscillation perpendicular to direction of energy transfer; can be polarised; examples: EM waves, water waves, S-seismic waves; longitudinal: particle oscillation parallel to direction of energy transfer; compressions (high pressure/density) and rarefactions (low pressure/density); cannot be polarised; examples: sound, P-seismic waves; both types: progressive (energy transfer) and stationary (no net energy transfer)',
+        'Reflection, refraction, diffraction — reflection: wave bounces back at boundary; angle of incidence = angle of reflection; plane wavefronts remain plane; curved mirror focuses; refraction: wave changes speed at boundary → changes direction (wavelength changes; frequency unchanged); Snell\'s law n₁sinθ₁ = n₂sinθ₂; refractive index n = c/v = sinθᵢ/sinθᵣ (for air→medium); sin c = 1/n (critical angle for total internal reflection, TIR; when n₁ > n₂; at and beyond c: total reflection; no refraction); applications: optical fibres (TIR; step index: abrupt cladding boundary; multimode: different path lengths → pulse broadening; monomode: very fine fibre; single path); diffraction: spreading of waves around obstacles and through gaps; most pronounced when gap ≈ λ; wider gap → less diffraction; longer λ → more diffraction; diffraction explains why waves bend around corners',
+        'Superposition and interference — principle of superposition: when two or more waves meet, the resultant displacement equals the algebraic sum of individual displacements; constructive interference: waves in phase; path difference = nλ (n = 0, 1, 2...); amplitude adds; destructive interference: waves antiphase; path difference = (n + ½)λ; amplitudes subtract; coherence: waves must have same frequency and constant phase difference for stable interference pattern; sources (not necessarily in phase but phase difference constant); Young\'s double slit experiment: coherent light through two slits → overlapping waves → interference fringes; fringe spacing w = λD/s (D = distance to screen; s = slit separation); measuring wavelength of light; fringe width inversely proportional to slit separation',
+        'Stationary waves — formed by two progressive waves of equal frequency and amplitude travelling in opposite directions (e.g. by reflection); superposition at all points simultaneously; nodes (N): fixed points of zero amplitude; antinodes (AN): points of maximum amplitude; distance between adjacent nodes = λ/2; energy is not transmitted (stored oscillating); all particles between adjacent nodes oscillate in phase; particles in adjacent sections antiphase; harmonics: fundamental (1st harmonic): one antinode; string length L = λ/2; f₀ = v/2L; 2nd harmonic (1st overtone): two antinodes; L = λ; f = 2f₀; nth harmonic: f = nf₀; open pipe: nodes at both closed ends; antinodes at open ends (pressure nodes at open ends — actually antinodes of displacement); closed pipe: node at closed end; antinode at open end; only odd harmonics; Melde\'s experiment: string; tuning forks; Kundt\'s tube (sound in gas column); forming stationary waves in microwave demonstrations',
+        'Polarisation — transverse waves only (longitudinal cannot be polarised); polarised: oscillations restricted to one plane (plane of polarisation); plane-polarised; polarising filters: transmit vibrations in one direction; rotate filter 90° → extinction; Malus\'s law: I = I₀cos²θ (intensity through analyser = incident intensity × cos²(angle between polarisation planes)); polarisation by reflection (partial; at Brewster\'s angle: tan θ_B = n; reflected ray completely polarised); uses: LCD screens; sunglasses (reduce reflected glare); photography; stress analysis (photoelasticity); communication (polarised antennas); evidence for transverse nature of EM waves',
+        // OPTICS
+        'Diffraction grating — multiple slits (typically hundreds per mm); sharper and brighter maxima than double slit; d sinθ = nλ (d = grating spacing = 1/N where N = lines per metre; n = order; θ = angle to nth order maximum); for white light: each order spreads into spectrum (different λ → different θ); central maximum (n=0): all colours overlap → white; higher orders: spectra separate; maximum order: when sinθ ≤ 1 → nmax = d/λ; uses: measuring wavelength; spectroscopy; identifying elements from emission spectra; X-ray crystallography (d ≈ atomic spacing)',
+        'Refraction and lenses — converging (convex) lens: bends parallel rays to principal focus F; focal length f; real image forms on opposite side to object; virtual image if object within focal length; diverging (concave) lens: rays appear to diverge from virtual focus; always virtual, upright, diminished image; lens equation: 1/v − 1/u = 1/f (real-is-positive convention) or 1/f = 1/u + 1/v (all-real-positive); magnification m = v/u; uses: magnifying glass; camera; spectacle lenses; microscope; telescope',
+      ],
+      forbiddenTopics: [
+        'Full treatment of EM spectrum beyond basics — not in this unit',
+        'Electromagnetic induction (wave generation) — Paper 2',
+        'Doppler effect — not in AQA Paper 1 (only in option topics)',
+        'X-ray production — not in this unit',
+        'Laser physics detail — Paper 1 unit 2 (energy levels)',
+      ],
+      requiredKeywords: [
+        'amplitude', 'wavelength', 'frequency', 'period', 'wave speed', 'v = fλ', 'intensity ∝ A²',
+        'transverse', 'longitudinal', 'compressions', 'rarefactions',
+        'reflection', 'refraction', 'Snell\'s law', 'refractive index', 'critical angle', 'TIR',
+        'optical fibre', 'step index', 'multimode', 'pulse broadening',
+        'diffraction', 'gap ≈ λ',
+        'superposition', 'constructive interference', 'destructive interference',
+        'path difference', 'nλ', '(n+½)λ', 'coherence', 'phase difference',
+        'Young\'s double slit', 'fringe spacing', 'w = λD/s',
+        'stationary wave', 'node', 'antinode', 'λ/2 between nodes', 'harmonics', 'fundamental',
+        'polarisation', 'plane-polarised', 'Malus\'s law', 'I = I₀cos²θ', 'Brewster\'s angle',
+        'diffraction grating', 'd sinθ = nλ', 'orders',
+      ],
+      boundaryNotes: [
+        'Coherence: same frequency AND constant phase difference — both conditions needed.',
+        'Stationary waves: no NET energy transfer — energy stored; particles in adjacent segments are ANTIPHASE.',
+        'Diffraction grating: gives sharper maxima than double slit because more slits contribute to each maximum.',
+        'TIR: requires light travelling from denser to less dense medium AND angle greater than or equal to critical angle.',
+      ],
+    },
+
+    unit4_mechanics: {
+      code: 'AQA-PHY-4',
+      title: 'Mechanics and Materials',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        // KINEMATICS
+        'Kinematics — displacement, velocity, acceleration (vectors); distance and speed (scalars); v = Δs/Δt; a = Δv/Δt; SUVAT equations for uniform acceleration: v = u + at; s = ut + ½at²; v² = u² + 2as; s = ½(u+v)t; projectile motion: horizontal (constant velocity; no acceleration assuming no air resistance) and vertical (uniform acceleration g); independence of components; range; time of flight; velocity-time graphs: gradient = acceleration; area under curve = displacement; acceleration-time graphs: area = change in velocity; non-uniform acceleration: instantaneous velocity = gradient of displacement-time curve at that point',
+        // DYNAMICS
+        'Newton\'s laws and momentum — first law (inertia): body remains at rest or constant velocity unless resultant force acts; second law: F = ma (resultant force); also F = Δp/Δt = rate of change of momentum; third law: equal and opposite forces on different bodies (Newton pair); same type of force; momentum p = mv (vector); conservation of linear momentum: in any interaction, total momentum is constant (if no external net force); elastic collision: KE conserved; inelastic: KE lost; perfectly inelastic: stick together; impulse: FΔt = Δp (area under F-t graph); example: catching a ball — longer time → smaller force',
+        'Forces — weight W = mg; normal contact force N; tension T; friction f = μN (μ = coefficient of friction; μs = static; μk = kinetic; μs > μk); resolving forces on inclines; free body diagrams; resultant force by resolving into perpendicular components; equilibrium: ΣF = 0 in both x and y; three forces: concurrent; triangle of forces closed',
+        // MOMENTS
+        'Moments and equilibrium — moment M = Fd (perpendicular distance from pivot); torque; couple (two equal and opposite non-collinear forces; torque = F × separation; does not need pivot); principle of moments: for equilibrium, sum of clockwise moments = sum of anticlockwise moments about any point; centre of mass/gravity: single point where weight acts; for uniform symmetric objects: at geometric centre; conditions for equilibrium: ΣF = 0 AND ΣM = 0 (about any point)',
+        // WORK ENERGY POWER
+        'Work, energy and power — work done W = Fs cosθ (θ between force and displacement); unit: joule (J); energy: capacity to do work; forms: kinetic ½mv²; gravitational potential mgh; elastic potential ½kx²; thermal; chemical; nuclear; electrical; conservation of energy: total energy constant; work-energy theorem: Wnet = ΔKE; power P = W/t = Fv; efficiency = useful output/total input; energy losses to thermal (friction, air resistance; dissipated as heat)',
+        // MATERIALS
+        'Hooke\'s law and elasticity — F = kx (within elastic limit; k = spring constant in N/m); elastic limit: point beyond which material does not return to original shape; Young modulus E = σ/ε = (F/A)/(ΔL/L) = FL/(AΔL); stress σ = F/A (Pa); strain ε = ΔL/L (dimensionless); stiffness: slope of force-extension graph; toughness: area under stress-strain curve (energy absorbed before fracture); elastic deformation: fully reversible; plastic: permanent; limit of proportionality: Hooke\'s law applies; elastic limit > limit of proportionality; yield point: large strain for small stress; UTS (ultimate tensile stress): maximum stress before necking; fracture; brittle: fractures at or near elastic limit (glass, ceramic; no plastic region; large UTS); ductile: large plastic region before fracture (copper, steel); rubber: non-Hookean; large elastic strain; hysteresis loop (energy absorbed)',
+        'Terminal velocity and drag — drag force: opposes motion; increases with speed; at terminal velocity: drag = weight (net force = 0; constant velocity); Stokes\' law for sphere at low speed: F = 6πηrv; Reynolds number distinguishes laminar from turbulent flow',
+      ],
+      forbiddenTopics: [
+        'Rotational dynamics (angular momentum) — not in AQA A Level core',
+        'Circular motion — Year 2 unit (unit 5)',
+        'Relativistic mechanics — not in specification',
+        'Fluid dynamics (Bernoulli) — not in AQA specification',
+        'Centre of mass for non-uniform objects by calculation — brief concept only',
+      ],
+      requiredKeywords: [
+        'SUVAT', 'uniform acceleration', 'projectile', 'horizontal uniform velocity', 'vertical g',
+        'Newton\'s first law', 'Newton\'s second law', 'Newton\'s third law',
+        'momentum', 'conservation of momentum', 'impulse FΔt = Δp',
+        'elastic collision', 'inelastic collision', 'coefficient of friction',
+        'moment', 'couple', 'principle of moments', 'centre of mass',
+        'equilibrium', 'ΣF = 0', 'ΣM = 0',
+        'work done W = Fscos θ', 'kinetic energy', 'gravitational PE', 'elastic PE',
+        'power P = Fv', 'efficiency', 'work-energy theorem',
+        'Hooke\'s law', 'spring constant', 'elastic limit', 'Young modulus',
+        'stress', 'strain', 'limit of proportionality', 'UTS', 'brittle', 'ductile',
+        'terminal velocity', 'drag', 'Stokes\' law',
+      ],
+      boundaryNotes: [
+        'Newton\'s third law pairs: same type of force; same magnitude; on DIFFERENT objects.',
+        'Young modulus: gradient of stress-strain graph (within Hookean region); units Pa.',
+        'Elastic limit vs limit of proportionality: elastic limit is beyond limit of proportionality.',
+      ],
+    },
+
+    unit5_electricity: {
+      code: 'AQA-PHY-5',
+      title: 'Electricity',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        // BASICS
+        'Charge and current — electric charge Q: property of matter; measured in coulombs (C); electron charge e = 1.6×10⁻¹⁹ C; conventional current: positive charge flow (opposite to electron flow); current I = ΔQ/Δt (amperes, A); charge carriers: electrons in metals; ions in solutions and semiconductors; drift velocity: I = nAve (n = number density of charge carriers per m³; A = cross-sectional area; v = drift velocity; e = charge per carrier); for same I: thinner wire → faster drift velocity',
+        'Potential difference and resistance — potential difference V = W/Q (energy transferred per unit charge; joules per coulomb = volts); V = W/Q; electromotive force (EMF): energy supplied per unit charge by source; resistance R = V/I (ohms, Ω); Ohm\'s law: R constant if temperature constant (for metallic conductor); resistivity ρ: property of material; R = ρL/A (ρ in Ωm; L in m; A in m²); resistivity increases with temperature for metals (more lattice vibrations → more collisions for electrons); decreases for thermistors/semiconductors (more charge carriers at higher temperature); superconductivity: resistivity = 0 below critical temperature; no energy loss; applications: MRI scanners; particle accelerators; power transmission',
+        'I-V characteristics — ohmic resistor: straight line through origin (I ∝ V; R constant); filament lamp: curves (R increases with temperature → gradient decreases); semiconductor diode: conducts in one direction only; forward bias: threshold voltage ~0.6V → conducts; reverse bias: no conduction (only tiny leakage); thermistor: NTC (negative temperature coefficient; R decreases with temperature); LDR (light-dependent resistor; R decreases with increasing light intensity); measuring I-V characteristics: ammeter in series; voltmeter in parallel; varying voltage with potentiometer (more precise than variable resistor)',
+        // CIRCUITS
+        'Series and parallel circuits — series: same current everywhere; voltages add (V = V₁ + V₂ +...); resistances add (R = R₁ + R₂ +...); power P = IV = I²R = V²/R; parallel: same voltage across branches; currents add (I = I₁ + I₂ +...); 1/R = 1/R₁ + 1/R₂ +... (equivalent resistance less than smallest individual); Kirchhoff\'s laws: first law (junction rule): sum of currents entering = sum leaving (charge conservation); second law (loop rule): sum of EMFs = sum of IR drops around any closed loop (energy conservation)',
+        'EMF and internal resistance — EMF ε: energy per unit charge given by source (source of EMF: battery, generator, solar cell); internal resistance r: resistance inside source; terminal pd V = ε − Ir (lost volts = Ir; energy dissipated inside source); V-I graph: y-intercept = ε; gradient magnitude = r (slope negative); maximum power transfer: when external R = r; short circuit: V = 0; I = ε/r; open circuit: V = ε (no current, no lost volts)',
+        'Potential divider — two resistors in series across supply voltage; output voltage taken across one: Vout = Vin × R₂/(R₁ + R₂); used as sensor circuit: replace one resistor with thermistor or LDR; Vout changes as resistance changes; applications: temperature sensor; light sensor; converting sensor readings to voltage for data loggers',
+      ],
+      forbiddenTopics: [
+        'Capacitors (charging/discharging) — Year 2 unit',
+        'Magnetic forces on currents — Year 2 unit',
+        'Semiconductor physics (band theory, p-n junction) — A2 extension only',
+        'Three-phase electricity — not in specification',
+        'Complex AC circuits (inductors, capacitors in AC) — A2 extension only',
+      ],
+      requiredKeywords: [
+        'electric charge', 'coulomb', 'current I = ΔQ/Δt', 'drift velocity I = nAve',
+        'potential difference', 'EMF', 'resistance R = V/I', 'Ohm\'s law',
+        'resistivity ρ = RA/L', 'superconductivity', 'critical temperature',
+        'I-V characteristic', 'ohmic', 'filament lamp', 'diode', 'thermistor', 'LDR',
+        'series circuit', 'parallel circuit', 'Kirchhoff\'s first law', 'Kirchhoff\'s second law',
+        'internal resistance', 'terminal pd', 'lost volts', 'V = ε − Ir',
+        'power P = IV = I²R = V²/R',
+        'potential divider', 'Vout = Vin × R₂/(R₁ + R₂)',
+      ],
+      boundaryNotes: [
+        'Drift velocity I = nAve: n is carrier density per m³ — must state units carefully.',
+        'EMF vs terminal pd: EMF = total energy per charge; terminal pd = energy available to external circuit.',
+        'Resistivity: R = ρL/A; ρ is material property; R depends on geometry AND material.',
+      ],
+    },
+
+    unit6_further_mechanics: {
+      code: 'AQA-PHY-6',
+      title: 'Further Mechanics and Thermal Physics',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // CIRCULAR MOTION
+        'Circular motion — angular displacement θ (radians); angular velocity ω = θ/t = 2πf = 2π/T (rad s⁻¹); linear speed v = rω; centripetal acceleration a = v²/r = ω²r (directed toward centre); centripetal force F = mv²/r = mω²r (resultant force directed inward; provided by different forces depending on situation: tension, gravity, friction, normal force, or combination); NOT a new force but the resultant; examples: car on banked track; satellite orbiting; ball on string; mass on turntable; loop-the-loop (minimum speed at top when N = 0: mg = mv²/r → v_min = √(gr))',
+        // SHM
+        'Simple harmonic motion (SHM) — defining equation: a = −ω²x (acceleration proportional to displacement and directed toward equilibrium); ω = angular frequency; restoring force F = −kx (k = spring constant or equivalent; Hooke\'s law or gravity component); equations of motion: x = A cos(ωt); v = −Aω sin(ωt); v = ±ω√(A² − x²) (from energy argument); maximum velocity v_max = ωA (at x = 0); maximum acceleration a_max = ω²A (at x = ±A); periods: simple pendulum T = 2π√(l/g) (for small angles; independent of amplitude — isochronous); mass-spring T = 2π√(m/k); energy in SHM: KE = ½mω²(A² − x²); PE = ½mω²x²; total energy E = ½mω²A² = constant; KE maximum at equilibrium; PE maximum at amplitude; energy interconverts throughout cycle',
+        'Resonance and damping — free oscillations: natural frequency f₀; forced oscillations: driving frequency f; resonance: maximum amplitude when f = f₀ (energy input from driver = energy dissipated by damping); amplitude-frequency graph; light damping: small amplitude reduction per cycle; resonance peak sharp and high; heavy damping: large reduction; overdamping: no oscillation; critical damping: fastest return to equilibrium without oscillating; resonance examples (useful: MRI, tuning circuits, microwave oven) and harmful (Tacoma Narrows bridge, Millennium Bridge, engine vibration; avoided by design or adding damping); damping shifts resonance peak to slightly lower frequency',
+        // THERMAL PHYSICS
+        'Thermal physics — internal energy: sum of random kinetic and potential energies of all molecules; for ideal gas: internal energy = sum of molecular KE only (no PE — no intermolecular forces); temperature: measure of average random KE of molecules; absolute zero (0 K): minimum possible temperature; no kinetic energy; Boltzmann constant k_B = 1.38×10⁻²³ J K⁻¹; thermal equilibrium: no net energy transfer; 0th law of thermodynamics: if A in thermal equilibrium with B, and B with C, then A and C also in thermal equilibrium',
+        'Specific heat capacity and latent heat — specific heat capacity c: energy needed per kg per °C (or K) to raise temperature; Q = mcΔθ (J; m in kg; c in J kg⁻¹ K⁻¹); experiment: electrical heating (Q = IVt or P × t); compensating for heat loss (extrapolation); specific latent heat L: energy needed per kg to change state without temperature change; latent heat of fusion Lf (solid ↔ liquid) and vaporisation Lv (liquid ↔ gas); Q = mL; Lv >> Lf (much more energy to separate molecules completely); continuous flow calorimeter for liquid; heating/cooling curve: flat sections at melting/boiling points',
+        // GAS LAWS AND KINETIC THEORY
+        'Gas laws — Boyle\'s law: pV = constant (at constant T); Charles\' law: V ∝ T (at constant p; T in kelvin); pressure law: p ∝ T (at constant V; T in kelvin); combined: pV/T = constant; ideal gas equation: pV = nRT (n = moles; R = 8.31 J mol⁻¹ K⁻¹; T in K) or pV = NkT (N = number of molecules; k_B = 1.38×10⁻²³ J K⁻¹); assumptions of ideal gas: many molecules; random motion; elastic collisions; negligible volume of molecules compared to container; no intermolecular forces except during collisions; duration of collision negligible; kinetic theory derivation of pressure: p = Nm<c²>/3V; mean kinetic energy: ½m<c²> = 3kT/2 = (3/2)(R/NA)T; root mean square speed c_rms = √(3RT/M) or √(3kT/m)',
+      ],
+      forbiddenTopics: [
+        'Lagrangian mechanics — beyond specification',
+        'Normal modes and coupled oscillators in detail — AQA extension only',
+        'Thermodynamic cycles (Carnot, Otto) — not in AQA specification',
+        'Heat engines and second law thermodynamics formally — not in AQA',
+        'Entropy — not in AQA physics specification',
+        'Van der Waals gas — not in specification',
+      ],
+      requiredKeywords: [
+        'angular velocity ω', 'centripetal acceleration v²/r', 'centripetal force mv²/r',
+        'SHM', 'a = −ω²x', 'restoring force', 'T = 2π√(l/g)', 'T = 2π√(m/k)',
+        'amplitude', 'x = A cos(ωt)', 'v_max = ωA', 'a_max = ω²A',
+        'KE and PE in SHM', 'total energy constant',
+        'resonance', 'natural frequency', 'forced oscillation', 'driving frequency',
+        'damping', 'critical damping', 'overdamping', 'resonance peak',
+        'internal energy', 'absolute zero', 'thermal equilibrium',
+        'specific heat capacity', 'Q = mcΔθ', 'latent heat', 'Q = mL',
+        'Boyle\'s law', 'Charles\' law', 'pV = nRT', 'pV = NkT',
+        'ideal gas', 'kinetic theory', 'p = Nm<c²>/3V', 'mean KE = 3kT/2',
+        'rms speed', 'Boltzmann constant',
+      ],
+      boundaryNotes: [
+        'SHM: a ∝ −x (negative sign essential — acceleration OPPOSED to displacement).',
+        'Resonance: driving frequency equals natural frequency; damping reduces resonance amplitude.',
+        'Ideal gas: internal energy depends only on temperature (no PE between molecules).',
+        'Gas laws: T must be in KELVIN — not Celsius.',
+      ],
+    },
+
+    unit7_fields: {
+      code: 'AQA-PHY-7',
+      title: 'Fields and their Consequences',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // GRAVITATIONAL FIELDS
+        'Gravitational fields — force per unit mass; Newton\'s law of gravitation: F = Gm₁m₂/r² (G = 6.67×10⁻¹¹ N m² kg⁻²); inverse square law; always attractive; gravitational field strength g = F/m = GM/r² (radial field); near Earth surface: g ≈ 9.81 N kg⁻¹ (uniform field); field lines: radial toward mass; uniform: parallel downward; gravitational potential φ = −GM/r (work done per unit mass to move from infinity; negative because field attractive; zero at infinity); gravitational PE = mφ = −GMm/r; relationship: g = −dφ/dr (field strength = −potential gradient); equipotentials: surfaces of equal potential; perpendicular to field lines; closer together → stronger field',
+        'Orbital mechanics — for circular orbit: gravitational force provides centripetal force; GMm/r² = mv²/r → v = √(GM/r); period T = 2πr/v → T² = (4π²/GM)r³ (Kepler\'s third law: T² ∝ r³); total energy in orbit: E = KE + PE = −GMm/2r (negative; bound orbit); closer orbit: faster speed; smaller period; escape velocity: KE = GPE lost → ½mv² = GMm/r → v_esc = √(2GM/r); geostationary orbit: T = 24 h; equatorial; same direction as Earth\'s rotation; height ~36000 km; used for communications satellites; low Earth orbit (LEO): ~200-2000 km; shorter period; Earth observation; GPS',
+        // ELECTRIC FIELDS
+        'Electric fields — force per unit positive charge; Coulomb\'s law: F = Qq/4πε₀r² (ε₀ = 8.85×10⁻¹² F m⁻¹; can be attractive or repulsive); electric field strength E = F/q = Q/4πε₀r² (radial field around point charge); E = V/d (uniform field between parallel plates; V = pd; d = separation); field lines: away from positive; toward negative; uniform between plates (parallel; equal spacing); radial around point charge; electric potential V = Q/4πε₀r (work done per unit positive charge to move from infinity; positive if Q positive; negative if Q negative); electric PE = Qq/4πε₀r; E = −dV/dr; equipotentials perpendicular to field lines; comparison with gravitational field: both inverse-square; gravity always attractive; electric can attract or repel; mass replaced by charge; G replaced by 1/4πε₀',
+        'Capacitors — store charge; C = Q/V (capacitance in farads; F); parallel plate capacitor: C = ε₀εᵣA/d (ε₀ = permittivity of free space; εᵣ = relative permittivity of dielectric; A = plate area; d = separation); energy stored: E = ½QV = ½CV² = Q²/2C; series: 1/C = 1/C₁ + 1/C₂ +...; parallel: C = C₁ + C₂ +...; charging through resistor: Q = Q₀(1 − e^(−t/RC)); V = V₀(1 − e^(−t/RC)); discharging: Q = Q₀e^(−t/RC); V = V₀e^(−t/RC); I = I₀e^(−t/RC); time constant τ = RC; when t = τ: Q/Q₀ = e⁻¹ ≈ 0.37; half-life of discharge: t½ = RC ln2; graph of ln Q vs t: straight line; gradient = −1/RC; applications: smoothing circuits; energy storage; timing circuits; camera flash',
+        // MAGNETIC FIELDS
+        'Magnetic fields and forces — magnetic flux density B (tesla; T); force on current-carrying conductor: F = BIL sinθ (θ between B and wire; maximum when perpendicular); motor effect; left-hand rule (thumb = force/motion; index = field; middle = conventional current); force on moving charge: F = BQv sinθ (or F = Bqv); circular motion of charged particle in magnetic field: radius r = mv/BQ; applications: mass spectrometer; cyclotron; velocity selector: electric force = magnetic force: QE = BQv → v = E/B (selects particles of specific speed; independent of charge and mass)',
+        'Electromagnetic induction — magnetic flux Φ = BA cosθ (Wb = T m²; B = flux density; A = area; θ = angle between field and normal to area); magnetic flux linkage NΦ (for coil of N turns); Faraday\'s law: induced EMF ε = −d(NΦ)/dt (rate of change of flux linkage; magnitude of EMF proportional to rate of change); Lenz\'s law: induced current direction opposes change causing it (consequence of energy conservation; negative sign in Faraday); methods of inducing EMF: moving conductor in field; changing field strength; rotating coil in field; AC generator: coil rotates in field; ε = NBAω sin(ωt); peak EMF = NBAω; RMS values: V_rms = V₀/√2; I_rms = I₀/√2; transformers: step-up (more turns secondary; higher V; lower I) and step-down; Vs/Vp = Ns/Np; for ideal: VsIs = VpIp (power conserved); transformer losses: resistance heating (thicker wire; copper); eddy currents (laminated core); hysteresis (soft iron core); flux leakage',
+      ],
+      forbiddenTopics: [
+        'Hall effect in detail — brief mention; not fully examined in AQA',
+        'Magnetic domains and magnetisation — brief concept only',
+        'Inductors and LR circuits — not in AQA core',
+        'Maxwell\'s equations — beyond specification',
+        'Relativistic electrodynamics — not in specification',
+        'Superconductors in magnetic fields — A2 extension only',
+      ],
+      requiredKeywords: [
+        'gravitational field strength g = GM/r²', 'gravitational potential φ = −GM/r',
+        'equipotentials', 'field lines', 'Kepler\'s third law T² ∝ r³',
+        'escape velocity v = √(2GM/r)', 'geostationary orbit',
+        'Coulomb\'s law', 'electric field strength E = Q/4πε₀r²', 'E = V/d',
+        'electric potential V = Q/4πε₀r', 'permittivity ε₀',
+        'capacitance C = Q/V', 'C = ε₀εᵣA/d', 'energy ½CV²', 'time constant RC',
+        'exponential decay e^(−t/RC)', 'ln Q vs t straight line',
+        'F = BIL sinθ', 'F = BQv', 'left-hand rule', 'circular motion r = mv/BQ',
+        'magnetic flux Φ = BA cosθ', 'flux linkage NΦ', 'Faraday\'s law',
+        'Lenz\'s law', 'induced EMF', 'rate of change of flux',
+        'transformer', 'Vs/Vp = Ns/Np', 'V_rms = V₀/√2',
+      ],
+      boundaryNotes: [
+        'Gravitational potential: negative (work done against field from infinity is negative work).',
+        'Lenz\'s law: always opposes the change — this is how it is tested (direction of current).',
+        'Capacitor discharge: ln Q = ln Q₀ − t/RC; gradient of ln Q vs t graph = −1/RC.',
+        'Transformer: power conserved in ideal transformer → VsIs = VpIp.',
+      ],
+    },
+
+    unit8_nuclear: {
+      code: 'AQA-PHY-8',
+      title: 'Nuclear Physics',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        // NUCLEAR PHYSICS
+        'Rutherford scattering — Geiger-Marsden experiment (1909): alpha particles fired at thin gold foil; detectors at various angles; observations: most passed straight through (atom mostly empty space); some deflected at small angles; tiny fraction (1 in 8000) deflected through >90° (even back-scattered); conclusions: nucleus is tiny, massive, positively charged; most of atom is empty space; Rutherford model replaced Thomson plum pudding model; nuclear radius: r = r₀A^(1/3) where r₀ ≈ 1.2−1.4 fm; nuclear density is approximately constant regardless of nucleon number; density ρ = m/V ≈ 10¹⁷ kg m⁻³ (huge)',
+        'Radioactive decay — alpha (α): helium nucleus (⁴₂He); charge +2e; mass 4u; range few cm in air; stopped by paper or skin; highly ionising; detected by cloud chamber, GM tube; alpha decay equation; beta-minus (β⁻): electron (−¹₀e); emitted from nucleus when neutron → proton; antineutrino also emitted; continuous energy spectrum (evidence for neutrino — Pauli); range ~1m in air; stopped by few mm aluminium; moderately ionising; beta-plus (β⁺): positron (+¹₀e); emitted when proton → neutron; neutrino also emitted; stopped by few mm aluminium; gamma (γ): electromagnetic radiation; no charge, no mass; emitted after α or β decay to remove excess energy; stopped by thick lead or several cm concrete; least ionising; most penetrating; half-life t½: time for activity or number of nuclei to halve; independent of temperature, pressure, chemical form (purely quantum mechanical); exponential decay: N = N₀e^(−λt); A = A₀e^(−λt); decay constant λ (s⁻¹): probability of decay per unit time per nucleus; t½ = ln2/λ = 0.693/λ; activity A = −dN/dt = λN (becquerels, Bq)',
+        'Nuclear radius and density — nuclear radius r ∝ A^(1/3) where A = nucleon number; r = r₀A^(1/3) (r₀ ≈ 1.2 fm = 1.2×10⁻¹⁵ m); volume V = (4/3)πr³ ∝ A; nuclear density = mass/volume; mass ∝ A (each nucleon ~1 u = 1.66×10⁻²⁷ kg); density roughly constant ≈ 1.4×10¹⁷ kg m⁻³; much greater than atomic density; evidence: electron diffraction (nuclear radius); high energy electron scattering experiments',
+        'Nuclear binding energy — mass defect Δm: difference between mass of nucleus and sum of masses of constituent protons and neutrons; Δm = Zmp + (A−Z)mn − m_nucleus; binding energy EB = Δmc² (energy needed to completely separate nucleus into nucleons; or energy released when nucleus forms from separated nucleons); binding energy per nucleon EB/A: measure of stability; maximum at Fe-56 (most stable); decreases on both sides; lighter nuclei: fusion releases energy (move up toward Fe-56); heavier nuclei: fission releases energy (move down toward Fe-56); nuclear fusion: light nuclei combine → heavier + energy released; occurs in stars; requires very high temperature (overcome Coulomb repulsion; quantum tunnelling also contributes); Q-value: energy released = mass difference × c²',
+        'Fission and fusion — nuclear fission: heavy nucleus absorbs neutron → unstable nucleus → splits into two smaller nuclei + 2-3 neutrons + energy + gamma radiation; induced fission: ²³⁵U + ¹n → unstable → split (e.g. ⁹²Kr + ¹⁴¹Ba + 3n + energy); chain reaction: neutrons from fission trigger further fissions; subcritical (less than 1 neutron per fission triggers new fission — dies out); critical (exactly 1 — sustained); supercritical (more than 1 — explosive); controlled fission in nuclear reactor: fuel rods (enriched uranium — higher ²³⁵U content than natural); moderator (slows neutrons to thermal energies for efficient absorption; water or graphite); control rods (absorb neutrons; boron or cadmium; inserted to slow or stop reaction); coolant (transfers heat; water, CO₂, sodium); nuclear fusion: in stars (pp chain: 4¹H → ⁴He + 2e⁺ + 2νe + energy); tokamak reactor (ITER); problems: containing plasma at 10⁸ K; magnetic confinement; sustained reaction not yet achieved commercially; advantages of fusion: abundant fuel (deuterium from water); no long-lived radioactive waste; no chain reaction runaway risk',
+      ],
+      forbiddenTopics: [
+        'Detailed nuclear shell model — not in AQA specification',
+        'Specific decay chain calculations beyond simple alpha/beta — not required',
+        'Neutrino mass and mixing — not in specification',
+        'Pair production and annihilation detailed Q-value — covered in particles unit',
+        'Ionisation dosimetry (Gray, Sievert) — not in AQA core',
+      ],
+      requiredKeywords: [
+        'Rutherford scattering', 'alpha particles', 'gold foil', 'nuclear model', 'empty space',
+        'nuclear radius r = r₀A^(1/3)', 'nuclear density constant', 'fm',
+        'alpha decay', 'beta-minus decay', 'beta-plus decay', 'gamma radiation',
+        'ionising power', 'penetrating power', 'continuous spectrum', 'neutrino evidence',
+        'half-life t½', 'decay constant λ', 'N = N₀e^(−λt)', 'A = λN', 't½ = 0.693/λ',
+        'activity', 'becquerel Bq', 'exponential decay',
+        'mass defect', 'binding energy EB = Δmc²', 'binding energy per nucleon',
+        'Fe-56 most stable', 'fusion releases energy for light nuclei', 'fission for heavy',
+        'chain reaction', 'critical mass', 'moderator', 'control rods', 'fuel rods', 'coolant',
+        'tokamak', 'magnetic confinement', 'Q-value',
+      ],
+      boundaryNotes: [
+        'Half-life: independent of temperature, pressure, chemical state — purely quantum mechanical.',
+        'Mass defect: mass of nucleus < sum of parts (binding energy accounts for "missing" mass).',
+        'Binding energy per nucleon peaks at Fe-56 — this explains why both fusion AND fission release energy.',
+        'Chain reaction criticality: subcritical (<1), critical (=1), supercritical (>1) neutrons per event.',
+      ],
+    },
+
+    unit9_optional_astrophysics: {
+      code: 'AQA-PHY-9',
+      title: 'Astrophysics (Optional Topic)',
+      level: 'Year2',
+      paper: 'Paper 3 Section B',
+      allowedTopics: [
+        'Astronomical distances — parsec (pc): distance at which 1 AU subtends 1 arcsecond parallax; 1 pc = 3.26 ly = 3.09×10¹⁶ m; kiloparsec (kpc); megaparsec (Mpc); light year (ly): distance light travels in one year = 9.46×10¹⁵ m; Astronomical Unit (AU): mean Earth-Sun distance = 1.5×10¹¹ m; parallax method: stellar parallax angle p (arcseconds); distance d (parsec) = 1/p; limited to ~1 kpc (parallax too small); standard candles: Cepheid variables (period-luminosity relationship; measure period → know luminosity → compare with apparent brightness → distance); Type Ia supernovae (standard candle for very large distances; know peak luminosity → distance modulus)',
+        'Stars and classification — luminosity L: total power output (W); apparent magnitude m: brightness as seen from Earth; absolute magnitude M: magnitude at 10 pc; distance modulus: m − M = 5log(d/10) where d in parsecs; Wien\'s displacement law: λ_max T = 2.9×10⁻³ m K (peak wavelength of blackbody spectrum inversely proportional to temperature); hotter star: bluer (shorter λ_max); Stefan-Boltzmann law: L = 4πr²σT⁴ (σ = 5.67×10⁻⁸ W m⁻² K⁻⁴; r = stellar radius; T = surface temperature); classifying by surface temperature (spectral classes O B A F G K M — from hottest to coolest: "Oh Be A Fine Girl/Guy Kiss Me"); Hertzsprung-Russell (H-R) diagram: luminosity (y-axis) vs surface temperature (x-axis, right to left increasing); main sequence (diagonal band; most stars; hydrogen burning); red giants (upper right; cool but very luminous; large); white dwarfs (lower left; hot but dim; small); supergiants (upper regions)',
+        'Stellar evolution — stellar nebula (cloud of gas and dust collapses under gravity); protostar (gravitational PE → thermal; temperature rises; for stars like Sun: 10⁷ K reached → hydrogen fusion begins); main sequence (hydrogen → helium fusion in core; radiation pressure balances gravity; lasts ~10 Gy for Sun-like; more massive → shorter lifetime L ∝ M⁴ roughly); end of main sequence: hydrogen core exhausted; core contracts; outer layers expand and cool; red giant/supergiant; for low/medium mass (up to ~8M☉): red giant → planetary nebula (outer layers ejected) → white dwarf (carbon-oxygen core; held by electron degeneracy pressure; no fusion; cools slowly); for high mass: red supergiant → supernova (core collapses suddenly; outer layers explode; elements heavier than Fe synthesised) → neutron star (held by neutron degeneracy pressure) or black hole (for very massive progenitors; event horizon; Schwarzschild radius)',
+        'Cosmology — Hubble\'s law: v = H₀d (recession velocity proportional to distance; H₀ ≈ 70 km s⁻¹ Mpc⁻¹ = 2.2×10⁻¹⁸ s⁻¹); red shift: z = Δλ/λ = v/c (for v << c); more distant galaxies: more redshifted; evidence for expanding universe; age of universe T ≈ 1/H₀ ≈ 14 × 10⁹ years; Big Bang model: universe originated from singularity; space itself expanding; cosmic microwave background (CMB): thermal radiation from ~380,000 years after Big Bang when universe cooled enough for atoms to form; T_now ≈ 2.7 K; strong evidence for Big Bang; uniformity of CMB; dark matter: does not emit/absorb/reflect EM radiation; detected by gravitational effects (galaxy rotation curves flat beyond visible matter; gravitational lensing); about 27% of universe energy content; dark energy: responsible for accelerating expansion; about 68% of universe; nature unknown; ordinary matter only ~5%; Olbers\' paradox: if universe infinite, static and uniform: sky should be bright everywhere; darkness of night sky evidence for finite-age/expanding universe',
+      ],
+      forbiddenTopics: [
+        'Detailed stellar nucleosynthesis (specific reactions beyond pp chain) — extension',
+        'Chandrasekhar limit calculation — brief mention only',
+        'Detailed CMB anisotropy — brief mention sufficient',
+        'Specific dark matter candidates (WIMPs, axions) — extension',
+      ],
+      requiredKeywords: [
+        'parsec', 'light year', 'AU', 'parallax', 'Cepheid variable', 'standard candle',
+        'luminosity', 'apparent magnitude', 'absolute magnitude', 'distance modulus',
+        'Wien\'s law λ_max T = 2.9×10⁻³', 'Stefan-Boltzmann L = 4πr²σT⁴',
+        'spectral class O B A F G K M', 'H-R diagram', 'main sequence', 'red giant', 'white dwarf',
+        'protostar', 'hydrogen fusion', 'electron degeneracy pressure',
+        'planetary nebula', 'supernova', 'neutron star', 'black hole',
+        'Hubble\'s law v = H₀d', 'red shift z = Δλ/λ', 'expanding universe',
+        'CMB', 'Big Bang', 'dark matter', 'dark energy', 'Olbers\' paradox',
+      ],
+      boundaryNotes: [
+        'H-R diagram: temperature DECREASES left to right on x-axis — this is counterintuitive.',
+        'Stefan-Boltzmann: L ∝ r²T⁴ — both radius AND temperature determine luminosity.',
+        'Hubble\'s law: v = H₀d only valid for v << c (non-relativistic approximation).',
+        'Stellar lifetime: more massive stars live SHORTER lives (burn fuel faster).',
+      ],
+    },
+
+    physics_practical_paper3: {
+      code: 'AQA-PHY-P3',
+      title: 'Practical Skills and Data Analysis — Paper 3',
+      level: 'Practical',
+      paper: 'Paper 3',
+      allowedTopics: [
+        // REQUIRED PRACTICAL ACTIVITIES (12 in AQA)
+        'Required Practical 1 — Measurement of g using a free-fall timer or light gates: timing falling object; multiple measurements to reduce uncertainty; calculating g = 2s/t²; sources of error: reaction time (if manual timing; use light gates to eliminate); air resistance (negligible for dense small object); distance measurement uncertainty; calculating percentage uncertainty in g',
+        'Required Practical 2 — Use of a diffraction grating to measure wavelength of light: setting up laser and grating; measuring angle to orders; d sinθ = nλ; measuring angles carefully (protractor or trigonometry from screen distances); calculating λ from multiple orders; uncertainty analysis; safety: never look directly into laser; do not point at people',
+        'Required Practical 3 — Determination of Young modulus: long thin wire; measuring cross-section with micrometer (multiple readings at different points — wire may not be circular); measuring extension under known loads; plotting stress vs strain; gradient = E; accounting for initial sag (tare weight); comparison wire to cancel temperature effects',
+        'Required Practical 4 — Investigation of waves using stretched string: Melde\'s experiment; varying tension (hanging masses); measuring length between nodes (half wavelength); plotting f vs 1/L or f² vs T/µ; determining wave speed; resonance conditions',
+        'Required Practical 5 — Investigation of resonance using electrical oscillation: tuning LCR circuit; varying frequency to find resonance; measuring amplitude at resonance; relationship between damping and resonance peak; reading from oscilloscope',
+        'Required Practical 6 — Measurement of the electrical resistivity of a material: measuring resistance at different lengths using four-terminal method or ammeter-voltmeter method; plotting R vs L; calculating ρ = RA/L using measured cross-section; sources of error: contact resistance; not uniform cross-section',
+        'Required Practical 7 — Determination of the EMF and internal resistance of a cell: varying external resistance; measuring V and I; plotting V vs I; y-intercept = EMF; gradient magnitude = r; evaluating assumptions',
+        'Required Practical 8 — Investigation of the I-V characteristics of components: variable supply; ammeter in series; voltmeter in parallel; plotting I vs V for resistor, bulb, diode, thermistor; reversing connections for reverse bias of diode',
+        'Required Practical 9 — Investigation of the force on a current-carrying conductor: current-balance or Hall sensor; varying B or I; measuring force; verifying F = BIL',
+        'Required Practical 10 — Faraday\'s law investigation: moving magnet through coil; measuring induced EMF with data logger; varying speed; plotting EMF vs rate of change of flux; Lenz\'s law demonstration',
+        'Required Practical 11 — Charging and discharging of a capacitor: measuring V across capacitor vs time; data logger or manual readings; plotting V vs t and ln V vs t; calculating RC from gradient; comparing with theoretical value',
+        'Required Practical 12 — Investigation of radioactive decay using model (dice): dice represent nuclei; those showing specific face removed each shake; plotting N vs shake number; N vs shake exponential; calculating effective "decay constant"; comparing with mathematics of radioactive decay',
+        // DATA ANALYSIS SKILLS
+        'Graphical analysis skills — choosing variables to plot to linearise relationship; e.g. for v² = u² + 2as: plot v² vs s (gradient = 2a); for T² = (4π²/g)l: plot T² vs l (gradient = 4π²/g); for f = 1/2L × √(T/µ): plot f vs 1/L or f² vs T; constructing and using logarithmic graphs; error bars on graphs; max/min lines; uncertainty in gradient',
+        'Analysis of practical errors — identifying dominant sources of error for each required practical; systematic errors and how to reduce them; random errors and their reduction; improving experimental procedure; evaluating whether result agrees with accepted value within experimental uncertainty; suggesting further investigation',
+        'Calibration and instrument skills — using vernier calipers (0.1mm precision); micrometer screw gauge (0.01mm precision); oscilloscope (time-base; voltage scale; reading frequency and amplitude); signal generator; data loggers; light gates; timing systems; appropriate use of each for given measurement',
+      ],
+      forbiddenTopics: [
+        'Required practicals from optional topics — only core 12 required',
+        'Statistical significance tests — not in AQA physics',
+        'Advanced signal processing — not in specification',
+      ],
+      requiredKeywords: [
+        'percentage uncertainty', 'error bar', 'systematic error', 'random error',
+        'gradient', 'y-intercept', 'linearise', 'log graph', 'ln V vs t',
+        'micrometer', 'vernier', 'oscilloscope', 'time-base', 'data logger', 'light gate',
+        'dominant source of error', 'reducing uncertainty', 'repeats',
+        'free-fall', 'diffraction grating', 'Young modulus', 'Melde\'s experiment',
+        'EMF and internal resistance', 'I-V characteristic', 'capacitor discharge RC',
+        'required practical', 'calibration',
+      ],
+      boundaryNotes: [
+        'AQA Paper 3 Section A is always practical skills / data analysis — not theory.',
+        'Required practicals: 12 must be completed; evidence book (lab book) signed by teacher.',
+        'Paper 3 may ask analysis of unfamiliar experiment — apply skills, not recall of specific experiment.',
+      ],
+    },
+  },
+
+  // ===========================================================
+  // UK A LEVEL MATHEMATICS
+  // AQA 7357 | Edexcel 9MA0 — core content identical
+  // Paper 1: Pure (2h, no calculator)
+  // Paper 2: Pure (2h, calculator)
+  // Paper 3: Statistics and Mechanics (2h, calculator)
+  // ===========================================================
+  mathematics: {
+
+    unit1_algebra_functions: {
+      code: 'AQA-MATH-1',
+      title: 'Algebra and Functions',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // INDICES AND SURDS
+        'Laws of indices — aᵐ × aⁿ = aᵐ⁺ⁿ; aᵐ ÷ aⁿ = aᵐ⁻ⁿ; (aᵐ)ⁿ = aᵐⁿ; a⁰ = 1; a⁻ⁿ = 1/aⁿ; a^(1/n) = ⁿ√a; a^(m/n) = (ⁿ√a)ᵐ = ⁿ√(aᵐ); simplifying expressions with indices; solving exponential equations using index laws; negative and fractional indices',
+        'Surds — √a × √b = √(ab); √a / √b = √(a/b); collecting like surds (e.g. 2√3 + 5√3 = 7√3); expanding brackets with surds; rationalising denominators: monomial denominator (multiply by √a/√a); binomial denominator (multiply by conjugate (a − √b) to give (a + √b)(a − √b) = a² − b); proofs involving surds; exact values',
+        // QUADRATICS
+        'Quadratic equations and functions — factorising (product-sum method; grouping); completing the square ax² + bx + c → a(x + b/2a)² + c − b²/4a; vertex at (−b/2a, c − b²/4a); quadratic formula x = (−b ± √(b² − 4ac))/2a; discriminant Δ = b² − 4ac: Δ > 0 two distinct real roots; Δ = 0 one repeated root; Δ < 0 no real roots; using discriminant to determine nature of roots; solving quadratic equations by all three methods; quadratic inequalities: solve = 0 first; sketch parabola; read off inequality from graph; u-shaped (a>0); n-shaped (a<0)',
+        'Simultaneous equations — linear pair: substitution and elimination; linear and quadratic: substitute linear into quadratic → solve resulting quadratic → find pairs of solutions; geometric interpretation: intersection of line and curve; condition for line to be tangent: discriminant = 0; condition for no intersection: discriminant < 0',
+        // POLYNOMIALS
+        'Polynomials — degree of polynomial; expanding brackets; collecting like terms; factor theorem: (x − a) is a factor of f(x) if and only if f(a) = 0; remainder theorem: when f(x) is divided by (x − a), remainder = f(a); polynomial long division; inspection/comparison of coefficients; factorising cubics: find one factor by trial (factor theorem); divide; factorise remaining quadratic; sketching cubics: x-intercepts (roots); y-intercept; end behaviour (leading coefficient positive → rises right; negative → falls right); turning points; repeated roots (curve touches but does not cross x-axis)',
+        // FUNCTIONS
+        'Functions — domain (input values); range (output values); one-to-one (each output from exactly one input; bijection); many-to-one; function notation f(x), g(x); composite functions fg(x) = f(g(x)); order matters (fg ≠ gf generally); domain of fg; inverse function f⁻¹(x): exists only if f is one-to-one (bijective); finding inverse: write y = f(x); rearrange for x; swap x and y; domain of f⁻¹ = range of f; range of f⁻¹ = domain of f; graph of f⁻¹ is reflection of f in y = x; self-inverse: f = f⁻¹; modulus function |x|: |x| = x for x ≥ 0; |x| = −x for x < 0; graph of |f(x)| (reflect negative part in x-axis); graph of f(|x|) (keep right side; reflect in y-axis); solving equations and inequalities with modulus',
+        // TRANSFORMATIONS
+        'Graph transformations — starting from y = f(x): y = f(x) + a: vertical translation, a units up; y = f(x + a): horizontal translation, a units left; y = af(x): vertical stretch, factor a (a > 1 stretches; 0 < a < 1 compresses); y = f(ax): horizontal stretch, factor 1/a; y = −f(x): reflection in x-axis; y = f(−x): reflection in y-axis; applying combinations of transformations; identifying transformation from graph; describing transformations precisely (stating direction and magnitude)',
+        // PARTIAL FRACTIONS
+        'Partial fractions — decomposing rational functions into simpler fractions; distinct linear factors: A/(x+a) + B/(x+b) (cover-up or equating coefficients); repeated linear factors: A/(x+a) + B/(x+a)²; quadratic factor: A/(x+a) + (Bx+C)/(x²+bx+c); improper fractions (degree of numerator ≥ denominator): divide first, then decompose remainder; using partial fractions in integration and binomial expansion',
+      ],
+      forbiddenTopics: [
+        'Exponential and logarithmic functions — unit 3',
+        'Trigonometric identities — unit 4',
+        'Calculus — units 6 and 7',
+        'Vectors — unit 9',
+        'Proof by induction — unit 10 (A2)',
+        'Complex numbers — Further Maths only',
+      ],
+      requiredKeywords: [
+        'index laws', 'surd', 'rationalise', 'conjugate',
+        'quadratic formula', 'discriminant', 'completing the square', 'vertex',
+        'factor theorem', 'remainder theorem', 'polynomial division',
+        'domain', 'range', 'one-to-one', 'many-to-one', 'inverse function',
+        'composite function', 'fg(x)', 'f⁻¹(x)', 'reflection in y = x',
+        'modulus function', '|x|',
+        'translation', 'stretch', 'reflection', 'transformation',
+        'partial fractions', 'distinct linear factors', 'repeated factor',
+      ],
+      boundaryNotes: [
+        'Discriminant: Δ > 0 two roots; Δ = 0 one (repeated) root; Δ < 0 no real roots — all three cases tested.',
+        'Partial fractions: if degree numerator ≥ degree denominator, must divide first — improper fraction.',
+        'Inverse function: domain of f⁻¹ = range of f — must state domain and range explicitly.',
+        'Transformation order matters: apply in correct order when combining two or more.',
+      ],
+    },
+
+    unit2_coordinate_geometry: {
+      code: 'AQA-MATH-2',
+      title: 'Coordinate Geometry in the (x, y) Plane',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // STRAIGHT LINES
+        'Straight lines — gradient m = (y₂ − y₁)/(x₂ − x₁); forms: y = mx + c (gradient-intercept); y − y₁ = m(x − x₁) (point-gradient); ax + by + c = 0 (general); parallel lines: same gradient; perpendicular lines: m₁m₂ = −1 (negative reciprocal); distance between two points: d = √((x₂−x₁)² + (y₂−y₁)²); midpoint: ((x₁+x₂)/2, (y₁+y₂)/2); perpendicular bisector: passes through midpoint; perpendicular to line segment; gradient = negative reciprocal of segment',
+        // CIRCLES
+        'Circle equations — standard form (x − a)² + (y − b)² = r² (centre (a,b); radius r); expanded form x² + y² + 2gx + 2fy + c = 0 (centre (−g, −f); radius √(g²+f²−c)); completing the square to convert; finding equation given centre and radius, or three points; properties: tangent perpendicular to radius at point of contact; perpendicular from centre bisects chord; angle in semicircle = 90°; line from centre to midpoint of chord is perpendicular to chord; finding tangent at point on circle; chord bisector passes through centre',
+        'Circle intersections — substituting line equation into circle equation; quadratic obtained; discriminant determines: two intersection points (Δ > 0); tangent (Δ = 0); no intersection (Δ < 0); finding points of intersection; length of tangent from external point',
+        // PARAMETRIC EQUATIONS
+        'Parametric equations — expressing curve as x = f(t), y = g(t) (t is parameter); converting to Cartesian form by eliminating parameter (substitution; squaring; using trig identity); gradient: dy/dx = (dy/dt)/(dx/dt) (chain rule); finding tangent and normal to parametric curve; area under parametric curve: ∫y(dx/dt)dt; curve recognition: x = r cosθ, y = r sinθ (circle); x = a cos²t, y = a sint (parabola-like); x = at², y = 2at (standard parabola x = y²/4a)',
+      ],
+      forbiddenTopics: [
+        'Polar coordinates — not in A Level core (Further Maths only)',
+        'Three-dimensional coordinate geometry beyond vectors — unit 9',
+        'Conic sections in detail (ellipse, hyperbola) — Further Maths',
+      ],
+      requiredKeywords: [
+        'gradient', 'perpendicular gradient', 'midpoint', 'perpendicular bisector',
+        'circle equation', 'centre', 'radius', 'completing the square',
+        'tangent perpendicular to radius', 'chord bisector',
+        'discriminant', 'tangent condition Δ = 0',
+        'parametric equations', 'eliminate parameter', 'dy/dx = (dy/dt)/(dx/dt)',
+      ],
+      boundaryNotes: [
+        'Tangent to circle: use gradient of radius at point, then perpendicular = negative reciprocal.',
+        'Circle from expanded form: complete the square for both x and y terms.',
+        'Parametric gradient: dy/dx = (dy/dt) ÷ (dx/dt) — do NOT differentiate y with respect to x directly.',
+      ],
+    },
+
+    unit3_sequences_series: {
+      code: 'AQA-MATH-3',
+      title: 'Sequences and Series',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // ARITHMETIC SEQUENCES
+        'Arithmetic sequences and series — common difference d; general term: uₙ = a + (n−1)d; finding n given uₙ; sum of n terms: Sₙ = n/2(2a + (n−1)d) = n/2(a + l) where l = last term; sigma notation Σ; arithmetic series problem solving; condition: d constant between consecutive terms',
+        // GEOMETRIC SEQUENCES
+        'Geometric sequences and series — common ratio r; general term: uₙ = arⁿ⁻¹; sum of n terms: Sₙ = a(1 − rⁿ)/(1 − r) for r ≠ 1; or Sₙ = a(rⁿ − 1)/(r − 1); sum to infinity S∞ = a/(1 − r) valid only if |r| < 1 (convergent geometric series); if |r| ≥ 1: series diverges (no sum to infinity); geometric series problem solving; applications: compound interest (Sₙ for regular payments); depreciation; population growth; sequences defined by recurrence relation uₙ₊₁ = f(uₙ)',
+        // BINOMIAL EXPANSION
+        'Binomial expansion — (a + b)ⁿ for positive integer n: using Pascal\'s triangle or ⁿCr = n!/(r!(n−r)!) = C(n,r); binomial theorem: (a + b)ⁿ = Σ ⁿCr aⁿ⁻ʳ bʳ (r from 0 to n); finding specific term: (r+1)th term = ⁿCr aⁿ⁻ʳ bʳ; (1 + x)ⁿ for any real n: 1 + nx + n(n−1)/2! x² + n(n−1)(n−2)/3! x³ + ... valid only for |x| < 1 (any rational n); (a + bx)ⁿ: write as aⁿ(1 + bx/a)ⁿ; valid for |bx/a| < 1; using binomial to approximate values; finding range of validity',
+      ],
+      forbiddenTopics: [
+        'Generating functions — Further Maths only',
+        'Maclaurin series — A2 Further Maths',
+        'Proof by induction for series sums — A2 unit 10',
+        'Convergence tests beyond ratio/geometric — Further Maths',
+      ],
+      requiredKeywords: [
+        'arithmetic sequence', 'common difference', 'uₙ = a + (n−1)d',
+        'sum Sₙ = n/2(2a + (n−1)d)', 'sigma notation',
+        'geometric sequence', 'common ratio', 'uₙ = arⁿ⁻¹',
+        'Sₙ = a(1−rⁿ)/(1−r)', 'sum to infinity S∞ = a/(1−r)', '|r| < 1',
+        'recurrence relation', 'convergent', 'divergent',
+        'binomial theorem', 'ⁿCr', 'Pascal\'s triangle', '(r+1)th term',
+        '(1+x)ⁿ for rational n', 'valid for |x| < 1',
+      ],
+      boundaryNotes: [
+        'Sum to infinity: ONLY if |r| < 1 — must state this condition every time.',
+        'Binomial for rational n: must state validity range |x| < 1 or |bx/a| < 1.',
+        'Specific term: r+1th term = ⁿCr aⁿ⁻ʳ bʳ — r starts from 0, so term 1 has r=0.',
+      ],
+    },
+
+    unit4_trigonometry: {
+      code: 'AQA-MATH-4',
+      title: 'Trigonometry',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // BASICS
+        'Trigonometric functions — SOHCAHTOA in right triangles; sine rule: a/sinA = b/sinB = c/sinC; cosine rule: a² = b² + c² − 2bc cosA; area = ½ab sinC; ambiguous case of sine rule (two possible triangles); exact values: sin30° = ½; cos30° = √3/2; tan30° = 1/√3; sin45° = 1/√2; cos45° = 1/√2; tan45° = 1; sin60° = √3/2; cos60° = ½; tan60° = √3; sin0° = 0; cos0° = 1; tan0° = 0; sin90° = 1; cos90° = 0',
+        'Radians — π radians = 180°; converting degrees ↔ radians; arc length s = rθ (θ in radians); area of sector A = ½r²θ; area of segment = ½r²(θ − sinθ); small angle approximations (θ in radians): sinθ ≈ θ; cosθ ≈ 1 − θ²/2; tanθ ≈ θ',
+        'Graphs and transformations — y = sinx, y = cosx, y = tanx: period, amplitude, asymptotes; transformations (y = a sinbx + c; amplitude a; period 2π/b; vertical shift c); y = sin(x + α) phase shift; sketching transformed trig functions; inverse trig functions: arcsin (domain [−1,1], range [−π/2, π/2]); arccos (domain [−1,1], range [0, π]); arctan (domain ℝ, range (−π/2, π/2))',
+        // IDENTITIES
+        'Trigonometric identities — Pythagorean: sin²θ + cos²θ ≡ 1; ⟹ 1 + tan²θ ≡ sec²θ; 1 + cot²θ ≡ cosec²θ; reciprocal identities: cosecθ = 1/sinθ; secθ = 1/cosθ; cotθ = cosθ/sinθ; compound angle formulae: sin(A±B) = sinA cosB ± cosA sinB; cos(A±B) = cosA cosB ∓ sinA sinB; tan(A±B) = (tanA ± tanB)/(1 ∓ tanA tanB); double angle formulae: sin2A = 2sinA cosA; cos2A = cos²A − sin²A = 2cos²A − 1 = 1 − 2sin²A; tan2A = 2tanA/(1 − tan²A); half angle substitution t = tan(θ/2); R sin(θ + α) form: asinθ + bcosθ = R sin(θ + α) where R = √(a² + b²) and tanα = b/a; finding max/min values; solving equations; proving identities (manipulate one side to equal the other; do not work on both sides simultaneously)',
+        'Solving trigonometric equations — principal value from calculator; using CAST diagram or symmetry of graph; general solutions: sinθ = k → θ = arcsin(k) + 360n or 180 − arcsin(k) + 360n; cosθ = k → θ = ±arccos(k) + 360n; tanθ = k → θ = arctan(k) + 180n; solving in given range; equations requiring identities first (substitute identity to reduce to single trig function); equations of form R sin(θ + α) = c',
+      ],
+      forbiddenTopics: [
+        'Calculus of trig functions — unit 6 (differentiation)',
+        'Integration of trig functions — unit 7',
+        'Trig in complex numbers — Further Maths',
+      ],
+      requiredKeywords: [
+        'sine rule', 'cosine rule', 'area = ½ab sinC', 'ambiguous case',
+        'radian', 'arc length s = rθ', 'sector area = ½r²θ', 'small angle approximation',
+        'sin²θ + cos²θ = 1', 'sec²θ = 1 + tan²θ', 'cosec', 'sec', 'cot',
+        'compound angle formula', 'double angle formula', 'sin2A', 'cos2A',
+        'R sin(θ + α)', 'R = √(a² + b²)', 'tanα = b/a',
+        'CAST diagram', 'general solution', 'principal value',
+        'arcsin', 'arccos', 'arctan', 'domain', 'range',
+      ],
+      boundaryNotes: [
+        'Proving identities: manipulate ONE side only — never work on both sides at once.',
+        'General solutions: sin gives two solutions per period; cos gives two; tan gives one.',
+        'Double angle: cos2A has THREE equivalent forms — know all three and when to use each.',
+        'R sin(θ + α): expand and compare coefficients to find R and α.',
+      ],
+    },
+
+    unit5_exponentials_logarithms: {
+      code: 'AQA-MATH-5',
+      title: 'Exponentials and Logarithms',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        'Exponential functions — y = aˣ (a > 0; a ≠ 1); growth (a > 1) and decay (0 < a < 1); y = eˣ (Euler\'s number e ≈ 2.718; d/dx(eˣ) = eˣ — unique property); y = e^(kx): growth if k > 0; decay if k < 0; exponential models (population growth, radioactive decay, Newton\'s law of cooling, compound interest, drug concentration)',
+        'Logarithms — definition: logₐx = y ↔ aʸ = x; natural logarithm: ln x = log_e x; laws of logarithms: logₐ(xy) = logₐx + logₐy; logₐ(x/y) = logₐx − logₐy; logₐ(xⁿ) = n logₐx; logₐa = 1; logₐ1 = 0; change of base: logₐb = log b / log a = ln b / ln a; solving equations: aˣ = b → x = log b / log a = ln b / ln a; equations reducible to quadratics in exponential form (e.g. e²ˣ − 3eˣ + 2 = 0; let u = eˣ)',
+        'Graphs and inverses — y = eˣ and y = ln x are inverses (reflections in y = x); graphs of y = a + beˣ; y = aeˣ + b; exponential graph never crosses x-axis (asymptote); transformations of exponential and log graphs; domain of ln x: x > 0; sketching y = ln(ax + b) and domain consideration',
+        'Linearising data — if y = axⁿ: log y = log a + n log x; plot log y vs log x; gradient = n; intercept = log a; if y = ab^x: log y = log a + x log b; plot log y vs x; gradient = log b; intercept = log a; using ln for natural base; fitting straight line to linearised data; finding a and b from graph',
+      ],
+      forbiddenTopics: [
+        'Differentiation and integration of ln and eˣ — unit 6 and 7',
+        'Differential equations using exponentials — A2 unit 8',
+        'Complex logarithms — Further Maths',
+      ],
+      requiredKeywords: [
+        'exponential function', 'y = eˣ', 'growth', 'decay', 'e = 2.718',
+        'logarithm', 'log laws', 'ln x', 'natural logarithm',
+        'logₐ(xy) = logₐx + logₐy', 'change of base formula',
+        'solving aˣ = b', 'log both sides',
+        'inverse functions eˣ and ln x', 'y = x reflection',
+        'linearising', 'log y vs log x', 'gradient = n', 'intercept = log a',
+        'log y vs x', 'gradient = log b',
+      ],
+      boundaryNotes: [
+        'ln x: domain x > 0 — graph approaches but never touches y-axis.',
+        'Linearising y = ab^x: use log (any base); plot log y vs x — this gives straight line.',
+        'Change of base: logₐb = ln b / ln a — most useful form for calculators.',
+      ],
+    },
+
+    unit6_differentiation: {
+      code: 'AQA-MATH-6',
+      title: 'Differentiation',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // BASIC DIFFERENTIATION
+        'Differentiation from first principles — limit definition: f\'(x) = lim[h→0] (f(x+h) − f(x))/h; applying to f(x) = xⁿ; f(x) = sin x; f(x) = cos x; understanding as gradient of tangent',
+        'Standard derivatives — d/dx(xⁿ) = nxⁿ⁻¹ (including negative and fractional n); d/dx(eˣ) = eˣ; d/dx(eᵏˣ) = keᵏˣ; d/dx(ln x) = 1/x; d/dx(sin x) = cos x; d/dx(cos x) = −sin x; d/dx(tan x) = sec²x; d/dx(sin kx) = k cos kx; d/dx(cos kx) = −k sin kx; d/dx(a^x) = a^x ln a; d/dx(ln f(x)) = f\'(x)/f(x)',
+        'Rules of differentiation — sum/difference rule; constant multiple rule; product rule: d/dx(uv) = u(dv/dx) + v(du/dx); quotient rule: d/dx(u/v) = (v(du/dx) − u(dv/dx))/v²; chain rule: dy/dx = dy/du × du/dx (function of a function); implicit differentiation: d/dx(y²) = 2y dy/dx; d/dx(y³) = 3y² dy/dx; d/dx(xy) = x dy/dx + y (product rule); finding dy/dx implicitly for curves like x² + y² = r²; parametric differentiation: dy/dx = (dy/dt)/(dx/dt); second derivative d²y/dx²',
+        // APPLICATIONS
+        'Applications of differentiation — tangent: gradient m = f\'(a) at x=a; equation y − f(a) = m(x − a); normal: gradient −1/m; stationary points: f\'(x) = 0; classifying by second derivative (f\'\'(a) > 0: minimum; f\'\'(a) < 0: maximum; f\'\'(a) = 0: further investigation needed — may be point of inflection); first derivative sign test for classification; points of inflection: f\'\'(x) = 0 and sign changes; increasing functions (f\'(x) > 0); decreasing functions (f\'(x) < 0); optimisation: setting up function to be maximised or minimised; solving f\'(x) = 0; connected rates of change: dy/dt = dy/dx × dx/dt (chain rule)',
+        // A2 DIFFERENTIATION
+        'A2 differentiation — further chain rule; differentiating inverse trig: d/dx(arcsin x) = 1/√(1−x²); d/dx(arccos x) = −1/√(1−x²); d/dx(arctan x) = 1/(1+x²); differentiating further implicit equations including products; second derivative test for points of inflection; L\'Hôpital\'s rule (not in AQA core but Edexcel may include): for 0/0 indeterminate forms; limit as x→a of f(x)/g(x) = f\'(a)/g\'(a)',
+      ],
+      forbiddenTopics: [
+        'Multivariable calculus (partial derivatives) — Further Maths',
+        'Taylor series — Further Maths',
+        'Differential equations — unit 8 (A2)',
+      ],
+      requiredKeywords: [
+        'first principles', 'limit', 'gradient of tangent', 'f\'(x)',
+        'd/dx(xⁿ) = nxⁿ⁻¹', 'd/dx(eˣ) = eˣ', 'd/dx(ln x) = 1/x',
+        'd/dx(sin x) = cos x', 'd/dx(cos x) = −sin x', 'd/dx(tan x) = sec²x',
+        'product rule', 'quotient rule', 'chain rule', 'implicit differentiation',
+        'parametric differentiation dy/dx = (dy/dt)/(dx/dt)',
+        'stationary point', 'maximum', 'minimum', 'point of inflection',
+        'second derivative', 'f\'\'(x)', 'optimisation',
+        'connected rates of change', 'arcsin', 'arccos', 'arctan',
+      ],
+      boundaryNotes: [
+        'Chain rule: differentiate outside × inside (keeping inside) × derivative of inside.',
+        'Implicit differentiation: every y term must be multiplied by dy/dx when differentiated.',
+        'Second derivative test: f\'\'> 0 minimum; f\'\'< 0 maximum; f\'\'= 0 inconclusive.',
+        'Product rule: uv\' + vu\' — order of u and v does not matter (addition is commutative).',
+      ],
+    },
+
+    unit7_integration: {
+      code: 'AQA-MATH-7',
+      title: 'Integration',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // BASIC INTEGRATION
+        'Standard integrals — ∫xⁿ dx = xⁿ⁺¹/(n+1) + c (n ≠ −1); ∫1/x dx = ln|x| + c; ∫eˣ dx = eˣ + c; ∫eᵏˣ dx = (1/k)eᵏˣ + c; ∫sin x dx = −cos x + c; ∫cos x dx = sin x + c; ∫sec²x dx = tan x + c; ∫sin kx dx = −(1/k)cos kx + c; ∫cos kx dx = (1/k)sin kx + c; ∫f\'(x)/f(x) dx = ln|f(x)| + c; constant of integration c; definite integrals ∫ᵃᵇ f(x) dx = [F(x)]ᵃᵇ = F(b) − F(a)',
+        'Integration techniques — integration by substitution: choose u = g(x); find du/dx; substitute; integrate in u; substitute back; for definite integrals: change limits; integration by parts: ∫u dv/dx dx = uv − ∫v du/dx dx; LATE rule: Logarithm, Algebraic, Trigonometric, Exponential (choose u in this order); applying integration by parts twice; integration using partial fractions; integrating rational functions after partial fraction decomposition; integrating trig using double angle (e.g. ∫sin²x dx: use cos2x = 1 − 2sin²x → sin²x = (1 − cos2x)/2)',
+        // APPLICATIONS
+        'Applications of integration — area under curve: ∫ᵃᵇ f(x) dx (positive if f(x) > 0; negative if f(x) < 0; take modulus for actual area); area between two curves: ∫ᵃᵇ (f(x) − g(x)) dx (upper curve minus lower); area between curve and y-axis: ∫y₁y₂ x dy (integrate x as function of y); volumes of revolution: V = π∫ᵃᵇ y² dx (rotation about x-axis); V = π∫y₁y₂ x² dy (rotation about y-axis); trapezium rule: ≈ h/2 [y₀ + yn + 2(y₁+y₂+...+yn₋₁)] where h = (b−a)/n; this is an approximation; increasing accuracy by increasing n; whether it is an overestimate or underestimate depends on concavity',
+        // DIFFERENTIAL EQUATIONS (A2)
+        'Differential equations — first-order separable: dy/dx = f(x)g(y); separate variables; ∫(1/g(y)) dy = ∫f(x) dx; general solution (constant of integration C); particular solution (use initial conditions to find C); modelling: dy/dt = ky (exponential growth/decay → y = Ae^(kt)); Newton\'s law of cooling dy/dt = −k(y − T₀) (separable); logistic growth; interpreting solutions in context; sketching solution curves (family of curves for general solution)',
+      ],
+      forbiddenTopics: [
+        'Multiple integrals — Further Maths',
+        'Line integrals — Further Maths',
+        'Fourier series — Further Maths',
+        'Riemann sums formally — conceptual understanding of definite integral sufficient',
+      ],
+      requiredKeywords: [
+        'indefinite integral', 'constant of integration', 'definite integral', '∫ᵃᵇ f(x)dx',
+        '∫xⁿ = xⁿ⁺¹/(n+1) + c', '∫1/x = ln|x|', '∫eˣ = eˣ', '∫sin x = −cos x',
+        'integration by substitution', 'change of variable', 'change limits for definite',
+        'integration by parts', 'LATE rule', 'uv − ∫v du',
+        'area under curve', 'area between curves', 'upper minus lower',
+        'volume of revolution', 'V = π∫y² dx',
+        'trapezium rule', 'overestimate', 'underestimate',
+        'differential equation', 'separable', 'general solution', 'particular solution',
+        'initial condition', 'dy/dt = ky', 'exponential growth', 'exponential decay',
+      ],
+      boundaryNotes: [
+        'Integration by substitution: must change dx AND limits for definite integrals.',
+        'Area: always take modulus if curve goes below x-axis; split at x-intercepts.',
+        'Trapezium rule: overestimate if curve concave up; underestimate if concave down.',
+        'Differential equations: general solution has C; particular solution is unique after applying IC.',
+      ],
+    },
+
+    unit8_numerical_methods: {
+      code: 'AQA-MATH-8',
+      title: 'Numerical Methods',
+      level: 'Year2',
+      paper: 'Paper 2',
+      allowedTopics: [
+        'Locating roots — sign change method: f(a) and f(b) have opposite signs → root in [a, b] (assuming f continuous); refining root by bisection or decimal search; limitations: multiple roots in interval; discontinuity in interval can give false sign change',
+        'Fixed-point iteration — xₙ₊₁ = g(xₙ); find rearrangement of f(x) = 0 as x = g(x); iterate from starting value; convergence: |g\'(x)| < 1 near root → converges; |g\'(x)| > 1 → diverges; staircase diagram (converging to root step by step); cobweb diagram (spiralling to root); choice of rearrangement affects convergence',
+        'Newton-Raphson method — xₙ₊₁ = xₙ − f(xₙ)/f\'(xₙ); usually converges faster than fixed-point iteration (quadratic convergence); fails if f\'(xₙ) = 0 (division by zero; tangent horizontal); may converge to wrong root if starting point chosen poorly; graphical interpretation: tangent to curve at (xₙ, f(xₙ)) crosses x-axis at xₙ₊₁',
+        'Numerical integration — trapezium rule (covered in integration unit); Simpson\'s rule (if in specification): approximates curve as parabola over each pair of strips; more accurate than trapezium rule; S = h/3[y₀ + yₙ + 4(y₁+y₃+...) + 2(y₂+y₄+...)] where h = (b−a)/n; n must be even for Simpson\'s',
+      ],
+      forbiddenTopics: [
+        'Complex root finding methods (Bairstow\'s, Laguerre\'s) — not in specification',
+        'Numerical linear algebra — Further Maths',
+        'Finite difference methods for differential equations — not in specification',
+      ],
+      requiredKeywords: [
+        'sign change', 'root', 'f(a) and f(b) opposite signs', 'decimal search',
+        'fixed-point iteration', 'xₙ₊₁ = g(xₙ)', '|g\'(x)| < 1 convergence',
+        'staircase diagram', 'cobweb diagram',
+        'Newton-Raphson', 'xₙ₊₁ = xₙ − f(xₙ)/f\'(xₙ)', 'tangent',
+        'convergence', 'divergence', 'fails if f\'= 0',
+      ],
+      boundaryNotes: [
+        'Sign change: f must be continuous in [a,b] — discontinuity can create false sign change.',
+        'Newton-Raphson convergence failure: tangent horizontal (f\'=0) or wrong root if poor starting point.',
+        '|g\'(x)| < 1 at root required for fixed-point iteration convergence — must be able to verify.',
+      ],
+    },
+
+    unit9_vectors: {
+      code: 'AQA-MATH-9',
+      title: 'Vectors',
+      level: 'Year1',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        '3D vectors — column vectors; i, j, k unit vectors; magnitude |v| = √(x²+y²+z²); unit vector: â = v/|v|; position vectors; adding and subtracting vectors; scalar multiplication; direction cosines (not all specifications)',
+        'Vector operations — scalar (dot) product: a·b = a₁b₁ + a₂b₂ + a₃b₃ = |a||b|cosθ; angle between vectors: cosθ = a·b/(|a||b|); perpendicular vectors: a·b = 0; projection of a onto b: (a·b̂)b̂; vector equation of line: r = a + tb (a = point on line; b = direction vector; t = scalar parameter); converting to Cartesian form; intersection of two lines (check if lines are parallel; if not, solve for parameters; check consistency; if consistent → intersection; if inconsistent → skew or parallel); angle between two lines: cosθ = |b₁·b₂|/(|b₁||b₂|); skew lines (non-parallel; non-intersecting; in 3D)',
+        'Vector equation of plane — r·n̂ = d (n = normal vector; d = distance from origin); Cartesian form: ax + by + cz = d; finding normal vector from two vectors in plane; angle between line and plane; angle between two planes; distance from point to plane; converting between forms; point of intersection of line and plane; condition for line to be in a plane; condition for line to be parallel to a plane',
+      ],
+      forbiddenTopics: [
+        'Cross product — Further Maths only',
+        'Vector calculus — Further Maths',
+        'Moment of a force using vectors — Further Maths',
+      ],
+      requiredKeywords: [
+        'column vector', 'i j k unit vectors', 'magnitude', 'unit vector', 'position vector',
+        'scalar product', 'dot product', 'a·b = a₁b₁ + a₂b₂ + a₃b₃', 'a·b = |a||b|cosθ',
+        'perpendicular a·b = 0', 'projection',
+        'vector equation of line r = a + tb', 'direction vector', 'parameter',
+        'skew lines', 'intersection of lines', 'angle between lines',
+        'vector equation of plane r·n = d', 'normal vector', 'Cartesian equation of plane',
+      ],
+      boundaryNotes: [
+        'Skew lines: non-parallel AND non-intersecting — can only exist in 3D.',
+        'Angle between lines: always use acute angle (take |cosθ| or check with sketch).',
+        'Plane equation: normal vector coefficients give a, b, c in ax + by + cz = d.',
+      ],
+    },
+
+    unit10_proof: {
+      code: 'AQA-MATH-10',
+      title: 'Proof',
+      level: 'Year1',
+      paper: 'Paper 1',
+      allowedTopics: [
+        'Types of proof — proof by deduction (direct proof): assume given conditions; use logical steps; derive conclusion; most common type; proof by exhaustion: check all cases (finite number of cases); proof by contradiction: assume negation of what you want to prove; derive logical contradiction; conclude original statement true; proof by counter-example: find one example where statement fails → statement is NOT always true (disproof); proof that √2 is irrational (contradiction); proof that there are infinitely many primes (contradiction)',
+        'Proof by induction — basis step: prove true for n = 1 (or n = 0); inductive step: assume true for n = k; prove true for n = k + 1; conclusion: by the principle of mathematical induction, true for all n ≥ 1; applications: sum of arithmetic series; sum of geometric series; divisibility (e.g. show 3ⁿ − 1 divisible by 2 for all n ∈ ℕ); inequalities; matrix powers; writing up proof correctly (essential for marks: clearly state assumption, clearly state what is shown in inductive step)',
+        'Language of proof — "for all" (∀), "there exists" (∃), "implies" (→), "if and only if" (↔); necessary and sufficient conditions; converse; contrapositive: if ¬Q → ¬P is equivalent to P → Q (can prove contrapositive instead); identifying flaws in given proofs; common errors (assuming what you are trying to prove; invalid algebra; incorrect generalisation from examples)',
+      ],
+      forbiddenTopics: [
+        'Formal logic and propositional calculus — Further Maths',
+        'Proof by strong induction — Further Maths',
+        'Zermelo-Fraenkel set theory — beyond specification',
+      ],
+      requiredKeywords: [
+        'proof by deduction', 'proof by exhaustion', 'proof by contradiction', 'proof by counter-example',
+        'proof by induction', 'basis step', 'inductive step', 'n = k assumption', 'n = k+1',
+        'assume true for n = k', 'by the principle of mathematical induction',
+        'converse', 'contrapositive', 'necessary', 'sufficient', 'if and only if',
+        'contradiction', 'assume negation', 'derive false statement',
+        '√2 irrational proof', 'infinitely many primes',
+      ],
+      boundaryNotes: [
+        'Proof by induction: MUST state all three components clearly — basis, inductive step, conclusion.',
+        'Contrapositive: proving ¬Q → ¬P is EQUIVALENT to proving P → Q — valid proof strategy.',
+        'Counter-example: one example suffices to disprove a universal statement — cannot prove with one example.',
+        'In inductive step: start from assumed case (n=k) and show n=k+1 follows — do not assume n=k+1.',
+      ],
+    },
+
+    unit11_statistics: {
+      code: 'AQA-MATH-11',
+      title: 'Statistics',
+      level: 'Year1',
+      paper: 'Paper 3',
+      allowedTopics: [
+        // DATA REPRESENTATION
+        'Statistical measures — mean (arithmetic average; x̄ = Σfx / Σf for frequency data); median (middle value; Q2); mode (most frequent); range; interquartile range IQR = Q3 − Q1; variance σ² = Σ(x − x̄)² / n = Σx²/n − x̄²; standard deviation σ = √variance; coding: if y = (x − a)/b then ȳ = (x̄ − a)/b and σy = σx/|b| (mean affected by translation and scaling; SD only by scaling); outliers: above Q3 + 1.5×IQR or below Q1 − 1.5×IQR (or above mean + 2σ depending on specification)',
+        'Displaying data — box plot (min, Q1, Q2, Q3, max; outliers marked separately); histogram (frequency density = frequency / class width for unequal classes; equal classes: frequency or frequency density); cumulative frequency graphs (reading Q1, Q2, Q3, percentiles from graph); stem-and-leaf diagrams; back-to-back stem-and-leaf (comparing two data sets); scatter diagrams (visualising correlation)',
+        'Correlation and regression — product-moment correlation coefficient r (from −1 to +1; r close to ±1: strong; r close to 0: weak/no linear correlation; correlation does NOT imply causation); regression line y on x: y = a + bx (fitted by least squares); b = Sxy/Sxx and a = ȳ − bx̄ (Sxy = Σxy − nx̄ȳ; Sxx = Σx² − nx̄²); uses: interpolation (within data range; reasonable); extrapolation (outside range; unreliable; may be misleading); regression line passes through (x̄, ȳ); interpreting gradient and intercept in context',
+        // PROBABILITY
+        'Probability — P(A) ∈ [0,1]; P(A\') = 1 − P(A); P(A ∪ B) = P(A) + P(B) − P(A ∩ B); mutually exclusive events: P(A ∩ B) = 0 → P(A ∪ B) = P(A) + P(B); independent events: P(A ∩ B) = P(A) × P(B); P(A|B) = P(A ∩ B) / P(B) (conditional probability); tree diagrams; Venn diagrams; sample spaces; probability from frequency tables; three-event problems',
+        // DISTRIBUTIONS
+        'Binomial distribution — X ~ B(n, p); conditions: fixed n trials; each trial independent; constant probability p of success; two outcomes (success/failure); P(X = r) = ⁿCr × pʳ × (1−p)ⁿ⁻ʳ; mean E(X) = np; variance Var(X) = np(1−p); standard deviation √(np(1−p)); cumulative probabilities from tables or calculator; P(X ≤ r), P(X ≥ r), P(X = r); context: must check conditions; recognise situations fitting binomial model',
+        'Normal distribution — X ~ N(μ, σ²); symmetric bell-shaped curve; mean = mode = median = μ; 68% within 1σ; 95% within 2σ; 99.7% within 3σ; standardising: Z = (X − μ)/σ ~ N(0, 1); P(X < x) from calculator or tables; P(a < X < b) = P(X < b) − P(X < a); inverse normal: finding x from probability P(X < x) = p → x = μ + zσ; finding μ or σ from given probability; normal as approximation to binomial: B(n,p) approximately N(np, np(1−p)) when n large, p close to ½; continuity correction P(X ≤ a) → P(Y < a + 0.5)',
+        // HYPOTHESIS TESTING
+        'Hypothesis testing — null hypothesis H₀ (assumption we test; usually "no effect" or specific parameter value); alternative hypothesis H₁ (one-tailed: > or <; two-tailed: ≠); significance level α (probability of rejecting H₀ when it is true; Type I error probability; commonly 5% or 1%); critical value: minimum test statistic to reject H₀; critical region: set of values leading to rejection; p-value: probability of obtaining result at least as extreme as observed, assuming H₀ true; if p-value < α: reject H₀; if p-value ≥ α: insufficient evidence to reject H₀; hypothesis test for proportion using binomial: state H₀ (p = p₀) and H₁; find probability of observed or more extreme under H₀; compare with α; hypothesis test for mean using normal; Type I error: rejecting H₀ when true; Type II error: failing to reject H₀ when false; conclusion must be stated in context',
+      ],
+      forbiddenTopics: [
+        'Poisson distribution — A2 statistics unit (Year 2)',
+        'Chi-squared test — not in AQA core statistics',
+        'Confidence intervals — not in AQA A Level core',
+        'ANOVA — not in specification',
+        'Non-parametric tests — not in specification',
+      ],
+      requiredKeywords: [
+        'mean', 'median', 'mode', 'variance', 'standard deviation', 'IQR', 'outlier',
+        'coding', 'histogram', 'frequency density', 'box plot', 'cumulative frequency',
+        'correlation coefficient r', 'regression line y on x', 'Sxy', 'Sxx',
+        'interpolation', 'extrapolation', 'correlation not causation',
+        'mutually exclusive', 'independent events', 'P(A|B)', 'conditional probability',
+        'binomial B(n,p)', 'conditions for binomial', 'E(X) = np', 'Var(X) = np(1−p)',
+        'normal N(μ,σ²)', 'standardising Z = (X−μ)/σ', 'inverse normal',
+        'normal approximation to binomial', 'continuity correction',
+        'null hypothesis H₀', 'alternative hypothesis H₁', 'significance level',
+        'critical region', 'p-value', 'Type I error', 'Type II error', 'reject H₀',
+      ],
+      boundaryNotes: [
+        'Binomial conditions: all four must be checked — fixed n, independent, constant p, binary outcome.',
+        'Hypothesis test conclusion: must be stated in context of problem — not just "reject H₀".',
+        'Normal distribution: area BELOW x; P(X > x) = 1 − P(X < x); P(a<X<b) = P(X<b) − P(X<a).',
+        'Type I error = significance level α; Type II error probability requires knowing true distribution.',
+      ],
+    },
+
+    unit12_mechanics: {
+      code: 'AQA-MATH-12',
+      title: 'Mechanics (Mathematics)',
+      level: 'Year1',
+      paper: 'Paper 3',
+      allowedTopics: [
+        // KINEMATICS
+        'Kinematics — displacement, velocity, acceleration (vectors; positive direction chosen); v = ds/dt; a = dv/dt = d²s/dt²; integrating to find s from v and v from a; SUVAT equations for constant acceleration: v = u + at; s = ut + ½at²; v² = u² + 2as; s = (u+v)t/2; applying to vertical motion under gravity (g = 9.8 ms⁻² or 9.81 depending on specification; or g = 10 for simplicity if instructed); velocity-time graphs: gradient = acceleration; area = displacement; projectile motion: horizontal (constant velocity) and vertical (constant acceleration g) components; range; maximum height; time of flight',
+        // FORCES
+        'Forces and Newton\'s laws — Newton\'s first law (equilibrium: ΣF = 0); Newton\'s second law: F = ma (resultant force; vectors); Newton\'s third law (action-reaction pairs; different objects); weight W = mg; normal reaction N; tension T; friction F ≤ μN (F = μN at limiting equilibrium or sliding); resolving forces on inclines; connected particles: string over pulley; Atwood machine; on incline with pulley; internal tension in system; acceleration of system; tension in string',
+        // MOMENTS (A2 in some specs; Year 1 in others)
+        'Statics and moments — moment M = Fd (perpendicular distance); principle of moments (clockwise = anticlockwise); equilibrium conditions (ΣF = 0 and ΣM = 0); lamina; centre of mass of compound shapes (weighted average of positions); tilting and toppling conditions',
+        // ENERGY
+        'Work, energy and power — work done W = F·d cosθ; kinetic energy ½mv²; gravitational PE mgh; work-energy theorem: net work = change in KE; conservation of mechanical energy (no friction); with friction: ΔKE + ΔPE = −work done by friction; power P = Fv = F·v; driving force, resistance, acceleration; efficiency; variable forces: W = ∫F dx',
+        // IMPULSE AND MOMENTUM
+        'Momentum and impulse — p = mv; conservation of momentum (closed system; no external force); impulse J = Ft = Δp = mv − mu; collisions (elastic: KE conserved; inelastic: KE not conserved; perfectly inelastic: coalesce); Newton\'s law of restitution: e = speed of separation / speed of approach; coefficient of restitution 0 ≤ e ≤ 1; oblique collisions (resolve parallel and perpendicular to surface)',
+      ],
+      forbiddenTopics: [
+        'Circular motion — not always in mathematics spec; check your board',
+        'SHM — not in AQA mathematics spec',
+        'Fluid mechanics — not in mathematics spec',
+        'Variable mass systems — not in specification',
+      ],
+      requiredKeywords: [
+        'displacement', 'velocity', 'acceleration', 'v = ds/dt', 'a = dv/dt',
+        'SUVAT', 'projectile', 'horizontal component', 'vertical component',
+        'Newton\'s laws', 'F = ma', 'weight W = mg', 'normal reaction', 'tension', 'friction',
+        'limiting equilibrium', 'coefficient of friction', 'connected particles', 'Atwood machine',
+        'principle of moments', 'equilibrium ΣF = 0 ΣM = 0',
+        'kinetic energy', 'gravitational PE', 'work-energy theorem', 'conservation of energy',
+        'power P = Fv', 'variable force W = ∫F dx',
+        'momentum', 'impulse J = Ft = Δp', 'conservation of momentum',
+        'coefficient of restitution', 'Newton\'s law of restitution', 'elastic', 'inelastic',
+      ],
+      boundaryNotes: [
+        'Mechanics uses g = 9.8 ms⁻² unless stated otherwise (AQA); Edexcel uses 9.8 or 9.81.',
+        'Friction at limiting equilibrium: F = μN exactly; below limiting: F < μN.',
+        'Coefficient of restitution e = 0: perfectly inelastic (stick together); e = 1: elastic.',
+        'Connected particles: both have same magnitude of acceleration (inextensible string).',
+      ],
+    },
+
+    unit13_a2_pure: {
+      code: 'AQA-MATH-13',
+      title: 'A2 Further Pure Mathematics Topics',
+      level: 'Year2',
+      paper: 'Paper 1 and Paper 2',
+      allowedTopics: [
+        // A2 ADDITIONAL PURE TOPICS
+        'Proof by induction (extended) — proving series sums for geometric and other series; proving divisibility results (e.g. nᵏ − 1 divisible by n − 1); proving inequalities (careful with > and ≥); proving results for matrices; proving de Moivre\'s theorem (if complex numbers in specification); writing proofs rigorously with clear assumption and conclusion',
+        'Further algebra — polynomial equations of degree 3 and 4; roots of polynomials: sum of roots = −b/a; product of roots = c/a (quadratic); sum = −b/a; sum of products in pairs = c/a; product = −d/a (cubic); applying to form equations with related roots (e.g. if roots are α, β form equation with roots α+1, β+1); Σα, Σαβ, Σαβγ notation for roots; solving polynomial equations; rational expressions; algebraic long division of polynomials',
+        'Further calculus — integrating 1/(a²+x²) = (1/a)arctan(x/a) + c; integrating 1/√(a²−x²) = arcsin(x/a) + c; reduction formulae (Iₙ = ... in terms of Iₙ₋₂); improper integrals (infinite limits or discontinuity; ∫₁^∞ 1/xᵖ dx; convergent if p > 1); arc length s = ∫ᵃᵇ √(1 + (dy/dx)²) dx; surface of revolution 2π∫ᵃᵇ y √(1 + (dy/dx)²) dx',
+        'Differential equations (A2) — first-order linear: dy/dx + Py = Q; integrating factor IF = e^(∫P dx); solution: y × IF = ∫(Q × IF) dx; second-order differential equations: d²y/dx² + p dy/dx + qy = f(x); auxiliary equation m² + pm + q = 0; complementary function: distinct real roots m₁, m₂: y = Ae^(m₁x) + Be^(m₂x); equal roots m: y = (A + Bx)e^(mx); complex roots m = α ± βi: y = e^(αx)(A cosβx + B sinβx); particular integral: try appropriate form (constant for f(x) = k; linear ax+b for f(x) linear; quadratic for quadratic; Ce^(kx) for exponential; C sinpx + D cospx for trig); general solution = CF + PI; applying initial conditions to find A and B; harmonic oscillations modelled by second-order DEs; damped oscillations',
+        'Polar coordinates — (r, θ) coordinates; converting between Cartesian and polar; r = f(θ); common curves: r = a (circle); r = a cosθ; r = a sinθ; r = a(1 + cosθ) (cardioid); r = a + b cosθ (limaçon); area enclosed: A = ½∫θ₁^θ₂ r² dθ; tangents at pole; finding where two curves intersect',
+        'Hyperbolic functions — sinh x = (eˣ − e⁻ˣ)/2; cosh x = (eˣ + e⁻ˣ)/2; tanh x = sinh x/cosh x; identities: cosh²x − sinh²x = 1; sinh(A+B), cosh(A+B); derivatives: d/dx(sinh x) = cosh x; d/dx(cosh x) = sinh x; d/dx(tanh x) = sech²x; integrals; inverse hyperbolic: arsinh x = ln(x + √(x²+1)); arcosh x = ln(x + √(x²−1)); artanh x = ½ ln((1+x)/(1−x)); integrating 1/√(x²+a²) = arsinh(x/a) + c; 1/√(x²−a²) = arcosh(x/a) + c',
+      ],
+      forbiddenTopics: [
+        'Complex numbers — separate Further Maths unit (not in standard A Level)',
+        'Matrices — Further Maths only (not in AQA standard A Level)',
+        'Groups — Further Maths',
+        'Number theory — Further Maths',
+      ],
+      requiredKeywords: [
+        'proof by induction', 'basis step', 'inductive step', 'divisibility',
+        'sum of roots', 'product of roots', 'Σα Σαβ', 'related roots',
+        'arctan integral', 'arcsin integral', 'reduction formula', 'improper integral', 'convergent',
+        'arc length', 'surface of revolution',
+        'first-order linear DE', 'integrating factor', 'e^(∫P dx)',
+        'auxiliary equation', 'complementary function', 'particular integral',
+        'distinct real roots', 'equal roots', 'complex roots α ± βi',
+        'general solution = CF + PI', 'damped oscillations',
+        'polar coordinates', 'r = f(θ)', 'area = ½∫r² dθ', 'cardioid',
+        'sinh', 'cosh', 'tanh', 'cosh²x − sinh²x = 1', 'arsinh', 'arcosh',
+      ],
+      boundaryNotes: [
+        'Second-order DEs: auxiliary equation → CF type (3 cases) → PI method → apply ICs.',
+        'PI: if f(x) is same form as CF term, multiply PI guess by x or x².',
+        'Polar area: A = ½∫r² dθ — limits are θ values, not x values.',
+        'Hyperbolic identities: cosh²x − sinh²x = 1 (cf sin²+cos²=1 with different sign).',
+      ],
+    },
+  },
+};
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+
+export function buildSystemPrompt(
+  subject: string,
+  unitKey: string
+): string {
+  const topic = UK_ALEVEL_SYLLABUS[subject]?.[unitKey];
+  if (!topic) {
+    throw new Error(`No syllabus data found for UK A Level > ${subject} > ${unitKey}`);
+  }
+
+  const timestamp = new Date().toISOString();
+  const seed = Math.floor(10000000 + Math.random() * 90000000).toString();
+
+  return `You are generating study notes for UK A LEVEL ${subject.toUpperCase().replace('_', ' ')} — ${topic.code}: ${topic.title}.
+
+GENERATION TIMESTAMP: ${timestamp}
+GENERATION SEED: ${seed}
+
+You must ONLY generate content about the topics in the ALLOWED LIST below.
+You must NEVER mention, explain, or reference anything in the FORBIDDEN LIST below.
+
+Before writing each sentence, ask yourself: "Is this explicitly in the ALLOWED LIST for this specific unit?" If not, do not write it.
+
+ALLOWED TOPICS:
+${topic.allowedTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+FORBIDDEN TOPICS (never include any of the following):
+${topic.forbiddenTopics.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+REQUIRED KEYWORDS (these terms must appear where relevant):
+${topic.requiredKeywords.join(', ')}
+
+${topic.boundaryNotes && topic.boundaryNotes.length > 0 ? `CRITICAL BOUNDARY NOTES:\n${topic.boundaryNotes.join('\n')}` : ''}
+
+BOUNDARY RULES:
+- If a concept appears in this unit and another unit at different depths, only include the version appropriate to THIS unit
+- Do not introduce concepts from later units even as "preview" or "context"
+- Do not repeat simplified versions of earlier units unless explicitly listed in ALLOWED TOPICS
+- Every formula, definition, and diagram description must trace directly to the ALLOWED list
+- Do not include overview/introduction paragraphs — go straight to definitions and content
+- Structure: Definitions → Core Content (spec points) → Equations → Visual Summary → Examiner Tips → Flashcards`;
+}
+
+export function buildImagePrompt(
+  subject: string,
+  unitKey: string,
+  specificTopic: string
+): string {
+  const topic = UK_ALEVEL_SYLLABUS[subject]?.[unitKey];
+  if (!topic) return '';
+
+  const subjectLabel = subject.replace('_', ' ');
+  const subjectCapitalised = subjectLabel.charAt(0).toUpperCase() + subjectLabel.slice(1);
+
+  return `Create a clean, educational diagram for UK A Level ${subjectCapitalised} students. White background. Textbook quality. No decorative borders. Labels with clear arrows.
+
+Board and Level: ${topic.code} — ${topic.title}
+
+Topic: ${specificTopic}
+
+The diagram MUST show only what is explicitly listed in this unit's specification for the topic: ${specificTopic}
+
+The diagram MUST NOT show:
+- Content from other units (see forbidden topics list for this unit)
+- Decorative elements, 3D shading that obscures labels, or abstract art
+- Any concept, formula, or process not in the allowed list for ${topic.code}
+
+Style: Clean educational diagram, white background, clearly labelled with arrows, textbook quality. Every label must be accurate and specific.`;
+}
+
+export function validateGeneratedNotes(
+  notes: string,
+  subject: string,
+  unitKey: string
+): { passed: boolean; forbiddenFound: string[] } {
+  const topic = UK_ALEVEL_SYLLABUS[subject]?.[unitKey];
+  if (!topic) return { passed: false, forbiddenFound: ['Topic not found in syllabus database'] };
+
+  const notesLower = notes.toLowerCase();
+  const forbiddenFound: string[] = [];
+
+  for (const forbidden of topic.forbiddenTopics) {
+    const keywords = forbidden.split(/[\s,;]+/).filter(w => w.length > 5);
+    for (const keyword of keywords) {
+      if (notesLower.includes(keyword.toLowerCase())) {
+        forbiddenFound.push(`"${keyword}" found — from: ${forbidden}`);
+        break;
+      }
+    }
+  }
+
+  return {
+    passed: forbiddenFound.length === 0,
+    forbiddenFound,
+  };
+}
+
+export function getSubjects(): string[] {
+  return Object.keys(UK_ALEVEL_SYLLABUS);
+}
+
+export function getUnits(subject: string): string[] {
+  return Object.keys(UK_ALEVEL_SYLLABUS[subject] || {});
+}
+
+export function getTopicData(subject: string, unitKey: string): TopicData | null {
+  return UK_ALEVEL_SYLLABUS[subject]?.[unitKey] || null;
+}
+
+export function generateSeed(): string {
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
+export function generateCacheKey(subject: string, unitKey: string): string {
+  return `notes_uk_alevel_${subject}_${unitKey}`;
+}
+
+export function buildGenerationLog(
+  subject: string,
+  unitKey: string,
+  trigger: 'initial' | 'cache_clear' | 'validation_retry',
+  validationPassed: boolean,
+  forbiddenFound: string[] = []
+) {
+  const topicData = getTopicData(subject, unitKey);
+  return {
+    qualification: 'uk_alevel',
+    subject,
+    unit_topic: unitKey,
+    unit_topic_name: topicData?.title || 'Unknown',
+    timestamp: new Date().toISOString(),
+    seed: generateSeed(),
+    trigger,
+    validation_passed: validationPassed,
+    forbidden_keywords_found: forbiddenFound,
+  };
+}
