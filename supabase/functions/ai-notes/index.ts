@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { callAITool, deepStripLatex } from "../_shared/ai.ts";
+import { CIE_ALEVEL_SYLLABUS } from "../_shared/cieial.ts";
 
 // --- BOARD-SPECIFIC SYLLABUS IMPORTS ---
 // These imports link the AI to the specific files you've moved to the _shared folder.
@@ -18,6 +19,12 @@ import {
   validateGeneratedNotes as validateEdexcelIGCSE
 } from "../_shared/edexceligcse.ts";
 
+import {
+  buildSystemPrompt as buildCIEIGCSE,
+  buildImagePrompt as buildCIEIGCSEImage,
+  validateGeneratedNotes as validateCIEIGCSE
+} from "../_shared/cieigcse.ts";
+
 // Fallback for CIE boards until their specific files are ready in _shared.
 import {
   buildSystemPrompt as buildCIEGeneric,
@@ -33,18 +40,101 @@ const corsHeaders = {
 // --- ENVIRONMENT VARIABLES ---
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 // --- HELPER UTILITIES ---
-const paragraphiseOverview = (s: string) =>
-  String(s || "").split(/\n\s*\n+/).map((p) => p.trim()).filter(Boolean).join("\n\n");
+const splitParagraphs = (s: string) =>
+  String(s || "")
+    .split(/\n\s*\n+|(?<=\.)\s+(?=[A-Z][a-z])/g)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
-const enoughOverview = (s: string) =>
-  paragraphiseOverview(s).split(/\n\s*\n+/).filter(Boolean).length >= 5;
+const paragraphiseOverview = (s: string) => splitParagraphs(s).slice(0, 7).join("\n\n");
 
-const normaliseNotes = (args: any) =>
-  deepStripLatex({ ...args, overview: paragraphiseOverview(args?.overview || "") });
+const isMathSubject = (subject: string) => /math/i.test(subject);
+
+const normalizeMarks = (value: unknown): number => {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.max(1, Math.min(12, Math.round(value)));
+  const parsed = Number(String(value ?? "").match(/\d+/)?.[0] ?? 2);
+  return Number.isFinite(parsed) ? Math.max(1, Math.min(12, parsed)) : 2;
+};
+
+const normaliseNotes = (args: any, subject: string) => {
+  const stripped: any = deepStripLatex(args || {});
+  const overview = isMathSubject(subject)
+    ? splitParagraphs(stripped.overview || "").slice(0, 2).join("\n\n")
+    : paragraphiseOverview(stripped.overview || "");
+
+  return {
+    overview,
+    key_definitions: Array.isArray(stripped.key_definitions) ? stripped.key_definitions : [],
+    core_content: Array.isArray(stripped.core_content)
+      ? stripped.core_content.map((c: any) => ({ ...c, typical_marks: normalizeMarks(c?.typical_marks) }))
+      : [],
+    equations: Array.isArray(stripped.equations) ? stripped.equations : [],
+    visual_summary: null,
+    examiner_tips: Array.isArray(stripped.examiner_tips) ? stripped.examiner_tips : [],
+    flashcards: Array.isArray(stripped.flashcards) ? stripped.flashcards.slice(0, 10) : [],
+  };
+};
+
+const findCieAlevelTopicKey = (subject: string, topicName: string, unitNumber: number): string | null => {
+  const topics = CIE_ALEVEL_SYLLABUS[subject] || {};
+  const wanted = String(topicName || "").toLowerCase().replace(/[–—]/g, "-");
+  const entries = Object.entries(topics);
+  const exact = entries.find(([, t]: any) => t.title.toLowerCase().replace(/[–—]/g, "-") === wanted);
+  if (exact) return exact[0];
+  const contains = entries.find(([, t]: any) => {
+    const title = t.title.toLowerCase().replace(/[–—]/g, "-");
+    return title.includes(wanted) || wanted.includes(title);
+  });
+  if (contains) return contains[0];
+  const scoped = entries.find(([, t]: any) => (unitNumber >= 4 ? !t.asLevel : t.asLevel));
+  return scoped?.[0] ?? null;
+};
+
+const buildCieAlevelPrompt = (subject: string, topicKey: string, specificTopic: string) => {
+  const t = CIE_ALEVEL_SYLLABUS[subject]?.[topicKey];
+  if (!t) throw new Error(`Critical Error: No CIE A Level syllabus data found for ${subject} > ${topicKey}`);
+  const timestamp = new Date().toISOString();
+  const seed = Math.floor(10000000 + Math.random() * 90000000).toString();
+  return `You are generating study notes for CIE A LEVEL ${subject.toUpperCase()} — ${t.title} (${t.code}).
+
+GENERATION TIMESTAMP: ${timestamp}
+GENERATION SEED: ${seed}
+
+You must ONLY generate content about ${specificTopic} within ${t.title}.
+
+STRICT RULES:
+- Only use the ALLOWED TOPICS below.
+- Do not include forbidden or other-topic content.
+- Write student-readable revision notes like PMT/Save My Exams: short titled blocks, equations, worked examples, bullet lists and exam wording.
+- No giant paragraph dumps. Every section must be readable.
+- Do not generate HTML, SVG, Mermaid, markdown tables, or image prompts.
+
+ALLOWED TOPICS:
+${t.allowedTopics.map((x: string, i: number) => `${i + 1}. ${x}`).join("\n")}
+
+FORBIDDEN TOPICS:
+${(t.forbiddenTopics || []).map((x: string, i: number) => `${i + 1}. ${x}`).join("\n")}
+
+REQUIRED KEYWORDS:
+${(t.requiredKeywords || []).join(", ")}
+
+BOUNDARY NOTES:
+${(t.boundaryNotes || []).join("\n")}`;
+};
+
+const validateCieAlevel = (notes: string, subject: string, topicKey: string) => {
+  const t = CIE_ALEVEL_SYLLABUS[subject]?.[topicKey];
+  if (!t) return { passed: false, forbiddenFound: ["Topic not found in syllabus database"] };
+  const haystack = notes.toLowerCase();
+  const hits = (t.forbiddenTopics || []).filter((f: string) => {
+    const terms = f.match(/[A-Za-z][A-Za-z-]{7,}/g) || [];
+    return terms.some((term: string) => haystack.includes(term.toLowerCase()));
+  });
+  return { passed: hits.length === 0, forbiddenFound: hits };
+};
 
 // --- STRUCTURED OUTPUT SCHEMA (THE UI THEME) ---
 // This is the largest part of the code; I have expanded it fully to ensure quality.
@@ -114,16 +204,6 @@ const notesTool = {
             additionalProperties: false,
           },
         },
-        visual_summary: {
-          type: "object",
-          properties: {
-            kind: { type: "string", enum: ["table", "flowchart", "diagram", "svg"] },
-            caption: { type: "string" },
-            content: { type: "string" },
-          },
-          required: ["kind", "caption", "content"],
-          additionalProperties: false,
-        },
         examiner_tips: {
           type: "array", 
           minItems: 5,
@@ -151,14 +231,10 @@ const notesTool = {
             additionalProperties: false,
           },
         },
-        image_prompt: {
-          type: "string",
-          description: "Crucial: Create an extremely detailed, textbook-quality prompt for a scientific illustration for Nano Banana. Specify spatial layout to avoid overlap.",
-        },
       },
       required: [
         "overview", "key_definitions", "core_content", "equations", 
-        "visual_summary", "examiner_tips", "flashcards", "image_prompt"
+        "examiner_tips", "flashcards"
       ],
       additionalProperties: false,
     },
@@ -174,85 +250,55 @@ async function logGeneration(row: any) {
   }
 }
 
-async function generateImage(prompt: string): Promise<string | null> {
-  if (!LOVABLE_API_KEY) return null;
-  try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { 
-        Authorization: `Bearer ${LOVABLE_API_KEY}`, 
-        "Content-Type": "application/json" 
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
-    if (!res.ok) {
-      console.error("Nano Banana failed:", res.status);
-      return null;
-    }
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ?? null;
-  } catch (e) { 
-    console.error("Image generation error:", e); 
-    return null; 
-  }
-}
-
 // --- MAIN EDGE FUNCTION HANDLER ---
 serve(async (req) => {
   // CORS Preflight
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   
-  if (!Deno.env.get("GEMINI_API_KEY")) {
-    return new Response(JSON.stringify({ error: "API Key missing" }), { 
-      status: 500, headers: corsHeaders 
-    });
-  }
-
   try {
     const body = await req.json();
     const { subject, unit_number, unit_name, topic, syllabus_context, board, trigger } = body;
     const triggerKind = trigger === "cache_clear" ? "cache_clear" : "initial";
 
     // --- BOARD ROUTING ENGINE ---
-    // This is the 'If Command' logic that connects the user's choice to your files.
     let systemPrompt = "";
-    let imagePromptBuilder = null;
-    let validator = null;
-    const unitKey = `unit${unit_number}`;
+    let validator: ((notes: string, subject: string, key: string) => { passed: boolean; forbiddenFound: string[] }) | null = null;
+    let promptKey = `unit${unit_number}`;
 
     if (board === "edexcel-ial") {
-      systemPrompt = buildEdexcelIAL(subject, unitKey);
-      imagePromptBuilder = buildEdexcelIALImage;
+      systemPrompt = buildEdexcelIAL(subject, promptKey);
       validator = validateEdexcelIAL;
-    } 
-    else if (board === "edexcel-igcse") {
-      systemPrompt = buildEdexcelIGCSE(subject, unitKey);
-      imagePromptBuilder = buildEdexcelIGCSEImage;
+    } else if (board === "edexcel-igcse") {
+      promptKey = `topic${unit_number}`;
+      systemPrompt = buildEdexcelIGCSE(subject, promptKey);
       validator = validateEdexcelIGCSE;
-    } 
-    else {
-      // CIE Fallback Routing
-      const builtCIE = buildCIEGeneric({ 
-        qualification: board, 
-        subject, 
-        unit: unit_number, 
-        unitName: unit_name 
-      });
+    } else if (board === "cie-igcse") {
+      promptKey = `topic${unit_number}`;
+      systemPrompt = buildCIEIGCSE(subject, promptKey);
+      validator = validateCIEIGCSE;
+    } else if (board === "cie") {
+      promptKey = findCieAlevelTopicKey(subject, topic, Number(unit_number)) || `topic${unit_number}`;
+      systemPrompt = buildCieAlevelPrompt(subject, promptKey, topic);
+      validator = validateCieAlevel;
+    } else {
+      const builtCIE = buildCIEGeneric({ qualification: board, subject, unit: unit_number, unitName: unit_name });
       systemPrompt = builtCIE.systemPrompt;
-      imagePromptBuilder = (subj: any, unit: any, top: any) => 
-        buildCIEImage({ qualification: board, subject: subj, unitName: unit_name, topic: top });
       validator = (notes: string) => {
         const hits = findCIEForbidden(JSON.parse(notes), builtCIE.forbiddenList);
         return { passed: hits.length === 0, forbiddenFound: hits };
       };
     }
 
+    systemPrompt += `
+
+OUTPUT STYLE RULES:
+- Do not generate one huge overview. Use readable short paragraphs separated by blank lines.
+- Core content must be detailed, with PMT-style subtopic blocks, examples and common exam traps.
+- For equations, use plain LaTeX only when needed. Do not escape backslashes incorrectly.
+- Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.`;
+
     // --- CACHE LOOKUP / INVALIDATION ---
-    const cacheBoard = board.includes("cie") ? "cie" : "edexcel";
+    const cacheBoard = String(board || "edexcel-ial");
     if (triggerKind === "cache_clear") {
       // Hard-delete the cached row so the next call is a true regeneration
       // against the latest syllabus rules.
@@ -280,7 +326,7 @@ serve(async (req) => {
     // --- AI GENERATION ---
     const userPrompt = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} for ${board.toUpperCase()} ${subject.toUpperCase()}.
 ${syllabus_context ? `Official syllabus statements:\n${syllabus_context}\n` : ""}
-Follow rules strictly. Ensure diagrams avoid text overlap.`;
+Follow rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
 
     const callOnce = async () =>
       normaliseNotes(await callAITool({
@@ -292,33 +338,23 @@ Follow rules strictly. Ensure diagrams avoid text overlap.`;
         toolName: "create_topic_notes",
         temperature: 0.3,
         maxTokens: 8000,
-      }));
+      }), subject);
 
     let args = await callOnce();
-    // Quality check: Ensure overview is substantial
-    if (!enoughOverview(args.overview)) args = await callOnce();
 
-    // --- SYLLABUS BOUNDARY VALIDATION ---
-    const validation = validator(JSON.stringify(args), subject, unitKey);
+    const validation = validator ? validator(JSON.stringify(args), subject, promptKey) : { passed: true, forbiddenFound: [] };
     if (!validation.passed) {
-      console.warn("Validation failed, retrying for compliance...");
+      console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
       args = await callOnce();
     }
-
-    // --- IMAGE GENERATION (NANO BANANA) ---
-    const finalImagePrompt = (args.image_prompt && String(args.image_prompt).trim()) || 
-                             imagePromptBuilder(subject, unitKey, topic);
-    
-    args.image_url = await generateImage(finalImagePrompt);
-    args.image_prompt = finalImagePrompt;
 
     // --- LOGGING & PERSISTENCE ---
     await logGeneration({
       qualification: board,
       subject,
-      unit_topic: unitKey,
+      unit_topic: promptKey,
       unit_topic_name: unit_name,
-      seed: "final_prod",
+      seed: Math.floor(10000000 + Math.random() * 90000000).toString(),
       trigger: triggerKind,
       validation_passed: validation.passed,
       forbidden_keywords_found: validation.forbiddenFound
