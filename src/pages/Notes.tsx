@@ -109,10 +109,9 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
       }))
     : [];
 
-  const visual_summary: VisualSummary | null =
-    raw.visual_summary && typeof raw.visual_summary === "object"
-      ? { kind: raw.visual_summary.kind ?? "diagram", caption: raw.visual_summary.caption ?? "", content: raw.visual_summary.content ?? "" }
-      : null;
+  // Disabled: AI-generated visual summaries were producing broken HTML/SVG,
+  // overlapping diagrams, and out-of-scope content. Keep the notes readable.
+  const visual_summary: VisualSummary | null = null;
 
   let examiner_tips: TipItem[] = [];
   if (Array.isArray(raw.examiner_tips)) {
@@ -133,7 +132,12 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
     : [];
 
   return {
-    overview: raw.overview ?? "",
+    overview: String(raw.overview ?? "")
+      .split(/\n\s*\n+|(?<=\.)\s+(?=[A-Z][a-z])/g)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .slice(0, /math/i.test(String(raw.subject ?? "")) ? 2 : 7)
+      .join("\n\n"),
     key_definitions,
     core_content,
     equations,
