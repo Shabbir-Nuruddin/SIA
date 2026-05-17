@@ -974,7 +974,6 @@ export const CIE_ALEVEL_SYLLABUS: CIESyllabusDatabase = {
       ],
     },
   },
-}
 
 // ================================================================
   // CIE A LEVEL BIOLOGY 9700
