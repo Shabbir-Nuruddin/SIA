@@ -26,6 +26,17 @@ const clearStoredAuthSession = () => {
   }
 };
 
+const ensureProfile = async (user: User) => {
+  const meta = user.user_metadata as Record<string, string | undefined>;
+  const fullName = meta.full_name || meta.name || user.email?.split("@")[0] || "Student";
+  await supabase.from("profiles").upsert({
+    id: user.id,
+    display_name: meta.display_name || fullName,
+    first_name: meta.first_name || meta.given_name || fullName.split(" ")[0] || null,
+    last_name: meta.last_name || meta.family_name || null,
+  }, { onConflict: "id", ignoreDuplicates: true });
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     const uid = session.user.id;
     startActivityHeartbeat();
+    ensureProfile(session.user).catch(() => {});
     supabase.from("profiles").select("theme").eq("id", uid).single()
       .then(({ data }) => {
         if (data?.theme) applyTheme(data.theme);
