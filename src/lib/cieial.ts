@@ -15,7 +15,7 @@ export interface CIETopicData {
   asLevel: boolean;
   paperRef: string;
   allowedTopics: string[];
-  forbiddenTopics: string[];
+  forbiddenTopics?: string[];
   requiredKeywords: string[];
   boundaryNotes?: string[];
   practicalNotes?: string[];
@@ -974,7 +974,6 @@ export const CIE_ALEVEL_SYLLABUS: CIESyllabusDatabase = {
       ],
     },
   },
-}
 
 // ================================================================
   // CIE A LEVEL BIOLOGY 9700
@@ -2482,7 +2481,7 @@ export function validateCIENotes(
   const notesLower = notes.toLowerCase();
   const warnings: string[] = [];
 
-  for (const forbidden of topic.forbiddenTopics) {
+  for (const forbidden of topic.forbiddenTopics ?? []) {
     const technicalTerms = forbidden.match(/[A-Z][a-z]{5,}|[a-z]{8,}/g) || [];
     for (const term of technicalTerms) {
       if (term.length > 5 && notesLower.includes(term.toLowerCase())) {
