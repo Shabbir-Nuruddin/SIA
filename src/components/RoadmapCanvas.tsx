@@ -353,13 +353,23 @@ function CanvasInner({ rows, onChange }: Props) {
     if (!user || !row.subject || !row.topic_name) return;
     const noteKey = `${row.subject}::${row.unit_number ?? ""}::${row.topic_name.toLowerCase()}`;
     const isWeak = weakSet.has(noteKey);
-    const { error } = await supabase.from("topic_progress").upsert({
-      user_id: user.id,
-      subject: row.subject,
-      unit_number: row.unit_number,
-      topic_name: row.topic_name,
-      weak_flag: !isWeak,
-    }, { onConflict: "user_id,subject,topic_name" });
+    const existing = await supabase
+      .from("topic_progress")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("subject", row.subject)
+      .eq("topic_name", row.topic_name)
+      .maybeSingle();
+    const op = existing.data
+      ? supabase.from("topic_progress").update({ weak_flag: !isWeak }).eq("id", existing.data.id)
+      : supabase.from("topic_progress").insert({
+          user_id: user.id,
+          subject: row.subject,
+          unit_number: row.unit_number,
+          topic_name: row.topic_name,
+          weak_flag: !isWeak,
+        });
+    const { error } = await op;
     if (error) { toast.error(error.message); return; }
     toast.success(isWeak ? "Unmarked weak topic" : "Marked as weak topic");
     const { data } = await supabase.from("topic_progress").select("subject,unit_number,topic_name").eq("user_id", user.id).eq("weak_flag", true);
