@@ -3,10 +3,6 @@ export interface WikimediaVisual {
   title: string;
   imageUrl: string;
   pageUrl: string;
-  license: string;
-  licenseUrl?: string;
-  author?: string;
-  credit?: string;
 }
 
 export interface NotesVisualMap {
@@ -21,11 +17,9 @@ interface FetchNoteVisualsInput {
   definitions: Array<{ term: string; meaning?: string }>;
 }
 
-const CACHE_PREFIX = "apex:wikimedia-definition-visuals:";
+const CACHE_PREFIX = "apex:wikipedia-definition-visuals:";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const ALLOWED_LICENSES = [/^cc0\b/i, /^public domain$/i, /^pd\b/i, /^cc by\b/i, /^cc-by\b/i];
-const BLOCKED_LICENSE_PARTS = ["-nc", " nc", "-nd", " nd", "noncommercial", "no derivatives"];
 
 const stripHtml = (value?: string) =>
   String(value || "")
@@ -49,12 +43,6 @@ const cleanSearchText = (value: string) =>
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 90);
-
-const isAllowedLicense = (license: string) => {
-  const normalized = license.toLowerCase();
-  if (BLOCKED_LICENSE_PARTS.some((part) => normalized.includes(part))) return false;
-  return ALLOWED_LICENSES.some((pattern) => pattern.test(license));
-};
 
 const cacheKey = (query: string) => `${CACHE_PREFIX}${query.toLowerCase()}`;
 
@@ -111,11 +99,10 @@ export async function fetchWikimediaVisual(query: string, signal?: AbortSignal):
     for (const page of pages) {
       const info = page?.imageinfo?.[0];
       const meta = info?.extmetadata || {};
-      const license = stripHtml(meta.LicenseShortName?.value || meta.License?.value);
       const imageUrl = info?.thumburl || info?.url;
       const pageUrl = meta.ImageDescriptionUrl?.value || page?.fullurl;
 
-      if (!imageUrl || !pageUrl || !license || !isAllowedLicense(license)) continue;
+      if (!imageUrl || !pageUrl) continue;
       if (String(info?.mime || "").startsWith("video/")) continue;
 
       const visual: WikimediaVisual = {
@@ -123,10 +110,6 @@ export async function fetchWikimediaVisual(query: string, signal?: AbortSignal):
         title: normaliseTitle(page.title || meta.ObjectName?.value || trimmed),
         imageUrl,
         pageUrl,
-        license,
-        licenseUrl: meta.LicenseUrl?.value,
-        author: stripHtml(meta.Artist?.value),
-        credit: stripHtml(meta.Credit?.value),
       };
       writeCache(trimmed, visual);
       return visual;

@@ -24,14 +24,15 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
 
   const isExam = pathname.startsWith("/mock-papers/exam");
   const chromeHidden = hideChrome || isExam;
+  const hideTodayProgress = pathname.startsWith("/notes");
   const topOffset = chromeHidden ? 0 : 52;
 
   return (
     <div className="min-h-screen flex bg-background" style={{ paddingTop: topOffset }}>
       {!chromeHidden && <CountdownOverlay />}
-      {!chromeHidden && <TodayProgressBar />}
+      {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar />}
-      <main className="flex-1 overflow-x-hidden min-w-0">{children}</main>
+      <main className="flex-1 overflow-hidden min-w-0 h-[calc(100vh-52px)]">{children}</main>
       <PomodoroPill />
       <MusicPlayer />
       <FloatingAssistant />

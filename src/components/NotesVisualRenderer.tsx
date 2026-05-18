@@ -9,7 +9,7 @@ import { useState, useMemo } from "react";
 import {
   ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
-  PencilLine, Eye, RotateCcw, Image as ImageIcon, ExternalLink,
+  PencilLine, Eye, RotateCcw, Image as ImageIcon,
 } from "lucide-react";
 import { NotesVisualMap, WikimediaVisual } from "@/lib/wikimediaVisuals";
 
@@ -83,22 +83,9 @@ const VisualPreview = ({ visual, compact = false }: { visual: WikimediaVisual; c
     </div>
     <figcaption className="p-3 text-xs leading-relaxed text-muted-foreground">
       <div className="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wider text-foreground/70">
-        <ImageIcon className="h-3.5 w-3.5" /> Wikimedia Commons
+        <ImageIcon className="h-3.5 w-3.5" /> Wikipedia image
       </div>
       <div className="font-medium text-foreground/85">{visual.title}</div>
-      {(visual.author || visual.license) && (
-        <div className="mt-1">
-          {visual.author ? `${visual.author} - ` : ""}{visual.license}
-        </div>
-      )}
-      <a
-        href={visual.pageUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline"
-      >
-        View source <ExternalLink className="h-3 w-3" />
-      </a>
     </figcaption>
   </figure>
 );

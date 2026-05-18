@@ -292,7 +292,19 @@ const NotesPage = () => {
             trigger: forceRefresh ? "cache_clear" : "initial",
           },
         });
-        if (error) throw new Error(error.message || "Notes service unavailable");
+        if (error) {
+          let detail = error.message || "Notes service unavailable";
+          const context = (error as any).context;
+          if (context && typeof context.json === "function") {
+            try {
+              const body = await context.json();
+              detail = body?.error || body?.message || detail;
+            } catch {
+              // Keep the Supabase client error if the response body is not JSON.
+            }
+          }
+          throw new Error(detail);
+        }
         if (!data || data.error) throw new Error(data?.error || "Notes service returned no data");
 
         // Upsert (replace stale)
@@ -315,7 +327,12 @@ const NotesPage = () => {
       }
     } catch (err: any) {
       console.error("Notes load error:", err);
-      setLoadError(err?.message || "Couldn't load notes.");
+      const message = err?.message || "Couldn't load notes.";
+      toast.error(`Notes generation failed: ${message}`, {
+        duration: 5000,
+        description: "The AI provider quota or fallback model is unavailable right now.",
+      });
+      setLoadError(message);
     } finally {
       setLoadingNotes(false);
     }
@@ -402,33 +419,53 @@ const NotesPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-6 md:p-10 max-w-7xl mx-auto animate-fade-in">
-        <div className="mb-8">
-          <div className="text-xs text-primary font-mono uppercase tracking-widest mb-2 flex items-center gap-2">
-            <Sparkles className="h-3 w-3" /> AI Revision Notes
+      <div className="px-4 py-6 md:px-6 md:py-8 lg:pr-0 animate-fade-in">
+        <div className="mb-6 flex max-w-[calc(100vw-2rem)] items-end justify-between gap-4 lg:max-w-[calc(100vw-360px)]">
+          <div className="min-w-0">
+          <div className="mb-2 flex items-center gap-3">
+            <div className="text-xs text-primary font-mono uppercase tracking-widest flex items-center gap-2">
+              <Sparkles className="h-3 w-3" /> AI Revision Notes
+            </div>
+            {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
+              <Button
+                onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
+                variant="outline"
+                size="sm"
+                title="Regenerate notes"
+                className="h-7 shrink-0 px-2 text-[11px]"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
+              </Button>
+            )}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
-          <p className="text-muted-foreground mt-1">Pick any topic. We'll generate {board === "cie" ? "Cambridge (CIE)" : "Edexcel"}-grade notes you can highlight, annotate, and export.</p>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-[280px_1fr] gap-6">
+        <div className="grid flex-1 min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_336px]">
           {/* Sidebar */}
-          <aside className="space-y-3">
+          <aside className="glass-card rounded-xl p-4 lg:order-2 lg:sticky lg:top-0 lg:h-full lg:w-[336px] lg:overflow-y-auto lg:rounded-none lg:border-y-0 lg:border-r-0 lg:border-l">
+            <div className="pb-4">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-2">Topic Picker</div>
+              <p className="text-sm text-muted-foreground">
+                Pick any topic. We'll generate {board === "cie" ? "Cambridge (CIE)" : "Edexcel"}-grade notes you can highlight, annotate, and export.
+              </p>
+            </div>
             {Object.entries(groupedBySubject).map(([code, units]) => {
               const m = SUBJECTS[code as SubjectCode];
               if (!m) return null;
               const open = openSubject === (code as SubjectCode);
               return (
-                <div key={code} className="glass-card rounded-xl overflow-hidden">
+                <div key={code} className="overflow-hidden border-t border-border/70 first:border-t-0">
                   <button
                     onClick={() => setOpenSubject(open ? null : (code as SubjectCode))}
-                    className="w-full flex items-center gap-2 p-3 text-left hover:bg-secondary/40 transition-colors">
+                    className="w-full flex items-center gap-2 py-3 text-left hover:text-primary transition-colors">
                     {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                     <span className="text-lg">{m.emoji}</span>
                     <span className="font-semibold text-sm">{m.name}</span>
                   </button>
                   {open && (
-                    <div className="px-3 pb-3 space-y-3">
+                    <div className="pb-3 space-y-3">
                       {units.map(u => {
                         const unitMeta = m.units?.find(x => x.number === u.unit_number);
                         const unitKey = `${code}-${u.unit_number}`;
@@ -471,14 +508,14 @@ const NotesPage = () => {
               );
             })}
             {enrolled.length === 0 && (
-              <div className="glass-card rounded-xl p-4 text-sm text-muted-foreground">
+              <div className="border-t border-border/70 pt-4 text-sm text-muted-foreground">
                 Add subjects in onboarding to access notes.
               </div>
             )}
           </aside>
 
           {/* Notes panel */}
-          <div className="relative">
+          <div className="relative min-w-0 lg:order-1">
             {!subjectParam || !unitParam || !topicParam ? (
               <div className="glass-card rounded-2xl p-12 text-center">
                 <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
@@ -497,14 +534,7 @@ const NotesPage = () => {
                 </Button>
               </div>
             ) : notes ? (
-              <div className="notebook-paper rounded-2xl p-6 md:p-10 pl-14 md:pl-16 relative border border-foreground/10 shadow-md" ref={panelRef} onMouseUp={handleMouseUp}>
-                {/* Action bar */}
-                <div className="flex items-center justify-end gap-2 mb-6">
-                  <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} variant="outline" size="sm" title="Regenerate notes">
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Regenerate
-                  </Button>
-                </div>
-
+              <div className="notebook-paper notes-canvas h-[calc(100vh-52px)] overflow-y-auto rounded-2xl p-6 md:p-10 pl-14 md:pl-16 relative border border-foreground/10 shadow-md" ref={panelRef} onMouseUp={handleMouseUp}>
                 <NotesVisualRenderer
                   notes={notes}
                   topic={topicParam}
@@ -561,6 +591,13 @@ const NotesPage = () => {
           padding-bottom: 1px; cursor: help; transition: background 120ms;
         }
         .apex-annotation:hover { background: hsl(var(--accent) / 0.18); }
+        .notes-canvas {
+          background-image: none !important;
+        }
+        html.theme-inkwell .notes-canvas,
+        :root:not(.light):not(.theme-paper):not(.theme-notebook) .notes-canvas {
+          background-image: none !important;
+        }
       `}</style>
       <UpgradeModal
         open={upgrade.open}
