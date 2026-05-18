@@ -10,8 +10,7 @@ export interface WikimediaVisual {
 }
 
 export interface NotesVisualMap {
-  hero: WikimediaVisual | null;
-  core: Record<number, WikimediaVisual>;
+  definitions: Record<number, WikimediaVisual>;
 }
 
 interface FetchNoteVisualsInput {
@@ -19,10 +18,10 @@ interface FetchNoteVisualsInput {
   subject: string;
   unitLabel: string;
   topic: string;
-  coreStatements: string[];
+  definitions: Array<{ term: string; meaning?: string }>;
 }
 
-const CACHE_PREFIX = "apex:wikimedia-visuals:";
+const CACHE_PREFIX = "apex:wikimedia-definition-visuals:";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 const ALLOWED_LICENSES = [/^cc0\b/i, /^public domain$/i, /^pd\b/i, /^cc by\b/i, /^cc-by\b/i];
@@ -146,28 +145,29 @@ export async function fetchNotesVisuals(input: FetchNoteVisualsInput, signal?: A
   const subject = cleanSearchText(input.subject);
   const board = cleanSearchText(input.board);
   const topic = cleanSearchText(input.topic);
-  const unitLabel = cleanSearchText(input.unitLabel);
-
-  const heroQuery = [board, subject, unitLabel, topic].filter(Boolean).join(" ");
-  const hero = await fetchWikimediaVisual(heroQuery, signal);
-
-  const core: Record<number, WikimediaVisual> = {};
+  const definitions: Record<number, WikimediaVisual> = {};
   const seen = new Set<string>();
-  if (hero?.imageUrl) seen.add(hero.imageUrl);
 
-  const candidates = input.coreStatements
-    .map((statement, index) => ({ index, statement: cleanSearchText(statement) }))
-    .filter(({ statement }) => statement.length >= 12)
-    .slice(0, 4);
+  const candidates = input.definitions
+    .map((definition, index) => ({
+      index,
+      term: cleanSearchText(definition.term),
+      meaning: cleanSearchText(definition.meaning || ""),
+    }))
+    .filter(({ term }) => term.length >= 4)
+    .slice(0, 6);
 
   for (const candidate of candidates) {
     if (signal?.aborted) break;
-    const visual = await fetchWikimediaVisual([subject, candidate.statement].join(" "), signal);
+    const visual = await fetchWikimediaVisual(
+      [board, subject, topic, candidate.term, candidate.meaning].filter(Boolean).join(" "),
+      signal
+    );
     if (visual && !seen.has(visual.imageUrl)) {
-      core[candidate.index] = visual;
+      definitions[candidate.index] = visual;
       seen.add(visual.imageUrl);
     }
   }
 
-  return { hero, core };
+  return { definitions };
 }

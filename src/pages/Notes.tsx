@@ -171,7 +171,7 @@ const NotesPage = () => {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [visuals, setVisuals] = useState<NotesVisualMap>({ hero: null, core: {} });
+  const [visuals, setVisuals] = useState<NotesVisualMap>({ definitions: {} });
 
   const [selection, setSelection] = useState<{ text: string; x: number; y: number } | null>(null);
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -201,7 +201,7 @@ const NotesPage = () => {
   useEffect(() => {
     if (!user || !subjectParam || !unitParam || !topicParam) {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
-      setVisuals({ hero: null, core: {} });
+      setVisuals({ definitions: {} });
       return;
     }
     loadOrGenerate(subjectParam, unitParam, topicParam);
@@ -210,12 +210,12 @@ const NotesPage = () => {
 
   useEffect(() => {
     if (!notes || !subjectParam || !unitParam || !topicParam) {
-      setVisuals({ hero: null, core: {} });
+      setVisuals({ definitions: {} });
       return;
     }
 
     const controller = new AbortController();
-    setVisuals({ hero: null, core: {} });
+    setVisuals({ definitions: {} });
     const unitLabel =
       board === "cie" ? `Paper ${unitParam}` :
       board === "cie-igcse" || board === "edexcel-igcse" ? `Section ${unitParam}` :
@@ -226,7 +226,10 @@ const NotesPage = () => {
       subject: SUBJECTS[subjectParam]?.name ?? subjectParam,
       unitLabel,
       topic: topicParam,
-      coreStatements: notes.core_content.map((item) => item.statement),
+      definitions: notes.key_definitions.map((definition) => ({
+        term: definition.term,
+        meaning: definition.plain_english || definition.mark_scheme,
+      })),
     }, controller.signal).then((result) => {
       if (!controller.signal.aborted) setVisuals(result);
     });

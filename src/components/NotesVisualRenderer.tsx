@@ -164,7 +164,7 @@ const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatH
 };
 
 // ─── Definitions — index-card grid ────────────────────────────────────────────
-const DefinitionsSection = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml:(s:string)=>string }) => {
+const DefinitionsSection = ({ defs, formatHtml, visuals = {} }: { defs: KeyDef[]; formatHtml:(s:string)=>string; visuals?: Record<number, WikimediaVisual> }) => {
   const [expanded, setExpanded] = useState<number | null>(null);
   return (
     <div className="grid sm:grid-cols-2 gap-4">
@@ -188,6 +188,7 @@ const DefinitionsSection = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml:(
               )}
               <div className="text-xs text-muted-foreground italic mb-3 leading-relaxed border-l-2 border-foreground/15 pl-2"
                    dangerouslySetInnerHTML={{ __html: `<strong class="not-italic text-foreground/70">Mark scheme:</strong> ${formatHtml(d.mark_scheme)}` }} />
+              {visuals[i] && <VisualPreview visual={visuals[i]} compact />}
               {d.common_mistake && (
                 <button
                   onClick={() => setExpanded(open ? null : i)}
@@ -210,7 +211,7 @@ const DefinitionsSection = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml:(
 };
 
 // ─── Core Content — numbered cards with thick coloured rail ───────────────────
-const CoreContentSection = ({ items, formatHtml, annotate, visuals = {} }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string; visuals?: Record<number, WikimediaVisual> }) => {
+const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string }) => {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const toggle = (i: number) => setExpanded(prev => {
     const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -240,11 +241,6 @@ const CoreContentSection = ({ items, formatHtml, annotate, visuals = {} }: { ite
               </div>
               {hasExtra && (open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
             </button>
-            {visuals[i] && (
-              <div className="px-4 pb-4">
-                <VisualPreview visual={visuals[i]} compact />
-              </div>
-            )}
             {open && hasExtra && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in">
                 {c.worked_example && (
@@ -436,8 +432,8 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
-    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} visuals={visuals?.core} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} visuals={visuals?.definitions} /> });
+    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
@@ -472,7 +468,6 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
             );
           })}
         </div>
-        {visuals?.hero && <VisualPreview visual={visuals.hero} />}
       </div>
 
       {/* ── Sections, each on its own notebook page ─────────────────────── */}
