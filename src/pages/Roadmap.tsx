@@ -12,6 +12,7 @@ import { startPomodoro } from "@/lib/pomodoro";
 import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/lib/roadmapNodes";
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import RoadmapCalendar from "@/components/RoadmapCalendar";
+import RoadmapCanvas from "@/components/RoadmapCanvas";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
   Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar
@@ -108,7 +109,7 @@ const RoadmapPage = () => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
-  const [mainView, setMainView] = useState<"roadmap" | "calendar">("roadmap");
+  const [mainView, setMainView] = useState<"canvas" | "roadmap" | "calendar">("canvas");
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -378,7 +379,15 @@ const RoadmapPage = () => {
           </p>
 
           {/* View switcher */}
-          <div className="flex gap-2 mt-4 mb-2">
+          <div className="flex gap-2 mt-4 mb-2 flex-wrap">
+            <Button
+              size="sm"
+              variant={mainView === "canvas" ? "default" : "outline"}
+              onClick={() => setMainView("canvas")}
+              className="gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Mind-Map
+            </Button>
             <Button
               size="sm"
               variant={mainView === "roadmap" ? "default" : "outline"}
@@ -393,9 +402,15 @@ const RoadmapPage = () => {
               onClick={() => setMainView("calendar")}
               className="gap-1.5"
             >
-              <Calendar className="h-3.5 w-3.5" /> Smart Calendar
+              <Calendar className="h-3.5 w-3.5" /> Calendar
             </Button>
           </div>
+
+          {mainView === "canvas" && (
+            <div className="mt-4 -mx-5 md:-mx-8 px-2 md:px-4">
+              <RoadmapCanvas rows={nodes} onChange={load} />
+            </div>
+          )}
 
           {/* Progress bar */}
           <div className="mt-4">
