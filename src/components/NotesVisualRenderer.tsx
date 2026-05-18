@@ -9,8 +9,9 @@ import { useState, useMemo } from "react";
 import {
   ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
-  PencilLine, Eye, RotateCcw,
+  PencilLine, Eye, RotateCcw, Image as ImageIcon, ExternalLink,
 } from "lucide-react";
+import { NotesVisualMap, WikimediaVisual } from "@/lib/wikimediaVisuals";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface KeyDef    { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
@@ -39,6 +40,7 @@ interface Props {
   formatHtml: (s: string) => string;
   renderMath: (s: string) => string;
   annotate: (s: string) => string;
+  visuals?: NotesVisualMap;
 }
 
 // ─── Vibrant rotating palette ─────────────────────────────────────────────────
@@ -69,6 +71,38 @@ const subjectMeta = (subjectName: string) => {
 };
 
 // ─── Sticky badge ─────────────────────────────────────────────────────────────
+const VisualPreview = ({ visual, compact = false }: { visual: WikimediaVisual; compact?: boolean }) => (
+  <figure className={`mt-4 overflow-hidden rounded-xl border border-foreground/10 bg-card shadow-sm ${compact ? "" : "md:grid md:grid-cols-[minmax(220px,340px)_1fr]"}`}>
+    <div className="bg-muted/40">
+      <img
+        src={visual.imageUrl}
+        alt={visual.title}
+        loading="lazy"
+        className={`w-full object-contain ${compact ? "max-h-56" : "max-h-72 md:h-full"}`}
+      />
+    </div>
+    <figcaption className="p-3 text-xs leading-relaxed text-muted-foreground">
+      <div className="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wider text-foreground/70">
+        <ImageIcon className="h-3.5 w-3.5" /> Wikimedia Commons
+      </div>
+      <div className="font-medium text-foreground/85">{visual.title}</div>
+      {(visual.author || visual.license) && (
+        <div className="mt-1">
+          {visual.author ? `${visual.author} - ` : ""}{visual.license}
+        </div>
+      )}
+      <a
+        href={visual.pageUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-2 inline-flex items-center gap-1 font-medium text-primary hover:underline"
+      >
+        View source <ExternalLink className="h-3 w-3" />
+      </a>
+    </figcaption>
+  </figure>
+);
+
 const Sticky = ({ children, variant = "" as string, className = "" }) => (
   <div className={`sticky-note ${variant} px-3 py-1.5 rounded-md text-sm font-bold animate-sticky-in ${className}`}>
     {children}
@@ -176,7 +210,7 @@ const DefinitionsSection = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml:(
 };
 
 // ─── Core Content — numbered cards with thick coloured rail ───────────────────
-const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string }) => {
+const CoreContentSection = ({ items, formatHtml, annotate, visuals = {} }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string; visuals?: Record<number, WikimediaVisual> }) => {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const toggle = (i: number) => setExpanded(prev => {
     const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -206,6 +240,11 @@ const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]
               </div>
               {hasExtra && (open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
             </button>
+            {visuals[i] && (
+              <div className="px-4 pb-4">
+                <VisualPreview visual={visuals[i]} compact />
+              </div>
+            )}
             {open && hasExtra && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in">
                 {c.worked_example && (
@@ -391,20 +430,20 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 };
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
-    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
+    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} visuals={visuals?.core} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath]);
+  }, [notes, formatHtml, annotate, renderMath, visuals]);
 
   return (
     <div className="space-y-8">
@@ -433,6 +472,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
             );
           })}
         </div>
+        {visuals?.hero && <VisualPreview visual={visuals.hero} />}
       </div>
 
       {/* ── Sections, each on its own notebook page ─────────────────────── */}
