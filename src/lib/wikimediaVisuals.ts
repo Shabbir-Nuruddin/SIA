@@ -117,7 +117,7 @@ export async function fetchNotesVisuals(
         id: String(item.id || `${cleanText(input.topic)}-${index}`),
         title: String(item.title || candidates.find((c) => c.index === index)?.term || "AI diagram"),
         imageUrl,
-        pageUrl: String(item.pageUrl || "https://huggingface.co/aiyouthalliance/Free-Image-Generation"),
+        pageUrl: String(item.pageUrl || "https://pollinations.ai/"),
       };
     }
 

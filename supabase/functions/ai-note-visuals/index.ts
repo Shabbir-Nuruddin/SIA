@@ -10,11 +10,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-const HF_MODEL = "aiyouthalliance/Free-Image-Generation";
-const HF_ENDPOINTS = [
-  `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`,
-  `https://api-inference.huggingface.co/models/${HF_MODEL}`,
-];
+const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
 
 type DefinitionInput = {
   index: number;
@@ -39,21 +35,6 @@ const clean = (value: string) =>
     .replace(/[^a-z0-9\s\-(),.]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
-
-const toBase64 = (bytes: Uint8Array): string => {
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
-};
-
-const inferMime = (contentType: string | null): string => {
-  if (!contentType) return "image/png";
-  const mime = contentType.split(";")[0].trim().toLowerCase();
-  return mime.startsWith("image/") ? mime : "image/png";
-};
 
 const buildPrompt = (params: {
   board: string;
@@ -92,50 +73,35 @@ const parseEstimatedDelayMs = (text: string): number | null => {
   return null;
 };
 
-const generateImageDataUrl = async (apiKey: string, prompt: string): Promise<string> => {
-  let lastError = "Unknown Hugging Face error";
-  for (const endpoint of HF_ENDPOINTS) {
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          Accept: "image/png",
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            width: 1024,
-            height: 768,
-            guidance_scale: 6.5,
-            num_inference_steps: 28,
-            negative_prompt:
-              "watermark, logo, blurry, low quality, distorted text, border, photorealistic, noisy background",
-          },
-        }),
-      });
+const generatePollinationsImageUrl = async (prompt: string): Promise<string> => {
+  const encoded = encodeURIComponent(prompt);
+  const seed = Math.floor(Math.random() * 1_000_000_000);
+  const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=768&seed=${seed}&nologo=true`;
+  let lastError = "Unknown Pollinations error";
 
-      if (response.ok) {
-        const contentType = inferMime(response.headers.get("content-type"));
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        if (bytes.length < 50) throw new Error("Image response was empty.");
-        return `data:${contentType};base64,${toBase64(bytes)}`;
-      }
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "image/png,image/jpeg,image/webp,*/*" },
+    });
 
+    if (response.ok) {
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      if (contentType.startsWith("image/")) return url;
       const bodyText = await response.text();
-      lastError = `HF ${response.status}: ${bodyText.slice(0, 300)}`;
-
-      if (response.status === 503 || response.status === 429) {
+      lastError = `Pollinations returned non-image content: ${bodyText.slice(0, 220)}`;
+    } else {
+      const bodyText = await response.text();
+      lastError = `Pollinations ${response.status}: ${bodyText.slice(0, 220)}`;
+      if (response.status === 429 || response.status === 503 || response.status === 502 || response.status === 504) {
         const estimatedDelayMs = parseEstimatedDelayMs(bodyText);
-        if (estimatedDelayMs && attempt === 0) {
-          await sleep(estimatedDelayMs);
-          continue;
-        }
+        const retryWait = estimatedDelayMs ?? (attempt + 1) * 1200;
+        await sleep(retryWait);
+        continue;
       }
-
-      break;
     }
+
+    if (attempt < 3) await sleep((attempt + 1) * 800);
   }
 
   throw new Error(lastError);
@@ -145,14 +111,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const apiKey = Deno.env.get("HUGGINGFACE_API_KEY") || Deno.env.get("HF_API_KEY");
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "HUGGINGFACE_API_KEY (or HF_API_KEY) is not configured." }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const payload = await req.json();
     const board = clean(payload?.board || "");
     const subject = clean(payload?.subject || "");
@@ -212,13 +170,13 @@ serve(async (req) => {
           term: definition.term,
           meaning: definition.meaning,
         });
-        const imageUrl = await generateImageDataUrl(apiKey, prompt);
+        const imageUrl = await generatePollinationsImageUrl(prompt);
         generated.push({
           index: definition.index,
           id: `${topic}-${definition.index}`,
           title: definition.term,
           imageUrl,
-          pageUrl: `https://huggingface.co/${HF_MODEL}`,
+          pageUrl: "https://pollinations.ai/",
         });
       } catch (error) {
         console.error("ai-note-visuals item failed", {
