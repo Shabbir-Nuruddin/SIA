@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface WikimediaVisual {
   id: string;
   title: string;
@@ -12,145 +14,120 @@ export interface NotesVisualMap {
 interface FetchNoteVisualsInput {
   board: string;
   subject: string;
-  unitLabel: string;
+  unitLabel?: string;
+  unitNumber?: number;
   topic: string;
   definitions: Array<{ term: string; meaning?: string }>;
 }
 
-const CACHE_PREFIX = "apex:wikipedia-definition-visuals:";
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-
-const stripHtml = (value?: string) =>
-  String(value || "")
-    .replace(/<[^>]*>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const normaliseTitle = (value: string) =>
-  value
-    .replace(/^File:/i, "")
-    .replace(/\.[a-z0-9]+$/i, "")
-    .replace(/[_-]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const cleanSearchText = (value: string) =>
-  stripHtml(value)
-    .replace(/\$[^$]*\$/g, " ")
-    .replace(/\b(step|answer|therefore|because|calculate|explain|describe)\b/gi, " ")
-    .replace(/[^a-z0-9\s-]/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 90);
-
-const cacheKey = (query: string) => `${CACHE_PREFIX}${query.toLowerCase()}`;
-
-const readCache = (query: string): WikimediaVisual | null | undefined => {
-  try {
-    const raw = localStorage.getItem(cacheKey(query));
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw);
-    if (!parsed || Date.now() - parsed.savedAt > CACHE_TTL_MS) return undefined;
-    return parsed.visual ?? null;
-  } catch {
-    return undefined;
-  }
-};
-
-const writeCache = (query: string, visual: WikimediaVisual | null) => {
-  try {
-    localStorage.setItem(cacheKey(query), JSON.stringify({ savedAt: Date.now(), visual }));
-  } catch {
-    // Ignore cache failures; Wikimedia results are progressive enhancement only.
-  }
-};
-
-const buildSearchUrl = (query: string) => {
-  const params = new URLSearchParams({
-    action: "query",
-    format: "json",
-    origin: "*",
-    generator: "search",
-    gsrnamespace: "6",
-    gsrlimit: "8",
-    gsrsearch: query,
-    prop: "imageinfo|info",
-    inprop: "url",
-    iiprop: "url|extmetadata|mime",
-    iiurlwidth: "900",
-  });
-  return `${COMMONS_API}?${params.toString()}`;
-};
-
-export async function fetchWikimediaVisual(query: string, signal?: AbortSignal): Promise<WikimediaVisual | null> {
-  const trimmed = cleanSearchText(query);
-  if (trimmed.length < 4) return null;
-
-  const cached = readCache(trimmed);
-  if (cached !== undefined) return cached;
-
-  try {
-    const res = await fetch(buildSearchUrl(`${trimmed} diagram`), { signal });
-    if (!res.ok) throw new Error(`Wikimedia request failed: ${res.status}`);
-    const json = await res.json();
-    const pages = Object.values(json?.query?.pages || {}) as any[];
-
-    for (const page of pages) {
-      const info = page?.imageinfo?.[0];
-      const meta = info?.extmetadata || {};
-      const imageUrl = info?.thumburl || info?.url;
-      const pageUrl = meta.ImageDescriptionUrl?.value || page?.fullurl;
-
-      if (!imageUrl || !pageUrl) continue;
-      if (String(info?.mime || "").startsWith("video/")) continue;
-
-      const visual: WikimediaVisual = {
-        id: String(page.pageid || page.title),
-        title: normaliseTitle(page.title || meta.ObjectName?.value || trimmed),
-        imageUrl,
-        pageUrl,
-      };
-      writeCache(trimmed, visual);
-      return visual;
-    }
-  } catch (err) {
-    if ((err as Error).name !== "AbortError") {
-      console.warn("Wikimedia visual lookup failed", err);
-    }
-  }
-
-  writeCache(trimmed, null);
-  return null;
+interface GeneratedVisualPayload {
+  definitions?: Array<{
+    index: number;
+    id?: string;
+    title?: string;
+    imageUrl?: string;
+    pageUrl?: string;
+  }>;
 }
 
-export async function fetchNotesVisuals(input: FetchNoteVisualsInput, signal?: AbortSignal): Promise<NotesVisualMap> {
-  const subject = cleanSearchText(input.subject);
-  const board = cleanSearchText(input.board);
-  const topic = cleanSearchText(input.topic);
-  const definitions: Record<number, WikimediaVisual> = {};
-  const seen = new Set<string>();
+const MEMORY_CACHE_TTL_MS = 10 * 60 * 1000;
+const visualsCache = new Map<string, { savedAt: number; value: NotesVisualMap }>();
+
+const cleanText = (value: string) =>
+  String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\$[^$]*\$/g, " ")
+    .replace(/[^a-z0-9\s\-(),.]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const parseUnitNumber = (unitLabel?: string): number | undefined => {
+  const match = String(unitLabel || "").match(/\d+/);
+  if (!match) return undefined;
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const buildCacheKey = (input: FetchNoteVisualsInput, unitNumber: number) =>
+  JSON.stringify({
+    board: cleanText(input.board).toLowerCase(),
+    subject: cleanText(input.subject).toLowerCase(),
+    unit: unitNumber,
+    topic: cleanText(input.topic).toLowerCase(),
+    defs: input.definitions
+      .slice(0, 6)
+      .map((definition) => ({
+        term: cleanText(definition.term).toLowerCase(),
+        meaning: cleanText(definition.meaning || "").toLowerCase(),
+      })),
+  });
+
+export async function fetchNotesVisuals(
+  input: FetchNoteVisualsInput,
+  signal?: AbortSignal,
+): Promise<NotesVisualMap> {
+  const unitNumber = input.unitNumber ?? parseUnitNumber(input.unitLabel);
+  if (!unitNumber) return { definitions: {} };
 
   const candidates = input.definitions
     .map((definition, index) => ({
       index,
-      term: cleanSearchText(definition.term),
-      meaning: cleanSearchText(definition.meaning || ""),
+      term: cleanText(definition.term),
+      meaning: cleanText(definition.meaning || ""),
     }))
-    .filter(({ term }) => term.length >= 4)
+    .filter(({ term }) => term.length >= 3)
     .slice(0, 6);
 
-  for (const candidate of candidates) {
-    if (signal?.aborted) break;
-    const visual = await fetchWikimediaVisual(
-      [board, subject, topic, candidate.term, candidate.meaning].filter(Boolean).join(" "),
-      signal
-    );
-    if (visual && !seen.has(visual.imageUrl)) {
-      definitions[candidate.index] = visual;
-      seen.add(visual.imageUrl);
-    }
+  if (candidates.length === 0) return { definitions: {} };
+  if (signal?.aborted) return { definitions: {} };
+
+  const cacheKey = buildCacheKey(input, unitNumber);
+  const cached = visualsCache.get(cacheKey);
+  if (cached && Date.now() - cached.savedAt < MEMORY_CACHE_TTL_MS) {
+    return cached.value;
   }
 
-  return { definitions };
+  try {
+    const { data, error } = await supabase.functions.invoke("ai-note-visuals", {
+      body: {
+        board: input.board,
+        subject: input.subject,
+        unit_number: unitNumber,
+        topic: input.topic,
+        definitions: candidates,
+      },
+    });
+
+    if (signal?.aborted) return { definitions: {} };
+    if (error) {
+      console.warn("AI note visuals failed", error);
+      return { definitions: {} };
+    }
+
+    const payload = (data || {}) as GeneratedVisualPayload;
+    const definitions: Record<number, WikimediaVisual> = {};
+    const seenUrls = new Set<string>();
+
+    for (const item of payload.definitions || []) {
+      const index = Number(item.index);
+      const imageUrl = String(item.imageUrl || "");
+      if (!Number.isFinite(index) || !imageUrl || seenUrls.has(imageUrl)) continue;
+      seenUrls.add(imageUrl);
+      definitions[index] = {
+        id: String(item.id || `${cleanText(input.topic)}-${index}`),
+        title: String(item.title || candidates.find((c) => c.index === index)?.term || "AI diagram"),
+        imageUrl,
+        pageUrl: String(item.pageUrl || "https://huggingface.co/aiyouthalliance/Free-Image-Generation"),
+      };
+    }
+
+    const value = { definitions };
+    visualsCache.set(cacheKey, { savedAt: Date.now(), value });
+    return value;
+  } catch (err) {
+    if ((err as Error).name !== "AbortError") {
+      console.warn("AI note visuals fetch crashed", err);
+    }
+    return { definitions: {} };
+  }
 }

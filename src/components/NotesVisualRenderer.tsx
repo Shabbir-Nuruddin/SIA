@@ -83,7 +83,7 @@ const VisualPreview = ({ visual, compact = false }: { visual: WikimediaVisual; c
     </div>
     <figcaption className="p-3 text-xs leading-relaxed text-muted-foreground">
       <div className="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wider text-foreground/70">
-        <ImageIcon className="h-3.5 w-3.5" /> Wikipedia image
+        <ImageIcon className="h-3.5 w-3.5" /> AI generated image
       </div>
       <div className="font-medium text-foreground/85">{visual.title}</div>
     </figcaption>

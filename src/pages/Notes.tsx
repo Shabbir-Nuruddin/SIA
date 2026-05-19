@@ -225,6 +225,7 @@ const NotesPage = () => {
       board,
       subject: SUBJECTS[subjectParam]?.name ?? subjectParam,
       unitLabel,
+      unitNumber: unitParam,
       topic: topicParam,
       definitions: notes.key_definitions.map((definition) => ({
         term: definition.term,
