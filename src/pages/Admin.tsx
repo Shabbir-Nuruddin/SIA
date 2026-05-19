@@ -95,7 +95,7 @@ const Admin = () => {
           </div>
         </section>
 
-        </section>
+
 
         {/* AI Key Rotation */}
         <section className="surface p-6">
