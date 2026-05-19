@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
+const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
 const generatePaperTool = {
   type: "function",
@@ -92,12 +92,12 @@ const markPaperTool = {
 };
 
 async function callAI(messages: any[], tools: any[], toolName: string) {
-  return callGroqTool({ apiKey: LOVABLE_API_KEY, messages, tools, toolName, temperature: 0.3, maxTokens: 6500 });
+  return callGroqTool({ apiKey: GROQ_API_KEY, messages, tools, toolName, temperature: 0.3, maxTokens: 6500 });
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (!LOVABLE_API_KEY) {
+  if (!GROQ_API_KEY) {
     return new Response(JSON.stringify({ error: "AI service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const LOVABLE_API_KEY = Deno.env.get("GROQ_API_KEY");
+const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
 const MODELS = [
   "llama-3.1-8b-instant",
