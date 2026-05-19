@@ -17,6 +17,19 @@ const Admin = () => {
   const [modifiers, setModifiers] = useState<Modifier[]>([]);
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
   const [testMode, setTestMode] = useTestMode();
+  const [keyStatus, setKeyStatus] = useState<any>(null);
+  const [keyLoading, setKeyLoading] = useState(false);
+
+  const loadKeyStatus = async () => {
+    setKeyLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-ai-keys");
+      if (error) throw error;
+      setKeyStatus(data);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load key status.");
+    } finally { setKeyLoading(false); }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +39,7 @@ const Admin = () => {
       .then(({ data }: any) => {
         if (data) setFeedback(data.map((d: any) => ({ ...d, message: `${d.subject ? `[${d.subject}] ` : ""}${d.message || ""}` })));
       });
+    loadKeyStatus();
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
