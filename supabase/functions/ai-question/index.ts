@@ -91,7 +91,7 @@ const markTool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GROQ_API_KEY")) {
+  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GEMINI_API_KEY_2") && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
-import { Trash2, Loader2, Shield, Eye, MessageSquare } from "lucide-react";
+import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw } from "lucide-react";
 import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
 
 interface Modifier { id: string; feature: string; board: string; instruction: string; created_at: string; is_active: boolean; }
@@ -17,6 +17,19 @@ const Admin = () => {
   const [modifiers, setModifiers] = useState<Modifier[]>([]);
   const [feedback, setFeedback] = useState<FeedbackRow[]>([]);
   const [testMode, setTestMode] = useTestMode();
+  const [keyStatus, setKeyStatus] = useState<any>(null);
+  const [keyLoading, setKeyLoading] = useState(false);
+
+  const loadKeyStatus = async () => {
+    setKeyLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-ai-keys");
+      if (error) throw error;
+      setKeyStatus(data);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load key status.");
+    } finally { setKeyLoading(false); }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +39,7 @@ const Admin = () => {
       .then(({ data }: any) => {
         if (data) setFeedback(data.map((d: any) => ({ ...d, message: `${d.subject ? `[${d.subject}] ` : ""}${d.message || ""}` })));
       });
+    loadKeyStatus();
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
@@ -79,6 +93,45 @@ const Admin = () => {
               </Button>
             ))}
           </div>
+        </section>
+
+
+
+        {/* AI Key Rotation */}
+        <section className="surface p-6">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-bold flex items-center gap-2"><KeyRound className="h-4 w-4" /> Gemini API Key Rotation</h2>
+            <Button size="sm" variant="ghost" onClick={loadKeyStatus} disabled={keyLoading}>
+              {keyLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            When a key hits its rate limit the backend rotates to the next one automatically and wraps back to the first when all are exhausted.
+          </p>
+          {!keyStatus ? (
+            <p className="text-sm text-muted-foreground italic">{keyLoading ? "Loading…" : "—"}</p>
+          ) : keyStatus.totalKeys === 0 ? (
+            <p className="text-sm text-urgent">No Gemini keys configured. Add GEMINI_API_KEY (and GEMINI_API_KEY_2, GEMINI_API_KEY_3, …) in secrets.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
+                <div><span className="text-muted-foreground">Active:</span> <span className="font-mono font-bold text-primary">{keyStatus.currentKeyName}</span> ({keyStatus.currentIndex + 1}/{keyStatus.totalKeys})</div>
+                {keyStatus.lastRotatedAt && (
+                  <div className="text-xs text-muted-foreground">Last rotation: {new Date(keyStatus.lastRotatedAt).toLocaleString()}</div>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {keyStatus.keyNames.map((n: string, i: number) => (
+                  <span key={n} className={`px-2 py-1 rounded text-xs font-mono border ${i === keyStatus.currentIndex ? "bg-primary/15 border-primary text-primary" : "border-border text-muted-foreground"}`}>
+                    {i + 1}. {n}{i === keyStatus.currentIndex ? " ●" : ""}
+                  </span>
+                ))}
+              </div>
+              {keyStatus.lastError && (
+                <p className="text-xs text-urgent/80 font-mono break-all">Last error: {keyStatus.lastError}</p>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Active modifiers */}

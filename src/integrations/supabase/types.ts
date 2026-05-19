@@ -71,6 +71,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_key_state: {
+        Row: {
+          current_index: number
+          last_error: string | null
+          last_rotated_at: string | null
+          provider: string
+          total_keys: number
+          updated_at: string
+        }
+        Insert: {
+          current_index?: number
+          last_error?: string | null
+          last_rotated_at?: string | null
+          provider: string
+          total_keys?: number
+          updated_at?: string
+        }
+        Update: {
+          current_index?: number
+          last_error?: string | null
+          last_rotated_at?: string | null
+          provider?: string
+          total_keys?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_questions: {
         Row: {
           awarded_marks: number | null
