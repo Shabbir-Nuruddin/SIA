@@ -313,18 +313,23 @@ const VisualSection = ({ vs, renderMath }: { vs: VisualSummary; renderMath:(s:st
 
 // ─── Examiner Tips — horizontal cards with command-word badge ─────────────────
 const ExaminerTipsSection = ({ tips, formatHtml }: { tips: TipItem[]; formatHtml:(s:string)=>string }) => (
-  <div className="space-y-2.5">
+  <div className="grid sm:grid-cols-2 gap-4">
     {tips.map((t, i) => {
       const a = ACCENTS[i % ACCENTS.length];
       return (
-        <div key={i} className={`flex items-start gap-3 rounded-xl bg-card border-l-4 ${a.rail} border-y border-r border-foreground/10 p-3 shadow-sm`}>
-          {t.command_word && (
-            <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wider ${a.chip}`}>
-              {t.command_word}
-            </span>
-          )}
-          <div className="flex-1 text-sm leading-relaxed text-foreground/90 pt-0.5"
-               dangerouslySetInnerHTML={{ __html: formatHtml(t.tip) }} />
+        <div key={i} className="relative rounded-xl bg-card border border-foreground/10 shadow-sm hover:shadow-md transition-all overflow-hidden">
+          <div className={`h-1.5 ${a.dot}`} />
+          <div className="p-4">
+            {t.command_word && (
+              <div className="mb-3">
+                <span className={`font-handwritten text-2xl font-bold ${a.hl} px-1.5 inline-block`}>
+                  {t.command_word}
+                </span>
+              </div>
+            )}
+            <div className="text-sm leading-relaxed text-foreground/90"
+                 dangerouslySetInnerHTML={{ __html: formatHtml(t.tip) }} />
+          </div>
         </div>
       );
     })}

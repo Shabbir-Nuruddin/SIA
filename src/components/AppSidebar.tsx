@@ -207,7 +207,7 @@ export const AppSidebar = () => {
 
       <aside
         className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start"
-        style={{ top: 52, height: "calc(100vh - 52px)" }}
+        style={{ top: 0, height: "100vh" }}
       >
         <SidebarBody />
       </aside>

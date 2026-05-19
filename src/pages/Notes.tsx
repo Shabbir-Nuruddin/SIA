@@ -419,32 +419,10 @@ const NotesPage = () => {
 
   return (
     <AppLayout>
-      <div className="px-4 py-6 md:px-6 md:py-8 lg:pr-0 animate-fade-in">
-        <div className="mb-6 flex max-w-[calc(100vw-2rem)] items-end justify-between gap-4 lg:max-w-[calc(100vw-360px)]">
-          <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-3">
-            <div className="text-xs text-primary font-mono uppercase tracking-widest flex items-center gap-2">
-              <Sparkles className="h-3 w-3" /> AI Revision Notes
-            </div>
-            {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
-              <Button
-                onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
-                variant="outline"
-                size="sm"
-                title="Regenerate notes"
-                className="h-7 shrink-0 px-2 text-[11px]"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
-              </Button>
-            )}
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
-          </div>
-        </div>
-
-        <div className="grid flex-1 min-h-0 gap-6 lg:grid-cols-[minmax(0,1fr)_336px]">
+      <div className="flex h-full min-h-0 flex-col animate-fade-in">
+        <div className="flex flex-1 min-h-0 flex-col lg:flex-row lg:gap-6">
           {/* Sidebar */}
-          <aside className="glass-card rounded-xl p-4 lg:order-2 lg:sticky lg:top-0 lg:h-full lg:w-[336px] lg:overflow-y-auto lg:rounded-none lg:border-y-0 lg:border-r-0 lg:border-l">
+          <aside className="glass-card rounded-none border-x-0 border-b-0 border-t border-border/70 p-4 lg:order-2 lg:sticky lg:top-0 lg:h-screen lg:w-[336px] lg:shrink-0 lg:overflow-y-auto lg:border-b-0 lg:border-r-0 lg:border-t-0 lg:border-l">
             <div className="pb-4">
               <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-2">Topic Picker</div>
               <p className="text-sm text-muted-foreground">
@@ -515,26 +493,48 @@ const NotesPage = () => {
           </aside>
 
           {/* Notes panel */}
-          <div className="relative min-w-0 lg:order-1">
+          <div className="relative min-h-0 min-w-0 px-4 pb-4 md:px-6 md:pb-6 lg:order-1 lg:flex lg:flex-1 lg:flex-col lg:pl-6 lg:pr-0">
+            <div className="mb-2 flex flex-wrap items-center gap-3 pt-6 md:pt-8">
+              <div className="text-xs text-primary font-mono uppercase tracking-widest flex items-center gap-2">
+                <Sparkles className="h-3 w-3" /> AI Revision Notes
+              </div>
+              {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
+                <Button
+                  onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
+                  variant="outline"
+                  size="sm"
+                  title="Regenerate notes"
+                  className="h-7 shrink-0 px-2 text-[11px]"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
+                </Button>
+              )}
+            </div>
+            <h1 className="mb-4 text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
+            <div className="relative min-h-0 min-w-0 flex-1">
             {!subjectParam || !unitParam || !topicParam ? (
-              <div className="glass-card rounded-2xl p-12 text-center">
-                <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Pick a topic to begin.</h3>
-                <p className="text-muted-foreground">Notes generate in seconds and stay saved to your account.</p>
+              <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-2xl border-foreground/10 p-12 text-center lg:border-t-0">
+                <div>
+                  <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Pick a topic to begin.</h3>
+                  <p className="text-muted-foreground">Notes generate in seconds and stay saved to your account.</p>
+                </div>
               </div>
             ) : loadingNotes ? (
               <NotesSkeleton topic={topicParam} board={board} />
             ) : loadError ? (
-              <div className="glass-card rounded-2xl p-12 text-center">
-                <AlertTriangle className="h-10 w-10 text-urgent mx-auto mb-4" />
-                <h3 className="text-xl font-bold mb-2">Notes couldn't load.</h3>
-                <p className="text-muted-foreground text-sm mb-6">This is on our end, not yours.</p>
-                <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} className="bg-primary hover:bg-primary/90">
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try again
-                </Button>
+              <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-2xl border-foreground/10 p-12 text-center lg:border-t-0">
+                <div>
+                  <AlertTriangle className="h-10 w-10 text-urgent mx-auto mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Notes couldn't load.</h3>
+                  <p className="text-muted-foreground text-sm mb-6">This is on our end, not yours.</p>
+                  <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} className="bg-primary hover:bg-primary/90">
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try again
+                  </Button>
+                </div>
               </div>
             ) : notes ? (
-              <div className="notebook-paper notes-canvas h-[calc(100vh-52px)] overflow-y-auto rounded-2xl p-6 md:p-10 pl-14 md:pl-16 relative border border-foreground/10 shadow-md" ref={panelRef} onMouseUp={handleMouseUp}>
+              <div className="notebook-paper notes-canvas relative h-full min-h-[520px] overflow-y-auto rounded-2xl border border-foreground/10 p-6 pl-14 shadow-md md:p-10 md:pl-16 lg:border-t-0" ref={panelRef} onMouseUp={handleMouseUp}>
                 <NotesVisualRenderer
                   notes={notes}
                   topic={topicParam}
@@ -580,6 +580,7 @@ const NotesPage = () => {
                 <AnnotationTooltipLayer annotations={annotations} container={panelRef} onDelete={deleteAnnotation} />
               </div>
             ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -598,6 +599,35 @@ const NotesPage = () => {
         :root:not(.light):not(.theme-paper):not(.theme-notebook) .notes-canvas {
           background-image: none !important;
         }
+        .skeleton-shimmer {
+          position: relative;
+          overflow: hidden;
+          background-color: hsl(var(--secondary) / 0.58);
+          box-shadow: 0 0 0.65rem hsl(var(--primary) / 0.12);
+        }
+        .skeleton-shimmer::after {
+          content: "";
+          position: absolute;
+          inset: -160%;
+          background: linear-gradient(
+            130deg,
+            transparent 38%,
+            hsl(var(--primary) / 0.2) 48%,
+            hsl(var(--primary) / 0.38) 52%,
+            transparent 64%
+          );
+          transform: translate3d(-45%, -35%, 0);
+          animation: skeleton-diagonal-sheen 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes skeleton-diagonal-sheen {
+          0% { transform: translate3d(-45%, -35%, 0); }
+          100% { transform: translate3d(45%, 35%, 0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .skeleton-shimmer::after {
+            animation: none;
+          }
+        }
       `}</style>
       <UpgradeModal
         open={upgrade.open}
@@ -612,24 +642,30 @@ const NotesPage = () => {
 };
 
 const NotesSkeleton = ({ topic, board }: { topic: string; board: string }) => (
-  <div className="glass-card rounded-2xl p-6 md:p-8">
-    <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border">
-      <Loader2 className="h-5 w-5 text-primary animate-spin" />
+  <div className="glass-card flex h-full min-h-[520px] flex-col rounded-2xl border-primary/20 bg-card/90 p-6 shadow-lg shadow-primary/10 lg:border-t-0 md:p-8">
+    <div className="flex items-center gap-3 mb-6 pb-5 border-b border-primary/20">
+      <Loader2 className="h-5 w-5 text-primary animate-spin drop-shadow-[0_0_8px_hsl(var(--primary)/0.45)]" />
       <div>
         <div className="text-sm font-semibold">Generating your {topic} notes...</div>
         <div className="text-xs text-muted-foreground">Pulling {board === "cie" ? "Cambridge (CIE)" : "Edexcel"} mark-scheme phrasing and worked examples.</div>
       </div>
     </div>
-    {["w-1/3", "w-full", "w-5/6", "w-2/3"].map((w, i) => (
-      <div key={i} className="mb-6">
-        <div className={`h-3 ${w} rounded bg-secondary/60 animate-pulse mb-3`} />
-        <div className="space-y-2">
-          <div className="h-2 w-full rounded bg-secondary/40 animate-pulse" />
-          <div className="h-2 w-11/12 rounded bg-secondary/40 animate-pulse" />
-          <div className="h-2 w-4/5 rounded bg-secondary/40 animate-pulse" />
+    <div className="grid flex-1 grid-rows-4 gap-7 py-2">
+      {["w-1/3", "w-full", "w-5/6", "w-2/3"].map((w, i) => (
+        <div key={i} className="space-y-3">
+          <div className={`skeleton-shimmer h-3 ${w} rounded`} />
+          <div className="flex gap-2">
+            <div className="skeleton-shimmer h-5 w-14 rounded-md" />
+            <div className="skeleton-shimmer h-5 w-20 rounded-md" />
+          </div>
+          <div className="space-y-2.5">
+            <div className="skeleton-shimmer h-2 w-full rounded" />
+            <div className="skeleton-shimmer h-2 w-11/12 rounded" />
+            <div className="skeleton-shimmer h-2 w-4/5 rounded" />
+          </div>
         </div>
-      </div>
-    ))}
+      ))}
+    </div>
   </div>
 );
 
