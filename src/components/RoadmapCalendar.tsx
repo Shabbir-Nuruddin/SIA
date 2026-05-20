@@ -1,701 +1,403 @@
 /**
- * RoadmapCalendar — Smart study calendar for ApexRevise
- * Features:
- *  1. Availability grid (block times you CAN'T study)
- *  2. Hours-per-day slider
- *  3. Subject confidence tracker (Weak / OK / Strong per topic)
- *  4. AI-generated weekly study plan via Gemini/Groq
- *  5. Visual week-view calendar
+ * RoadmapCalendar — Real calendar over roadmap_nodes.
+ * Month view + per-day event list with add / edit / move / delete.
  */
-
-import { useEffect, useState, useCallback } from "react";
-import { supabase as supabaseTyped } from "@/integrations/supabase/client";
-const supabase: any = supabaseTyped;
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  Calendar, Clock, ChevronDown, ChevronUp, Loader2,
-  BookOpen, Target, Zap, RefreshCw, Check, AlertTriangle
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
+import { format, parseISO, isSameDay } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  BookOpen, Repeat, FileText, Coffee, Plus, Pencil, Trash2,
+  CalendarIcon, CheckCircle2, Loader2,
 } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type NodeType = "learn" | "review" | "mock" | "break";
+type Status = "locked" | "unlocked" | "in_progress" | "complete" | "skipped";
 
-type Slot = "morning" | "afternoon" | "evening";
-type Day = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-type Confidence = "weak" | "ok" | "strong";
-
-interface AvailabilityData {
-  blocked: Record<Day, Record<Slot, boolean>>;  // true = blocked (can't study)
-  hours_per_day: number;
+interface RoadmapNode {
+  id: string;
+  user_id: string;
+  scheduled_date: string;       // yyyy-mm-dd
+  node_order: number;
+  node_type: NodeType;
+  topic_name: string | null;
+  unit_name: string | null;
+  unit_number: number | null;
+  unit_code: string | null;
+  subject: string | null;
+  status: Status;
+  why_now_text: string | null;
+  science_method: string | null;
 }
 
-interface TopicConfidence {
-  subject: SubjectCode;
-  topic: string;
-  confidence: Confidence;
-}
-
-interface StudySession {
-  day: Day;
-  slot: Slot;
-  subject: string;
-  topic: string;
-  sessionType: "New Material" | "Review" | "Practice" | "Mock";
-  subjectCode: SubjectCode;
-}
-
-const DAYS: Day[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const SLOTS: Slot[] = ["morning", "afternoon", "evening"];
-const SLOT_LABELS: Record<Slot, string> = {
-  morning: "Morning\n8–12",
-  afternoon: "Afternoon\n12–5",
-  evening: "Evening\n5–10",
+const TYPE_META: Record<NodeType, { label: string; color: string; bg: string; icon: any }> = {
+  learn:  { label: "Learn",  color: "#3B82F6", bg: "rgba(59,130,246,0.12)", icon: BookOpen },
+  review: { label: "Review", color: "#D97706", bg: "rgba(217,119,6,0.12)",  icon: Repeat   },
+  mock:   { label: "Mock",   color: "#DC2626", bg: "rgba(220,38,38,0.12)",  icon: FileText },
+  break:  { label: "Break",  color: "#16A34A", bg: "rgba(22,163,74,0.12)",  icon: Coffee   },
 };
 
-const SUBJECT_TOPICS: Partial<Record<SubjectCode, string[]>> = {
-  chemistry: [
-    "Atomic Structure & Bonding", "Energetics", "Kinetics (AS)", "Equilibria (AS)",
-    "Electrochemistry", "Rate Equations & Kinetics (A2)", "Kc, Kp & Equilibria (A2)",
-    "Entropy & Gibbs Free Energy", "Acid-Base Equilibria", "Transition Metals",
-    "Organic: Alkanes & Alkenes", "Organic: Halogenoalkanes", "Organic: Carbonyls",
-    "Organic: Arenes & Amines", "Organic: Polymers & Analysis",
-  ],
-  biology: [
-    "Cell Structure", "Biological Molecules", "Enzymes", "Cell Transport",
-    "DNA & Protein Synthesis", "Cell Division", "Exchange & Transport",
-    "Ecology & Environment", "Immunity & Disease", "Hormonal Control",
-    "Nervous System", "Respiration", "Photosynthesis", "Gene Technology",
-    "Populations & Evolution",
-  ],
-  physics: [
-    "Mechanics: Motion & Forces", "Mechanics: Energy & Power", "Waves",
-    "Electricity: Circuits", "Electricity: Fields", "Nuclear Physics",
-    "Thermal Physics", "Oscillations", "Gravitational Fields",
-    "Electric & Magnetic Fields", "Capacitors", "Radioactivity", "Cosmology",
-  ],
-  mathematics: [
-    "Algebra & Functions", "Coordinate Geometry", "Trigonometry",
-    "Differentiation", "Integration", "Sequences & Series",
-    "Exponentials & Logarithms", "Binomial Expansion",
-    "Vectors", "Proof", "Statistics: Data", "Statistics: Probability",
-    "Statistics: Distributions", "Mechanics: Kinematics", "Mechanics: Forces",
-  ],
+const STATUS_META: Record<Status, string> = {
+  locked: "Locked", unlocked: "Planned", in_progress: "In progress",
+  complete: "Complete", skipped: "Skipped",
 };
 
-const CONFIDENCE_OPTIONS: { value: Confidence; label: string; emoji: string; color: string }[] = [
-  { value: "weak",   label: "Weak",   emoji: "🔴", color: "bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300" },
-  { value: "ok",     label: "OK",     emoji: "🟡", color: "bg-yellow-100 dark:bg-yellow-900/40 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300" },
-  { value: "strong", label: "Strong", emoji: "🟢", color: "bg-green-100 dark:bg-green-900/40 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300" },
-];
-
-const SESSION_COLORS: Record<StudySession["sessionType"], string> = {
-  "New Material": "bg-blue-100 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700",
-  "Review":       "bg-amber-100 dark:bg-amber-900/40 border-amber-300 dark:border-amber-700",
-  "Practice":     "bg-violet-100 dark:bg-violet-900/40 border-violet-300 dark:border-violet-700",
-  "Mock":         "bg-red-100 dark:bg-red-900/40 border-red-300 dark:border-red-700",
-};
-
-const SESSION_ICONS: Record<StudySession["sessionType"], React.ReactNode> = {
-  "New Material": <BookOpen className="h-3 w-3" />,
-  "Review":       <RefreshCw className="h-3 w-3" />,
-  "Practice":     <Target className="h-3 w-3" />,
-  "Mock":         <Zap className="h-3 w-3" />,
-};
-
-const SUBJECT_ACCENT: Partial<Record<SubjectCode, string>> = {
-  chemistry: "bg-purple-200 dark:bg-purple-800/60 text-purple-800 dark:text-purple-200",
-  biology:   "bg-green-200 dark:bg-green-800/60 text-green-800 dark:text-green-200",
-  physics:   "bg-orange-200 dark:bg-orange-800/60 text-orange-800 dark:text-orange-200",
-  mathematics:"bg-blue-200 dark:bg-blue-800/60 text-blue-800 dark:text-blue-200",
-};
-
-const DEFAULT_BLOCKED: Record<Day, Record<Slot, boolean>> = DAYS.reduce((acc, d) => ({
-  ...acc, [d]: { morning: false, afternoon: false, evening: false }
-}), {} as Record<Day, Record<Slot, boolean>>);
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function generateFallbackPlan(
-  subjects: SubjectCode[],
-  topicConf: TopicConfidence[],
-  avail: AvailabilityData
-): StudySession[] {
-  const sessions: StudySession[] = [];
-  const weakTopics = topicConf.filter(t => t.confidence === "weak");
-  const okTopics   = topicConf.filter(t => t.confidence === "ok");
-  const allTopics  = [...weakTopics, ...weakTopics, ...okTopics]; // weak gets double weight
-
-  let topicIdx = 0;
-  for (const day of DAYS) {
-    for (const slot of SLOTS) {
-      if (avail.blocked[day]?.[slot]) continue;
-      if (allTopics.length === 0) break;
-      const t = allTopics[topicIdx % allTopics.length];
-      topicIdx++;
-      const isWeek = !["Sat", "Sun"].includes(day);
-      const sessionType: StudySession["sessionType"] =
-        topicIdx % 7 === 0 ? "Mock"
-        : topicIdx % 5 === 0 ? "Review"
-        : topicIdx % 3 === 0 ? "Practice"
-        : "New Material";
-      sessions.push({
-        day, slot,
-        subject: SUBJECTS[t.subject]?.name ?? t.subject,
-        subjectCode: t.subject,
-        topic: t.topic,
-        sessionType,
-      });
-    }
-  }
-  return sessions;
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+const toIsoDate = (d: Date) => format(d, "yyyy-MM-dd");
 
 export default function RoadmapCalendar() {
   const { user } = useAuth();
+  const [nodes, setNodes] = useState<RoadmapNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [editing, setEditing] = useState<RoadmapNode | null>(null);
+  const [creatingForDate, setCreatingForDate] = useState<string | null>(null);
 
-  // Availability state
-  const [avail, setAvail] = useState<AvailabilityData>({
-    blocked: DEFAULT_BLOCKED,
-    hours_per_day: 3,
-  });
-  const [availSaved, setAvailSaved] = useState(false);
-  const [savingAvail, setSavingAvail] = useState(false);
-
-  // Subjects the user has enrolled in
-  const [enrolledSubjects, setEnrolledSubjects] = useState<SubjectCode[]>([]);
-
-  // Topic confidence
-  const [topicConf, setTopicConf] = useState<TopicConfidence[]>([]);
-  const [confSaved, setConfSaved] = useState(false);
-  const [savingConf, setSavingConf] = useState(false);
-  const [openSubject, setOpenSubject] = useState<SubjectCode | null>(null);
-
-  // Study plan
-  const [plan, setPlan] = useState<StudySession[] | null>(null);
-  const [loadingPlan, setLoadingPlan] = useState(false);
-
-  // Tab: "setup" | "confidence" | "calendar"
-  const [tab, setTab] = useState<"setup" | "confidence" | "calendar">("setup");
-
-  // ── Load saved data ──
-  useEffect(() => {
+  const load = async () => {
     if (!user) return;
-    (async () => {
-      // Load availability
-      const { data: a } = await supabase
-        .from("user_availability")
-        .select("blocked_slots, hours_per_day")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (a) {
-        setAvail({
-          blocked: (a.blocked_slots as any) ?? DEFAULT_BLOCKED,
-          hours_per_day: a.hours_per_day ?? 3,
-        });
-        setAvailSaved(true);
-      }
-
-      // Load enrolled subjects from profiles
-      const { data: p } = await supabase
-        .from("user_subjects")
-        .select("subject_code")
-        .eq("user_id", user.id);
-      if (p && p.length > 0) {
-        setEnrolledSubjects(p.map((x: any) => x.subject_code as SubjectCode));
-      } else {
-        // Fall back to subjects from profiles table
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("subjects")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (prof?.subjects) {
-          const subs = Object.keys(prof.subjects).filter(k => (prof.subjects as any)[k]?.selected) as SubjectCode[];
-          setEnrolledSubjects(subs.length > 0 ? subs : ["chemistry", "mathematics"]);
-        }
-      }
-
-      // Load topic confidence
-      const { data: tc } = await supabase
-        .from("user_topic_confidence")
-        .select("subject, topic, confidence_level")
-        .eq("user_id", user.id);
-      if (tc && tc.length > 0) {
-        setTopicConf(tc.map((x: any) => ({
-          subject: x.subject as SubjectCode,
-          topic: x.topic,
-          confidence: x.confidence_level as Confidence,
-        })));
-        setConfSaved(true);
-      }
-
-      // Load plan
-      const { data: planData } = await supabase
-        .from("user_study_plan")
-        .select("plan_json")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (planData?.plan_json) {
-        setPlan(planData.plan_json as StudySession[]);
-      }
-    })();
-  }, [user]);
-
-  // ── Toggle blocked slot ──
-  const toggleSlot = (day: Day, slot: Slot) => {
-    setAvail(prev => ({
-      ...prev,
-      blocked: {
-        ...prev.blocked,
-        [day]: { ...prev.blocked[day], [slot]: !prev.blocked[day][slot] },
-      },
-    }));
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("roadmap_nodes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("scheduled_date")
+      .order("node_order");
+    if (error) toast.error(error.message);
+    else setNodes((data || []) as RoadmapNode[]);
+    setLoading(false);
   };
 
-  // ── Save availability ──
-  const saveAvailability = async () => {
-    if (!user) return;
-    setSavingAvail(true);
-    try {
-      await supabase.from("user_availability").upsert({
-        user_id: user.id,
-        blocked_slots: avail.blocked,
-        hours_per_day: avail.hours_per_day,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-      setAvailSaved(true);
-      toast.success("Availability saved!");
-      setTab("confidence");
-    } catch {
-      toast.error("Failed to save. Please try again.");
-    } finally {
-      setSavingAvail(false);
+  useEffect(() => { load(); }, [user]);
+
+  // Date → events map
+  const eventsByDate = useMemo(() => {
+    const m = new Map<string, RoadmapNode[]>();
+    for (const n of nodes) {
+      const arr = m.get(n.scheduled_date) ?? [];
+      arr.push(n);
+      m.set(n.scheduled_date, arr);
     }
+    return m;
+  }, [nodes]);
+
+  const selectedIso = toIsoDate(selectedDate);
+  const dayEvents = eventsByDate.get(selectedIso) ?? [];
+
+  const modifiers = useMemo(() => {
+    const dates: Date[] = [];
+    for (const iso of eventsByDate.keys()) dates.push(parseISO(iso));
+    return { hasEvents: dates };
+  }, [eventsByDate]);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this session?")) return;
+    const { error } = await supabase.from("roadmap_nodes").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Deleted");
+    setNodes(prev => prev.filter(n => n.id !== id));
+    window.dispatchEvent(new CustomEvent("apex-roadmap-change"));
   };
 
-  // ── Set topic confidence ──
-  const setConf = (subject: SubjectCode, topic: string, confidence: Confidence) => {
-    setTopicConf(prev => {
-      const existing = prev.findIndex(t => t.subject === subject && t.topic === topic);
-      if (existing >= 0) {
-        const next = [...prev];
-        next[existing] = { subject, topic, confidence };
-        return next;
-      }
-      return [...prev, { subject, topic, confidence }];
-    });
+  const handleToggleComplete = async (n: RoadmapNode) => {
+    const next: Status = n.status === "complete" ? "unlocked" : "complete";
+    const { error } = await supabase
+      .from("roadmap_nodes")
+      .update({
+        status: next,
+        completed_at: next === "complete" ? new Date().toISOString() : null,
+      })
+      .eq("id", n.id);
+    if (error) return toast.error(error.message);
+    await load();
+    window.dispatchEvent(new CustomEvent("apex-roadmap-change"));
   };
-
-  const getConf = (subject: SubjectCode, topic: string): Confidence | null => {
-    return topicConf.find(t => t.subject === subject && t.topic === topic)?.confidence ?? null;
-  };
-
-  // ── Save confidence ──
-  const saveConfidence = async () => {
-    if (!user) return;
-    setSavingConf(true);
-    try {
-      // Upsert each topic confidence row
-      const rows = topicConf.map(t => ({
-        user_id: user.id,
-        subject: t.subject,
-        topic: t.topic,
-        confidence_level: t.confidence,
-        updated_at: new Date().toISOString(),
-      }));
-      if (rows.length > 0) {
-        await supabase.from("user_topic_confidence").upsert(rows, { onConflict: "user_id,subject,topic" });
-      }
-      setConfSaved(true);
-      toast.success("Confidence levels saved!");
-      await generatePlan();
-    } catch {
-      toast.error("Failed to save confidence. Please try again.");
-    } finally {
-      setSavingConf(false);
-    }
-  };
-
-  // ── Generate study plan ──
-  const generatePlan = useCallback(async () => {
-    if (!user) return;
-    setLoadingPlan(true);
-    setTab("calendar");
-    try {
-      const weakTopics = topicConf.filter(t => t.confidence === "weak");
-      const availableSlots = DAYS.flatMap(d =>
-        SLOTS.filter(s => !avail.blocked[d]?.[s]).map(s => `${d} ${s}`)
-      );
-
-      const { data, error } = await supabase.functions.invoke("generate-study-plan", {
-        body: {
-          subjects: enrolledSubjects,
-          weakTopics: weakTopics.map(t => ({ subject: t.subject, topic: t.topic })),
-          availableSlots,
-          hoursPerDay: avail.hours_per_day,
-        },
-      });
-
-      if (error || !data?.plan) throw new Error("AI plan generation failed");
-
-      const planData = data.plan as StudySession[];
-      setPlan(planData);
-
-      // Save to Supabase
-      await supabase.from("user_study_plan").upsert({
-        user_id: user.id,
-        plan_json: planData,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-
-      toast.success("Your study plan is ready!");
-    } catch {
-      // Fallback: generate client-side
-      const fallback = generateFallbackPlan(enrolledSubjects, topicConf, avail);
-      setPlan(fallback);
-      toast.success("Study plan generated!");
-    } finally {
-      setLoadingPlan(false);
-    }
-  }, [user, topicConf, avail, enrolledSubjects]);
-
-  // ─── Render ───────────────────────────────────────────────────────────────
-
-  const weakCount = topicConf.filter(t => t.confidence === "weak").length;
 
   return (
-    <div className="space-y-6">
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-secondary/40 rounded-xl p-1">
-        {([
-          { id: "setup",      label: "📅 Availability", done: availSaved },
-          { id: "confidence", label: "🎯 My Confidence", done: confSaved },
-          { id: "calendar",   label: "🗓️ Study Plan",    done: !!plan },
-        ] as { id: typeof tab; label: string; done: boolean }[]).map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id
-                ? "bg-card shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label}
-            {t.done && <Check className="h-3 w-3 text-green-500" />}
-          </button>
-        ))}
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold">Calendar</h3>
+          <p className="text-xs text-muted-foreground">
+            Click any day to view, edit, move or delete sessions.
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setCreatingForDate(selectedIso)} className="gap-1.5">
+          <Plus className="h-3.5 w-3.5" /> New session
+        </Button>
       </div>
 
-      {/* ── Tab: Availability ── */}
-      {tab === "setup" && (
-        <div className="space-y-5">
-          <div>
-            <h3 className="text-base font-bold mb-1">When can't you study?</h3>
-            <p className="text-sm text-muted-foreground">Click to block the times you're NOT available. We'll build your plan around the rest.</p>
-          </div>
-
-          {/* Availability grid */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr>
-                  <th className="text-left p-2 text-xs text-muted-foreground font-mono w-24"></th>
-                  {DAYS.map(d => (
-                    <th key={d} className="p-2 text-xs font-bold text-center">{d}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {SLOTS.map(slot => (
-                  <tr key={slot}>
-                    <td className="p-2 text-xs text-muted-foreground font-mono whitespace-pre-line leading-tight">
-                      {SLOT_LABELS[slot]}
-                    </td>
-                    {DAYS.map(day => {
-                      const blocked = avail.blocked[day]?.[slot];
-                      return (
-                        <td key={day} className="p-1 text-center">
-                          <button
-                            onClick={() => toggleSlot(day, slot)}
-                            className={`w-full h-10 rounded-lg border-2 transition-all text-xs font-medium ${
-                              blocked
-                                ? "bg-red-100 dark:bg-red-900/40 border-red-400 dark:border-red-600 text-red-600 dark:text-red-400"
-                                : "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:border-green-400"
-                            }`}
-                            title={blocked ? "Blocked — click to unblock" : "Available — click to block"}
-                          >
-                            {blocked ? "✕" : "✓"}
-                          </button>
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-200 dark:bg-green-800 border border-green-400" /> Available</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-200 dark:bg-red-800 border border-red-400" /> Blocked</span>
-          </div>
-
-          {/* Hours slider */}
-          <div className="glass-card rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Study hours per available day</span>
-              </div>
-              <span className="text-2xl font-extrabold text-primary">{avail.hours_per_day}h</span>
-            </div>
-            <input
-              type="range"
-              min={1}
-              max={10}
-              step={0.5}
-              value={avail.hours_per_day}
-              onChange={e => setAvail(prev => ({ ...prev, hours_per_day: parseFloat(e.target.value) }))}
-              className="w-full accent-primary"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>1h (light)</span>
-              <span>5h (standard)</span>
-              <span>10h (intensive)</span>
-            </div>
-          </div>
-
-          <Button onClick={saveAvailability} disabled={savingAvail} className="w-full">
-            {savingAvail ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Check className="h-4 w-4 mr-2" />}
-            Save availability & continue
-          </Button>
+      <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-5">
+        {/* Calendar */}
+        <div className="surface p-3 inline-block">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(d) => d && setSelectedDate(d)}
+            modifiers={modifiers}
+            modifiersClassNames={{
+              hasEvents: "relative font-semibold after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary",
+            }}
+            className={cn("p-0 pointer-events-auto")}
+          />
         </div>
-      )}
 
-      {/* ── Tab: Confidence ── */}
-      {tab === "confidence" && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-base font-bold mb-1">How confident are you in each topic?</h3>
-            <p className="text-sm text-muted-foreground">
-              Be honest — weak topics get more practice sessions in your plan.
-              {weakCount > 0 && <span className="text-red-500 font-medium ml-1">{weakCount} weak topic{weakCount !== 1 ? "s" : ""} flagged.</span>}
-            </p>
-          </div>
-
-          {enrolledSubjects.length === 0 && (
-            <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-700 dark:text-amber-300 flex gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              No subjects found. Please complete onboarding first.
-            </div>
-          )}
-
-          {enrolledSubjects.map(sub => {
-            const topics = SUBJECT_TOPICS[sub] ?? [];
-            const isOpen = openSubject === sub;
-            const subConf = topicConf.filter(t => t.subject === sub);
-            const weakInSub = subConf.filter(t => t.confidence === "weak").length;
-            return (
-              <div key={sub} className="glass-card rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setOpenSubject(isOpen ? null : sub)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${SUBJECT_ACCENT[sub] ?? "bg-secondary"}`}>
-                      {SUBJECTS[sub]?.name ?? sub}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {subConf.length}/{topics.length} rated
-                      {weakInSub > 0 && <span className="text-red-500 ml-1">· {weakInSub} weak</span>}
-                    </span>
-                  </div>
-                  {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                </button>
-
-                {isOpen && (
-                  <div className="border-t border-border p-4 space-y-3">
-                    {topics.map(topic => {
-                      const current = getConf(sub, topic);
-                      return (
-                        <div key={topic} className="flex items-center justify-between gap-3 flex-wrap">
-                          <span className="text-sm flex-1 min-w-[120px]">{topic}</span>
-                          <div className="flex gap-1.5">
-                            {CONFIDENCE_OPTIONS.map(opt => (
-                              <button
-                                key={opt.value}
-                                onClick={() => setConf(sub, topic, opt.value)}
-                                className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
-                                  current === opt.value
-                                    ? opt.color + " scale-105 shadow-sm"
-                                    : "bg-secondary/50 border-border text-muted-foreground hover:border-border hover:bg-secondary"
-                                }`}
-                              >
-                                {opt.emoji} {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          <Button
-            onClick={saveConfidence}
-            disabled={savingConf || topicConf.length === 0}
-            className="w-full"
-          >
-            {savingConf ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-            Save & generate my study plan
-          </Button>
-        </div>
-      )}
-
-      {/* ── Tab: Calendar ── */}
-      {tab === "calendar" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Events for selected day */}
+        <div className="surface p-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-base font-bold mb-1">Your Weekly Study Plan</h3>
-              <p className="text-sm text-muted-foreground">
-                Built around your availability
-                {weakCount > 0 && `, prioritising your ${weakCount} weak topic${weakCount !== 1 ? "s" : ""}`}.
-              </p>
+              <div className="text-xs uppercase tracking-widest font-mono text-muted-foreground">
+                {format(selectedDate, "EEEE")}
+              </div>
+              <div className="text-lg font-bold">{format(selectedDate, "d MMMM yyyy")}</div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={generatePlan}
-              disabled={loadingPlan}
-            >
-              {loadingPlan ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-              <span className="ml-1.5 hidden sm:inline">Regenerate</span>
-            </Button>
+            <div className="text-xs text-muted-foreground">
+              {dayEvents.length} session{dayEvents.length === 1 ? "" : "s"}
+            </div>
           </div>
 
-          {loadingPlan && (
-            <div className="rounded-xl border border-border p-8 flex flex-col items-center gap-3 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm">Building your personalised plan...</p>
-            </div>
-          )}
-
-          {!loadingPlan && !plan && (
-            <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground text-sm">
-              <Calendar className="h-8 w-8 mx-auto mb-3 opacity-40" />
-              <p>No plan yet. Set your availability and confidence levels to generate one.</p>
-              <Button className="mt-4" size="sm" onClick={() => setTab("setup")}>
-                Get started →
-              </Button>
-            </div>
-          )}
-
-          {!loadingPlan && plan && plan.length > 0 && (
-            <>
-              {/* Legend */}
-              <div className="flex flex-wrap gap-2 text-xs">
-                {(Object.entries(SESSION_COLORS) as [StudySession["sessionType"], string][]).map(([type, cls]) => (
-                  <span key={type} className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border ${cls}`}>
-                    {SESSION_ICONS[type]} {type}
-                  </span>
-                ))}
+          {loading ? (
+            <div className="py-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          ) : dayEvents.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No sessions on this day.
+              <div className="mt-3">
+                <Button size="sm" variant="outline" onClick={() => setCreatingForDate(selectedIso)} className="gap-1.5">
+                  <Plus className="h-3.5 w-3.5" /> Add a session
+                </Button>
               </div>
-
-              {/* Grid view */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs border-collapse min-w-[600px]">
-                  <thead>
-                    <tr>
-                      <th className="p-2 text-left text-muted-foreground font-mono w-20"></th>
-                      {DAYS.map(d => (
-                        <th key={d} className="p-2 text-center font-bold text-xs">{d}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SLOTS.map(slot => (
-                      <tr key={slot}>
-                        <td className="p-2 text-muted-foreground font-mono capitalize text-[11px] border-t border-border">
-                          {slot}
-                        </td>
-                        {DAYS.map(day => {
-                          const session = plan.find(s => s.day === day && s.slot === slot);
-                          const isBlocked = avail.blocked[day]?.[slot];
-                          return (
-                            <td key={day} className="p-1 border-t border-border align-top min-w-[80px]">
-                              {isBlocked ? (
-                                <div className="h-16 rounded-lg bg-secondary/20 border border-dashed border-border flex items-center justify-center text-muted-foreground text-[10px]">
-                                  blocked
-                                </div>
-                              ) : session ? (
-                                <div className={`rounded-lg border p-1.5 h-16 flex flex-col justify-between overflow-hidden ${SESSION_COLORS[session.sessionType]}`}>
-                                  <div className="flex items-center gap-1 flex-wrap">
-                                    {SESSION_ICONS[session.sessionType]}
-                                    <span className="font-bold text-[10px] leading-tight truncate">{session.sessionType}</span>
-                                  </div>
-                                  <div>
-                                    <span className={`inline-block text-[9px] font-bold px-1 rounded ${SUBJECT_ACCENT[session.subjectCode] ?? "bg-secondary"}`}>
-                                      {SUBJECTS[session.subjectCode]?.name?.slice(0, 4) ?? session.subjectCode}
-                                    </span>
-                                    <p className="text-[10px] leading-tight mt-0.5 line-clamp-2 opacity-80">{session.topic}</p>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="h-16 rounded-lg bg-secondary/10 border border-dashed border-border/30" />
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Weekly summary */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {(["New Material", "Review", "Practice", "Mock"] as StudySession["sessionType"][]).map(type => {
-                  const count = plan.filter(s => s.sessionType === type).length;
-                  return (
-                    <div key={type} className={`rounded-xl border p-3 text-center ${SESSION_COLORS[type]}`}>
-                      <div className="flex justify-center mb-1">{SESSION_ICONS[type]}</div>
-                      <div className="text-xl font-extrabold">{count}</div>
-                      <div className="text-[10px] font-medium opacity-70">{type}</div>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {dayEvents.map(n => {
+                const meta = TYPE_META[n.node_type];
+                const Icon = meta.icon;
+                const subjMeta = n.subject ? SUBJECTS[n.subject as SubjectCode] : null;
+                return (
+                  <li
+                    key={n.id}
+                    className="rounded-lg border border-border p-3 flex items-start gap-3"
+                    style={{ background: meta.bg, borderLeft: `3px solid ${meta.color}` }}
+                  >
+                    <div className="h-7 w-7 rounded-md flex items-center justify-center shrink-0"
+                      style={{ background: meta.color, color: "white" }}>
+                      <Icon className="h-3.5 w-3.5" />
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Weak topics highlight */}
-              {weakCount > 0 && (
-                <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-bold text-red-700 dark:text-red-300">Weak topics getting extra attention</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {topicConf.filter(t => t.confidence === "weak").map(t => (
-                      <span key={`${t.subject}-${t.topic}`}
-                        className="text-[11px] bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
-                        {t.topic}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] uppercase tracking-widest font-mono" style={{ color: meta.color }}>
+                        {meta.label}{subjMeta && <span className="text-muted-foreground normal-case tracking-normal font-normal ml-2">{subjMeta.name}{n.unit_code ? ` · ${n.unit_code}` : ""}</span>}
+                      </div>
+                      <div className="text-sm font-semibold mt-0.5 truncate">
+                        {n.topic_name || (n.node_type === "break" ? "Rest" : meta.label)}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {STATUS_META[n.status]}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button size="icon" variant="ghost" className="h-7 w-7"
+                        title={n.status === "complete" ? "Mark not done" : "Mark complete"}
+                        onClick={() => handleToggleComplete(n)}>
+                        <CheckCircle2 className={cn("h-4 w-4", n.status === "complete" ? "text-success" : "text-muted-foreground")} />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Edit"
+                        onClick={() => setEditing(n)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Delete"
+                        onClick={() => handleDelete(n.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
-      )}
+      </div>
+
+      {/* Edit dialog */}
+      <EventDialog
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        node={editing}
+        onSaved={async () => { setEditing(null); await load(); window.dispatchEvent(new CustomEvent("apex-roadmap-change")); }}
+      />
+
+      {/* Create dialog */}
+      <EventDialog
+        open={!!creatingForDate}
+        onClose={() => setCreatingForDate(null)}
+        createForDate={creatingForDate}
+        onSaved={async () => { setCreatingForDate(null); await load(); window.dispatchEvent(new CustomEvent("apex-roadmap-change")); }}
+      />
     </div>
+  );
+}
+
+// ─── Edit / Create dialog ──────────────────────────────────────────────────
+
+interface EventDialogProps {
+  open: boolean;
+  onClose: () => void;
+  node?: RoadmapNode | null;
+  createForDate?: string | null;
+  onSaved: () => void;
+}
+
+function EventDialog({ open, onClose, node, createForDate, onSaved }: EventDialogProps) {
+  const { user } = useAuth();
+  const isEdit = !!node;
+  const [topic, setTopic] = useState("");
+  const [type, setType] = useState<NodeType>("learn");
+  const [subject, setSubject] = useState<string>("");
+  const [date, setDate] = useState<Date>(new Date());
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    if (node) {
+      setTopic(node.topic_name || "");
+      setType(node.node_type);
+      setSubject(node.subject || "");
+      setDate(parseISO(node.scheduled_date));
+    } else {
+      setTopic("");
+      setType("learn");
+      setSubject("");
+      setDate(createForDate ? parseISO(createForDate) : new Date());
+    }
+  }, [open, node, createForDate]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    if (!topic.trim() && type !== "break") {
+      toast.error("Add a topic name");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (isEdit && node) {
+        const { error } = await supabase.from("roadmap_nodes").update({
+          topic_name: topic.trim() || null,
+          node_type: type,
+          subject: subject || null,
+          scheduled_date: toIsoDate(date),
+        }).eq("id", node.id);
+        if (error) throw error;
+        toast.success("Session updated");
+      } else {
+        // Pick a node_order at end of day
+        const { data: existing } = await supabase
+          .from("roadmap_nodes")
+          .select("node_order")
+          .eq("user_id", user.id)
+          .eq("scheduled_date", toIsoDate(date))
+          .order("node_order", { ascending: false })
+          .limit(1);
+        const nextOrder = (existing?.[0]?.node_order ?? 0) + 1;
+        const { error } = await supabase.from("roadmap_nodes").insert({
+          user_id: user.id,
+          scheduled_date: toIsoDate(date),
+          node_order: nextOrder,
+          node_type: type,
+          topic_name: topic.trim() || null,
+          subject: subject || null,
+          status: "unlocked",
+        });
+        if (error) throw error;
+        toast.success("Session added");
+      }
+      onSaved();
+    } catch (err: any) {
+      toast.error(err?.message || "Could not save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit session" : "New session"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label>Type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as NodeType)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(Object.keys(TYPE_META) as NodeType[]).map(t => (
+                  <SelectItem key={t} value={t}>{TYPE_META[t].label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {type !== "break" && (
+            <div className="space-y-1.5">
+              <Label>Subject (optional)</Label>
+              <Select value={subject || "none"} onValueChange={(v) => setSubject(v === "none" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder="No subject" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No subject</SelectItem>
+                  {(Object.keys(SUBJECTS) as SubjectCode[]).map(s => (
+                    <SelectItem key={s} value={s}>{SUBJECTS[s].name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Topic / title</Label>
+            <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Energetics — Hess cycles" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start font-normal">
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  {format(date, "PPP")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving} className="btn-primary">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : isEdit ? "Save" : "Add session"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
