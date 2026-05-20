@@ -41,6 +41,7 @@ interface Props {
   renderMath: (s: string) => string;
   annotate: (s: string) => string;
   visuals?: NotesVisualMap;
+  visualsLoading?: boolean;
 }
 
 // ─── Vibrant rotating palette ─────────────────────────────────────────────────
@@ -151,10 +152,27 @@ const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatH
 };
 
 // ─── Definitions — index-card grid ────────────────────────────────────────────
-const DefinitionsSection = ({ defs, formatHtml, visuals = {} }: { defs: KeyDef[]; formatHtml:(s:string)=>string; visuals?: Record<number, WikimediaVisual> }) => {
+const DefinitionsSection = ({
+  defs,
+  formatHtml,
+  visuals = {},
+  visualsLoading = false,
+}: {
+  defs: KeyDef[];
+  formatHtml:(s:string)=>string;
+  visuals?: Record<number, WikimediaVisual>;
+  visualsLoading?: boolean;
+}) => {
   const [expanded, setExpanded] = useState<number | null>(null);
+  const hasAnyVisual = Object.keys(visuals).length > 0;
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
+    <div className="space-y-4">
+      {!visualsLoading && !hasAnyVisual && (
+        <div className="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+          Image generation is delayed right now. Your definitions are ready and images will appear when available.
+        </div>
+      )}
+      <div className="grid sm:grid-cols-2 gap-4">
       {defs.map((d, i) => {
         const a = ACCENTS[i % ACCENTS.length];
         const open = expanded === i;
@@ -193,6 +211,7 @@ const DefinitionsSection = ({ defs, formatHtml, visuals = {} }: { defs: KeyDef[]
           </div>
         );
       })}
+      </div>
     </div>
   );
 };
@@ -418,20 +437,20 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 };
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals, visualsLoading = false }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} visuals={visuals?.definitions} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} visuals={visuals?.definitions} visualsLoading={visualsLoading} /> });
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath, visuals]);
+  }, [notes, formatHtml, annotate, renderMath, visuals, visualsLoading]);
 
   return (
     <div className="space-y-8">

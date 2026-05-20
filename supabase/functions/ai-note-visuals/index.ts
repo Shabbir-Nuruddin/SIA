@@ -11,6 +11,10 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
+const MAX_IMAGES_PER_TOPIC = 2;
+const MAX_IMAGE_ATTEMPTS = 2; // first try + one short retry
+const IMAGE_FETCH_TIMEOUT_MS = 18_000;
+const GLOBAL_BUDGET_MS = 55_000;
 
 type DefinitionInput = {
   index: number;
@@ -75,33 +79,48 @@ const parseEstimatedDelayMs = (text: string): number | null => {
 
 const generatePollinationsImageUrl = async (prompt: string): Promise<string> => {
   const encoded = encodeURIComponent(prompt);
-  const seed = Math.floor(Math.random() * 1_000_000_000);
-  const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=768&seed=${seed}&nologo=true`;
   let lastError = "Unknown Pollinations error";
 
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "image/png,image/jpeg,image/webp,*/*" },
-    });
+  for (let attempt = 0; attempt < MAX_IMAGE_ATTEMPTS; attempt += 1) {
+    const seed = Math.floor(Math.random() * 1_000_000_000);
+    const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=768&seed=${seed}&nologo=true`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort("image-timeout"), IMAGE_FETCH_TIMEOUT_MS);
 
-    if (response.ok) {
-      const contentType = (response.headers.get("content-type") || "").toLowerCase();
-      if (contentType.startsWith("image/")) return url;
-      const bodyText = await response.text();
-      lastError = `Pollinations returned non-image content: ${bodyText.slice(0, 220)}`;
-    } else {
-      const bodyText = await response.text();
-      lastError = `Pollinations ${response.status}: ${bodyText.slice(0, 220)}`;
-      if (response.status === 429 || response.status === 503 || response.status === 502 || response.status === 504) {
-        const estimatedDelayMs = parseEstimatedDelayMs(bodyText);
-        const retryWait = estimatedDelayMs ?? (attempt + 1) * 1200;
-        await sleep(retryWait);
-        continue;
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "image/png,image/jpeg,image/webp,*/*" },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const contentType = (response.headers.get("content-type") || "").toLowerCase();
+        if (contentType.startsWith("image/")) return url;
+        const bodyText = await response.text();
+        lastError = `Pollinations returned non-image content: ${bodyText.slice(0, 220)}`;
+      } else {
+        const bodyText = await response.text();
+        lastError = `Pollinations ${response.status}: ${bodyText.slice(0, 220)}`;
+        console.warn("ai-note-visuals provider status", { status: response.status, attempt: attempt + 1 });
+
+        if (response.status === 429 || response.status === 503 || response.status === 502 || response.status === 504) {
+          const estimatedDelayMs = parseEstimatedDelayMs(bodyText);
+          const retryWait = Math.min(estimatedDelayMs ?? 1000, 1500);
+          if (attempt + 1 < MAX_IMAGE_ATTEMPTS) await sleep(retryWait);
+          continue;
+        }
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if ((error as Error).name === "AbortError") {
+        lastError = `Pollinations timed out after ${IMAGE_FETCH_TIMEOUT_MS}ms`;
+        console.warn("ai-note-visuals image timeout", { timeoutMs: IMAGE_FETCH_TIMEOUT_MS, attempt: attempt + 1 });
+      } else {
+        lastError = `Pollinations fetch failed: ${error instanceof Error ? error.message : String(error)}`;
       }
     }
-
-    if (attempt < 3) await sleep((attempt + 1) * 800);
   }
 
   throw new Error(lastError);
@@ -112,6 +131,7 @@ serve(async (req) => {
 
   try {
     const payload = await req.json();
+    const startedAt = Date.now();
     const board = clean(payload?.board || "");
     const subject = clean(payload?.subject || "");
     const topic = clean(payload?.topic || "");
@@ -144,6 +164,7 @@ serve(async (req) => {
         .eq("topic", topic)
         .maybeSingle();
       if (cached?.images) {
+        console.log("ai-note-visuals cache hit", { board, subject, topic, unitNumber });
         return new Response(JSON.stringify(cached.images), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -158,10 +179,18 @@ serve(async (req) => {
         meaning: clean(definition?.meaning || ""),
       }))
       .filter((definition) => definition.term.length >= 3)
-      .slice(0, 5);
+      .slice(0, MAX_IMAGES_PER_TOPIC);
 
     const generated: CachedVisual[] = [];
-    for (const definition of uniqueDefs) {
+    const workers = uniqueDefs.map((definition) => (async () => {
+      if (Date.now() - startedAt > GLOBAL_BUDGET_MS) {
+        console.warn("ai-note-visuals budget exceeded before generation", {
+          elapsedMs: Date.now() - startedAt,
+          budgetMs: GLOBAL_BUDGET_MS,
+        });
+        return null;
+      }
+
       try {
         const prompt = buildPrompt({
           board,
@@ -171,23 +200,45 @@ serve(async (req) => {
           meaning: definition.meaning,
         });
         const imageUrl = await generatePollinationsImageUrl(prompt);
-        generated.push({
+        return {
           index: definition.index,
           id: `${topic}-${definition.index}`,
           title: definition.term,
           imageUrl,
           pageUrl: "https://pollinations.ai/",
-        });
+        } satisfies CachedVisual;
       } catch (error) {
         console.error("ai-note-visuals item failed", {
           topic,
           definition: definition.term,
           error: error instanceof Error ? error.message : String(error),
         });
+        return null;
       }
+    })());
+
+    for (const worker of workers) {
+      if (Date.now() - startedAt > GLOBAL_BUDGET_MS) {
+        console.warn("ai-note-visuals global budget reached", {
+          elapsedMs: Date.now() - startedAt,
+          budgetMs: GLOBAL_BUDGET_MS,
+          generatedCount: generated.length,
+        });
+        break;
+      }
+      const result = await worker;
+      if (result) generated.push(result);
+      if (generated.length >= MAX_IMAGES_PER_TOPIC) break;
     }
 
     const responseBody = { definitions: generated };
+    console.log("ai-note-visuals completed", {
+      generatedCount: generated.length,
+      elapsedMs: Date.now() - startedAt,
+      board,
+      subject,
+      topic,
+    });
 
     try {
       await admin.from("cached_topic_images").upsert(
