@@ -1976,7 +1976,7 @@ export const CIE_IGCSE_SYLLABUS: QualificationData = {
   // Core (Papers 1+3: grades C–G) and Extended (Papers 2+4: grades A*–E)
   // NEW 2025: Papers 1 and 2 are NON-CALCULATOR; Papers 3 and 4 have calculator
   // ============================================================
- const maths = {
+ maths: {
   number: {
     code: '0580-NUM',
     title: 'Number',
