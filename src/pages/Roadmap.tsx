@@ -447,6 +447,20 @@ const RoadmapPage = () => {
           })()}
         </header>
 
+        {mainView === "journey" && (
+          <div className="mt-4">
+            <AnimatedJourney
+              nodes={(!subLoading && !isPro)
+                ? nodes.filter(n => grouped.slice(0, 3).some(([d]) => d === n.scheduled_date))
+                : nodes}
+              exam={nearestExam}
+              onChallenge={(node) => {
+                navigate(`/questions?subject=${node.subject}&unit=${node.unit_number}&topic=${encodeURIComponent(node.topic_name ?? "")}&node=${node.id}&difficulty=hard&challenge=1`);
+              }}
+            />
+          </div>
+        )}
+
         {mainView === "roadmap" && (<>
 
           {/* Notification prompt */}
