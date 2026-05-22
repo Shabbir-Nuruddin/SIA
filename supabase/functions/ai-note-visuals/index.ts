@@ -180,13 +180,14 @@ serve(async (req) => {
       .filter((definition) => definition.term.length >= 3);
 
     const generated: CachedVisual[] = [];
-    const workers = uniqueDefs.map((definition) => (async () => {
+    for (const definition of uniqueDefs) {
       if (Date.now() - startedAt > GLOBAL_BUDGET_MS) {
-        console.warn("ai-note-visuals budget exceeded before generation", {
+        console.warn("ai-note-visuals global budget reached", {
           elapsedMs: Date.now() - startedAt,
           budgetMs: GLOBAL_BUDGET_MS,
+          generatedCount: generated.length,
         });
-        return null;
+        break;
       }
 
       try {
@@ -198,34 +199,20 @@ serve(async (req) => {
           meaning: definition.meaning,
         });
         const imageUrl = await generatePollinationsImageUrl(prompt);
-        return {
+        generated.push({
           index: definition.index,
           id: `${topic}-${definition.index}`,
           title: definition.term,
           imageUrl,
           pageUrl: "https://pollinations.ai/",
-        } satisfies CachedVisual;
+        });
       } catch (error) {
         console.error("ai-note-visuals item failed", {
           topic,
           definition: definition.term,
           error: error instanceof Error ? error.message : String(error),
         });
-        return null;
       }
-    })());
-
-    for (const worker of workers) {
-      if (Date.now() - startedAt > GLOBAL_BUDGET_MS) {
-        console.warn("ai-note-visuals global budget reached", {
-          elapsedMs: Date.now() - startedAt,
-          budgetMs: GLOBAL_BUDGET_MS,
-          generatedCount: generated.length,
-        });
-        break;
-      }
-      const result = await worker;
-      if (result) generated.push(result);
     }
 
     const responseBody = { definitions: generated };
