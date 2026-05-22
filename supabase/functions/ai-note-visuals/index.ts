@@ -11,7 +11,6 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
-const MAX_IMAGES_PER_TOPIC = 2;
 const MAX_IMAGE_ATTEMPTS = 2; // first try + one short retry
 const IMAGE_FETCH_TIMEOUT_MS = 18_000;
 const GLOBAL_BUDGET_MS = 55_000;
@@ -178,8 +177,7 @@ serve(async (req) => {
         term: clean(definition?.term || ""),
         meaning: clean(definition?.meaning || ""),
       }))
-      .filter((definition) => definition.term.length >= 3)
-      .slice(0, MAX_IMAGES_PER_TOPIC);
+      .filter((definition) => definition.term.length >= 3);
 
     const generated: CachedVisual[] = [];
     const workers = uniqueDefs.map((definition) => (async () => {
@@ -228,7 +226,6 @@ serve(async (req) => {
       }
       const result = await worker;
       if (result) generated.push(result);
-      if (generated.length >= MAX_IMAGES_PER_TOPIC) break;
     }
 
     const responseBody = { definitions: generated };

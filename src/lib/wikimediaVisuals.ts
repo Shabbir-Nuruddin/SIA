@@ -55,7 +55,6 @@ const buildCacheKey = (input: FetchNoteVisualsInput, unitNumber: number) =>
     unit: unitNumber,
     topic: cleanText(input.topic).toLowerCase(),
     defs: input.definitions
-      .slice(0, 6)
       .map((definition) => ({
         term: cleanText(definition.term).toLowerCase(),
         meaning: cleanText(definition.meaning || "").toLowerCase(),
@@ -75,8 +74,7 @@ export async function fetchNotesVisuals(
       term: cleanText(definition.term),
       meaning: cleanText(definition.meaning || ""),
     }))
-    .filter(({ term }) => term.length >= 3)
-    .slice(0, 6);
+    .filter(({ term }) => term.length >= 3);
 
   if (candidates.length === 0) return { definitions: {} };
   if (signal?.aborted) return { definitions: {} };
@@ -106,13 +104,11 @@ export async function fetchNotesVisuals(
 
     const payload = (data || {}) as GeneratedVisualPayload;
     const definitions: Record<number, WikimediaVisual> = {};
-    const seenUrls = new Set<string>();
 
     for (const item of payload.definitions || []) {
       const index = Number(item.index);
       const imageUrl = String(item.imageUrl || "");
-      if (!Number.isFinite(index) || !imageUrl || seenUrls.has(imageUrl)) continue;
-      seenUrls.add(imageUrl);
+      if (!Number.isFinite(index) || !imageUrl) continue;
       definitions[index] = {
         id: String(item.id || `${cleanText(input.topic)}-${index}`),
         title: String(item.title || candidates.find((c) => c.index === index)?.term || "AI diagram"),
