@@ -15,7 +15,7 @@ import RoadmapCalendar from "@/components/RoadmapCalendar";
 import { AnimatedJourney } from "@/components/AnimatedJourney";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map, Zap
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
@@ -386,7 +386,7 @@ const RoadmapPage = () => {
               onClick={() => setMainView("journey")}
               className="gap-1.5"
             >
-              <Map className="h-3.5 w-3.5" /> Journey
+              <MapIcon className="h-3.5 w-3.5" /> Journey
             </Button>
             <Button
               size="sm"
