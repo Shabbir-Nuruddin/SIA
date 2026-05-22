@@ -12,9 +12,10 @@ import { startPomodoro } from "@/lib/pomodoro";
 import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/lib/roadmapNodes";
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import RoadmapCalendar from "@/components/RoadmapCalendar";
+import { AnimatedJourney } from "@/components/AnimatedJourney";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map, Zap
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
@@ -108,7 +109,7 @@ const RoadmapPage = () => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
-  const [mainView, setMainView] = useState<"roadmap" | "calendar">("roadmap");
+  const [mainView, setMainView] = useState<"journey" | "roadmap" | "calendar">("journey");
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -381,11 +382,19 @@ const RoadmapPage = () => {
           <div className="flex gap-2 mt-4 mb-2 flex-wrap">
             <Button
               size="sm"
+              variant={mainView === "journey" ? "default" : "outline"}
+              onClick={() => setMainView("journey")}
+              className="gap-1.5"
+            >
+              <Map className="h-3.5 w-3.5" /> Journey
+            </Button>
+            <Button
+              size="sm"
               variant={mainView === "roadmap" ? "default" : "outline"}
               onClick={() => setMainView("roadmap")}
               className="gap-1.5"
             >
-              <BookOpen className="h-3.5 w-3.5" /> Revision Path
+              <BookOpen className="h-3.5 w-3.5" /> List
             </Button>
             <Button
               size="sm"
