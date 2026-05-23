@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw } from "lucide-react";
-import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
+import { ADMIN_EMAILS, isAdminEmail, useTestMode } from "@/lib/admin";
 
 interface Modifier { id: string; feature: string; board: string; instruction: string; created_at: string; is_active: boolean; }
 interface FeedbackRow { id: string; created_at: string; user_id: string | null; message: string; rating: number | null; user_email?: string | null; }
