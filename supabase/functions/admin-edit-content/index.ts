@@ -52,7 +52,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") || "";
     const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: authHeader } } });
     const { data: { user } } = await userClient.auth.getUser();
-    if (!user || (user.email || "").toLowerCase() !== ADMIN_EMAIL) {
+    if (!user || !ADMIN_EMAILS.includes((user.email || "").toLowerCase())) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
