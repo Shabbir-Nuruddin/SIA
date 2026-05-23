@@ -47,7 +47,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
   const [testMode] = useTestMode();
-  const isAdmin = (user?.email || "").toLowerCase() === ADMIN_EMAIL && !testMode;
+  const isAdmin = isAdminEmail(user?.email) && !testMode;
   const { isPro } = useSubscription();
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [subjects, setSubjects] = useState<SubjectCode[]>([]);
