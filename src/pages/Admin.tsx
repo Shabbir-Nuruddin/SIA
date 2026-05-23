@@ -19,6 +19,23 @@ const Admin = () => {
   const [testMode, setTestMode] = useTestMode();
   const [keyStatus, setKeyStatus] = useState<any>(null);
   const [keyLoading, setKeyLoading] = useState(false);
+  const [redeployResult, setRedeployResult] = useState<{ name: string; ok: boolean; status: number; ms: number }[] | null>(null);
+
+  const redeployAll = async () => {
+    if (!confirm("Warm & health-check ALL edge functions? This pings every function with a no-op so cold instances spin up.")) return;
+    setBusy("redeploy");
+    setRedeployResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-redeploy-functions");
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      setRedeployResult(data.results || []);
+      const failed = (data.results || []).filter((r: any) => !r.ok).length;
+      if (failed === 0) toast.success(`All ${data.results.length} edge functions are live.`);
+      else toast.warning(`${data.results.length - failed}/${data.results.length} live — ${failed} unhealthy.`);
+    } catch (e: any) {
+      toast.error(e.message || "Redeploy check failed.");
+    } finally { setBusy(null); }
+  };
 
   const loadKeyStatus = async () => {
     setKeyLoading(true);
