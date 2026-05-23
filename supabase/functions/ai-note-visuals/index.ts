@@ -11,7 +11,7 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
-const MAX_IMAGE_ATTEMPTS = 2; // first try + one short retry
+const MAX_IMAGE_ATTEMPTS = 5;
 const IMAGE_FETCH_TIMEOUT_MS = 18_000;
 const GLOBAL_BUDGET_MS = 55_000;
 
@@ -76,9 +76,13 @@ const parseEstimatedDelayMs = (text: string): number | null => {
   return null;
 };
 
+const isQueueFull402 = (status: number, bodyText: string) =>
+  status === 402 && /queue\s+full/i.test(bodyText);
+
 const generatePollinationsImageUrl = async (prompt: string): Promise<string> => {
   const encoded = encodeURIComponent(prompt);
   let lastError = "Unknown Pollinations error";
+  const startedAt = Date.now();
 
   for (let attempt = 0; attempt < MAX_IMAGE_ATTEMPTS; attempt += 1) {
     const seed = Math.floor(Math.random() * 1_000_000_000);
@@ -102,11 +106,24 @@ const generatePollinationsImageUrl = async (prompt: string): Promise<string> => 
       } else {
         const bodyText = await response.text();
         lastError = `Pollinations ${response.status}: ${bodyText.slice(0, 220)}`;
-        console.warn("ai-note-visuals provider status", { status: response.status, attempt: attempt + 1 });
+        console.warn("ai-note-visuals provider status", {
+          status: response.status,
+          attempt: attempt + 1,
+          elapsedMs: Date.now() - startedAt,
+        });
 
-        if (response.status === 429 || response.status === 503 || response.status === 502 || response.status === 504) {
+        if (
+          response.status === 429 ||
+          response.status === 503 ||
+          response.status === 502 ||
+          response.status === 504 ||
+          isQueueFull402(response.status, bodyText)
+        ) {
           const estimatedDelayMs = parseEstimatedDelayMs(bodyText);
-          const retryWait = Math.min(estimatedDelayMs ?? 1000, 1500);
+          const fallbackWait = isQueueFull402(response.status, bodyText)
+            ? Math.min(2500 + attempt * 1500, 8000)
+            : Math.min(1200 + attempt * 600, 3000);
+          const retryWait = estimatedDelayMs ?? fallbackWait;
           if (attempt + 1 < MAX_IMAGE_ATTEMPTS) await sleep(retryWait);
           continue;
         }
@@ -115,7 +132,11 @@ const generatePollinationsImageUrl = async (prompt: string): Promise<string> => 
       clearTimeout(timeoutId);
       if ((error as Error).name === "AbortError") {
         lastError = `Pollinations timed out after ${IMAGE_FETCH_TIMEOUT_MS}ms`;
-        console.warn("ai-note-visuals image timeout", { timeoutMs: IMAGE_FETCH_TIMEOUT_MS, attempt: attempt + 1 });
+        console.warn("ai-note-visuals image timeout", {
+          timeoutMs: IMAGE_FETCH_TIMEOUT_MS,
+          attempt: attempt + 1,
+          elapsedMs: Date.now() - startedAt,
+        });
       } else {
         lastError = `Pollinations fetch failed: ${error instanceof Error ? error.message : String(error)}`;
       }
