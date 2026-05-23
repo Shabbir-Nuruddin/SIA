@@ -2,12 +2,10 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ADMIN_EMAIL } from "@/lib/admin";
+import { isAdminEmail } from "@/lib/admin";
 
 /**
- * Gate a route to the admin account only. Non-admins are bounced to /dashboard.
- * Used for Roadmap, Mock Papers, Exam FAQs, Podcast and Clarity Compass while
- * those features are still admin-only previews.
+ * Gate a route to admin accounts only. Non-admins are bounced to /dashboard.
  */
 export const RequireAdmin = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth();
@@ -18,7 +16,7 @@ export const RequireAdmin = ({ children }: { children: ReactNode }) => {
       </div>
     );
   }
-  const isAdmin = (user?.email || "").toLowerCase() === ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(user?.email);
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
