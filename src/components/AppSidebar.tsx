@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
-import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
+import { isAdminEmail, useTestMode } from "@/lib/admin";
 
 const items: { to: string; icon: any; label: string; color: string; proOnly?: boolean; adminOnly?: boolean }[] = [
   { to: "/dashboard",   icon: Home,         label: "Today's Plan",     color: "265 75% 62%" },
@@ -47,7 +47,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
   const [testMode] = useTestMode();
-  const isAdmin = (user?.email || "").toLowerCase() === ADMIN_EMAIL && !testMode;
+  const isAdmin = isAdminEmail(user?.email) && !testMode;
   const { isPro } = useSubscription();
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [subjects, setSubjects] = useState<SubjectCode[]>([]);

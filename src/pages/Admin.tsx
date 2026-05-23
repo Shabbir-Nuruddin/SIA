@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
-import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw } from "lucide-react";
-import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
+import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw, Rocket } from "lucide-react";
+import { ADMIN_EMAILS, isAdminEmail, useTestMode } from "@/lib/admin";
 
 interface Modifier { id: string; feature: string; board: string; instruction: string; created_at: string; is_active: boolean; }
 interface FeedbackRow { id: string; created_at: string; user_id: string | null; message: string; rating: number | null; user_email?: string | null; }
@@ -19,6 +19,23 @@ const Admin = () => {
   const [testMode, setTestMode] = useTestMode();
   const [keyStatus, setKeyStatus] = useState<any>(null);
   const [keyLoading, setKeyLoading] = useState(false);
+  const [redeployResult, setRedeployResult] = useState<{ name: string; ok: boolean; status: number; ms: number }[] | null>(null);
+
+  const redeployAll = async () => {
+    if (!confirm("Warm & health-check ALL edge functions? This pings every function with a no-op so cold instances spin up.")) return;
+    setBusy("redeploy");
+    setRedeployResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-redeploy-functions");
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      setRedeployResult(data.results || []);
+      const failed = (data.results || []).filter((r: any) => !r.ok).length;
+      if (failed === 0) toast.success(`All ${data.results.length} edge functions are live.`);
+      else toast.warning(`${data.results.length - failed}/${data.results.length} live — ${failed} unhealthy.`);
+    } catch (e: any) {
+      toast.error(e.message || "Redeploy check failed.");
+    } finally { setBusy(null); }
+  };
 
   const loadKeyStatus = async () => {
     setKeyLoading(true);
@@ -43,7 +60,7 @@ const Admin = () => {
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
-  if (!user || (user.email || "").toLowerCase() !== ADMIN_EMAIL) return <Navigate to="/dashboard" replace />;
+  if (!user || !isAdminEmail(user.email)) return <Navigate to="/dashboard" replace />;
 
   const clearCache = async (target: "notes" | "faq" | "questions") => {
     if (!confirm(`Clear ALL ${target} cache? This cannot be undone.`)) return;
@@ -70,7 +87,7 @@ const Admin = () => {
           <div>
             <div className="flex items-center gap-2 text-primary text-xs font-mono uppercase tracking-widest"><Shield className="h-3.5 w-3.5" /> Admin Panel</div>
             <h1 className="text-3xl font-extrabold mt-1">Make Me Revise — Control Room</h1>
-            <p className="text-muted-foreground text-sm mt-1">Visible only to {ADMIN_EMAIL}.</p>
+            <p className="text-muted-foreground text-sm mt-1">Visible to: {ADMIN_EMAILS.join(", ")}.</p>
           </div>
           <Button
             variant={testMode ? "default" : "outline"}
@@ -95,6 +112,29 @@ const Admin = () => {
           </div>
         </section>
 
+        {/* Edge functions redeploy / warm */}
+        <section className="surface p-6">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-bold flex items-center gap-2"><Rocket className="h-4 w-4" /> Edge Functions</h2>
+            <Button size="sm" onClick={redeployAll} disabled={busy === "redeploy"}>
+              {busy === "redeploy" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Rocket className="h-4 w-4 mr-2" />}
+              Redeploy / Warm All
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Pings every edge function in parallel to wake cold instances and verify health. Code is auto-deployed on save — this forces a warm-up of the live deployment.
+          </p>
+          {redeployResult && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+              {redeployResult.map(r => (
+                <div key={r.name} className={`text-xs font-mono flex items-center justify-between px-2 py-1.5 rounded border ${r.ok ? "border-primary/30 bg-primary/5" : "border-urgent/40 bg-urgent/5"}`}>
+                  <span className="truncate">{r.name}</span>
+                  <span className={r.ok ? "text-primary" : "text-urgent"}>{r.status} · {r.ms}ms</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
 
         {/* AI Key Rotation */}
