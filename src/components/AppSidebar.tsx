@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
-import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
+import { isAdminEmail, useTestMode } from "@/lib/admin";
 
 const items: { to: string; icon: any; label: string; color: string; proOnly?: boolean; adminOnly?: boolean }[] = [
   { to: "/dashboard",   icon: Home,         label: "Today's Plan",     color: "265 75% 62%" },
