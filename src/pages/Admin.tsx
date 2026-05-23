@@ -43,7 +43,7 @@ const Admin = () => {
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
-  if (!user || (user.email || "").toLowerCase() !== ADMIN_EMAIL) return <Navigate to="/dashboard" replace />;
+  if (!user || !isAdminEmail(user.email)) return <Navigate to="/dashboard" replace />;
 
   const clearCache = async (target: "notes" | "faq" | "questions") => {
     if (!confirm(`Clear ALL ${target} cache? This cannot be undone.`)) return;
