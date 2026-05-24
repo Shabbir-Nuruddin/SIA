@@ -621,11 +621,11 @@ const RoadmapPage = () => {
             Regenerate path
           </button>
         </div>
-        </>)}
+        </div>)}
 
         {/* Smart Calendar View */}
         {mainView === "calendar" && (
-          <div className="mt-2">
+          <div className="px-6 md:px-10 py-8">
             <RoadmapCalendar />
           </div>
         )}
