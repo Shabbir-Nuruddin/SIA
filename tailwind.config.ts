@@ -8,10 +8,10 @@ export default {
     container: { center: true, padding: "1.5rem", screens: { "2xl": "1400px" } },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
-        display: ['Caveat', 'Patrick Hand', 'cursive'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
+        body: ['DM Sans', 'system-ui', 'sans-serif'],
         marker: ['Patrick Hand', 'Kalam', 'cursive'],
       },
       colors: {

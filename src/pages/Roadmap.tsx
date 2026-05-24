@@ -370,85 +370,92 @@ const RoadmapPage = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto p-5 md:p-8 animate-fade-in">
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-extrabold mb-1">{firstName}'s Revision Path</h1>
-          <p className="text-sm text-muted-foreground">
-            {total} sessions · {grouped.length} days · {nearestExam ? `${daysToNearest} days to ${nextExamLabel}` : "no exam date set"}
-          </p>
+      <div className="animate-fade-in min-h-screen">
+        {/* Hero header — full-bleed emerald */}
+        <header className="relative overflow-hidden border-b border-border" style={{
+          background: "linear-gradient(135deg, hsl(160 70% 10%) 0%, hsl(160 55% 16%) 60%, hsl(160 40% 12%) 100%)"
+        }}>
+          <div aria-hidden className="absolute inset-0 opacity-[0.05]" style={{
+            backgroundImage: "linear-gradient(hsl(43 80% 60%) 1px, transparent 1px), linear-gradient(90deg, hsl(43 80% 60%) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }} />
+          <div aria-hidden className="absolute -left-32 -top-32 h-96 w-96 rounded-full" style={{
+            background: "radial-gradient(circle, hsl(43 70% 50% / 0.22), transparent 65%)"
+          }} />
+          <div className="relative px-6 md:px-10 py-8 md:py-10">
+            <div className="text-[10px] uppercase tracking-[0.3em] font-mono gold-text mb-3">Your revision journey</div>
+            <h1 className="font-display text-3xl md:text-5xl tracking-tight">
+              {firstName}'s <span className="warm-gradient-text">Revision Path</span>
+            </h1>
+            <p className="text-sm md:text-base text-foreground/70 mt-3">
+              {total} sessions · {grouped.length} days · {nearestExam ? `${daysToNearest} days to ${nextExamLabel}` : "no exam date set"}
+            </p>
 
-          {/* View switcher */}
-          <div className="flex gap-2 mt-4 mb-2 flex-wrap">
-            <Button
-              size="sm"
-              variant={mainView === "journey" ? "default" : "outline"}
-              onClick={() => setMainView("journey")}
-              className="gap-1.5"
-            >
-              <MapIcon className="h-3.5 w-3.5" /> Journey
-            </Button>
-            <Button
-              size="sm"
-              variant={mainView === "roadmap" ? "default" : "outline"}
-              onClick={() => setMainView("roadmap")}
-              className="gap-1.5"
-            >
-              <BookOpen className="h-3.5 w-3.5" /> List
-            </Button>
-            <Button
-              size="sm"
-              variant={mainView === "calendar" ? "default" : "outline"}
-              onClick={() => setMainView("calendar")}
-              className="gap-1.5"
-            >
-              <Calendar className="h-3.5 w-3.5" /> Calendar
-            </Button>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5 font-mono">
-              <span>{pct}% complete</span>
-              <span>{completed} / {total}</span>
-            </div>
-            <div className="h-2 rounded-full bg-secondary overflow-hidden">
-              <div className="h-full transition-all duration-500" style={{
-                width: `${pct}%`,
-                background: pct === 100 ? "hsl(var(--success))" : "linear-gradient(90deg, #2563EB, #3B82F6)",
-              }} />
-            </div>
-          </div>
-
-          {/* Science badges */}
-          <div className="mt-5 flex flex-wrap gap-1.5">
-            {SCIENCE_BADGES.map(b => {
-              const Icon = b.icon;
-              const active = openBadge === b.key;
-              return (
+            {/* View switcher */}
+            <div className="flex gap-2 mt-5 flex-wrap">
+              {[
+                { id: "journey",  label: "Journey",  Icon: MapIcon },
+                { id: "roadmap",  label: "List",     Icon: BookOpen },
+                { id: "calendar", label: "Calendar", Icon: Calendar },
+              ].map(v => (
                 <button
-                  key={b.key}
-                  onClick={() => setOpenBadge(active ? null : b.key)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${active ? "bg-primary/15 border-primary text-primary" : "bg-secondary border-border text-muted-foreground hover:text-foreground"}`}
+                  key={v.id}
+                  onClick={() => setMainView(v.id as any)}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    mainView === v.id
+                      ? "bg-accent/15 gold-text border border-accent/40 shadow-[0_0_0_1px_hsl(43_70%_58%/0.15)]"
+                      : "bg-card/60 text-muted-foreground border border-border hover:text-foreground hover:bg-card"
+                  }`}
                 >
-                  <Icon className="h-3 w-3" />{b.label}
+                  <v.Icon className="h-3.5 w-3.5" />{v.label}
                 </button>
-              );
-            })}
-          </div>
-          {openBadge && (() => {
-            const b = SCIENCE_BADGES.find(x => x.key === openBadge)!;
-            return (
-              <div className="mt-3 surface p-4 text-sm animate-fade-in">
-                <p className="leading-relaxed">{b.body}</p>
-                <p className="text-xs text-muted-foreground mt-2 font-mono">— {b.cite}</p>
+              ))}
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-6 max-w-2xl">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1.5 font-mono uppercase tracking-wider">
+                <span>{pct}% complete</span>
+                <span className="tabular">{completed} / {total}</span>
               </div>
-            );
-          })()}
+              <div className="h-1.5 rounded-full bg-card overflow-hidden border border-border">
+                <div className="h-full transition-all duration-500" style={{
+                  width: `${pct}%`,
+                  background: pct === 100 ? "hsl(var(--success))" : "linear-gradient(90deg, hsl(160 65% 45%), hsl(43 70% 58%))",
+                }} />
+              </div>
+            </div>
+
+            {/* Science badges */}
+            <div className="mt-5 flex flex-wrap gap-1.5">
+              {SCIENCE_BADGES.map(b => {
+                const Icon = b.icon;
+                const active = openBadge === b.key;
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => setOpenBadge(active ? null : b.key)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${active ? "bg-accent/15 border-accent/50 gold-text" : "bg-card/60 border-border text-muted-foreground hover:text-foreground"}`}
+                  >
+                    <Icon className="h-3 w-3" />{b.label}
+                  </button>
+                );
+              })}
+            </div>
+            {openBadge && (() => {
+              const b = SCIENCE_BADGES.find(x => x.key === openBadge)!;
+              return (
+                <div className="mt-3 premium-card p-4 text-sm animate-fade-in max-w-2xl">
+                  <p className="leading-relaxed">{b.body}</p>
+                  <p className="text-xs text-muted-foreground mt-2 font-mono">— {b.cite}</p>
+                </div>
+              );
+            })()}
+          </div>
         </header>
 
         {mainView === "journey" && (
-          <div className="mt-4">
+          <div className="px-2 md:px-6 py-6 md:py-10">
             <AnimatedJourney
               nodes={(!subLoading && !isPro)
                 ? nodes.filter(n => grouped.slice(0, 3).some(([d]) => d === n.scheduled_date))
@@ -461,7 +468,7 @@ const RoadmapPage = () => {
           </div>
         )}
 
-        {mainView === "roadmap" && (<>
+        {mainView === "roadmap" && (<div className="px-6 md:px-10 py-8 max-w-4xl">
 
           {/* Notification prompt */}
         {showNotifPrompt && (
@@ -614,11 +621,11 @@ const RoadmapPage = () => {
             Regenerate path
           </button>
         </div>
-        </>)}
+        </div>)}
 
         {/* Smart Calendar View */}
         {mainView === "calendar" && (
-          <div className="mt-2">
+          <div className="px-6 md:px-10 py-8">
             <RoadmapCalendar />
           </div>
         )}
