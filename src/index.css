@@ -1,74 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* APEX — Academic war room. Deep navy, electric blue, no purple. */
+/* MakeMeRevise — Emerald Prestige. Deep emerald + gold. Premium EdTech. */
 
 @layer base {
   :root {
-    /* Surfaces — softer slate, lower contrast on bg, higher on text */
-    --background: 220 18% 11%;           /* warmer slate */
-    --background-elevated: 220 16% 14%;
-    --foreground: 210 22% 92%;           /* softer than pure white */
+    /* Surfaces — deep emerald-tinted near-black, layered */
+    --background: 160 25% 6%;
+    --background-elevated: 160 22% 9%;
+    --foreground: 45 25% 94%;
 
-    --card: 220 15% 15%;
-    --card-hover: 220 14% 18%;
-    --card-foreground: 210 22% 92%;
+    --card: 160 22% 10%;
+    --card-hover: 160 20% 13%;
+    --card-foreground: 45 25% 94%;
 
-    --popover: 220 16% 14%;
-    --popover-foreground: 210 22% 92%;
+    --popover: 160 22% 10%;
+    --popover-foreground: 45 25% 94%;
 
-    /* Accent — calmer indigo, less saturated */
-    --primary: 217 70% 58%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 80% 65%;
+    /* Primary — rich emerald */
+    --primary: 160 65% 35%;
+    --primary-foreground: 45 30% 96%;
+    --primary-glow: 160 70% 45%;
 
-    --secondary: 215 17% 16%;
-    --secondary-foreground: 213 31% 95%;
+    --secondary: 160 18% 14%;
+    --secondary-foreground: 45 20% 92%;
 
-    --muted: 215 17% 14%;
-    --muted-foreground: 215 14% 57%;     /* #8B949E */
-    --text-muted: 215 9% 32%;            /* #484F58 */
+    --muted: 160 16% 13%;
+    --muted-foreground: 160 8% 58%;
+    --text-muted: 160 8% 38%;
 
-    --accent: 32 94% 44%;                /* amber #D97706 */
-    --accent-foreground: 0 0% 100%;
+    /* Accent — luxurious gold, used sparingly */
+    --accent: 43 70% 58%;
+    --accent-foreground: 160 35% 8%;
 
-    --success: 142 71% 36%;              /* green #16A34A */
-    --warning: 32 94% 44%;
-    --urgent: 0 72% 51%;                 /* red #DC2626 */
-    --urgent-foreground: 0 0% 100%;
+    --success: 152 60% 42%;
+    --warning: 43 75% 55%;
+    --urgent: 12 70% 55%;
+    --urgent-foreground: 45 30% 96%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 8 65% 50%;
+    --destructive-foreground: 45 30% 96%;
 
-    --border: 213 14% 21%;               /* #30363D */
-    --input: 215 17% 16%;
-    --ring: 221 83% 53%;
+    --border: 160 18% 18%;
+    --input: 160 18% 14%;
+    --ring: 43 70% 58%;
 
-    --radius: 0.5rem;                    /* 8px cards, 6px buttons */
+    --radius: 0.75rem;
 
-    /* Subject colours — left border accents */
-    --subject-maths: 217 91% 60%;        /* blue */
-    --subject-biology: 142 71% 36%;      /* green */
-    --subject-chemistry: 271 91% 56%;    /* purple — only allowed for chem accent */
-    --subject-physics: 21 90% 55%;       /* orange #F97316 */
+    /* Subject colours — restrained, all readable on dark emerald */
+    --subject-maths: 200 70% 60%;
+    --subject-biology: 152 60% 50%;
+    --subject-chemistry: 280 55% 65%;
+    --subject-physics: 28 80% 58%;
 
-    /* Shadows — minimal */
-    --shadow-card: 0 1px 2px hsl(215 28% 4% / 0.4);
+    /* Premium depth shadows */
+    --shadow-card: 0 1px 2px hsl(160 50% 2% / 0.5), 0 8px 24px hsl(160 50% 2% / 0.25);
+    --shadow-elevated: 0 20px 50px -20px hsl(160 80% 4% / 0.7), 0 0 0 1px hsl(160 18% 18%);
+    --shadow-gold: 0 8px 30px -8px hsl(43 70% 50% / 0.4);
 
     --tx-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --tx-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-background: 215 28% 6%;
-    --sidebar-foreground: 215 14% 65%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 17% 12%;
-    --sidebar-accent-foreground: 213 31% 95%;
-    --sidebar-border: 213 14% 18%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-background: 160 30% 4%;
+    --sidebar-foreground: 45 15% 75%;
+    --sidebar-primary: 160 65% 40%;
+    --sidebar-primary-foreground: 45 30% 96%;
+    --sidebar-accent: 160 22% 10%;
+    --sidebar-accent-foreground: 45 25% 94%;
+    --sidebar-border: 160 18% 14%;
+    --sidebar-ring: 43 70% 58%;
   }
 
   /* Light mode (Settings toggle) */
@@ -256,21 +259,27 @@ html.theme-paper { color-scheme: light; }
   html { color-scheme: dark; }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'cv11', 'ss01';
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
     line-height: 1.6;
     font-size: 15px;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, hsl(160 60% 18% / 0.35), transparent 70%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, hsl(43 70% 30% / 0.08), transparent 70%);
+    background-attachment: fixed;
   }
   h1, h2, h3, h4 {
-    font-family: 'Inter', sans-serif;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-    line-height: 1.2;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    line-height: 1.15;
   }
   .font-mono, .tabular {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
+    font-family: 'JetBrains Mono', monospace;
   }
+  .font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em; }
 }
 
 @layer components {
@@ -344,55 +353,95 @@ html.theme-paper { color-scheme: light; }
   .animate-fade-in { animation: fade-in 0.4s ease-out both; }
   .animate-slow-pulse { animation: slow-pulse 2.4s ease-in-out infinite; }
 
-  /* ===== Warm "study notebook" design language ===== */
+  /* ===== Emerald Prestige design language ===== */
   .warm-gradient {
     background-image: linear-gradient(135deg,
-      hsl(265 75% 62%) 0%,
-      hsl(325 80% 65%) 45%,
-      hsl(28 95% 62%) 100%);
+      hsl(160 70% 18%) 0%,
+      hsl(160 65% 28%) 45%,
+      hsl(43 70% 45%) 110%);
   }
   .warm-gradient-soft {
     background-image: linear-gradient(135deg,
-      hsl(265 75% 62% / 0.18) 0%,
-      hsl(325 80% 65% / 0.18) 45%,
-      hsl(28 95% 62% / 0.18) 100%);
+      hsl(160 60% 25% / 0.35) 0%,
+      hsl(160 50% 18% / 0.25) 50%,
+      hsl(43 70% 50% / 0.18) 100%);
   }
   .warm-gradient-text {
-    background-image: linear-gradient(135deg, hsl(265 75% 55%), hsl(325 80% 58%) 50%, hsl(28 95% 52%));
+    background-image: linear-gradient(120deg, hsl(43 80% 65%), hsl(160 60% 55%) 70%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
+  .premium-card {
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(160 25% 7%));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+  }
+  .premium-card::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, hsl(43 70% 58% / 0.04), transparent 40%);
+    pointer-events: none;
+  }
+  .premium-card-gold {
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(160 25% 7%));
+    border: 1px solid hsl(43 70% 58% / 0.3);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-gold);
+  }
+
   .pill-nav {
-    @apply flex items-center gap-3 px-3 py-2 rounded-full text-sm transition-all;
+    @apply flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all;
   }
   .pill-nav-active {
-    background-image: linear-gradient(135deg, hsl(265 75% 62%), hsl(325 80% 65%));
-    color: white;
-    box-shadow: 0 4px 14px hsl(325 80% 60% / 0.35);
+    background: linear-gradient(135deg, hsl(160 65% 22%), hsl(160 55% 28%));
+    color: hsl(43 80% 75%);
+    box-shadow: inset 0 0 0 1px hsl(43 70% 58% / 0.25), 0 4px 12px hsl(160 80% 5% / 0.5);
   }
 
   .quick-card {
-    @apply rounded-2xl p-5 border-l-4 transition-all;
-    background: hsl(var(--card));
-    box-shadow: 0 2px 6px hsl(0 0% 0% / 0.06);
+    @apply rounded-2xl p-5 transition-all relative overflow-hidden;
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(160 25% 7%));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
   }
-  .quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px hsl(0 0% 0% / 0.10); }
-  .quick-card.amber  { border-left-color: hsl(28 95% 58%);  }
-  .quick-card.violet { border-left-color: hsl(265 75% 62%); }
-  .quick-card.teal   { border-left-color: hsl(178 65% 48%); }
-  .quick-card.rose   { border-left-color: hsl(340 80% 62%); }
-  .quick-card.sky    { border-left-color: hsl(205 85% 58%); }
+  .quick-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(43 70% 58% / 0.4);
+    box-shadow: var(--shadow-elevated);
+  }
+  .quick-card::after {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(var(--accent-color, 43 70% 58%)), transparent);
+    opacity: 0.6;
+  }
+  .quick-card.amber  { --accent-color: 43 80% 60%; }
+  .quick-card.violet { --accent-color: 280 55% 65%; }
+  .quick-card.teal   { --accent-color: 160 60% 50%; }
+  .quick-card.rose   { --accent-color: 12 70% 60%; }
+  .quick-card.sky    { --accent-color: 200 70% 60%; }
 
   .chip {
     @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold;
+    backdrop-filter: blur(8px);
   }
-  .chip-amber  { background: hsl(28 95% 88%);  color: hsl(28 80% 28%); }
-  .chip-violet { background: hsl(265 75% 90%); color: hsl(265 60% 30%); }
-  .chip-teal   { background: hsl(178 65% 85%); color: hsl(178 60% 22%); }
-  .chip-rose   { background: hsl(340 80% 90%); color: hsl(340 60% 32%); }
-  .chip-sky    { background: hsl(205 85% 88%); color: hsl(205 70% 28%); }
+  .chip-amber  { background: hsl(43 70% 58% / 0.15);  color: hsl(43 80% 70%); border: 1px solid hsl(43 70% 58% / 0.25); }
+  .chip-violet { background: hsl(280 55% 65% / 0.15); color: hsl(280 60% 75%); border: 1px solid hsl(280 55% 65% / 0.25); }
+  .chip-teal   { background: hsl(160 60% 50% / 0.15); color: hsl(160 60% 65%); border: 1px solid hsl(160 60% 50% / 0.25); }
+  .chip-rose   { background: hsl(12 70% 60% / 0.15);  color: hsl(12 75% 70%);  border: 1px solid hsl(12 70% 60% / 0.25); }
+  .chip-sky    { background: hsl(200 70% 60% / 0.15); color: hsl(200 70% 70%); border: 1px solid hsl(200 70% 60% / 0.25); }
+
+  .gold-text { color: hsl(43 80% 68%); }
+  .emerald-text { color: hsl(160 55% 55%); }
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(43 70% 58% / 0.4), transparent);
+  }
 }
 
 @keyframes in-up {
