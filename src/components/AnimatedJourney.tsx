@@ -15,21 +15,21 @@ interface Props {
   onChallenge?: (node: RoadmapNodeRow) => void;
 }
 
-// Visual tokens per node type
+// Visual tokens per node type — Emerald Prestige palette
 const NODE_STYLES: Record<NodeType, { color: string; ring: string; Icon: typeof BookOpen; label: string }> = {
-  learn: { color: "#3B82F6", ring: "rgba(59,130,246,0.35)", Icon: BookOpen, label: "Learn" },
-  review: { color: "#D97706", ring: "rgba(217,119,6,0.35)", Icon: Repeat, label: "Review" },
-  mock: { color: "#DC2626", ring: "rgba(220,38,38,0.35)", Icon: FileText, label: "Mock" },
-  break: { color: "#16A34A", ring: "rgba(22,163,74,0.35)", Icon: Coffee, label: "Break" },
+  learn:  { color: "hsl(160, 60%, 50%)",  ring: "hsl(160, 60%, 50%, 0.35)",  Icon: BookOpen, label: "Learn" },
+  review: { color: "hsl(43, 80%, 60%)",   ring: "hsl(43, 80%, 60%, 0.35)",   Icon: Repeat,   label: "Review" },
+  mock:   { color: "hsl(12, 70%, 60%)",   ring: "hsl(12, 70%, 60%, 0.35)",   Icon: FileText, label: "Mock" },
+  break:  { color: "hsl(200, 70%, 60%)",  ring: "hsl(200, 70%, 60%, 0.35)",  Icon: Coffee,   label: "Break" },
 };
 
-// Compute zigzag positions along a sinusoidal column
-function computePositions(count: number, width: number, rowGap = 130, padTop = 90) {
+// Compute zigzag positions along a sinusoidal column — wider for full-bleed
+function computePositions(count: number, width: number, rowGap = 150, padTop = 110) {
   const cx = width / 2;
-  const amp = Math.min(140, width * 0.32);
+  const amp = Math.min(280, width * 0.38);
   return Array.from({ length: count }, (_, i) => {
     const y = padTop + i * rowGap;
-    const x = cx + Math.sin(i * 0.9) * amp;
+    const x = cx + Math.sin(i * 0.85) * amp;
     return { x, y, i };
   });
 }
@@ -108,19 +108,19 @@ export const AnimatedJourney = ({ nodes, exam, onChallenge }: Props) => {
 
   return (
     <div ref={containerRef} className="relative w-full">
-      {/* Glow backdrop */}
+      {/* Glow backdrop — emerald + gold */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 opacity-60 pointer-events-none"
+        className="absolute inset-0 -z-10 opacity-70 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at 30% 10%, rgba(59,130,246,0.18), transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(245,158,11,0.12), transparent 60%)",
+            "radial-gradient(ellipse at 30% 10%, hsl(160 60% 30% / 0.25), transparent 55%), radial-gradient(ellipse at 70% 80%, hsl(43 70% 50% / 0.18), transparent 60%)",
         }}
       />
 
       {/* Start banner */}
       <div className="text-center mb-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-xs font-mono uppercase tracking-widest text-primary">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/30 text-[10px] font-mono uppercase tracking-[0.25em] gold-text">
           <Sparkles className="h-3 w-3" /> Your Journey Begins
         </div>
       </div>
@@ -177,8 +177,8 @@ export const AnimatedJourney = ({ nodes, exam, onChallenge }: Props) => {
 
         <defs>
           <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2={totalHeight} gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#3B82F6" />
-            <stop offset="1" stopColor="#F59E0B" />
+            <stop offset="0" stopColor="hsl(160, 60%, 50%)" />
+            <stop offset="1" stopColor="hsl(43, 80%, 60%)" />
           </linearGradient>
           <filter id="nodeGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="6" result="blur" />
@@ -266,10 +266,10 @@ export const AnimatedJourney = ({ nodes, exam, onChallenge }: Props) => {
             transition={{ type: "spring", stiffness: 90, damping: 15 }}
             initial={false}
           >
-            <circle r="20" fill="hsl(var(--background))" stroke="#F59E0B" strokeWidth="2.5" />
+            <circle r="22" fill="hsl(var(--background))" stroke="hsl(43, 80%, 60%)" strokeWidth="2.5" filter="url(#nodeGlow)" />
             <foreignObject x={-12} y={-12} width={24} height={24}>
               <div className="flex items-center justify-center w-full h-full">
-                <GraduationCap className="h-5 w-5" style={{ color: "#F59E0B" }} />
+                <GraduationCap className="h-5 w-5" style={{ color: "hsl(43, 80%, 60%)" }} />
               </div>
             </foreignObject>
           </motion.g>
@@ -286,20 +286,20 @@ export const AnimatedJourney = ({ nodes, exam, onChallenge }: Props) => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.8, type: "spring" }}
             >
-              <circle r="36" fill="hsl(var(--card))" stroke="#DC2626" strokeWidth="2.5" filter="url(#nodeGlow)" />
-              <foreignObject x={-20} y={-20} width={40} height={40} pointerEvents="none">
+              <circle r="40" fill="hsl(var(--card))" stroke="hsl(43, 80%, 60%)" strokeWidth="2.5" filter="url(#nodeGlow)" />
+              <foreignObject x={-22} y={-22} width={44} height={44} pointerEvents="none">
                 <div className="flex items-center justify-center w-full h-full">
-                  <Trophy className="h-7 w-7" style={{ color: "#DC2626" }} />
+                  <Trophy className="h-8 w-8" style={{ color: "hsl(43, 80%, 60%)" }} />
                 </div>
               </foreignObject>
-              <foreignObject x={-110} y={42} width={220} height={56} pointerEvents="none">
+              <foreignObject x={-120} y={46} width={240} height={56} pointerEvents="none">
                 <div className="text-center">
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-destructive">Goal · Exam Day</div>
-                  <div className="text-sm font-semibold mt-0.5">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.25em] gold-text">Goal · Exam Day</div>
+                  <div className="text-sm font-semibold mt-1 font-display">
                     {examLabel ?? "Set your exam date"}
                   </div>
                   {daysToExam !== null && (
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
                       {daysToExam === 0 ? "Today" : `${daysToExam} days · ${format(parseISO(exam!.exam_date), "d MMM")}`}
                     </div>
                   )}
@@ -381,15 +381,15 @@ export const AnimatedJourney = ({ nodes, exam, onChallenge }: Props) => {
 
       {/* Progress chip — sticky bottom */}
       <div className="sticky bottom-4 z-10 mt-6 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto inline-flex items-center gap-3 px-4 py-2 rounded-full bg-card/90 backdrop-blur border border-border shadow-lg">
-          <Flag className="h-4 w-4 text-primary" />
-          <div className="text-xs font-medium">
-            {completedCount} / {nodes.length} complete · {Math.round(progressPct * 100)}%
+        <div className="pointer-events-auto inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-card/90 backdrop-blur border border-accent/30 shadow-[0_8px_30px_-8px_hsl(43_70%_50%/0.4)]">
+          <Flag className="h-4 w-4 gold-text" />
+          <div className="text-xs font-medium font-mono uppercase tracking-wider">
+            {completedCount} / {nodes.length} · {Math.round(progressPct * 100)}%
           </div>
-          <div className="w-24 h-1.5 rounded-full bg-secondary overflow-hidden">
+          <div className="w-28 h-1.5 rounded-full bg-secondary overflow-hidden">
             <motion.div
               className="h-full"
-              style={{ background: "linear-gradient(90deg,#3B82F6,#F59E0B)" }}
+              style={{ background: "linear-gradient(90deg, hsl(160, 60%, 50%), hsl(43, 80%, 60%))" }}
               initial={{ width: 0 }}
               animate={{ width: `${progressPct * 100}%` }}
               transition={{ duration: 0.8 }}
