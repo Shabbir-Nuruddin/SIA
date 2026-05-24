@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppSidebar } from "@/components/AppSidebar";
+import { AppSidebar, SidebarToggle } from "@/components/AppSidebar";
 import { CountdownOverlay } from "@/components/CountdownOverlay";
 import { TodayProgressBar } from "@/components/TodayProgressBar";
 import { PomodoroPill } from "@/components/PomodoroPill";
@@ -30,7 +30,14 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar />}
-      <main className="flex-1 overflow-hidden min-w-0 h-screen">{children}</main>
+      <main className="flex-1 overflow-auto min-w-0 h-screen relative">
+        {!chromeHidden && (
+          <div className="absolute top-3 right-4 z-30">
+            <SidebarToggle />
+          </div>
+        )}
+        {children}
+      </main>
       <PomodoroPill />
       <MusicPlayer />
       <FloatingAssistant />
