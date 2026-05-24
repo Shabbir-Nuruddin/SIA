@@ -194,62 +194,86 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
-        {/* Hero banner — warm gradient */}
-        <div className="warm-gradient rounded-3xl p-6 md:p-8 mb-6 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 text-[140px] opacity-20 select-none pointer-events-none">📚</div>
-          <div className="text-xs uppercase tracking-[0.2em] font-mono opacity-80">
-            {format(new Date(), "EEEE · d MMMM")}
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl mt-1 leading-tight">
-            {greet}, {name}! <span className="inline-block">📚</span>
-          </h1>
-          <p className="mt-2 text-white/90 text-[15px] max-w-2xl">{greetTail}</p>
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <span className="chip chip-amber"><Flame className="h-3 w-3" />{(profile?.current_streak ?? 0)} day streak</span>
-            {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
-            <span className="chip chip-teal">✓ {completedCount}/{sessions.length} today</span>
+      <div className="px-6 md:px-10 py-8 md:py-10 animate-fade-in">
+        {/* HERO — full-bleed emerald with gold trim */}
+        <div className="relative overflow-hidden rounded-3xl mb-8 border border-border" style={{
+          background: "linear-gradient(135deg, hsl(160 70% 12%) 0%, hsl(160 55% 18%) 45%, hsl(160 40% 14%) 100%)"
+        }}>
+          {/* gold etched grid */}
+          <div aria-hidden className="absolute inset-0 opacity-[0.06]" style={{
+            backgroundImage: "linear-gradient(hsl(43 80% 60%) 1px, transparent 1px), linear-gradient(90deg, hsl(43 80% 60%) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }} />
+          {/* gold radial bloom */}
+          <div aria-hidden className="absolute -right-32 -top-32 h-96 w-96 rounded-full" style={{
+            background: "radial-gradient(circle, hsl(43 70% 50% / 0.25), transparent 65%)"
+          }} />
+          {/* gold filament line */}
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-px" style={{
+            background: "linear-gradient(90deg, transparent, hsl(43 70% 58% / 0.5), transparent)"
+          }} />
+
+          <div className="relative px-7 py-8 md:px-10 md:py-10">
+            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-mono gold-text mb-3">
+              <span className="h-px w-8 bg-current opacity-50" />
+              {format(new Date(), "EEEE · d MMMM yyyy")}
+            </div>
+            <h1 className="font-display text-4xl md:text-6xl leading-[0.95] tracking-tight text-foreground">
+              {greet}, <span className="warm-gradient-text">{name}</span>.
+            </h1>
+            <p className="mt-4 text-foreground/75 text-base md:text-lg max-w-2xl font-light leading-relaxed">{greetTail}</p>
+            <div className="flex flex-wrap items-center gap-2 mt-6">
+              <span className="chip chip-amber"><Flame className="h-3 w-3" />{(profile?.current_streak ?? 0)} day streak</span>
+              {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
+              <span className="chip chip-teal">✓ {completedCount}/{sessions.length} today</span>
+            </div>
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {/* BENTO GRID — quick actions */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { to: "/notes",       label: "Continue Notes",     emoji: "📖", color: "violet" },
-            { to: "/questions",   label: "Practice Questions", emoji: "📝", color: "amber"  },
-            { to: "/mock-papers", label: "Mock Paper",         emoji: "🎯", color: "rose"   },
-            { to: "/roadmap",     label: "My Roadmap",         emoji: "🗺️", color: "teal"   },
+            { to: "/notes",       label: "Notes",     emoji: "📖", color: "violet", sub: "Open your notebook" },
+            { to: "/questions",   label: "Practice",  emoji: "⚡", color: "amber",  sub: "Topical questions" },
+            { to: "/mock-papers", label: "Mock Paper",emoji: "🎯", color: "rose",   sub: "Exam conditions" },
+            { to: "/roadmap",     label: "Roadmap",   emoji: "🗺️", color: "teal",   sub: "Your journey" },
           ].map(q => (
-            <Link key={q.to} to={q.to} className={`quick-card ${q.color} block`}>
-              <div className="text-3xl mb-1">{q.emoji}</div>
-              <div className="font-display text-xl leading-tight">{q.label}</div>
+            <Link key={q.to} to={q.to} className={`quick-card ${q.color} group`}>
+              <div className="flex items-start justify-between mb-2">
+                <div className="text-3xl">{q.emoji}</div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-foreground transition-all" />
+              </div>
+              <div className="font-display text-xl font-semibold leading-tight">{q.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">{q.sub}</div>
             </Link>
           ))}
         </div>
 
         {!hasExams && (
-          <div className="quick-card amber mb-5 flex flex-wrap items-center gap-3">
-            <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
+          <div className="premium-card-gold p-5 mb-6 flex flex-wrap items-center gap-3">
+            <CalendarPlus className="h-5 w-5 gold-text shrink-0" />
             <div className="flex-1 min-w-[200px] text-sm">
               <div className="font-semibold">No exam dates set yet.</div>
-              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score, and countdowns reflect what actually matters.</div>
+              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score and countdowns reflect what actually matters.</div>
             </div>
-            <Link to="/exams"><Button size="sm" className="btn-primary rounded-full">Add exam dates</Button></Link>
+            <Link to="/exams"><Button size="sm" className="btn-primary rounded-xl">Add exam dates</Button></Link>
           </div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left column — Today's plan */}
+          {/* Today's plan — left, spans 2 */}
           <div className="lg:col-span-2 space-y-3">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Today's plan</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />Today's plan
+              </h2>
               <span className="text-xs font-mono text-muted-foreground tabular">
                 {completedCount}/{sessions.length} complete
               </span>
             </div>
 
             {sessions.length === 0 && (
-              <div className="surface p-8 text-center">
+              <div className="premium-card p-8 text-center">
                 <p className="text-muted-foreground text-sm mb-4">Your plan hasn't been built yet.</p>
                 <Link to="/onboarding"><Button className="btn-primary">Complete setup to generate your roadmap</Button></Link>
               </div>
@@ -266,7 +290,7 @@ const Dashboard = () => {
               return (
                 <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
                   <div
-                    className={`surface ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-primary/40" : ""}`}
+                    className={`premium-card ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-accent/40" : ""}`}
                     style={isSkipped ? { borderLeftColor: "hsl(var(--accent))" } : {}}
                   >
                     <div className="flex items-center justify-between text-xs text-muted-foreground font-mono mb-2 tabular">
@@ -284,15 +308,15 @@ const Dashboard = () => {
                         {meta.name} · Unit {s.unit_number}
                       </div>
                     )}
-                    <div className="text-[17px] font-semibold leading-tight mb-1">
+                    <div className="text-[17px] font-semibold leading-tight mb-1 font-display">
                       {s.topic_name || (meta ? unitName : "Mixed practice")}
                     </div>
-                    <div className="text-xs text-primary mb-3">
+                    <div className="text-xs gold-text mb-3">
                       Method: {methodLabel[s.method] || s.method}
                     </div>
 
                     {s.why_now_text && (
-                      <div className="text-[13px] text-muted-foreground leading-relaxed border-l-2 border-border pl-3 italic mb-4">
+                      <div className="text-[13px] text-muted-foreground leading-relaxed border-l-2 border-accent/30 pl-3 italic mb-4">
                         Why now: {s.why_now_text}
                       </div>
                     )}
@@ -301,28 +325,27 @@ const Dashboard = () => {
                       <div className="flex flex-wrap gap-2">
                         {s.subject && (
                           <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
-                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
+                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm rounded-xl" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
                               <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />
                               {isInProgress ? "Continue" : "Start session"}
                             </Button>
                           </Link>
                         )}
                         {!s.subject && (
-                          <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm">
+                          <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm rounded-xl">
                             <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />Start
                           </Button>
                         )}
-                        <Button variant="outline" onClick={() => updateStatus(s.id, "complete")} className="h-9 px-3 text-sm">
+                        <Button variant="outline" onClick={() => updateStatus(s.id, "complete")} className="h-9 px-3 text-sm rounded-xl">
                           Mark complete
                         </Button>
-                        <Button variant="ghost" onClick={() => updateStatus(s.id, "skipped")} className="h-9 px-3 text-sm text-muted-foreground">
+                        <Button variant="ghost" onClick={() => updateStatus(s.id, "skipped")} className="h-9 px-3 text-sm text-muted-foreground rounded-xl">
                           <SkipForward className="h-3.5 w-3.5 mr-1.5" />Skip
                         </Button>
                       </div>
                     )}
                   </div>
 
-                  {/* Insert short break between focus sessions, long break every 4 */}
                   {!isComplete && i < sessions.length - 1 && (
                     <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground font-mono ml-1">
                       <Coffee className="h-3 w-3" />
@@ -334,26 +357,28 @@ const Dashboard = () => {
             })}
 
             {allDone && (
-              <div className="surface subj-biology p-6 mt-4">
+              <div className="premium-card-gold p-6 mt-4">
                 <div className="flex items-center gap-2 text-success font-bold text-sm mb-2">
                   <CheckCircle2 className="h-4 w-4" />TODAY'S PLAN COMPLETE
                 </div>
-                <p className="text-[15px] mb-1">{name}, you finished today's sessions.</p>
+                <p className="text-[15px] mb-1 font-display">{name}, you finished today's sessions.</p>
                 <p className="text-muted-foreground text-sm">
                   {nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}
                 </p>
                 <Link to="/roadmap" className="inline-block mt-4">
-                  <Button variant="outline" size="sm">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
+                  <Button variant="outline" size="sm" className="rounded-xl">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Right column — Sticky widgets */}
+          {/* Right column — Bento widgets */}
           <aside className="space-y-4 lg:sticky lg:top-14 self-start">
             {/* Urgency gauge */}
-            <div className="surface p-5" data-tutorial="urgency-gauge">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</div>
+            <div className="premium-card p-5" data-tutorial="urgency-gauge">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono mb-3 flex items-center gap-2">
+                <span className="h-px w-4 bg-accent" />Urgency
+              </div>
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
                   <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
@@ -362,7 +387,7 @@ const Dashboard = () => {
                     style={{ transition: "stroke-dashoffset 800ms ease-out, stroke 400ms ease-out" }} />
                 </svg>
                 <div>
-                  <div className="font-mono text-3xl font-bold tabular" style={{ color: urgency.colorVar }}>{urgency.score}</div>
+                  <div className="font-display text-3xl font-bold tabular" style={{ color: urgency.colorVar }}>{urgency.score}</div>
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/ 100</div>
                 </div>
               </div>
@@ -373,8 +398,10 @@ const Dashboard = () => {
             </div>
 
             {/* Today's stats */}
-            <div className="surface p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Today</div>
+            <div className="premium-card p-5">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono mb-3 flex items-center gap-2">
+                <span className="h-px w-4 bg-accent" />Today
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Sessions</span>
@@ -382,7 +409,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Study time</span>
-                  <span className="font-mono tabular font-semibold">
+                  <span className="font-mono tabular font-semibold gold-text">
                     {sessions.filter(s => s.status === "complete").reduce((a, s) => a + s.duration_minutes, 0)} min
                   </span>
                 </div>
@@ -390,10 +417,12 @@ const Dashboard = () => {
             </div>
 
             {/* Upcoming exams */}
-            <div className="surface p-5">
+            <div className="premium-card p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">Upcoming exams</div>
-                <Link to="/exams" className="text-[10px] text-primary hover:underline">Manage</Link>
+                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono flex items-center gap-2">
+                  <span className="h-px w-4 bg-accent" />Upcoming exams
+                </div>
+                <Link to="/exams" className="text-[10px] gold-text hover:underline">Manage</Link>
               </div>
               {hasExams ? (
                 <div className="space-y-2.5">
@@ -420,7 +449,7 @@ const Dashboard = () => {
               ) : (
                 <div className="text-xs text-muted-foreground space-y-2">
                   <p>No exam dates yet.</p>
-                  <Link to="/exams"><Button size="sm" variant="outline" className="w-full"><CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates</Button></Link>
+                  <Link to="/exams"><Button size="sm" variant="outline" className="w-full rounded-xl"><CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates</Button></Link>
                 </div>
               )}
             </div>
