@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&family=Caveat:wght@500;600;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -531,3 +531,123 @@ html.theme-inkwell .notebook-paper,
   100% { transform: translateX(-50%); }
 }
 .animate-marquee { animation: marquee 30s linear infinite; }
+
+/* =========================================================================
+   DASHBOARD COMMAND CENTER — scoped override only on /dashboard.
+   Palette: charcoal #0E0E11, off-white #F2EFE9, violet #7C3AED, amber #F59E0B.
+   Type: Playfair Display headers, Inter UI. Does NOT affect the rest of the app.
+   ========================================================================= */
+.dashboard-shell {
+  --dash-bg: #0E0E11;
+  --dash-surface: #16161B;
+  --dash-surface-2: #1C1C22;
+  --dash-line: rgba(242, 239, 233, 0.08);
+  --dash-text: #F2EFE9;
+  --dash-text-dim: rgba(242, 239, 233, 0.58);
+  --dash-violet: #7C3AED;
+  --dash-violet-soft: rgba(124, 58, 237, 0.16);
+  --dash-amber: #F59E0B;
+  --dash-amber-soft: rgba(245, 158, 11, 0.14);
+  background: var(--dash-bg);
+  color: var(--dash-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+.dashboard-shell .dash-h { font-family: 'Playfair Display', Georgia, serif; letter-spacing: -0.01em; }
+.dashboard-shell .dash-mono { font-family: 'JetBrains Mono', monospace; }
+
+.dash-grain {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.35; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.94  0 0 0 0 0.91  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.dashboard-shell .dash-topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 28px;
+  background: linear-gradient(180deg, rgba(14,14,17,0.96), rgba(14,14,17,0.82));
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--dash-line);
+}
+.dashboard-shell .dash-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+  background: var(--dash-surface); border: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-feature-settings: "tnum";
+}
+.dashboard-shell .dash-chip-amber  { background: var(--dash-amber-soft);  border-color: rgba(245,158,11,0.35);  color: var(--dash-amber); }
+.dashboard-shell .dash-chip-violet { background: var(--dash-violet-soft); border-color: rgba(124,58,237,0.35); color: #C4B5FD; }
+
+.dashboard-shell .dash-tile {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 28px;
+  padding: 24px 32px; min-height: 120px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: var(--dash-surface);
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  text-decoration: none;
+}
+.dashboard-shell .dash-tile:hover { transform: translateY(-2px); border-color: rgba(242,239,233,0.18); box-shadow: 0 20px 40px -20px rgba(0,0,0,0.6); }
+.dashboard-shell .dash-tile .dash-tile-bg { position: absolute; inset: 0; opacity: 0.9; pointer-events: none; }
+.dashboard-shell .dash-tile .dash-tile-content { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 24px; }
+.dashboard-shell .dash-tile .dash-tile-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; flex-shrink: 0;
+  background: rgba(14,14,17,0.55); border: 1px solid var(--dash-line); backdrop-filter: blur(6px);
+}
+.dashboard-shell .dash-tile h3 { font-family: 'Playfair Display', Georgia, serif; font-size: 26px; font-weight: 600; line-height: 1.1; margin: 0; }
+.dashboard-shell .dash-tile p { font-size: 13px; color: var(--dash-text-dim); margin-top: 4px; }
+.dashboard-shell .dash-tile .dash-tile-cta { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dash-text-dim); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+
+.dash-tile.tint-violet  .dash-tile-bg { background: radial-gradient(120% 100% at 0% 50%, rgba(124,58,237,0.30), transparent 55%), linear-gradient(90deg, rgba(124,58,237,0.10), transparent 70%); }
+.dash-tile.tint-amber   .dash-tile-bg { background: radial-gradient(120% 100% at 0% 50%, rgba(245,158,11,0.26), transparent 55%), linear-gradient(90deg, rgba(245,158,11,0.08), transparent 70%); }
+.dash-tile.tint-rose    .dash-tile-bg { background: radial-gradient(120% 100% at 0% 50%, rgba(244,63,94,0.24),  transparent 55%), linear-gradient(90deg, rgba(244,63,94,0.08),  transparent 70%); }
+.dash-tile.tint-teal    .dash-tile-bg { background: radial-gradient(120% 100% at 0% 50%, rgba(45,212,191,0.24), transparent 55%), linear-gradient(90deg, rgba(45,212,191,0.08), transparent 70%); }
+.dash-tile.tint-indigo  .dash-tile-bg { background: radial-gradient(120% 100% at 0% 50%, rgba(99,102,241,0.26), transparent 55%), linear-gradient(90deg, rgba(99,102,241,0.08), transparent 70%); }
+
+.dashboard-shell .dash-timeline { position: relative; padding: 28px 8px 18px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.dashboard-shell .dash-timeline::-webkit-scrollbar { height: 6px; }
+.dashboard-shell .dash-timeline::-webkit-scrollbar-thumb { background: var(--dash-line); border-radius: 999px; }
+.dashboard-shell .dash-timeline-rail { position: relative; display: flex; gap: 14px; min-width: max-content; padding-top: 22px; }
+.dashboard-shell .dash-timeline-rail::before { content: ""; position: absolute; left: 0; right: 0; top: 38px; height: 1px; background: linear-gradient(90deg, transparent, var(--dash-line), transparent); }
+.dashboard-shell .dash-tslot {
+  position: relative; min-width: 240px; max-width: 280px;
+  padding: 18px 18px 16px; border: 1px solid var(--dash-line); border-radius: 14px;
+  background: var(--dash-surface); transition: border-color 200ms ease, transform 200ms ease;
+}
+.dashboard-shell .dash-tslot::before {
+  content: ""; position: absolute; left: 22px; top: -22px; width: 10px; height: 10px;
+  border-radius: 999px; background: var(--dash-text-dim); box-shadow: 0 0 0 4px var(--dash-bg);
+}
+.dashboard-shell .dash-tslot.is-now { border-color: rgba(124,58,237,0.55); box-shadow: 0 0 0 1px rgba(124,58,237,0.25), 0 18px 36px -16px rgba(124,58,237,0.45); }
+.dashboard-shell .dash-tslot.is-now::before { background: var(--dash-violet); box-shadow: 0 0 0 4px var(--dash-bg), 0 0 0 6px rgba(124,58,237,0.35); }
+.dashboard-shell .dash-tslot.is-done { opacity: 0.5; }
+.dashboard-shell .dash-tslot.is-done::before { background: #22c55e; }
+.dashboard-shell .dash-tslot.is-skipped::before { background: var(--dash-amber); }
+.dashboard-shell .dash-tslot .dash-tslot-time { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: var(--dash-text-dim); text-transform: uppercase; }
+.dashboard-shell .dash-tslot .dash-tslot-title { font-family: 'Playfair Display', Georgia, serif; font-size: 17px; line-height: 1.2; margin-top: 6px; color: var(--dash-text); }
+.dashboard-shell .dash-tslot .dash-tslot-meta { font-size: 11px; color: var(--dash-text-dim); margin-top: 4px; }
+.dashboard-shell .dash-tslot .dash-tslot-actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+
+.dashboard-shell .dash-fab {
+  position: fixed; right: 24px; bottom: 110px; z-index: 40;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-radius: 999px;
+  background: linear-gradient(135deg, #1C1C22, #16161B);
+  border: 1px solid var(--dash-line); color: var(--dash-text);
+  box-shadow: 0 18px 40px -12px rgba(0,0,0,0.7);
+  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: transform 180ms ease, border-color 180ms ease;
+}
+.dashboard-shell .dash-fab:hover { transform: translateY(-2px); border-color: rgba(242,239,233,0.22); }
+.dashboard-shell .dash-fab .dash-fab-dot { width: 9px; height: 9px; border-radius: 999px; box-shadow: 0 0 0 4px rgba(255,255,255,0.04); }
+
+.dash-drawer-body { background: #0E0E11; color: #F2EFE9; }
+.dash-drawer-body .dash-drawer-card { background: #16161B; border: 1px solid rgba(242,239,233,0.08); border-radius: 14px; padding: 18px; }
+.dash-drawer-body .dash-drawer-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(242,239,233,0.5); }
+.dash-drawer-body .dash-drawer-h { font-family: 'Playfair Display', Georgia, serif; }

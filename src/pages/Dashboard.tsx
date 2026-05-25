@@ -4,15 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
-import { format } from "date-fns";
-import { ArrowRight, CalendarPlus, CheckCircle2, Clock, Coffee, Flame, Loader2, Play, SkipForward } from "lucide-react";
+import { ArrowRight, CalendarPlus, CheckCircle2, Flame, Loader2, Play, SkipForward, Activity } from "lucide-react";
 import { startPomodoro } from "@/lib/pomodoro";
 import { toast } from "sonner";
 import { getLocalDateString, daysFromTodayLocal } from "@/lib/dateLocal";
 import { computeUrgency } from "@/lib/urgency";
 import { TutorialOverlay } from "@/components/TutorialOverlay";
 import { syncProAfterCheckout } from "@/lib/dodo";
+import { useSidebarMode } from "@/lib/sidebarMode";
 
 interface SessionRow {
   id: string;
@@ -37,12 +38,13 @@ interface UnitRow {
   current_grade: string | null;
 }
 
-const subjectClass: Record<string, string> = {
-  mathematics: "subj-maths",
-  biology: "subj-biology",
-  chemistry: "subj-chemistry",
-  physics: "subj-physics",
-};
+interface ExamRow {
+  id: string;
+  name: string;
+  exam_date: string;
+  subject: SubjectCode | null;
+  is_active: boolean;
+}
 
 const methodLabel: Record<string, string> = {
   active_recall: "Active Recall · Learn",
@@ -61,7 +63,6 @@ function formatTime(t: string | null) {
   const h12 = ((hr + 11) % 12) + 1;
   return `${h12}:${m} ${ampm}`;
 }
-
 function endTime(start: string | null, mins: number) {
   if (!start) return "";
   const [h, m] = start.split(":").map(Number);
@@ -71,13 +72,14 @@ function endTime(start: string | null, mins: number) {
   return formatTime(`${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}:00`);
 }
 
-interface ExamRow {
-  id: string;
-  name: string;
-  exam_date: string;
-  subject: SubjectCode | null;
-  is_active: boolean;
-}
+// Modules — five immersive entry tiles. Reuses existing routes/labels — no nav changes.
+const MODULES: { to: string; label: string; sub: string; emoji: string; tint: string }[] = [
+  { to: "/notes",       label: "Notes",      sub: "Open your notebook · structured per topic",     emoji: "📖", tint: "violet" },
+  { to: "/questions",   label: "Practice",   sub: "Topical questions, exam-style, instant marking", emoji: "⚡", tint: "amber" },
+  { to: "/mock-papers", label: "Mock Paper", sub: "Full timed papers under exam conditions",        emoji: "🎯", tint: "rose" },
+  { to: "/roadmap",     label: "Roadmap",    sub: "Your progressive journey to the exam",           emoji: "🗺️", tint: "teal" },
+  { to: "/podcast",     label: "Podcast",    sub: "Hands-free revision — listen on the go",         emoji: "🎧", tint: "indigo" },
+];
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -87,8 +89,18 @@ const Dashboard = () => {
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean; current_streak?: number } | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const todayISO = getLocalDateString();
+
+  // Force the icon-rail while on dashboard. Restore on leave.
+  const { mode, setMode } = useSidebarMode();
+  useEffect(() => {
+    const previous = mode;
+    if (mode !== "rail") setMode("rail");
+    return () => { setMode(previous); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const load = async () => {
     if (!user) return;
@@ -128,13 +140,9 @@ const Dashboard = () => {
     return () => { cancelled = true; };
   }, [user, searchParams, setSearchParams]);
 
-  // Re-tick at midnight so urgency refreshes daily without a reload.
   useEffect(() => {
     if (units.length === 0) return;
-    const ms = (() => {
-      const next = new Date(); next.setHours(24, 0, 5, 0);
-      return next.getTime() - Date.now();
-    })();
+    const ms = (() => { const next = new Date(); next.setHours(24, 0, 5, 0); return next.getTime() - Date.now(); })();
     const t = setTimeout(() => load(), ms);
     return () => clearTimeout(t);
   }, [units.length]);
@@ -145,26 +153,13 @@ const Dashboard = () => {
 
   const hasExams = exams.length > 0;
   const nearestExam = hasExams ? exams[0] : null;
-  // Map exams onto the matching user_subjects row (for grade gap context),
-  // falling back to the first unit if no subject match.
-  const unitForNearest = nearestExam
-    ? units.find(u => u.subject === nearestExam.subject) ?? units[0]
-    : units[0];
+  const unitForNearest = nearestExam ? units.find(u => u.subject === nearestExam.subject) ?? units[0] : units[0];
   const days = nearestExam ? daysFromTodayLocal(nearestExam.exam_date) : null;
-  const hr = new Date().getHours();
-  const greet = hr < 12 ? "Morning" : hr < 18 ? "Afternoon" : "Evening";
-  const name = profile?.first_name || "Student";
-  const greetTail = !nearestExam
-    ? "No exam dates set yet — add them so we can pace your plan."
-    : hr < 12 ? `${nearestExam.name} is in ${days} days.`
-    : hr < 18 ? `${days} days to ${nearestExam.name}. Here's today's plan.`
-    : `${days} days left until ${nearestExam.name}. Even tonight matters.`;
 
   const pendingCount = sessions.filter(s => s.status === "pending").length;
   const completedCount = sessions.filter(s => s.status === "complete").length;
   const allDone = sessions.length > 0 && pendingCount === 0;
 
-  // Urgency score uses real exams when present; otherwise zero.
   const urgency = hasExams
     ? computeUrgency(exams.map(ex => ({
         exam_date: ex.exam_date,
@@ -173,8 +168,11 @@ const Dashboard = () => {
       })))
     : { score: 0, daysToNearest: 0, gradeGap: 0, level: "calm" as const,
         message: "Add an exam date to start the urgency clock.",
-        colorVar: "hsl(var(--muted-foreground))" };
+        colorVar: "rgba(242,239,233,0.5)" };
 
+  // Map urgency level to violet/amber palette per brief.
+  const urgencyColor = urgency.score >= 70 ? "#F59E0B" : urgency.score >= 40 ? "#C4B5FD" : "rgba(242,239,233,0.55)";
+  const urgencyLabel = urgency.score >= 70 ? "URGENT" : urgency.score >= 40 ? "MODERATE" : "ON TRACK";
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("roadmap_sessions").update({
@@ -192,270 +190,259 @@ const Dashboard = () => {
     toast.success("Focus session started. Pomodoro running.");
   };
 
+  // Find the "current" slot — first in_progress, else first pending.
+  const currentId = sessions.find(s => s.status === "in_progress")?.id
+                  ?? sessions.find(s => s.status === "pending")?.id;
+
   return (
     <AppLayout>
-      <div className="px-6 md:px-10 py-8 md:py-10 animate-fade-in">
-        {/* HERO — full-bleed emerald with gold trim */}
-        <div className="relative overflow-hidden rounded-3xl mb-8 border border-border" style={{
-          background: "linear-gradient(135deg, hsl(160 70% 12%) 0%, hsl(160 55% 18%) 45%, hsl(160 40% 14%) 100%)"
-        }}>
-          {/* gold etched grid */}
-          <div aria-hidden className="absolute inset-0 opacity-[0.06]" style={{
-            backgroundImage: "linear-gradient(hsl(43 80% 60%) 1px, transparent 1px), linear-gradient(90deg, hsl(43 80% 60%) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }} />
-          {/* gold radial bloom */}
-          <div aria-hidden className="absolute -right-32 -top-32 h-96 w-96 rounded-full" style={{
-            background: "radial-gradient(circle, hsl(43 70% 50% / 0.25), transparent 65%)"
-          }} />
-          {/* gold filament line */}
-          <div aria-hidden className="absolute inset-x-0 bottom-0 h-px" style={{
-            background: "linear-gradient(90deg, transparent, hsl(43 70% 58% / 0.5), transparent)"
-          }} />
+      <div className="dashboard-shell">
+        <div className="dash-grain" />
 
-          <div className="relative px-7 py-8 md:px-10 md:py-10">
-            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] font-mono gold-text mb-3">
-              <span className="h-px w-8 bg-current opacity-50" />
-              {format(new Date(), "EEEE · d MMMM yyyy")}
-            </div>
-            <h1 className="font-display text-4xl md:text-6xl leading-[0.95] tracking-tight text-foreground">
-              {greet}, <span className="warm-gradient-text">{name}</span>.
-            </h1>
-            <p className="mt-4 text-foreground/75 text-base md:text-lg max-w-2xl font-light leading-relaxed">{greetTail}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-6">
-              <span className="chip chip-amber"><Flame className="h-3 w-3" />{(profile?.current_streak ?? 0)} day streak</span>
-              {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
-              <span className="chip chip-teal">✓ {completedCount}/{sessions.length} today</span>
-            </div>
+        {/* TOP BAR — minimal status strip */}
+        <header className="dash-topbar">
+          <div className="dash-h text-lg pl-12 lg:pl-2" style={{ fontWeight: 600 }}>
+            MakeMeRevise
           </div>
-        </div>
+          <div className="flex-1" />
+          <div className="hidden sm:flex items-center gap-2">
+            <span className="dash-chip dash-chip-violet">
+              <Activity className="h-3 w-3" />
+              <span className="dash-mono">URG {urgency.score}</span>
+              <span className="opacity-60">· {urgencyLabel}</span>
+            </span>
+            <span className="dash-chip dash-chip-amber">
+              <Flame className="h-3 w-3" />
+              <span className="dash-mono">{profile?.current_streak ?? 0}d</span>
+            </span>
+            {nearestExam && (
+              <span className="dash-chip">
+                <span className="dash-mono">{days}d</span>
+                <span className="opacity-70">→ {nearestExam.name}</span>
+              </span>
+            )}
+          </div>
+        </header>
 
-        {/* BENTO GRID — quick actions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            { to: "/notes",       label: "Notes",     emoji: "📖", color: "violet", sub: "Open your notebook" },
-            { to: "/questions",   label: "Practice",  emoji: "⚡", color: "amber",  sub: "Topical questions" },
-            { to: "/mock-papers", label: "Mock Paper",emoji: "🎯", color: "rose",   sub: "Exam conditions" },
-            { to: "/roadmap",     label: "Roadmap",   emoji: "🗺️", color: "teal",   sub: "Your journey" },
-          ].map(q => (
-            <Link key={q.to} to={q.to} className={`quick-card ${q.color} group`}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="text-3xl">{q.emoji}</div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-foreground transition-all" />
+        <div className="px-6 md:px-10 py-8 max-w-[1400px] mx-auto relative">
+          {/* No exam-dates nudge */}
+          {!hasExams && (
+            <div className="mb-8 flex flex-wrap items-center gap-3 p-5 rounded-2xl"
+                 style={{ background: "var(--dash-amber-soft)", border: "1px solid rgba(245,158,11,0.35)" }}>
+              <CalendarPlus className="h-5 w-5" style={{ color: "var(--dash-amber)" }} />
+              <div className="flex-1 min-w-[200px] text-sm">
+                <div className="font-semibold">No exam dates set yet.</div>
+                <div className="opacity-70 text-xs">Add real dates so the countdown and urgency clock reflect what actually matters.</div>
               </div>
-              <div className="font-display text-xl font-semibold leading-tight">{q.label}</div>
-              <div className="text-xs text-muted-foreground mt-1">{q.sub}</div>
-            </Link>
-          ))}
-        </div>
-
-        {!hasExams && (
-          <div className="premium-card-gold p-5 mb-6 flex flex-wrap items-center gap-3">
-            <CalendarPlus className="h-5 w-5 gold-text shrink-0" />
-            <div className="flex-1 min-w-[200px] text-sm">
-              <div className="font-semibold">No exam dates set yet.</div>
-              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score and countdowns reflect what actually matters.</div>
+              <Link to="/exams"><Button size="sm" className="rounded-full" style={{ background: "var(--dash-amber)", color: "#1a1300" }}>Add exam dates</Button></Link>
             </div>
-            <Link to="/exams"><Button size="sm" className="btn-primary rounded-xl">Add exam dates</Button></Link>
-          </div>
-        )}
+          )}
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Today's plan — left, spans 2 */}
-          <div className="lg:col-span-2 space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />Today's plan
-              </h2>
-              <span className="text-xs font-mono text-muted-foreground tabular">
+          {/* MODULES — 5 stacked full-width immersive tiles */}
+          <section className="mb-12">
+            <div className="flex items-baseline justify-between mb-5">
+              <h2 className="dash-h text-2xl md:text-3xl" style={{ fontWeight: 600 }}>Choose your workspace</h2>
+              <span className="dash-mono text-[10px] opacity-50 tracking-[0.22em] uppercase">Modules</span>
+            </div>
+            <div className="space-y-3">
+              {MODULES.map(m => (
+                <Link key={m.to} to={m.to} className={`dash-tile tint-${m.tint}`}>
+                  <div className="dash-tile-bg" />
+                  <div className="dash-grain" style={{ opacity: 0.18 }} />
+                  <div className="dash-tile-content">
+                    <div className="flex items-center gap-5 min-w-0">
+                      <div className="dash-tile-icon">{m.emoji}</div>
+                      <div className="min-w-0">
+                        <h3>{m.label}</h3>
+                        <p className="truncate">{m.sub}</p>
+                      </div>
+                    </div>
+                    <div className="dash-tile-cta hidden md:flex">
+                      Enter <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* TIMELINE STRIP — today's plan */}
+          <section className="mb-16">
+            <div className="flex items-baseline justify-between mb-2">
+              <h2 className="dash-h text-2xl md:text-3xl" style={{ fontWeight: 600 }}>Today's plan</h2>
+              <span className="dash-mono text-[10px] opacity-50 tracking-[0.22em] uppercase">
                 {completedCount}/{sessions.length} complete
               </span>
             </div>
 
-            {sessions.length === 0 && (
-              <div className="premium-card p-8 text-center">
-                <p className="text-muted-foreground text-sm mb-4">Your plan hasn't been built yet.</p>
-                <Link to="/onboarding"><Button className="btn-primary">Complete setup to generate your roadmap</Button></Link>
+            {sessions.length === 0 ? (
+              <div className="p-8 rounded-2xl text-center" style={{ background: "var(--dash-surface)", border: "1px solid var(--dash-line)" }}>
+                <p className="opacity-70 text-sm mb-4">Your plan hasn't been built yet.</p>
+                <Link to="/onboarding"><Button className="rounded-full" style={{ background: "var(--dash-violet)" }}>Complete setup to generate your roadmap</Button></Link>
               </div>
-            )}
+            ) : (
+              <div className="dash-timeline">
+                <div className="dash-timeline-rail">
+                  {sessions.map((s, i) => {
+                    const meta = s.subject ? SUBJECTS[s.subject] : null;
+                    const unitName = meta?.units.find(u => u.number === s.unit_number)?.name;
+                    const isComplete = s.status === "complete";
+                    const isSkipped = s.status === "skipped";
+                    const isInProgress = s.status === "in_progress";
+                    const isNow = s.id === currentId && !isComplete;
+                    const stateClass = isComplete ? "is-done" : isSkipped ? "is-skipped" : isNow ? "is-now" : "";
 
-            {sessions.map((s, i) => {
-              const meta = s.subject ? SUBJECTS[s.subject] : null;
-              const subjClass = s.subject ? subjectClass[s.subject] : "";
-              const unitName = meta?.units.find(u => u.number === s.unit_number)?.name;
-              const isComplete = s.status === "complete";
-              const isInProgress = s.status === "in_progress";
-              const isSkipped = s.status === "skipped";
-
-              return (
-                <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
-                  <div
-                    className={`premium-card ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-accent/40" : ""}`}
-                    style={isSkipped ? { borderLeftColor: "hsl(var(--accent))" } : {}}
-                  >
-                    <div className="flex items-center justify-between text-xs text-muted-foreground font-mono mb-2 tabular">
-                      <span>{formatTime(s.start_time)} – {endTime(s.start_time, s.duration_minutes)}</span>
-                      <span className="flex items-center gap-1.5">
-                        {isComplete ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : <Clock className="h-3.5 w-3.5" />}
-                        <span className="uppercase tracking-wider">
-                          {isComplete ? "Done" : isInProgress ? "In progress" : isSkipped ? "Skipped" : "Focus"} · {s.duration_minutes}m
-                        </span>
-                      </span>
-                    </div>
-
-                    {meta && (
-                      <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1">
-                        {meta.name} · Unit {s.unit_number}
-                      </div>
-                    )}
-                    <div className="text-[17px] font-semibold leading-tight mb-1 font-display">
-                      {s.topic_name || (meta ? unitName : "Mixed practice")}
-                    </div>
-                    <div className="text-xs gold-text mb-3">
-                      Method: {methodLabel[s.method] || s.method}
-                    </div>
-
-                    {s.why_now_text && (
-                      <div className="text-[13px] text-muted-foreground leading-relaxed border-l-2 border-accent/30 pl-3 italic mb-4">
-                        Why now: {s.why_now_text}
-                      </div>
-                    )}
-
-                    {!isComplete && (
-                      <div className="flex flex-wrap gap-2">
-                        {s.subject && (
-                          <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
-                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm rounded-xl" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
-                              <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />
-                              {isInProgress ? "Continue" : "Start session"}
-                            </Button>
-                          </Link>
-                        )}
-                        {!s.subject && (
-                          <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm rounded-xl">
-                            <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />Start
-                          </Button>
-                        )}
-                        <Button variant="outline" onClick={() => updateStatus(s.id, "complete")} className="h-9 px-3 text-sm rounded-xl">
-                          Mark complete
-                        </Button>
-                        <Button variant="ghost" onClick={() => updateStatus(s.id, "skipped")} className="h-9 px-3 text-sm text-muted-foreground rounded-xl">
-                          <SkipForward className="h-3.5 w-3.5 mr-1.5" />Skip
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  {!isComplete && i < sessions.length - 1 && (
-                    <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground font-mono ml-1">
-                      <Coffee className="h-3 w-3" />
-                      {(i + 1) % 4 === 0 ? "Long break — 20 min. Walk. No phone." : "Short break — 5 min. Step away."}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-            {allDone && (
-              <div className="premium-card-gold p-6 mt-4">
-                <div className="flex items-center gap-2 text-success font-bold text-sm mb-2">
-                  <CheckCircle2 className="h-4 w-4" />TODAY'S PLAN COMPLETE
-                </div>
-                <p className="text-[15px] mb-1 font-display">{name}, you finished today's sessions.</p>
-                <p className="text-muted-foreground text-sm">
-                  {nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}
-                </p>
-                <Link to="/roadmap" className="inline-block mt-4">
-                  <Button variant="outline" size="sm" className="rounded-xl">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Right column — Bento widgets */}
-          <aside className="space-y-4 lg:sticky lg:top-14 self-start">
-            {/* Urgency gauge */}
-            <div className="premium-card p-5" data-tutorial="urgency-gauge">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono mb-3 flex items-center gap-2">
-                <span className="h-px w-4 bg-accent" />Urgency
-              </div>
-              <div className="flex items-center gap-4">
-                <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
-                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
-                  <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={urgency.colorVar} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={126} strokeDashoffset={126 * (1 - urgency.score / 100)}
-                    style={{ transition: "stroke-dashoffset 800ms ease-out, stroke 400ms ease-out" }} />
-                </svg>
-                <div>
-                  <div className="font-display text-3xl font-bold tabular" style={{ color: urgency.colorVar }}>{urgency.score}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/ 100</div>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{urgency.message}</p>
-              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">
-                {urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}
-              </p>
-            </div>
-
-            {/* Today's stats */}
-            <div className="premium-card p-5">
-              <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono mb-3 flex items-center gap-2">
-                <span className="h-px w-4 bg-accent" />Today
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sessions</span>
-                  <span className="font-mono tabular font-semibold">{completedCount} / {sessions.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Study time</span>
-                  <span className="font-mono tabular font-semibold gold-text">
-                    {sessions.filter(s => s.status === "complete").reduce((a, s) => a + s.duration_minutes, 0)} min
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Upcoming exams */}
-            <div className="premium-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-mono flex items-center gap-2">
-                  <span className="h-px w-4 bg-accent" />Upcoming exams
-                </div>
-                <Link to="/exams" className="text-[10px] gold-text hover:underline">Manage</Link>
-              </div>
-              {hasExams ? (
-                <div className="space-y-2.5">
-                  {exams.slice(0, 5).map(ex => {
-                    const d = daysFromTodayLocal(ex.exam_date);
-                    const sc = ex.subject;
                     return (
-                      <div key={ex.id} className="flex items-center gap-2.5 text-sm">
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{
-                          background: sc === "mathematics" ? "hsl(var(--subject-maths))"
-                            : sc === "biology" ? "hsl(var(--subject-biology))"
-                            : sc === "chemistry" ? "hsl(var(--subject-chemistry))"
-                            : sc === "physics" ? "hsl(var(--subject-physics))"
-                            : "hsl(var(--muted-foreground))"
-                        }} />
-                        <div className="flex-1 min-w-0 truncate text-xs">{ex.name}</div>
-                        <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
-                          {d}d
-                        </div>
+                      <div key={s.id} className={`dash-tslot ${stateClass}`} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
+                        <div className="dash-tslot-time">{formatTime(s.start_time)} – {endTime(s.start_time, s.duration_minutes)} · {s.duration_minutes}m</div>
+                        {meta && <div className="dash-tslot-meta dash-mono uppercase tracking-wider">{meta.name} · Unit {s.unit_number}</div>}
+                        <div className="dash-tslot-title">{s.topic_name || (meta ? unitName : "Mixed practice")}</div>
+                        <div className="dash-tslot-meta" style={{ color: "var(--dash-violet)" }}>{methodLabel[s.method] || s.method}</div>
+                        {!isComplete && (
+                          <div className="dash-tslot-actions">
+                            {s.subject ? (
+                              <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
+                                <Button onClick={() => startSession(s)} size="sm" className="h-8 rounded-full px-3 text-xs"
+                                        style={{ background: "var(--dash-violet)", color: "#fff" }}
+                                        {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
+                                  <Play className="h-3 w-3 mr-1.5" fill="currentColor" />
+                                  {isInProgress ? "Continue" : "Start"}
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button onClick={() => startSession(s)} size="sm" className="h-8 rounded-full px-3 text-xs" style={{ background: "var(--dash-violet)", color: "#fff" }}>
+                                <Play className="h-3 w-3 mr-1.5" fill="currentColor" />Start
+                              </Button>
+                            )}
+                            <Button onClick={() => updateStatus(s.id, "complete")} size="sm" variant="outline" className="h-8 rounded-full px-3 text-xs border-[rgba(242,239,233,0.18)] bg-transparent hover:bg-white/5 text-[#F2EFE9]">
+                              Done
+                            </Button>
+                            <Button onClick={() => updateStatus(s.id, "skipped")} size="sm" variant="ghost" className="h-8 rounded-full px-2 text-xs text-[rgba(242,239,233,0.55)] hover:bg-white/5">
+                              <SkipForward className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                        {isComplete && (
+                          <div className="dash-tslot-meta flex items-center gap-1.5 mt-2" style={{ color: "#22c55e" }}>
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Done
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
-              ) : (
-                <div className="text-xs text-muted-foreground space-y-2">
-                  <p>No exam dates yet.</p>
-                  <Link to="/exams"><Button size="sm" variant="outline" className="w-full rounded-xl"><CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates</Button></Link>
+              </div>
+            )}
+
+            {allDone && (
+              <div className="mt-6 p-6 rounded-2xl" style={{ background: "var(--dash-surface)", border: "1px solid rgba(124,58,237,0.35)" }}>
+                <div className="flex items-center gap-2 text-sm mb-2" style={{ color: "#22c55e" }}>
+                  <CheckCircle2 className="h-4 w-4" /><span className="dash-mono tracking-widest">TODAY'S PLAN COMPLETE</span>
                 </div>
-              )}
-            </div>
-          </aside>
+                <p className="dash-h text-lg mb-1">{profile?.first_name || "Student"}, you finished today's sessions.</p>
+                <p className="text-sm opacity-70">{nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}</p>
+                <Link to="/roadmap" className="inline-block mt-4">
+                  <Button size="sm" variant="outline" className="rounded-full border-[rgba(242,239,233,0.18)] bg-transparent text-[#F2EFE9] hover:bg-white/5">
+                    See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </section>
         </div>
+
+        {/* FLOATING STATUS BUTTON → drawer */}
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetTrigger asChild>
+            <button className="dash-fab" data-tutorial="urgency-gauge" aria-label="Open status panel">
+              <span className="dash-fab-dot" style={{ background: urgencyColor }} />
+              <span className="dash-mono">URG {urgency.score}</span>
+              <span className="opacity-50">·</span>
+              <Flame className="h-3.5 w-3.5" style={{ color: "var(--dash-amber)" }} />
+              <span className="dash-mono">{profile?.current_streak ?? 0}d</span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="dash-drawer-body w-[360px] sm:w-[400px] p-6 border-l border-[rgba(242,239,233,0.08)]">
+            <div className="space-y-4">
+              <div>
+                <div className="dash-drawer-label mb-2">Status</div>
+                <h3 className="dash-drawer-h text-2xl" style={{ fontWeight: 600 }}>Today's pulse</h3>
+              </div>
+
+              {/* Urgency */}
+              <div className="dash-drawer-card">
+                <div className="dash-drawer-label mb-3">Urgency</div>
+                <div className="flex items-center gap-4">
+                  <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
+                    <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="rgba(242,239,233,0.12)" strokeWidth="8" strokeLinecap="round" />
+                    <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke={urgencyColor} strokeWidth="8" strokeLinecap="round"
+                      strokeDasharray={126} strokeDashoffset={126 * (1 - urgency.score / 100)}
+                      style={{ transition: "stroke-dashoffset 800ms ease-out" }} />
+                  </svg>
+                  <div>
+                    <div className="dash-drawer-h text-3xl tabular-nums" style={{ color: urgencyColor }}>{urgency.score}</div>
+                    <div className="dash-mono text-[10px] opacity-60 tracking-widest">{urgencyLabel}</div>
+                  </div>
+                </div>
+                <p className="text-xs opacity-70 mt-3 leading-relaxed">{urgency.message}</p>
+                <p className="dash-mono text-[10px] opacity-50 mt-1.5">
+                  {urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}
+                </p>
+              </div>
+
+              {/* Today */}
+              <div className="dash-drawer-card">
+                <div className="dash-drawer-label mb-3">Today</div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="opacity-60">Sessions</span><span className="dash-mono">{completedCount} / {sessions.length}</span></div>
+                  <div className="flex justify-between"><span className="opacity-60">Study time</span>
+                    <span className="dash-mono" style={{ color: "var(--dash-amber)" }}>
+                      {sessions.filter(s => s.status === "complete").reduce((a, s) => a + s.duration_minutes, 0)} min
+                    </span>
+                  </div>
+                  <div className="flex justify-between"><span className="opacity-60">Streak</span>
+                    <span className="dash-mono flex items-center gap-1.5"><Flame className="h-3 w-3" style={{ color: "var(--dash-amber)" }} />{profile?.current_streak ?? 0}d</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upcoming exams */}
+              <div className="dash-drawer-card">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="dash-drawer-label">Upcoming exams</div>
+                  <Link to="/exams" onClick={() => setDrawerOpen(false)} className="text-[10px] opacity-70 hover:opacity-100 underline" style={{ color: "var(--dash-amber)" }}>Manage</Link>
+                </div>
+                {hasExams ? (
+                  <div className="space-y-2.5">
+                    {exams.slice(0, 6).map(ex => {
+                      const d = daysFromTodayLocal(ex.exam_date);
+                      const sc = ex.subject;
+                      const dot = sc === "mathematics" ? "#60a5fa" : sc === "biology" ? "#34d399" : sc === "chemistry" ? "#a78bfa" : sc === "physics" ? "#f59e0b" : "rgba(242,239,233,0.4)";
+                      return (
+                        <div key={ex.id} className="flex items-center gap-2.5 text-sm">
+                          <span className="h-2 w-2 rounded-full shrink-0" style={{ background: dot }} />
+                          <div className="flex-1 min-w-0 truncate text-xs">{ex.name}</div>
+                          <div className="dash-mono text-xs" style={{ color: d < 30 ? "var(--dash-amber)" : "var(--dash-text)" }}>{d}d</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-xs opacity-70 space-y-2">
+                    <p>No exam dates yet.</p>
+                    <Link to="/exams" onClick={() => setDrawerOpen(false)}>
+                      <Button size="sm" variant="outline" className="w-full rounded-full border-[rgba(242,239,233,0.18)] bg-transparent text-[#F2EFE9] hover:bg-white/5">
+                        <CalendarPlus className="h-3.5 w-3.5 mr-1.5" />Add exam dates
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
+
       {profile && !profile.tutorial_completed && sessions.length > 0 && (
         <TutorialOverlay
           firstName={profile.first_name || "Student"}
