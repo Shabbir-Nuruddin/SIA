@@ -93,16 +93,12 @@ const Dashboard = () => {
 
   const todayISO = getLocalDateString();
 
-  // Force the icon-rail + hover-expand behavior only while on dashboard. Restore on leave.
+  // Force the icon-rail while on dashboard. Restore on leave.
   const { mode, setMode } = useSidebarMode();
   useEffect(() => {
     const previous = mode;
     if (mode !== "rail") setMode("rail");
-    document.documentElement.dataset.dashboardHoverRail = "true";
-    return () => {
-      delete document.documentElement.dataset.dashboardHoverRail;
-      setMode(previous);
-    };
+    return () => { setMode(previous); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
