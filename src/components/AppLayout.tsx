@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -11,6 +11,7 @@ import { useNotificationScheduler } from "@/lib/useNotificationScheduler";
 import { Loader2 } from "lucide-react";
 
 export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideChrome?: boolean }) => {
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const { user, loading } = useAuth();
   const { pathname } = useLocation();
   useNotificationScheduler();
@@ -26,10 +27,10 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
   const chromeHidden = hideChrome || isExam;
   const hideTodayProgress = pathname.startsWith("/notes");
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background study-shell">
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
-      {!chromeHidden && <AppSidebar />}
+      {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
       <main className="flex-1 overflow-hidden min-w-0 h-screen">{children}</main>
       <PomodoroPill />
       <MusicPlayer />

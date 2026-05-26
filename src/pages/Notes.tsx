@@ -428,15 +428,12 @@ const NotesPage = () => {
 
   return (
     <AppLayout>
-      <div className="flex h-full min-h-0 flex-col animate-fade-in">
-        <div className="flex flex-1 min-h-0 flex-col lg:flex-row lg:gap-6">
-          {/* Sidebar */}
-          <aside className="glass-card rounded-none border-x-0 border-b-0 border-t border-border/70 p-4 lg:order-2 lg:sticky lg:top-0 lg:h-screen lg:w-[336px] lg:shrink-0 lg:overflow-y-auto lg:border-b-0 lg:border-r-0 lg:border-t-0 lg:border-l">
-            <div className="pb-4">
-              <div className="text-[10px] font-mono uppercase tracking-widest text-primary mb-2">Topic Picker</div>
-              <p className="text-sm text-muted-foreground">
-                Pick any topic. We'll generate {board === "cie" ? "Cambridge (CIE)" : "Edexcel"}-grade notes you can highlight, annotate, and export.
-              </p>
+      <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+          <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
+            <div className="mb-5">
+              <div className="text-[10px] uppercase tracking-[0.28em] font-mono text-muted-foreground mb-2">Topic picker</div>
+              <p className="text-sm text-muted-foreground">Choose a subject, unit and topic. The note panel below opens into a full-screen revision canvas.</p>
             </div>
             {Object.entries(groupedBySubject).map(([code, units]) => {
               const m = SUBJECTS[code as SubjectCode];
@@ -446,7 +443,8 @@ const NotesPage = () => {
                 <div key={code} className="overflow-hidden border-t border-border/70 first:border-t-0">
                   <button
                     onClick={() => setOpenSubject(open ? null : (code as SubjectCode))}
-                    className="w-full flex items-center gap-2 py-3 text-left hover:text-primary transition-colors">
+                    className="w-full flex items-center gap-2 py-3 text-left hover:text-primary transition-colors"
+                  >
                     {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                     <span className="text-lg">{m.emoji}</span>
                     <span className="font-semibold text-sm">{m.name}</span>
@@ -457,7 +455,6 @@ const NotesPage = () => {
                         const unitMeta = m.units?.find(x => x.number === u.unit_number);
                         const unitKey = `${code}-${u.unit_number}`;
                         const unitOpen = openUnit === unitKey || (subjectParam === code && unitParam === u.unit_number);
-                        // CIE uses "Paper", Edexcel uses "Unit"
                         const unitLabel = board === "cie" ? "Paper" : board === "cie-igcse" || board === "edexcel-igcse" ? "Section" : "Unit";
                         return (
                           <div key={u.unit_number}>
@@ -475,7 +472,8 @@ const NotesPage = () => {
                                   return (
                                     <button key={t}
                                       onClick={() => selectTopic(code as SubjectCode, u.unit_number, t)}
-                                      className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/15 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}>
+                                      className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}
+                                    >
                                       <FileText className="h-3 w-3 shrink-0" />
                                       <span className="truncate">{t}</span>
                                     </button>
@@ -501,95 +499,94 @@ const NotesPage = () => {
             )}
           </aside>
 
-          {/* Notes panel */}
-          <div className="relative min-h-0 min-w-0 px-4 pb-4 md:px-6 md:pb-6 lg:order-1 lg:flex lg:flex-1 lg:flex-col lg:pl-6 lg:pr-0">
-            <div className="mb-2 flex flex-wrap items-center gap-3 pt-6 md:pt-8">
-              <div className="text-xs text-primary font-mono uppercase tracking-widest flex items-center gap-2">
-                <Sparkles className="h-3 w-3" /> AI Revision Notes
-              </div>
-              {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
-                <Button
-                  onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
-                  variant="outline"
-                  size="sm"
-                  title="Regenerate notes"
-                  className="h-7 shrink-0 px-2 text-[11px]"
-                >
-                  <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
-                </Button>
-              )}
-            </div>
-            <h1 className="mb-4 text-3xl md:text-4xl font-extrabold">Tight, exam-focused notes — on demand.</h1>
-            <div className="relative min-h-0 min-w-0 flex-1">
-            {!subjectParam || !unitParam || !topicParam ? (
-              <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-2xl border-foreground/10 p-12 text-center lg:border-t-0">
+          <div className="flex flex-col min-h-0">
+            <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 mb-6 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-xl font-bold mb-2">Pick a topic to begin.</h3>
-                  <p className="text-muted-foreground">Notes generate in seconds and stay saved to your account.</p>
+                  <div className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground font-mono mb-2">Revision notes</div>
+                  <h1 className="text-3xl md:text-4xl font-extrabold text-foreground">Instant exam-focused notes in one clean canvas.</h1>
+                  <p className="mt-3 text-sm text-muted-foreground max-w-2xl">Every topic expands to a full-width workspace for fast review, annotation and export.</p>
                 </div>
-              </div>
-            ) : loadingNotes ? (
-              <NotesSkeleton topic={topicParam} board={board} />
-            ) : loadError ? (
-              <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-2xl border-foreground/10 p-12 text-center lg:border-t-0">
-                <div>
-                  <AlertTriangle className="h-10 w-10 text-urgent mx-auto mb-4" />
-                  <h3 className="text-xl font-bold mb-2">Notes couldn't load.</h3>
-                  <p className="text-muted-foreground text-sm mb-6">This is on our end, not yours.</p>
-                  <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} className="bg-primary hover:bg-primary/90">
-                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try again
+                {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
+                  <Button
+                    onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
+                    variant="outline"
+                    size="sm"
+                    title="Regenerate notes"
+                    className="h-9 shrink-0 px-3 text-[11px]"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
                   </Button>
-                </div>
-              </div>
-            ) : notes ? (
-              <div className="notebook-paper notes-canvas relative h-full min-h-[520px] overflow-y-auto rounded-2xl border border-foreground/10 p-6 pl-14 shadow-md md:p-10 md:pl-16 lg:border-t-0" ref={panelRef} onMouseUp={handleMouseUp}>
-                <NotesVisualRenderer
-                  notes={notes}
-                  topic={topicParam}
-                  subject={SUBJECTS[subjectParam]?.name ?? subjectParam}
-                  unitLabel={
-                    board === "cie" ? `Paper ${unitParam}` :
-                    board === "cie-igcse" || board === "edexcel-igcse" ? `Section ${unitParam}` :
-                    `Unit ${unitParam}`
-                  }
-                  formatHtml={formatToHtml}
-                  renderMath={renderMathInString}
-                  annotate={annotateHtml}
-                  visuals={visuals}
-                  visualsLoading={loadingVisuals}
-                />
-
-                                {/* Floating selection toolbar */}
-                {selection && !composing && (
-                  <div className="absolute z-30 -translate-x-1/2 -translate-y-full"
-                       style={{ left: selection.x, top: selection.y }}>
-                    <button onClick={startComposing}
-                      className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1.5 hover:bg-primary/90">
-                      <Highlighter className="h-3 w-3" /> Add note
-                    </button>
-                  </div>
                 )}
+              </div>
+            </div>
 
-                {composing && (
-                  <div className="absolute z-30 -translate-x-1/2 w-72"
-                       style={{ left: composing.x, top: composing.y + 8 }}>
-                    <div className="glass-card rounded-lg p-3 shadow-xl border-primary/40">
-                      <div className="text-[10px] uppercase tracking-wider font-mono text-primary mb-1.5">Annotate</div>
-                      <div className="text-xs text-muted-foreground mb-2 italic line-clamp-2">"{composing.text}"</div>
-                      <Textarea value={draftNote} onChange={e => setDraftNote(e.target.value)}
-                        placeholder="Your note…" className="min-h-[60px] text-xs" autoFocus />
-                      <div className="flex gap-2 mt-2 justify-end">
-                        <Button size="sm" variant="ghost" onClick={() => { setComposing(null); setDraftNote(""); }}>Cancel</Button>
-                        <Button size="sm" onClick={saveAnnotation} className="bg-primary hover:bg-primary/90">Save</Button>
+            <div className="flex-1 min-h-[calc(100vh-180px)]">
+              {!subjectParam || !unitParam || !topicParam ? (
+                <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-3xl border border-border/70 bg-card p-12 text-center">
+                  <div>
+                    <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">Pick a topic to begin.</h3>
+                    <p className="text-muted-foreground">Notes generate in seconds and stay saved to your account.</p>
+                  </div>
+                </div>
+              ) : loadingNotes ? (
+                <NotesSkeleton topic={topicParam} board={board} />
+              ) : loadError ? (
+                <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-3xl border border-border/70 bg-card p-12 text-center">
+                  <div>
+                    <AlertTriangle className="h-10 w-10 text-urgent mx-auto mb-4" />
+                    <h3 className="text-xl font-bold mb-2">Notes couldn't load.</h3>
+                    <p className="text-muted-foreground text-sm mb-6">This is on our end, not yours.</p>
+                    <Button onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)} className="bg-primary hover:bg-primary/90">
+                      <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try again
+                    </Button>
+                  </div>
+                </div>
+              ) : notes ? (
+                <div className="notebook-paper notes-canvas relative h-full min-h-[520px] overflow-y-auto rounded-3xl border border-foreground/10 p-6 shadow-lg md:p-10" ref={panelRef} onMouseUp={handleMouseUp}>
+                  <NotesVisualRenderer
+                    notes={notes}
+                    topic={topicParam}
+                    subject={SUBJECTS[subjectParam]?.name ?? subjectParam}
+                    unitLabel={
+                      board === "cie" ? `Paper ${unitParam}` :
+                      board === "cie-igcse" || board === "edexcel-igcse" ? `Section ${unitParam}` :
+                      `Unit ${unitParam}`
+                    }
+                    formatHtml={formatToHtml}
+                    renderMath={renderMathInString}
+                    annotate={annotateHtml}
+                    visuals={visuals}
+                    visualsLoading={loadingVisuals}
+                  />
+
+                  {selection && !composing && (
+                    <div className="absolute z-30 -translate-x-1/2 -translate-y-full" style={{ left: selection.x, top: selection.y }}>
+                      <button onClick={startComposing}
+                        className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1.5 hover:bg-primary/90">
+                        <Highlighter className="h-3 w-3" /> Add note
+                      </button>
+                    </div>
+                  )}
+
+                  {composing && (
+                    <div className="absolute z-30 -translate-x-1/2 w-72" style={{ left: composing.x, top: composing.y + 8 }}>
+                      <div className="glass-card rounded-3xl border border-primary/30 bg-background p-4 shadow-xl">
+                        <div className="text-[10px] uppercase tracking-wider font-mono text-primary mb-1.5">Annotate</div>
+                        <div className="text-xs text-muted-foreground mb-2 italic line-clamp-2">"{composing.text}"</div>
+                        <Textarea value={draftNote} onChange={e => setDraftNote(e.target.value)} placeholder="Your note…" className="min-h-[60px] text-xs" autoFocus />
+                        <div className="flex gap-2 mt-2 justify-end">
+                          <Button size="sm" variant="ghost" onClick={() => { setComposing(null); setDraftNote(""); }}>Cancel</Button>
+                          <Button size="sm" onClick={saveAnnotation} className="bg-primary hover:bg-primary/90">Save</Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <AnnotationTooltipLayer annotations={annotations} container={panelRef} onDelete={deleteAnnotation} />
-              </div>
-            ) : null}
+                  <AnnotationTooltipLayer annotations={annotations} container={panelRef} onDelete={deleteAnnotation} />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

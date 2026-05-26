@@ -37,10 +37,10 @@ const ALL_CLASSES = THEMES.map(t => `theme-${t.name}`);
 
 // Map legacy values from when "theme" was just "dark" | "light".
 const normalise = (raw: string | null | undefined): ThemeName => {
-  if (!raw) return "midnight";
+  if (!raw) return "notebook";
   if (raw === "dark") return "midnight";
   if (THEMES.some(t => t.name === raw)) return raw as ThemeName;
-  return "midnight";
+  return "notebook";
 };
 
 export function applyTheme(name: string | null | undefined) {

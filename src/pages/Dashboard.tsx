@@ -194,165 +194,138 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
-        {/* Hero banner — warm gradient */}
-        <div className="warm-gradient rounded-3xl p-6 md:p-8 mb-6 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 text-[140px] opacity-20 select-none pointer-events-none">📚</div>
-          <div className="text-xs uppercase tracking-[0.2em] font-mono opacity-80">
-            {format(new Date(), "EEEE · d MMMM")}
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl mt-1 leading-tight">
-            {greet}, {name}! <span className="inline-block">📚</span>
-          </h1>
-          <p className="mt-2 text-white/90 text-[15px] max-w-2xl">{greetTail}</p>
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <span className="chip chip-amber"><Flame className="h-3 w-3" />{(profile?.current_streak ?? 0)} day streak</span>
-            {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
-            <span className="chip chip-teal">✓ {completedCount}/{sessions.length} today</span>
+      <div className="dashboard-shell p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="glass-card border border-border/80 bg-background-elevated p-6 md:p-8 mb-6 shadow-xl overflow-hidden">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
+            <div className="space-y-4">
+              <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">Study workspace</div>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground">
+                {greet}, {name} — your revision desk for the day.
+              </h1>
+              <p className="max-w-2xl text-sm text-muted-foreground leading-relaxed">{greetTail}</p>
+              <div className="flex flex-wrap gap-3">
+                <span className="chip chip-amber"><Flame className="h-3 w-3" />{profile?.current_streak ?? 0} day streak</span>
+                {nearestExam && <span className="chip chip-rose">⏳ {days}d to {nearestExam.name}</span>}
+                <span className="chip chip-teal">✓ {completedCount}/{sessions.length} sessions</span>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-3xl border border-border/70 bg-card p-5">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">Next exam</div>
+                <div className="mt-3 text-lg font-semibold text-foreground">{nearestExam?.name ?? "Set your first exam"}</div>
+                <div className="mt-2 text-sm text-muted-foreground">{nearestExam ? `${days} days remaining` : "Open Exams to add dates."}</div>
+              </div>
+              <div className="rounded-3xl border border-border/70 bg-card p-5">
+                <div className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">Today's focus</div>
+                <div className="mt-3 text-lg font-semibold text-foreground">{sessions.length === 0 ? "No sessions yet" : `${pendingCount} open tasks`}</div>
+                <div className="mt-2 text-sm text-muted-foreground">{allDone ? "All done for today. Great work." : "Tap a session to jump into a focused study block."}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {[
-            { to: "/notes",       label: "Continue Notes",     emoji: "📖", color: "violet" },
-            { to: "/questions",   label: "Practice Questions", emoji: "📝", color: "amber"  },
-            { to: "/mock-papers", label: "Mock Paper",         emoji: "🎯", color: "rose"   },
-            { to: "/roadmap",     label: "My Roadmap",         emoji: "🗺️", color: "teal"   },
-          ].map(q => (
-            <Link key={q.to} to={q.to} className={`quick-card ${q.color} block`}>
-              <div className="text-3xl mb-1">{q.emoji}</div>
-              <div className="font-display text-xl leading-tight">{q.label}</div>
-            </Link>
-          ))}
-        </div>
-
-        {!hasExams && (
-          <div className="quick-card amber mb-5 flex flex-wrap items-center gap-3">
-            <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
-            <div className="flex-1 min-w-[200px] text-sm">
-              <div className="font-semibold">No exam dates set yet.</div>
-              <div className="text-muted-foreground text-xs">Add your real exam dates so the roadmap, urgency score, and countdowns reflect what actually matters.</div>
-            </div>
-            <Link to="/exams"><Button size="sm" className="btn-primary rounded-full">Add exam dates</Button></Link>
-          </div>
-        )}
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left column — Today's plan */}
-          <div className="lg:col-span-2 space-y-3">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Today's plan</h2>
-              <span className="text-xs font-mono text-muted-foreground tabular">
-                {completedCount}/{sessions.length} complete
-              </span>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1.5fr_0.95fr]">
+          <section className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { to: "/notes", label: "Notes", emoji: "📖", color: "violet" },
+                { to: "/questions", label: "Practice", emoji: "📝", color: "amber" },
+                { to: "/exams", label: "Exam dates", emoji: "⏳", color: "sky" },
+                { to: "/mock-papers", label: "Mocks", emoji: "🎯", color: "rose" },
+              ].map(q => (
+                <Link key={q.to} to={q.to} className={`quick-card ${q.color} block`}>
+                  <div className="text-3xl mb-1">{q.emoji}</div>
+                  <div className="font-display text-lg leading-tight">{q.label}</div>
+                </Link>
+              ))}
             </div>
 
-            {sessions.length === 0 && (
-              <div className="surface p-8 text-center">
-                <p className="text-muted-foreground text-sm mb-4">Your plan hasn't been built yet.</p>
-                <Link to="/onboarding"><Button className="btn-primary">Complete setup to generate your roadmap</Button></Link>
+            {!hasExams && (
+              <div className="surface p-5 rounded-3xl border border-border/70">
+                <div className="flex items-center gap-3 mb-3 text-sm text-muted-foreground">
+                  <CalendarPlus className="h-5 w-5 text-accent shrink-0" />
+                  <span className="uppercase tracking-[0.24em] font-semibold">Exam dates missing</span>
+                </div>
+                <div className="text-sm text-muted-foreground mb-4">Add your real exam dates so your plan, urgency and countdowns match the exam day.</div>
+                <Link to="/exams"><Button size="sm" className="btn-primary rounded-full">Add exam dates</Button></Link>
               </div>
             )}
 
-            {sessions.map((s, i) => {
-              const meta = s.subject ? SUBJECTS[s.subject] : null;
-              const subjClass = s.subject ? subjectClass[s.subject] : "";
-              const unitName = meta?.units.find(u => u.number === s.unit_number)?.name;
-              const isComplete = s.status === "complete";
-              const isInProgress = s.status === "in_progress";
-              const isSkipped = s.status === "skipped";
+            <div className="surface rounded-3xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground font-mono">Today's plan</div>
+                  <div className="mt-1 text-sm text-muted-foreground">Focused sessions, aligned to your next exam.</div>
+                </div>
+                <span className="text-xs text-muted-foreground font-mono tabular">{completedCount}/{sessions.length} complete</span>
+              </div>
 
-              return (
-                <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})}>
-                  <div
-                    className={`surface ${subjClass} p-5 ${isComplete ? "opacity-50" : ""} ${isInProgress ? "ring-2 ring-primary/40" : ""}`}
-                    style={isSkipped ? { borderLeftColor: "hsl(var(--accent))" } : {}}
-                  >
-                    <div className="flex items-center justify-between text-xs text-muted-foreground font-mono mb-2 tabular">
-                      <span>{formatTime(s.start_time)} – {endTime(s.start_time, s.duration_minutes)}</span>
-                      <span className="flex items-center gap-1.5">
-                        {isComplete ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : <Clock className="h-3.5 w-3.5" />}
-                        <span className="uppercase tracking-wider">
-                          {isComplete ? "Done" : isInProgress ? "In progress" : isSkipped ? "Skipped" : "Focus"} · {s.duration_minutes}m
-                        </span>
-                      </span>
-                    </div>
+              {sessions.length === 0 ? (
+                <div className="rounded-3xl border border-border/70 bg-background p-8 text-center">
+                  <p className="text-muted-foreground text-sm mb-4">Your study plan will appear here once your roadmap is ready.</p>
+                  <Link to="/onboarding"><Button className="btn-primary">Complete setup</Button></Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sessions.map((s, i) => {
+                    const meta = s.subject ? SUBJECTS[s.subject] : null;
+                    const subjClass = s.subject ? subjectClass[s.subject] : "";
+                    const unitName = meta?.units.find(u => u.number === s.unit_number)?.name;
+                    const isComplete = s.status === "complete";
+                    const isInProgress = s.status === "in_progress";
+                    const isSkipped = s.status === "skipped";
 
-                    {meta && (
-                      <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-1">
-                        {meta.name} · Unit {s.unit_number}
-                      </div>
-                    )}
-                    <div className="text-[17px] font-semibold leading-tight mb-1">
-                      {s.topic_name || (meta ? unitName : "Mixed practice")}
-                    </div>
-                    <div className="text-xs text-primary mb-3">
-                      Method: {methodLabel[s.method] || s.method}
-                    </div>
+                    return (
+                      <div key={s.id} {...(i === 0 ? { "data-tutorial": "first-session" } : {})} className="rounded-3xl border border-border/70 bg-card p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground font-mono mb-3 tabular">
+                          <span>{formatTime(s.start_time)} – {endTime(s.start_time, s.duration_minutes)}</span>
+                          <span className="inline-flex items-center gap-2">
+                            {isComplete ? <CheckCircle2 className="h-3.5 w-3.5 text-success" /> : <Clock className="h-3.5 w-3.5" />}
+                            <span className="uppercase tracking-wider">{isComplete ? "Done" : isInProgress ? "In progress" : isSkipped ? "Skipped" : "Focus"} · {s.duration_minutes}m</span>
+                          </span>
+                        </div>
 
-                    {s.why_now_text && (
-                      <div className="text-[13px] text-muted-foreground leading-relaxed border-l-2 border-border pl-3 italic mb-4">
-                        Why now: {s.why_now_text}
-                      </div>
-                    )}
-
-                    {!isComplete && (
-                      <div className="flex flex-wrap gap-2">
-                        {s.subject && (
-                          <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
-                            <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
-                              <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />
-                              {isInProgress ? "Continue" : "Start session"}
-                            </Button>
-                          </Link>
+                        {meta && (
+                          <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-2">{meta.name} · Unit {s.unit_number}</div>
                         )}
-                        {!s.subject && (
-                          <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm">
-                            <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />Start
-                          </Button>
-                        )}
-                        <Button variant="outline" onClick={() => updateStatus(s.id, "complete")} className="h-9 px-3 text-sm">
-                          Mark complete
-                        </Button>
-                        <Button variant="ghost" onClick={() => updateStatus(s.id, "skipped")} className="h-9 px-3 text-sm text-muted-foreground">
-                          <SkipForward className="h-3.5 w-3.5 mr-1.5" />Skip
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                        <div className={`text-[18px] font-semibold leading-tight ${subjClass}`}>{s.topic_name || (meta ? unitName : "Mixed practice")}</div>
+                        <div className="text-xs text-primary mb-3">Method: {methodLabel[s.method] || s.method}</div>
 
-                  {/* Insert short break between focus sessions, long break every 4 */}
-                  {!isComplete && i < sessions.length - 1 && (
-                    <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground font-mono ml-1">
-                      <Coffee className="h-3 w-3" />
-                      {(i + 1) % 4 === 0 ? "Long break — 20 min. Walk. No phone." : "Short break — 5 min. Step away."}
+                        {s.why_now_text && <div className="text-[13px] text-muted-foreground leading-relaxed border-l-2 border-border pl-3 italic mb-4">Why now: {s.why_now_text}</div>}
+
+                        {!isComplete && (
+                          <div className="flex flex-wrap gap-2">
+                            {s.subject ? (
+                              <Link to={`/questions?subject=${s.subject}&unit=${s.unit_number}${s.topic_name ? `&topic=${encodeURIComponent(s.topic_name)}` : ""}`}>
+                                <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm" {...(i === 0 ? { "data-tutorial": "begin-button" } : {})}>
+                                  <Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />{isInProgress ? "Continue" : "Start session"}
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button onClick={() => startSession(s)} className="btn-primary h-9 px-4 text-sm"><Play className="h-3.5 w-3.5 mr-1.5" fill="currentColor" />Start</Button>
+                            )}
+                            <Button variant="outline" onClick={() => updateStatus(s.id, "complete")} className="h-9 px-3 text-sm">Mark complete</Button>
+                            <Button variant="ghost" onClick={() => updateStatus(s.id, "skipped")} className="h-9 px-3 text-sm text-muted-foreground"><SkipForward className="h-3.5 w-3.5 mr-1.5" />Skip</Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {allDone && (
+                    <div className="rounded-3xl border border-border/70 bg-card p-6">
+                      <div className="flex items-center gap-2 text-success font-bold text-sm mb-2"><CheckCircle2 className="h-4 w-4" />TODAY'S PLAN COMPLETE</div>
+                      <p className="text-[15px] mb-1">{name}, you finished today's sessions.</p>
+                      <p className="text-muted-foreground text-sm">{nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}</p>
                     </div>
                   )}
                 </div>
-              );
-            })}
+              )}
+            </div>
+          </section>
 
-            {allDone && (
-              <div className="surface subj-biology p-6 mt-4">
-                <div className="flex items-center gap-2 text-success font-bold text-sm mb-2">
-                  <CheckCircle2 className="h-4 w-4" />TODAY'S PLAN COMPLETE
-                </div>
-                <p className="text-[15px] mb-1">{name}, you finished today's sessions.</p>
-                <p className="text-muted-foreground text-sm">
-                  {nearestExam ? `${days} days remaining until ${nearestExam.name}.` : "Add an exam date to see your countdown."}
-                </p>
-                <Link to="/roadmap" className="inline-block mt-4">
-                  <Button variant="outline" size="sm">See tomorrow's plan <ArrowRight className="ml-1.5 h-3.5 w-3.5" /></Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Right column — Sticky widgets */}
           <aside className="space-y-4 lg:sticky lg:top-14 self-start">
-            {/* Urgency gauge */}
-            <div className="surface p-5" data-tutorial="urgency-gauge">
+            <div className="glass-card rounded-3xl border border-border/70 p-5">
               <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</div>
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
@@ -367,36 +340,21 @@ const Dashboard = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{urgency.message}</p>
-              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">
-                {urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}
-              </p>
+              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">{urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}</p>
             </div>
 
-            {/* Today's stats */}
-            <div className="surface p-5">
+            <div className="glass-card rounded-3xl border border-border/70 p-5">
               <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Today</div>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sessions</span>
-                  <span className="font-mono tabular font-semibold">{completedCount} / {sessions.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Study time</span>
-                  <span className="font-mono tabular font-semibold">
-                    {sessions.filter(s => s.status === "complete").reduce((a, s) => a + s.duration_minutes, 0)} min
-                  </span>
-                </div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Sessions</span><span className="font-mono tabular font-semibold">{completedCount} / {sessions.length}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Study time</span><span className="font-mono tabular font-semibold">{sessions.filter(s => s.status === "complete").reduce((a, s) => a + s.duration_minutes, 0)} min</span></div>
               </div>
             </div>
 
-            {/* Upcoming exams */}
-            <div className="surface p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">Upcoming exams</div>
-                <Link to="/exams" className="text-[10px] text-primary hover:underline">Manage</Link>
-              </div>
+            <div className="glass-card rounded-3xl border border-border/70 p-5">
+              <div className="flex items-center justify-between mb-3"><div className="text-xs uppercase tracking-wider text-muted-foreground font-mono">Upcoming exams</div><Link to="/exams" className="text-[10px] text-primary hover:underline">Manage</Link></div>
               {hasExams ? (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {exams.slice(0, 5).map(ex => {
                     const d = daysFromTodayLocal(ex.exam_date);
                     const sc = ex.subject;
@@ -410,9 +368,7 @@ const Dashboard = () => {
                             : "hsl(var(--muted-foreground))"
                         }} />
                         <div className="flex-1 min-w-0 truncate text-xs">{ex.name}</div>
-                        <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>
-                          {d}d
-                        </div>
+                        <div className="font-mono text-xs tabular font-semibold" style={{ color: d < 30 ? "hsl(var(--accent))" : undefined }}>{d}d</div>
                       </div>
                     );
                   })}

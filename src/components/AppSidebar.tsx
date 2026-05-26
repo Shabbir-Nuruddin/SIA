@@ -183,7 +183,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   );
 };
 
-export const AppSidebar = () => {
+export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: boolean; onClose?: () => void; onOpen?: () => void }) => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
@@ -205,12 +205,32 @@ export const AppSidebar = () => {
         </SheetContent>
       </Sheet>
 
-      <aside
-        className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start"
-        style={{ top: 0, height: "100vh" }}
-      >
-        <SidebarBody />
-      </aside>
+      {visible ? (
+        <aside
+          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start"
+          style={{ top: 0, height: "100vh" }}
+        >
+          <div className="flex items-center justify-between px-3 py-3 border-b border-sidebar-border/70">
+            <div className="text-sm font-semibold text-sidebar-foreground">Menu</div>
+            <button
+              onClick={onClose}
+              className="h-9 w-9 rounded-full border border-sidebar-border/80 bg-background flex items-center justify-center text-sidebar-foreground hover:bg-secondary transition-colors"
+              aria-label="Hide sidebar"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+          </div>
+          <SidebarBody />
+        </aside>
+      ) : (
+        <button
+          onClick={onOpen}
+          className="hidden lg:flex fixed top-4 left-4 z-50 h-10 w-10 rounded-full bg-card border border-border text-sidebar-foreground shadow-lg hover:bg-secondary transition-colors"
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
     </>
   );
 };
