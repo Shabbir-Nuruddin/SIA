@@ -1,0 +1,1595 @@
+{
+  "dataset_name": "Edexcel IAL Physics Unit 1 - Mechanics and Materials (Complete)",
+  "board": "Edexcel IAL",
+  "subject": "Physics",
+  "unit": "Mechanics and Materials",
+  "total_chunks": 127,
+  "chunks": [
+    {
+      "chunk_text": "Scalars have magnitude only. Examples of scalar quantities in mechanics: speed, distance, mass, time, energy, work done, power. Vectors have magnitude and direction. Examples of vector quantities in mechanics: displacement, velocity, acceleration, force, momentum, impulse, weight.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Scalars and Vectors",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Resultant of two perpendicular vectors: use Pythagoras theorem: R = sqrt(A^2 + B^2). Direction given by tan(theta) = opposite/adjacent. For non-perpendicular vectors, use scale diagrams or the cosine rule. Resolving a vector: a vector v at angle theta to the horizontal has horizontal component v cos(theta) and vertical component v sin(theta).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Scalars and Vectors",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Displacement-time graph: gradient = velocity. Velocity-time graph: gradient = acceleration, area under graph = displacement. Acceleration-time graph: area under graph = change in velocity. Always check sign conventions: positive/negative direction must be consistent throughout a calculation.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Motion Graphs",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "SUVAT equations for uniform acceleration in a straight line: v = u + at; s = (u+v)/2 * t; s = ut + 1/2 at^2; v^2 = u^2 + 2as; s = vt - 1/2 at^2. Where s = displacement (m), u = initial velocity (m/s), v = final velocity (m/s), a = acceleration (m/s^2), t = time (s).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Equations of Motion",
+        "resource_type": "formula_sheet",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner tip: Students often confuse distance and displacement. Distance is a scalar; displacement is a vector. In SUVAT, s represents displacement, not total distance travelled. If an object returns to its starting point, displacement s = 0 even if distance travelled is non-zero. Common error: using distance instead of displacement in v^2 = u^2 + 2as.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Equations of Motion",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Determination of g by free-fall methods: measure time of fall from known height using electromagnetic release and timing gates. Use s = ut + 1/2 at^2 with u=0, so h = 1/2 gt^2. Plot h vs t^2; gradient = g/2. Alternatively use v^2 = 2gh by measuring velocity at bottom.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Free Fall",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Projectile motion: horizontal and vertical motions are independent. Horizontal: constant velocity, a=0, so s = vt. Vertical: constant acceleration due to gravity, a = -g (or +g depending on convention), use SUVAT equations. Initial velocity components: ux = u cos(theta), uy = u sin(theta). Time to maximum height: v=0 at top, so 0 = uy - gt => t = uy/g. Range = ux * total time of flight.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Projectile Motion",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme requirement: For projectile questions, marks are awarded for correct resolution into horizontal and vertical components, correct use of appropriate SUVAT equation for vertical motion, correct horizontal displacement calculation, and final answer with correct unit. State the independence of horizontal and vertical motion explicitly for full marks.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Projectile Motion",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Newton's First Law: An object remains at rest or in uniform motion in a straight line unless acted upon by a resultant (net) force. If resultant force = 0, acceleration = 0. This defines equilibrium.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Newton's Laws",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Newton's Second Law: Resultant force = mass x acceleration. F = ma. The acceleration is in the same direction as the resultant force. F must be the resultant of all forces acting on the body. SI unit of force: newton (N) = kg m/s^2.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Newton's Laws",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Newton's Third Law: When body A exerts a force on body B, body B exerts an equal and opposite force on body A. The forces are: equal in magnitude, opposite in direction, of the same type (e.g. both contact or both gravitational), act on different bodies. Common error: confusing N3 pair with balanced forces (which act on the same body).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Newton's Laws",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Weight: W = mg, where m = mass (kg) and g = acceleration due to gravity (m/s^2). Weight is a force, measured in newtons (N). Mass is a scalar measured in kg. Common examiner error seen: using kg in place of N, or treating mass and weight as interchangeable.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Forces",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Free-body diagrams: identify all forces acting on ONE body. Common forces: weight (mg, acting vertically down), normal reaction/contact force (perpendicular to surface), tension (along string/rope), friction/opposing motion (parallel to surface), drag/air resistance (opposing motion). Draw clearly labelled arrows from the centre of mass.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Free-Body Diagrams",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Inclined planes: resolve weight into components parallel to slope = mg sin(theta), and perpendicular to slope = mg cos(theta). Normal reaction R = mg cos(theta) when no other vertical forces. Friction (if present) = mu R where mu is coefficient of friction. Net force parallel to slope = driving force - mg sin(theta) - friction = ma.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Inclined Planes",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (inclined plane example): Weight component down plane = mg sin(30) = 2.0 x 9.81 x 0.5 = 9.81 N. Normal reaction = mg cos(30) = 2.0 x 9.81 x 0.866 = 17.0 N. Friction = mu R = 0.25 x 17.0 = 4.25 N. Net force = 15 - 9.81 - 4.25 = 0.94 N. a = F/m = 0.94/2.0 = 0.47 m/s^2. Marks awarded for each correct step; method marks even with arithmetic slip.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Inclined Planes",
+        "resource_type": "marking_scheme",
+        "year": "2022",
+        "paper_type": "WPH01 June"
+      }
+    },
+    {
+      "chunk_text": "Linear momentum: p = mv. Momentum is a vector quantity (direction matters). Unit: kg m/s or N s. Principle of conservation of linear momentum: In a closed system with no external resultant force, total momentum before collision = total momentum after collision. Write as: m1u1 + m2u2 = m1v1 + m2v2.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Impulse: F delta t = delta (mv) = change in momentum. Impulse equals the area under a force-time graph. Unit: N s or kg m/s. For constant force: impulse = F x t. For varying force: integrate F dt or count squares/area under graph.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Safety applications of impulse: crumple zones, airbags, seatbelts. These increase the time over which momentum changes (delta t increases), so for a given change in momentum, average force F = delta(mv)/delta t decreases. This reduces injury. Examiner expects explicit statement: longer time of impact means smaller force for same change in momentum.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (momentum example): Conservation of momentum: 0.50 x 3.0 + 0 = 0.50 x 1.0 + 1.0 x v. 1.5 = 0.5 + 1.0v. v = 1.0 m/s. KE before = 1/2 x 0.50 x 3.0^2 = 2.25 J. KE after = 1/2 x 0.50 x 1.0^2 + 1/2 x 1.0 x 1.0^2 = 0.75 J. KE not conserved, so inelastic collision. Marks: 1 for momentum equation, 1 for correct substitution, 1 for velocity answer, 2 for energy comparison and conclusion.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "marking_scheme",
+        "year": "2023",
+        "paper_type": "WPH01 June"
+      }
+    },
+    {
+      "chunk_text": "Elastic collision: kinetic energy is conserved. Inelastic collision: kinetic energy is not conserved (some converted to heat/sound/deformation). Momentum is conserved in ALL collisions provided no external forces. Explosions: total momentum after = 0 if initially at rest; objects move in opposite directions.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Collisions",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Moment of a force: M = F x d, where d is the perpendicular distance from the pivot to the line of action of the force. Unit: N m. Principle of moments: For equilibrium, sum of clockwise moments = sum of anticlockwise moments. Centre of gravity: the point where the entire weight of an object appears to act.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Moments",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (moments example): Taking moments about P: RQ x 1.0 = 50 x 0.5 + 30 x 0.3. RQ x 1.0 = 25 + 9 = 34. RQ = 34 N. Total upward = total downward: RP + RQ = 50 + 30 = 80. RP = 80 - 34 = 46 N. Marks: 1 for correct moment equation, 1 for substitution, 1 for RQ, 1 for RP. Taking moments about a sensible point is essential.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Moments",
+        "resource_type": "marking_scheme",
+        "year": "2023",
+        "paper_type": "WPH01 June"
+      }
+    },
+    {
+      "chunk_text": "Work done: W = F x s x cos(theta), where theta is the angle between force and displacement. If force parallel to displacement: W = Fs. Unit: joule (J) = N m. Kinetic energy: Ek = 1/2 mv^2. Gravitational potential energy: delta Ep = mg delta h. Conservation of energy: total energy in a closed system is constant; energy can transfer between forms but not be created or destroyed.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Energy",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Power: P = W / t = work done / time. Also P = F x v (force x velocity). Unit: watt (W) = J/s. Efficiency = (useful power output / total power input) x 100%. For a vehicle moving at constant velocity up a slope: power = total resistive force x velocity, where total force = component of weight down slope + drag/friction.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Power",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (work/energy/power example): Component of weight down slope = 1200 x 9.81 x sin(5) = 1026 N. Total force = 1026 + 400 = 1426 N. Power = F x v = 1426 x 15 = 21390 W = 21 kW (or 2.1 x 10^4 W). Marks: 1 for weight component, 1 for total force, 1 for correct power equation, 1 for final answer with correct unit and sig figs.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Power",
+        "resource_type": "marking_scheme",
+        "year": "2022",
+        "paper_type": "WPH01 January"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common error in power questions is using P = Fv without ensuring the force is the total/driving force required, not just the component of weight. Another common error is forgetting to add resistive forces. Always draw a free-body diagram first.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Power",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Sign errors in momentum conservation. When an object reverses direction after collision, its velocity changes sign. If moving right = positive, after rebounding left it becomes negative. Many students forget this sign change and get wrong answers. Always define a positive direction at the start.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Free-body diagrams are poorly drawn by many candidates. Essential requirements: forces must be labelled with name or symbol (e.g. R, mg, T, F), arrows must start from/touch the body, directions must be correct. Missing forces or incorrect directions lose marks even if subsequent algebra is correct.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Free-Body Diagrams",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Projectile motion errors. Many students try to use the full initial velocity in vertical SUVAT equations instead of resolving first. The vertical component is u sin(theta), not u. Similarly, horizontal motion uses u cos(theta). State the independence of horizontal and vertical motion to gain the method mark.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Projectile Motion",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Unit errors are common and cost marks. Ensure: mass in kg (not g), distance in m (not cm or km), time in s (not minutes), velocity in m/s, force in N. Convert before substituting into equations. Another frequent error: confusing stress and strain, or using mm instead of m for Young's modulus calculations.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Units",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Significant figures. Final answers should typically be given to 2 or 3 significant figures. Use of 1 sig fig or excessive sig figs (e.g. 5 or 6) usually loses the final mark. Use unrounded values throughout intermediate calculations; only round the final answer.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Significant Figures",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Terminal velocity: When drag equals weight, resultant force = 0, acceleration = 0, velocity becomes constant. For a falling object, as speed increases, drag increases until drag = weight. The object then falls at terminal velocity. Drag depends on speed, shape, and cross-sectional area.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Terminal Velocity",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Connected particles/pulleys: For two masses connected by a light inextensible string over a smooth pulley, tension is the same throughout. Apply F=ma to each mass separately: m1g - T = m1a (falling mass) and T - m2g = m2a (rising mass). Add equations to eliminate T: (m1 - m2)g = (m1 + m2)a. Solve for a, then find T.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Connected Particles",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (connected particles): For a smooth light pulley system, marks are awarded for: correct equations for each mass, correct handling of tension and acceleration directions, correct algebra, final answer for acceleration and tension with units. Common error: assuming both masses accelerate at different rates (they must have same magnitude due to inextensible string).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Connected Particles",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Newton's Third Law is frequently misunderstood. A common error is identifying action-reaction pairs as acting on the same body. The two forces in a Newton's Third Law pair always act on DIFFERENT bodies. Balanced forces act on the same body and result in equilibrium. Action-reaction pairs never cancel out because they act on different objects.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Newton's Laws",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Equilibrium conditions: For a body in equilibrium, resultant force = 0 in all directions (sum of forces horizontally = 0, sum vertically = 0), and sum of moments about any point = 0. This gives simultaneous equations to solve for unknown forces or distances.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Equilibrium",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Friction: Limiting friction F = mu R, where mu is coefficient of friction and R is normal reaction. Friction opposes motion or attempted motion. Static friction can vary up to a maximum value. Once applied force exceeds limiting friction, the object moves and kinetic friction applies. On an inclined plane, friction acts up the slope opposing motion down.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Friction",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (friction/inclined plane): To find if a body slides, compare driving component (mg sin theta) with limiting friction (mu mg cos theta). If mg sin theta > mu mg cos theta, the body accelerates down. Acceleration a = g(sin theta - mu cos theta). Marks for: resolving correctly, friction calculation, comparison or net force, final acceleration.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Friction",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Students frequently omit the statement 'By Newton's Second Law' or 'By conservation of momentum' when required by the mark scheme. These principle statements can carry a mark. Always state the physical principle being applied before substituting numbers.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Exam Technique",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Density: rho = m / V. Unit: kg/m^3. Upthrust (Archimedes' principle): upthrust = weight of fluid displaced = rho_fluid x V_displaced x g. For a floating object: weight = upthrust. For a submerged object: apparent weight = true weight - upthrust.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Density and Upthrust",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Viscosity and Stokes' Law: Drag force on a sphere moving through fluid: F = 6 pi eta r v, where eta = viscosity, r = radius, v = velocity. Assumptions: small sphere, laminar flow, homogeneous fluid. Terminal velocity of a falling sphere: when drag + upthrust = weight, so 6 pi eta r v_t + rho_fluid V g = rho_sphere V g. Hence v_t proportional to r^2 for given densities.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Viscosity",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (projectile): A ball is thrown horizontally from a cliff 45 m high with speed 20 m/s. Calculate: (a) time to reach the ground, (b) horizontal distance travelled, (c) speed just before impact. Solution approach: (a) vertically: s = 1/2 gt^2 (u_vert = 0), t = sqrt(2h/g) = sqrt(90/9.81) = 3.0 s. (b) horizontally: s = vt = 20 x 3.0 = 60 m. (c) v_vert = gt = 29.4 m/s; v_resultant = sqrt(20^2 + 29.4^2) = 35.6 m/s.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Projectile Motion",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (Newton's Second Law): A 5.0 kg block on a rough horizontal surface is pulled by a 30 N force at 25 degrees to the horizontal. Coefficient of friction = 0.40. Calculate acceleration. Solution: Resolve 30 N: horizontal = 30 cos(25) = 27.2 N; vertical = 30 sin(25) = 12.7 N. Normal reaction R = mg - 12.7 = 49.05 - 12.7 = 36.4 N. Friction = 0.40 x 36.4 = 14.5 N. Net horizontal force = 27.2 - 14.5 = 12.7 N. a = 12.7/5.0 = 2.5 m/s^2.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Forces",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (momentum/impulse): A force varies with time as shown on a graph (triangle, max 12 N at t=0.4 s, base 0.8 s). Calculate impulse and hence change in velocity of a 2.0 kg object initially at rest. Solution: Impulse = area under graph = 1/2 x base x height = 1/2 x 0.8 x 12 = 4.8 N s. Impulse = m delta v => delta v = 4.8/2.0 = 2.4 m/s. Final velocity = 2.4 m/s.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Momentum",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should be able to determine the resultant of two or more coplanar forces. Students should be able to resolve a force (or velocity) into two perpendicular components. Students should be able to apply the principle of conservation of momentum to collisions and explosions in one dimension.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should understand that acceleration is the rate of change of velocity. Students should be able to derive the equations of motion for uniform acceleration from graphical methods or from calculus (not required for IAL). Students should be able to use motion graphs to solve problems, including finding displacement from area under v-t graph and acceleration from gradient of v-t graph.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should understand Newton's three laws of motion and be able to apply them to situations where mass is constant. Students should be able to identify action-reaction pairs (Newton's Third Law). Students should be able to draw and interpret free-body diagrams showing all forces acting on a body.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Definition questions are often poorly answered. Examiners expect precise wording. For example, momentum should be defined as 'mass x velocity' or 'the product of mass and velocity', not just 'moving mass'. Impulse should be 'force x time' or 'change in momentum', not 'impact'. Always give the formula and units.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Definitions",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme key words for definitions: Momentum - 'mass x velocity' or 'mv' with unit kg m/s. Impulse - 'force x time' or 'change in momentum' or 'F delta t = delta (mv)' with unit N s. Moment - 'force x perpendicular distance from pivot' with unit N m. Work done - 'force x distance moved in direction of force' with unit J. Power - 'work done per unit time' or 'energy transferred per unit time' with unit W.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Definitions",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In moments questions, a common error is taking moments about a point where an unknown force acts, which prevents solving for other unknowns. Choose a pivot that eliminates the unknown you don't need. For example, to find a reaction force at one support, take moments about the other support so the other reaction has zero moment arm.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Moments",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (energy): A car of mass 800 kg accelerates from rest to 25 m/s on a level road. Total resistive force averages 300 N over 400 m. Calculate: (a) kinetic energy gained, (b) work done against resistive force, (c) total work done by engine. Solution: (a) Ek = 1/2 x 800 x 25^2 = 250,000 J. (b) W_resist = 300 x 400 = 120,000 J. (c) W_engine = 250,000 + 120,000 = 370,000 J.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Energy",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Students sometimes apply SUVAT equations to situations where acceleration is not uniform. The SUVAT equations ONLY apply to constant acceleration. For varying acceleration, use graphical methods or calculus. A common error is using a = g for projectile motion throughout, forgetting that at the top of the trajectory acceleration is still g downward (not zero).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Equations of Motion",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Centre of gravity: The point through which the entire weight of a body appears to act. For a uniform regular object, the centre of gravity is at the geometric centre. To find centre of gravity experimentally: suspend object from a point, draw vertical line from pivot; repeat from another point; intersection is centre of gravity. Object will balance when supported at its centre of gravity.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Centre of Gravity",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Couple: A pair of equal and opposite forces whose lines of action do not coincide. A couple produces rotation but no resultant force. Torque of a couple = one force x perpendicular distance between the lines of action. Unit: N m. When a couple acts, there is no translational acceleration, only rotational effect.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Forces and Motion",
+        "topic": "Moments",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Hooke's Law: The extension of a spring is directly proportional to the applied force, provided the elastic limit is not exceeded. Formula: F = k delta x, where k = spring constant (N/m), delta x = extension (m). The limit of proportionality is the point beyond which the force-extension graph is no longer a straight line. Within the elastic region, the spring returns to its original length when the force is removed.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Hooke's Law",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme key words: Hooke's Law must be stated as 'extension is directly proportional to force' or 'F = kx' with the condition 'provided the elastic limit is not exceeded'. For a force-extension graph, the gradient = spring constant k (N/m). The area under the force-extension graph = work done/energy stored in the spring. Unit of k: N m^-1.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Hooke's Law",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Elastic strain energy stored in a spring: For a spring obeying Hooke's Law, E = 1/2 F delta x = 1/2 k (delta x)^2. This equals the area under the force-extension graph (triangle area). Unit: joule (J). If the spring does not obey Hooke's Law, the energy stored equals the total area under the force-extension graph (count squares or integrate).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Elastic Strain Energy",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Springs in series: 1/k_total = 1/k1 + 1/k2 + ... For two springs in series, k_total = (k1 x k2)/(k1 + k2). Springs in parallel: k_total = k1 + k2 + ... The extension of each spring in parallel is the same; the total force is the sum of forces in each spring.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Springs",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Stress: Force per unit cross-sectional area acting perpendicular to the surface. Formula: sigma = F/A. Unit: pascal (Pa) = N/m^2. Strain: Extension per unit original length. Formula: epsilon = delta L / L. No units (dimensionless). Stress and strain are used to characterize material properties independent of sample dimensions.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress and Strain",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Young Modulus: The ratio of stress to strain in the linear/elastic region. Formula: E = sigma / epsilon = (F/A) / (delta L / L) = FL / (A delta L). Unit: pascal (Pa) = N/m^2. Typical values: steel ~200 GPa, copper ~110 GPa, aluminium ~70 GPa, glass ~70 GPa, rubber ~0.01-0.1 GPa. The Young modulus is the gradient of the stress-strain graph in the linear region.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Young Modulus",
+        "resource_type": "formula_sheet",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Young Modulus definitions are often poorly answered. The precise definition is 'the ratio of stress to strain in the elastic/linear region'. Students who omit 'in the elastic region' lose marks because Young modulus is only defined in the linear part of the stress-strain graph. Also, stating E = stress/strain without specifying the linear region is incomplete.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Young Modulus",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Elastic deformation: The material returns to its original shape and size after the deforming force is removed. Plastic deformation: The material does NOT return to its original shape and size after the deforming force is removed; it undergoes permanent deformation. The elastic limit is the maximum stress a material can experience and still return to its original shape. The yield point is the stress at which plastic deformation begins with little or no increase in force.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Elastic and Plastic Deformation",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Stress-strain graph for a ductile material (e.g. mild steel, copper): Region 1 - linear/elastic region (obeying Hooke's Law, gradient = E). Region 2 - limit of proportionality (end of straight line). Region 3 - elastic limit (beyond this, permanent deformation occurs). Region 4 - yield point (material stretches with little force increase). Region 5 - plastic deformation (permanent extension). Region 6 - ultimate tensile stress (maximum stress). Region 7 - necking and fracture/breaking point.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress-Strain Graph",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Brittle materials (e.g. glass, cast iron): show only elastic deformation followed by sudden fracture with little or no plastic region. Stress-strain graph is approximately linear up to the breaking point. Breaking stress (ultimate tensile stress) is the maximum stress the material can withstand before fracture. Stiffness is resistance to deformation; a material with a high Young modulus is stiff.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Material Properties",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (stress/strain graph): For describing a ductile stress-strain graph, marks are awarded for: straight line at start (elastic/Hooke's Law region), gradient = Young modulus, proportional limit/elastic limit point marked, yield point identified, plastic deformation region described, breaking point/ultimate tensile stress identified. For brittle materials: straight line (elastic only) then sudden break with little/no plastic region.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress-Strain Graph",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (Young Modulus): A wire of length 2.50 m and diameter 0.80 mm is stretched by a force of 120 N, causing an extension of 2.4 mm. Calculate the Young modulus. Solution: Cross-sectional area A = pi x (0.40 x 10^-3)^2 = 5.03 x 10^-7 m^2. Stress = F/A = 120 / 5.03 x 10^-7 = 2.39 x 10^8 Pa. Strain = delta L/L = 2.4 x 10^-3 / 2.50 = 9.6 x 10^-4. Young modulus = stress/strain = 2.39 x 10^8 / 9.6 x 10^-4 = 2.49 x 10^11 Pa. Marks: 1 for area, 1 for stress, 1 for strain, 1 for E formula, 1 for final answer with unit.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Young Modulus",
+        "resource_type": "past_paper_question",
+        "year": "2024",
+        "paper_type": "WPH01 January"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: The most common error in Young Modulus calculations is unit conversion failure. Diameter given in mm must be converted to m (x10^-3). Area must be in m^2. Extension in mm must be converted to m. Students who forget these conversions get answers wrong by orders of magnitude. Another common error: using diameter instead of radius in area formula A = pi r^2, giving 4x error.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Young Modulus",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In stress-strain graph questions, students often confuse force-extension graphs with stress-strain graphs. Stress-strain graphs eliminate sample dimensions. The gradient of a stress-strain graph = Young modulus. The area under a stress-strain graph = work done per unit volume (energy density). The area under a force-extension graph = total energy stored.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress-Strain Graph",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Density: rho = m/V. Unit: kg/m^3 or g/cm^3. Conversion: 1 g/cm^3 = 1000 kg/m^3. Density is an intrinsic property; it does not depend on the amount of substance. Typical values: water = 1000 kg/m^3, air ~1.2 kg/m^3, steel ~7850 kg/m^3, aluminium ~2700 kg/m^3.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Density",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Pressure: Force per unit area acting normal (perpendicular) to a surface. Formula: P = F/A. Unit: pascal (Pa) = N/m^2. Pressure is a scalar quantity. Fluid pressure at depth: P = h rho g, where h = depth from surface (m), rho = fluid density (kg/m^3), g = 9.81 m/s^2. Total pressure at depth = fluid pressure + atmospheric pressure (~1.01 x 10^5 Pa at sea level).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Pressure",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Archimedes' Principle: The upthrust on an object immersed in a fluid is equal to the weight of the fluid displaced by the object. Formula: Upthrust = V_displaced x rho_fluid x g. For a fully submerged object, V_displaced = volume of object. For a floating object: weight of object = upthrust. Fraction submerged = rho_object / rho_fluid. Object sinks if rho_object > rho_fluid; floats if rho_object < rho_fluid.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Upthrust",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (upthrust): Marks awarded for: stating Archimedes' principle explicitly (1), calculating volume displaced (1), calculating upthrust = V rho g (1), comparing upthrust with weight (1), correct conclusion about floating/sinking/tension (1). Common error: using object's density instead of fluid's density when calculating upthrust. Upthrust depends on FLUID density.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Upthrust",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (density/pressure): A metal cube of side 2.0 cm has mass 21.6 g. Calculate density in kg/m^3. Solution: Volume = (2.0 cm)^3 = 8.0 cm^3. Density = 21.6 g / 8.0 cm^3 = 2.7 g/cm^3. Convert: 2.7 g/cm^3 = 2700 kg/m^3. Marks: 1 for volume, 1 for density in g/cm^3, 1 for correct conversion to kg/m^3.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Density",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (upthrust/floating): A block of wood of volume 5.0 x 10^-4 m^3 and density 600 kg/m^3 is placed in water of density 1000 kg/m^3. Calculate volume above water. Solution: Weight = 600 x 5.0 x 10^-4 x g. Floating: weight = upthrust. Upthrust = 1000 x V_sub x g. Equate: 600 x 5.0 x 10^-4 = 1000 x V_sub. V_sub = 3.0 x 10^-4 m^3. V_above = 5.0 x 10^-4 - 3.0 x 10^-4 = 2.0 x 10^-4 m^3.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Upthrust",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (pressure): Calculate pressure at 15 m depth in sea water (rho = 1020 kg/m^3). Atmospheric pressure = 1.0 x 10^5 Pa, g = 9.81 m/s^2. Solution: Fluid pressure = h rho g = 15 x 1020 x 9.81 = 150,093 Pa = 1.50 x 10^5 Pa. Total pressure = 1.50 x 10^5 + 1.0 x 10^5 = 2.50 x 10^5 Pa. Marks: 1 for fluid pressure formula, 1 for substitution, 1 for fluid pressure, 1 for adding atmospheric pressure, 1 for final answer with unit.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Pressure",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common mistakes in density questions: failing to convert g/cm^3 to kg/m^3 (multiply by 1000), using wrong volume formula for the shape, confusing mass and weight. In pressure questions: using diameter instead of radius for circular areas, not converting cm^2 or mm^2 to m^2, confusing P=F/A with P=h rho g, forgetting to add atmospheric pressure for total pressure at depth.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Density and Pressure",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common mistakes in upthrust questions: using object's density instead of fluid's density when calculating upthrust, using object's full volume when it is only partially submerged, confusing weight and mass in comparisons, not stating Archimedes' principle explicitly, calculating fraction above water instead of fraction submerged.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Upthrust",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Young Modulus experiment (Core Practical CP 05): Apparatus: long wire clamped at one end, micrometer screw gauge for diameter, metre rule for original length, vernier scale for extension, slotted masses for force. Safety: wear safety goggles, place padded mat below masses. Procedure: measure original length L, measure diameter at several points (mean), calculate A = pi d^2/4, apply loads incrementally recording F and delta x, plot F vs delta x.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Determining Young Modulus from graphs: Method 1 - plot stress vs strain; gradient = E. Method 2 - plot force vs extension; gradient = EA/L, therefore E = gradient x L / A. Critical: ensure extension is in metres before calculating gradient. Measure diameter in two perpendicular directions to check for uniformity. Use long wire to produce larger, more measurable extension. Preload wire to remove kinks before taking official readings.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (Young Modulus experiment description): Marks awarded for: wire diameter measured with micrometer screw gauge (1), original length measured with metre rule (1), extension measured with vernier/travelling microscope (1), cross-sectional area calculated correctly (1), plot graph of force vs extension (1), gradient used to find Young modulus (1), safety precaution mentioned (1). Taking readings while unloading checks for elastic behaviour (no permanent deformation).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Types of error: Random errors - unpredictable variations (e.g. reaction time, fluctuating readings). Reduced by taking repeat readings and calculating a mean. Systematic errors - faulty equipment or poor technique (e.g. zero error, parallax). Reduced by calibrating instruments, checking zero errors, improving technique. Zero error: instrument does not read zero when it should; all readings are offset by the same amount.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Types of Error",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Absolute uncertainty: For analogue instruments (e.g. metre rule, micrometer), uncertainty = +/- half the smallest division. For digital instruments, uncertainty = +/- the last digit (resolution). Example: metre rule smallest division = 1 mm, so uncertainty = +/- 0.5 mm. Micrometer smallest division = 0.01 mm, so uncertainty = +/- 0.005 mm. Percentage uncertainty = (absolute uncertainty / measured value) x 100%.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Uncertainty",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Combining uncertainties: When adding or subtracting quantities, add the ABSOLUTE uncertainties. If z = a + b, then delta z = delta a + delta b. When multiplying or dividing quantities, add the PERCENTAGE uncertainties. If z = a x b or z = a/b, then %delta z = %delta a + %delta b. For powers: if z = a^n, then %delta z = n x %delta a.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Combining Uncertainties",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Example uncertainty calculation for Young Modulus: E = 4FL / (pi d^2 delta x). % uncertainty in E = %F + %L + 2(%d) + %delta x. Diameter contributes TWICE because it is squared. This is the dominant source of uncertainty. To reduce uncertainty in Young modulus: measure diameter more carefully (use micrometer in multiple directions), use longer wire (reduces % uncertainty in extension), measure extension with vernier scale rather than ruler.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Uncertainty",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common errors in uncertainty questions: confusing absolute and percentage uncertainty, adding absolute uncertainties when multiplying/dividing (should add percentages), forgetting to multiply percentage uncertainty by the power when dealing with squared quantities (e.g. area from diameter). Final uncertainty should generally be quoted to 1 significant figure.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Uncertainty",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Graph plotting requirements: Title - clear and descriptive. Axes - label with quantity and unit (e.g. 'Force / N', 'Extension / mm'). Scales - use simple scales (1, 2, 5, 10 units per cm). Do NOT use awkward scales like 3 or 7. Points - plot accurately with fine cross (+) or dot in circle. Line of best fit - thin continuous line; roughly equal points above and below. Check anomalies. Origin - only include (0,0) if it is a valid data point.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Graph Skills",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Calculating gradient from graphs: Pick two points ON THE LINE OF BEST FIT (not from the data table) that are far apart. State the coordinates clearly. Gradient = rise/run = delta y / delta x. Include units. For force-extension graph: gradient = spring constant k (N/m). For stress-strain graph: gradient = Young modulus E (Pa). For h vs t^2 (free fall): gradient = g/2.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Graph Skills",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common graph errors: poor choice of scale (awkward numbers like 3 or 7 per cm), joining dots with a zig-zag instead of a smooth line of best fit, calculating gradient using data table points rather than line-of-best-fit points, not including units on the gradient, not using points far apart on the line (reduces accuracy).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Graph Skills",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Force-extension graph vs stress-strain graph: Force-extension graph (F vs delta x) - gradient = spring constant k (N/m), area = energy stored (J). Stress-strain graph (sigma vs epsilon) - gradient = Young modulus E (Pa), area = work done per unit volume (J/m^3). Stress-strain graph eliminates dependence on sample dimensions, allowing comparison of material properties.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Graph Interpretation",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In practical questions, students often forget to mention safety precautions. Examiners expect: safety goggles (wire may snap), padded mat below masses (protect feet/floor), and secure clamping (prevent wire whipping). Another common omission: not mentioning that readings should be taken while unloading to check for elastic behaviour and detect permanent deformation.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Safety",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Significant figures and decimal places: Record readings to the same number of decimal places as the instrument resolution. Give calculated values to 2-3 significant figures typically. The final uncertainty should generally be quoted to 1 significant figure. Use unrounded values in intermediate calculations; only round the final answer. Standard form is preferred for very large or very small numbers.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Data Analysis",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (material properties comparison): Given two stress-strain curves, compare: Stiffer - higher gradient / higher Young modulus. Stronger - higher breaking stress / ultimate tensile stress. More ductile - larger plastic deformation region before breaking. More brittle - little/no plastic region before breaking. For the same material at different temperatures: higher temperature typically reduces stiffness and increases ductility.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Material Properties",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Definition precision is crucial. 'Force per unit area' alone is NOT sufficient for stress - must say 'per unit cross-sectional area acting perpendicular to the surface'. 'Extension per unit length' is NOT sufficient for strain - must say 'per unit original length'. Omitting 'original' loses marks. Young modulus definition must include 'in the elastic/linear region'.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Definitions",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should understand that Hooke's Law applies to springs and wires in the elastic region. Students should be able to calculate stress, strain, and Young modulus from experimental data. Students should understand the terms elastic limit, yield point, limit of proportionality, ultimate tensile stress, and breaking stress. Students should be able to interpret stress-strain graphs for ductile and brittle materials.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should understand density and be able to use rho = m/V. Students should understand pressure in fluids and be able to use P = h rho g. Students should understand Archimedes' principle and be able to apply it to floating and submerged objects. Students should be able to calculate upthrust and apparent weight.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should understand random and systematic errors. Students should be able to calculate absolute and percentage uncertainties. Students should be able to combine uncertainties for quantities that are added, subtracted, multiplied, divided, or raised to powers. Students should be able to plot and interpret graphs including calculating gradients and areas.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Parallax error: Occurs when the observer's eye is not directly in line with the scale reading. Leads to systematic error. Reduced by: ensuring eye is level with the scale, using instruments with mirrors (e.g. some balances have mirrors so the reading and its reflection coincide), using digital instruments where possible.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Parallax Error",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Improving reliability in experiments: Take repeat readings and calculate a mean (reduces random error). Use appropriate instrument resolution (e.g. vernier caliper instead of ruler for small extensions). Use a longer wire to increase extension (reduces percentage uncertainty). Measure diameter in multiple directions and positions (checks uniformity, allows mean). Control variables (temperature, same wire sample).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Reliability",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (experimental method): For describing how to determine Young modulus, marks are typically awarded for: measure original length with metre rule (1), measure diameter with micrometer at multiple points and calculate mean (1), calculate cross-sectional area (1), apply known forces incrementally and measure extension with appropriate instrument (1), plot suitable graph (1), calculate gradient and hence Young modulus (1), mention safety (1), mention checking elastic behaviour by unloading (1).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Students often forget to state that the wire should be pre-loaded (small initial load to straighten it) before taking official readings. The extension scale should be reset to zero after preloading. Another frequent error: not mentioning that the wire must be thin and long to produce measurable extension, or not explaining why a reference wire (control) is used to compensate for support movement or temperature changes.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (submerged object with tension): A metal sphere of volume 2.0 x 10^-5 m^3 and density 8400 kg/m^3 is held completely submerged in water by a string. Calculate tension. Solution: Weight = 8400 x 2.0 x 10^-5 x 9.81 = 1.648 N. Upthrust = 1000 x 2.0 x 10^-5 x 9.81 = 0.196 N. Equilibrium: T + upthrust = weight. T = 1.648 - 0.196 = 1.45 N. Marks: 1 for weight, 1 for upthrust, 1 for equilibrium equation, 1 for answer.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Upthrust",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (Hooke's Law/spring): A spring has natural length 15 cm. When a 4.0 N load is added, length becomes 19 cm. Calculate: (a) spring constant, (b) energy stored. Solution: (a) Extension = 19 - 15 = 4.0 cm = 0.040 m. k = F/x = 4.0/0.040 = 100 N/m. (b) E = 1/2 k x^2 = 1/2 x 100 x (0.040)^2 = 0.080 J. Alternative: E = 1/2 F x = 1/2 x 4.0 x 0.040 = 0.080 J. Marks: 1 for extension calculation, 1 for k, 1 for energy formula, 1 for answer.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Hooke's Law",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Ductility: The ability of a material to undergo large plastic deformation before breaking. Ductile materials (e.g. copper, mild steel) show a large plastic region on stress-strain graphs. Strength: The maximum stress a material can withstand before fracture (ultimate tensile stress). Stiffness: Resistance to deformation; a material with high Young modulus is stiff. Toughness: Ability to absorb energy before breaking; related to the total area under the stress-strain graph.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Material Properties",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In material comparison questions, students often confuse the terms stiff, strong, ductile, and tough. Stiff = high Young modulus (steep gradient on stress-strain graph). Strong = high breaking stress. Ductile = large plastic deformation before breaking. Tough = large area under stress-strain graph (absorbs much energy). A material can be stiff but brittle (e.g. glass), or strong but not stiff (e.g. rubber).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Material Properties",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Limit of proportionality: The point on a force-extension or stress-strain graph beyond which the graph is no longer a straight line. Hooke's Law is obeyed up to this point. The elastic limit is the maximum extension/stress beyond which the material will not return to its original shape. For many materials, the limit of proportionality and elastic limit are close together. Beyond the elastic limit = plastic deformation.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Elastic Limit",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Viscosity and fluid drag: Drag force depends on fluid viscosity, object speed, size, and shape. For a sphere at low speed (laminar flow), Stokes' Law: F = 6 pi eta r v, where eta = viscosity, r = radius, v = speed. At higher speeds, drag is approximately proportional to v^2. Terminal velocity occurs when drag + upthrust = weight. For a falling sphere in viscous fluid: v_t = 2 r^2 g (rho_sphere - rho_fluid) / (9 eta).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Viscosity",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: Common error in Stokes' Law questions: using diameter instead of radius. F = 6 pi eta r v uses r, not d. Another common error: not including upthrust in the terminal velocity force balance. The correct balance is weight = drag + upthrust. Terminal velocity is reached when the net force is zero, not when drag alone equals weight.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Viscosity",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (uncertainty): A student measures wire diameter as 0.42 mm using a micrometer (resolution 0.01 mm). Original length = 2.15 m (metre rule, resolution 1 mm). Extension = 3.2 mm (vernier, resolution 0.1 mm). Calculate percentage uncertainty in Young modulus. Solution: %d = (0.005/0.42) x 100 = 1.19%. %L = (0.5/2150) x 100 = 0.023%. %x = (0.05/3.2) x 100 = 1.56%. %E = %F + %L + 2(%d) + %x = 0 + 0.023 + 2(1.19) + 1.56 = 3.96% ~ 4%.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Uncertainty",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Stokes' Law experiment to determine viscosity: Apparatus: tall measuring cylinder with fluid, small ball bearings of known radius, micrometer or digital calliper for measuring ball diameter, metre rule, stopwatch or timing gates, marker lines on cylinder. Method: measure ball diameter, drop ball into fluid, time fall between two marks at known separation, calculate terminal velocity v = distance/time. Use v_t = 2 r^2 g (rho_sphere - rho_fluid) / (9 eta) to find eta.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Viscosity Experiment",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In Stokes' Law experiments, students often fail to state the assumptions: small sphere, laminar flow (low Reynolds number), homogeneous fluid, sphere falls at terminal velocity. To ensure terminal velocity is reached, the distance between marker lines must be large enough. Using too small a distance means the ball may still be accelerating when timed. Temperature must be constant as viscosity is temperature-dependent.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Viscosity Experiment",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme key (definitions - Materials): Stress = force per unit cross-sectional area (Pa). Strain = extension per unit original length (no units). Young modulus = stress/strain in the elastic region (Pa). Hooke's Law = extension is directly proportional to force, provided elastic limit is not exceeded. Elastic deformation = returns to original shape. Plastic deformation = permanent deformation. Ultimate tensile stress = maximum stress before fracture.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Definitions",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: When asked to explain why a longer wire is better for Young modulus experiments, many students simply say 'bigger extension' without explaining that this reduces the percentage uncertainty in the extension measurement. The key mark is for 'percentage uncertainty is reduced' or 'extension is more measurable'. Similarly, measuring diameter in two perpendicular directions is to check the wire is circular and uniform, not just to 'get a better reading'.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Young Modulus Experiment",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Syllabus statement: Students should be able to describe experiments to determine the Young modulus of a material. Students should understand how to reduce uncertainties in measurements of length, diameter, and extension. Students should be able to analyze force-extension data and stress-strain data graphically. Students should understand the distinction between accuracy and precision.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Syllabus Requirements",
+        "resource_type": "syllabus",
+        "year": "2018",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Accuracy vs Precision: Accuracy refers to how close a measurement is to the true value. Precision refers to how close repeated measurements are to each other (reproducibility). A measurement can be precise but not accurate (systematic error), or accurate but not precise (large random error). Validity refers to whether the experiment actually tests what it claims to test, with appropriate control of variables.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Accuracy and Precision",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Micrometer screw gauge: Range typically 0-25 mm, resolution 0.01 mm, uncertainty +/- 0.005 mm. Check for zero error by closing the jaws fully; if the reading is not zero, subtract this zero error from all readings. Measure diameter of wire at several points along its length and in two perpendicular directions to check uniformity. Calculate mean diameter before finding area.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Instruments",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Vernier scale / digital calliper: Resolution typically 0.1 mm (vernier) or 0.01 mm (digital). Used for measuring small extensions or diameters. Zero error must be checked and corrected. For Young modulus experiments, a travelling microscope or vernier scale attached to the wire setup can measure extension more precisely than a metre rule.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Instruments",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Mark scheme (data analysis): For a question requiring analysis of experimental data to find Young modulus: 1 mark for correctly calculating cross-sectional area from diameter, 1 mark for correctly calculating stress values, 1 mark for correctly calculating strain values, 1 mark for correct graph axes and plotting, 1 mark for gradient calculated correctly from line of best fit, 1 mark for final Young modulus with correct unit (Pa or GPa).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Data Analysis",
+        "resource_type": "marking_scheme",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: In data analysis questions, students often lose marks for not converting units consistently. All length measurements must be in metres before calculating stress, strain, or Young modulus. Another common error: using the extension rather than the original length in the strain calculation. Strain = extension/original length, NOT extension/extension. Also, students sometimes forget to square the radius when calculating area (A = pi r^2).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Experimental Methods",
+        "topic": "Data Analysis",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Fluid flow: Laminar flow occurs at low speeds where fluid moves in parallel layers with no disruption. Turbulent flow occurs at higher speeds with chaotic eddies and vortices. The Reynolds number determines flow regime; Stokes' Law only applies for laminar flow (low Reynolds number). Streamlining reduces drag by promoting laminar flow around objects.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Fluid Flow",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    },
+    {
+      "chunk_text": "Past paper question pattern (stress-strain graph analysis): Given a stress-strain graph for steel: (a) Identify the Young modulus from the linear region, (b) identify the yield point, (c) calculate the energy stored per unit volume up to a given strain. Solution: (a) E = gradient of linear region = delta sigma / delta epsilon. (b) Yield point = where curve drops/flattening begins. (c) Energy per unit volume = area under graph up to that strain. For linear region: area = 1/2 x stress x strain.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress-Strain Graph",
+        "resource_type": "past_paper_question",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Examiner feedback: When calculating energy from a stress-strain graph, many students incorrectly use 1/2 x base x height for the entire graph when the graph is non-linear. The area under a non-linear graph must be found by counting squares or using the trapezium rule, not by using a simple triangle formula. Also, the energy stored per unit volume has units of J/m^3, which is equivalent to Pa (since 1 Pa = 1 N/m^2 = 1 J/m^3).",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Stress-Strain Graph",
+        "resource_type": "examiner_report",
+        "year": "2019-2024",
+        "paper_type": "WPH01"
+      }
+    },
+    {
+      "chunk_text": "Tensile vs compressive stress: Tensile stress stretches a material (pulling forces). Compressive stress squeezes a material (pushing forces). Brittle materials (e.g. concrete, cast iron) are typically stronger in compression than in tension. Ductile materials can withstand both tension and compression, though their behaviour differs. The stress-strain curve for compression is generally similar in the elastic region but may differ in the plastic region.",
+      "metadata": {
+        "board": "Edexcel IAL",
+        "subject": "Physics",
+        "unit": "Mechanics and Materials",
+        "chapter": "Materials",
+        "topic": "Material Properties",
+        "resource_type": "syllabus_notes",
+        "year": "N/A",
+        "paper_type": "N/A"
+      }
+    }
+  ]
+}

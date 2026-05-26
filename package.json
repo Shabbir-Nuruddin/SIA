@@ -10,7 +10,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "supabase:version": "cmd /c supabase --version",
+    "supabase:start": "cmd /c supabase start",
+    "supabase:stop": "cmd /c supabase stop",
+    "supabase:status": "cmd /c supabase status",
+    "supabase:db:reset": "cmd /c supabase db reset",
+    "supabase:functions:serve": "cmd /c supabase functions serve --env-file supabase/functions/.env.local",
+    "supabase:link": "cmd /c supabase link --project-ref womqjniplkfthbxkzlkb"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -50,6 +57,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.40.0",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "katex": "^0.16.45",

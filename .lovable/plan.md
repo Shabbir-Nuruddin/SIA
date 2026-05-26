@@ -1,42 +1,26 @@
-# Roadmap + Smart Calendar Rebuild
+## Dashboard UI redesign — command-center layout
 
-Two large features. I'll phase them so you see something working quickly, not wait 3 days for one mega-drop.
+**Scope:** `src/pages/Dashboard.tsx` and a thin restyle of `AppLayout.tsx` / `AppSidebar.tsx` chrome on the dashboard route only. No routing, Supabase, auth, handler, or copy changes. No new components or pages.
 
-## Phase 1 — Roadmap canvas (MVP, ~1 build)
+### 5-bullet plan
 
-**Tech:** `@xyflow/react` (React Flow). Inherits existing theme tokens (no new palette). Mounted inside the existing `/roadmap` page shell.
+1. **Chrome:** On `/dashboard`, force the sidebar into a 64px icon-rail that expands on hover (override current `mmr-sidebar-mode` just for this route via a local wrapper — global toggle behavior preserved). Add a minimal dark top bar with logo, urgency score chip, streak chip, and exam countdown chip. Remove the existing greeting/hero banner.
 
-**Data source:** existing `user_subjects` + `roadmap_nodes` + `topic_progress` + `exams` tables. No schema changes yet.
+2. **Module tiles:** Replace the 4-card quick-access row with 5 stacked full-width immersive tiles (~120px tall) for Notes, Practice (Topical Questions), Mock Paper, Roadmap, Podcast — each edge-to-edge, subtle grain overlay, unique tinted background drawn from the palette, large Playfair section label + Inter meta. Reuses existing `<Link>` targets.
 
-**Build:**
-- Subject tabs at top (+ "All Subjects") — pulled from `user_subjects`, colors from existing `SUBJECTS` map.
-- Graph layout: central "Current Grade" node → subject cluster nodes → unit nodes → topic nodes. Curved bezier edges, subject-tinted.
-- Node states: locked / available / in-progress / complete / weak / has-notes (badge icons).
-- Pan + scroll-zoom + pinch-zoom + minimap (all free from React Flow).
-- Click node → side drawer (not modal) with: topic summary (from `topic_notes` if exists, else AI via existing `ai-notes` function), 3 progressive questions (existing `ai-question` fn), exit check (3 Qs), "Mark weak" toggle.
-- Unlock logic: a node becomes `available` only when all `prerequisites[]` are `complete`. Exit-check pass → mark complete + unlock next (trigger `unlock_next_node` already exists).
-- Exam urgency banner: if any `exams.exam_date` within 60 days, re-rank that subject's available nodes by past-paper frequency (use existing topic priority from `roadmap.ts`).
-- Right-click / long-press → "Mark as Weak Topic" (writes `topic_progress.weak_flag`).
+3. **Today's Plan → timeline strip:** Re-render the existing sessions list as a single horizontal scrollable timeline (time markers along a rail, session pills anchored to start times, current/next session highlighted). Same data, same Start/Skip/Complete actions, just restyled.
 
-**Skip in Phase 1:** remedial branches, AI-generated graph regeneration, advanced ZPD scoring. Stub these with TODOs.
+4. **Right panel → slide-in drawer:** Move Urgency arc, Today summary, and Upcoming exams into a right-side Sheet drawer triggered by a floating status button (bottom-right) that shows urgency level dot + streak count. No data changes.
 
-## Phase 2 — Smart Calendar (next build)
+5. **Palette + type:** Add a scoped `.dashboard-shell` style block applying charcoal `#0E0E11`, warm off-white `#F2EFE9`, violet `#7C3AED`, amber `#F59E0B`, Playfair Display headers + Inter UI — scoped to the dashboard only so the rest of the app (Emerald Prestige) is untouched.
 
-**Tech:** `react-big-calendar` themed with existing tokens. Replaces current calendar tab entirely.
+### ⚠️ Conflicts with existing project memory — need your call before I build
 
-**Build:**
-- Month / Week / Day views (Week default on mobile).
-- Drag-select availability on Week view (replaces checkbox grid). Stored as new `user_availability` table (recurring + one-off).
-- Event types: study_session, blocked_time, academic_event (read-only mirror of `exams`), personal_event. New `calendar_events` table.
-- Auto-scheduler: on save, runs existing `buildRoadmap()` logic, slots sessions into free blocks, prioritizes weak topics + upcoming exams, respects manual overrides (flag `is_manual_override`).
-- Drag-to-reschedule, "Start Now" button opens roadmap node drawer.
-- Weak Topics side panel (collapsible) + lightweight to-do list (new `todos` table, rollover on incomplete).
+Project memory locks the global theme to **Emerald Prestige** (emerald + gold, Space Grotesk + DM Sans, *never Inter as primary*). Your brief specifies violet + amber and Inter + Playfair. Two options:
 
-## What I need from you before I start
+- **A. Scoped override (recommended):** apply the new palette/fonts only inside the dashboard route; rest of app stays Emerald Prestige. Cleanest, no memory rewrite.
+- **B. Global swap:** retheme the whole app to charcoal/violet and update memory. Bigger blast radius, affects every page we already built.
 
-1. **Phase 1 first, then Phase 2 in a separate message?** (Recommended — each is 1–2 hours of build.) Or attempt both in one mega-drop?
-2. **React Flow OK?** It's the standard for this. Adds ~80kb. Alternative is hand-rolled SVG (slower to build, less polished).
-3. **Existing roadmap page** — there's currently `Roadmap.tsx` with a calendar-style view and `RoadmapCalendar.tsx`. Confirm I should **delete** both and replace, not keep as a fallback.
-4. **Pending fixes from the last thread** (Instagram story export polish, mobile overlap fixes, music player) — do those still need to ship, or are we parking them while we build this?
+Also: brief says "do not add new components" — the slide-in drawer uses the existing shadcn `Sheet` primitive, no new component file. Confirm that's fine.
 
-Once you answer, I'll start Phase 1 immediately.
+Reply **A** or **B** (and confirm Sheet usage) and I'll build it.

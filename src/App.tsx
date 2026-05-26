@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { SidebarModeProvider } from "@/lib/sidebarMode";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
 
@@ -42,10 +43,11 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <SidebarModeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -80,8 +82,9 @@ const App = () => (
             <Route path="/clarity-compass/profile" element={<RequireAdmin><ClarityProfile /></RequireAdmin>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </SidebarModeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

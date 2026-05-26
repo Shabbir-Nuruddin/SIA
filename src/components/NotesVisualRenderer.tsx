@@ -5,11 +5,11 @@
  * blackboard equations, and a 3D-flip flashcard deck.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
-  PencilLine, Eye, RotateCcw, Image as ImageIcon,
+  PencilLine, Eye, RotateCcw,
 } from "lucide-react";
 import { NotesVisualMap, WikimediaVisual } from "@/lib/wikimediaVisuals";
 
@@ -74,18 +74,21 @@ const subjectMeta = (subjectName: string) => {
 // ─── Sticky badge ─────────────────────────────────────────────────────────────
 const VisualPreview = ({ visual, compact = false }: { visual: WikimediaVisual; compact?: boolean }) => (
   <figure className={`mt-4 overflow-hidden rounded-xl border border-foreground/10 bg-card shadow-sm ${compact ? "" : "md:grid md:grid-cols-[minmax(220px,340px)_1fr]"}`}>
-    <div className="bg-muted/40">
+    <button
+      type="button"
+      className="bg-muted/40 text-left transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+      onClick={() => {
+        window.dispatchEvent(new CustomEvent("notes-image-preview", { detail: visual }));
+      }}
+    >
       <img
         src={visual.imageUrl}
         alt={visual.title}
         loading="lazy"
         className={`w-full object-contain ${compact ? "max-h-56" : "max-h-72 md:h-full"}`}
       />
-    </div>
+    </button>
     <figcaption className="p-3 text-xs leading-relaxed text-muted-foreground">
-      <div className="mb-1 flex items-center gap-1.5 font-bold uppercase tracking-wider text-foreground/70">
-        <ImageIcon className="h-3.5 w-3.5" /> AI generated image
-      </div>
       <div className="font-medium text-foreground/85">{visual.title}</div>
     </figcaption>
   </figure>
@@ -439,6 +442,16 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 // ─── Main renderer ────────────────────────────────────────────────────────────
 export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals, visualsLoading = false }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
+  const [preview, setPreview] = useState<WikimediaVisual | null>(null);
+
+  useEffect(() => {
+    const openPreview = (event: Event) => {
+      const custom = event as CustomEvent<WikimediaVisual>;
+      if (custom.detail?.imageUrl) setPreview(custom.detail);
+    };
+    window.addEventListener("notes-image-preview", openPreview as EventListener);
+    return () => window.removeEventListener("notes-image-preview", openPreview as EventListener);
+  }, []);
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
@@ -491,6 +504,31 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
           </section>
         );
       })}
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPreview(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+        >
+          <div className="relative max-h-[92vh] max-w-[96vw]" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setPreview(null)}
+              className="absolute -right-2 -top-2 z-10 rounded-full bg-background px-2 py-1 text-xs font-semibold shadow-md hover:bg-muted"
+            >
+              Close
+            </button>
+            <img
+              src={preview.imageUrl}
+              alt={preview.title}
+              className="max-h-[92vh] max-w-[96vw] rounded-lg object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

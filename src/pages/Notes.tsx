@@ -246,6 +246,31 @@ const NotesPage = () => {
     };
   }, [notes, board, subjectParam, unitParam, topicParam, SUBJECTS]);
 
+  useEffect(() => {
+    const imageUrls = Object.values(visuals.definitions || {})
+      .map((visual) => visual?.imageUrl)
+      .filter((url): url is string => typeof url === "string" && url.length > 0);
+    if (imageUrls.length === 0) return;
+
+    let cancelled = false;
+    const preloadSequentially = async () => {
+      for (const url of imageUrls) {
+        if (cancelled) return;
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = url;
+        });
+      }
+    };
+
+    preloadSequentially();
+    return () => {
+      cancelled = true;
+    };
+  }, [visuals]);
+
   const STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
   const loadOrGenerate = async (subject: SubjectCode, unit: number, topic: string, forceRefresh = false) => {
