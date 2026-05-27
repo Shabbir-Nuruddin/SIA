@@ -115,9 +115,11 @@ const RoadmapPage = () => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
-  const [mainView, setMainView] = useState<"journey" | "roadmap" | "calendar">("journey");
+  const [mainView, setMainView] = useState<"workspace" | "journey" | "roadmap" | "calendar">("workspace");
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+  const [challengeNode, setChallengeNode] = useState<RoadmapNodeRow | null>(null);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
 
   const load = async () => {
     if (!user) return;
