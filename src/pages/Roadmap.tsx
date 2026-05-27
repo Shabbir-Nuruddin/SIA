@@ -667,7 +667,35 @@ const RoadmapPage = () => {
           </div>
         )}
       </div>
+
+      {/* Challenge drawer — generates questions in-place, no navigation away */}
+      <Sheet open={!!challengeNode} onOpenChange={(o) => !o && setChallengeNode(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-accent" />
+              Challenge mode
+            </SheetTitle>
+            <SheetDescription>
+              {challengeNode?.topic_name
+                ? <>Hard questions on <span className="text-foreground font-semibold">{challengeNode.topic_name}</span> — marked instantly.</>
+                : "Fresh challenge questions, marked instantly."}
+            </SheetDescription>
+          </SheetHeader>
+          {challengeNode && (
+            <ChallengeRunner
+              key={challengeNode.id}
+              subject={challengeNode.subject as any}
+              topic={challengeNode.topic_name}
+              unitNumber={challengeNode.unit_number ?? undefined}
+              difficulty="Challenge"
+              total={5}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </AppLayout>
+
   );
 };
 
