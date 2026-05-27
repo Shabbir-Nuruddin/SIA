@@ -402,10 +402,12 @@ const RoadmapPage = () => {
             {/* View switcher */}
             <div className="flex gap-2 mt-5 flex-wrap">
               {[
-                { id: "journey",  label: "Journey",  Icon: MapIcon },
-                { id: "roadmap",  label: "List",     Icon: BookOpen },
-                { id: "calendar", label: "Calendar", Icon: Calendar },
+                { id: "workspace", label: "Workspace", Icon: LayoutGrid },
+                { id: "journey",   label: "Journey",   Icon: MapIcon },
+                { id: "roadmap",   label: "List",      Icon: BookOpen },
+                { id: "calendar",  label: "Calendar",  Icon: Calendar },
               ].map(v => (
+
                 <button
                   key={v.id}
                   onClick={() => setMainView(v.id as any)}
