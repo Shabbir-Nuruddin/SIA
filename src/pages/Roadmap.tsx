@@ -464,6 +464,34 @@ const RoadmapPage = () => {
           </div>
         </header>
 
+        {mainView === "workspace" && (
+          <RoadmapWorkspace
+            nodes={nodes}
+            exams={exams as any}
+            defaultSubject={(nearestExam?.subject as any) ?? undefined}
+            onChallenge={(node) => setChallengeNode(node)}
+            onStartLearn={(node) => {
+              if (node.node_type === "learn") {
+                window.dispatchEvent(new CustomEvent("apex-assistant-context", {
+                  detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
+                }));
+                navigate(`/roadmap/topic/${node.id}/notes`);
+              } else if (node.node_type === "mock") {
+                navigate(`/mock-papers/new?subject=${node.subject}&unit=${node.unit_number}`);
+              } else {
+                setActiveNodeId(node.id);
+              }
+            }}
+            onMarkComplete={async (node) => {
+              await updateNodeStatus(node.id, { status: "complete", completed_at: new Date().toISOString() } as any);
+            }}
+            onMarkSkipped={async (node) => {
+              await updateNodeStatus(node.id, { status: "skipped" } as any);
+            }}
+            onReload={load}
+          />
+        )}
+
         {mainView === "journey" && (
           <div className="px-2 md:px-6 py-6 md:py-10">
             <AnimatedJourney
@@ -471,10 +499,9 @@ const RoadmapPage = () => {
                 ? nodes.filter(n => grouped.slice(0, 3).some(([d]) => d === n.scheduled_date))
                 : nodes}
               exam={nearestExam}
-              onChallenge={(node) => {
-                navigate(`/questions?subject=${node.subject}&unit=${node.unit_number}&topic=${encodeURIComponent(node.topic_name ?? "")}&node=${node.id}&difficulty=hard&challenge=1`);
-              }}
+              onChallenge={(node) => setChallengeNode(node)}
             />
+
           </div>
         )}
 
