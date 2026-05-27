@@ -314,14 +314,6 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#10b981] shadow-sm hover:shadow-xl transition-all">
-              <div className="text-4xl mb-6">📝</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Topic Generators</h3>
-              <p className="text-[#45474c] text-sm leading-relaxed">
-                Instantly generate 10 fresh questions for any sub-unit. Complete them, get marked, and track your
-                syllabus mastery in real-time.
-              </p>
-            </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#3b82f6] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">📊</div>

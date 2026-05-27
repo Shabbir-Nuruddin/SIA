@@ -13,13 +13,19 @@ import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/li
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import RoadmapCalendar from "@/components/RoadmapCalendar";
 import { AnimatedJourney } from "@/components/AnimatedJourney";
+import { RoadmapWorkspace } from "@/components/RoadmapWorkspace";
+import { ChallengeRunner } from "@/components/ChallengeRunner";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
+
 
 const SUBJECT_DOT: Record<SubjectCode, string> = {
   mathematics: "#3B82F6",
@@ -109,9 +115,11 @@ const RoadmapPage = () => {
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const [activeStartStage, setActiveStartStage] = useState<"notes" | "elaboration">("notes");
   const [openBadge, setOpenBadge] = useState<string | null>(null);
-  const [mainView, setMainView] = useState<"journey" | "roadmap" | "calendar">("journey");
+  const [mainView, setMainView] = useState<"workspace" | "journey" | "roadmap" | "calendar">("workspace");
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
+  const [challengeNode, setChallengeNode] = useState<RoadmapNodeRow | null>(null);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
 
   const load = async () => {
     if (!user) return;
@@ -394,10 +402,12 @@ const RoadmapPage = () => {
             {/* View switcher */}
             <div className="flex gap-2 mt-5 flex-wrap">
               {[
-                { id: "journey",  label: "Journey",  Icon: MapIcon },
-                { id: "roadmap",  label: "List",     Icon: BookOpen },
-                { id: "calendar", label: "Calendar", Icon: Calendar },
+                { id: "workspace", label: "Workspace", Icon: LayoutGrid },
+                { id: "journey",   label: "Journey",   Icon: MapIcon },
+                { id: "roadmap",   label: "List",      Icon: BookOpen },
+                { id: "calendar",  label: "Calendar",  Icon: Calendar },
               ].map(v => (
+
                 <button
                   key={v.id}
                   onClick={() => setMainView(v.id as any)}
@@ -454,6 +464,34 @@ const RoadmapPage = () => {
           </div>
         </header>
 
+        {mainView === "workspace" && (
+          <RoadmapWorkspace
+            nodes={nodes}
+            exams={exams as any}
+            defaultSubject={(nearestExam?.subject as any) ?? undefined}
+            onChallenge={(node) => setChallengeNode(node)}
+            onStartLearn={(node) => {
+              if (node.node_type === "learn") {
+                window.dispatchEvent(new CustomEvent("apex-assistant-context", {
+                  detail: { topic: node.topic_name, subject: node.subject, unit_name: node.unit_name },
+                }));
+                navigate(`/roadmap/topic/${node.id}/notes`);
+              } else if (node.node_type === "mock") {
+                navigate(`/mock-papers/new?subject=${node.subject}&unit=${node.unit_number}`);
+              } else {
+                setActiveNodeId(node.id);
+              }
+            }}
+            onMarkComplete={async (node) => {
+              await updateNodeStatus(node.id, { status: "complete", completed_at: new Date().toISOString() } as any);
+            }}
+            onMarkSkipped={async (node) => {
+              await updateNodeStatus(node.id, { status: "skipped" } as any);
+            }}
+            onReload={load}
+          />
+        )}
+
         {mainView === "journey" && (
           <div className="px-2 md:px-6 py-6 md:py-10">
             <AnimatedJourney
@@ -461,10 +499,9 @@ const RoadmapPage = () => {
                 ? nodes.filter(n => grouped.slice(0, 3).some(([d]) => d === n.scheduled_date))
                 : nodes}
               exam={nearestExam}
-              onChallenge={(node) => {
-                navigate(`/questions?subject=${node.subject}&unit=${node.unit_number}&topic=${encodeURIComponent(node.topic_name ?? "")}&node=${node.id}&difficulty=hard&challenge=1`);
-              }}
+              onChallenge={(node) => setChallengeNode(node)}
             />
+
           </div>
         )}
 
@@ -630,7 +667,35 @@ const RoadmapPage = () => {
           </div>
         )}
       </div>
+
+      {/* Challenge drawer — generates questions in-place, no navigation away */}
+      <Sheet open={!!challengeNode} onOpenChange={(o) => !o && setChallengeNode(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-accent" />
+              Challenge mode
+            </SheetTitle>
+            <SheetDescription>
+              {challengeNode?.topic_name
+                ? <>Hard questions on <span className="text-foreground font-semibold">{challengeNode.topic_name}</span> — marked instantly.</>
+                : "Fresh challenge questions, marked instantly."}
+            </SheetDescription>
+          </SheetHeader>
+          {challengeNode && (
+            <ChallengeRunner
+              key={challengeNode.id}
+              subject={challengeNode.subject as any}
+              topic={challengeNode.topic_name}
+              unitNumber={challengeNode.unit_number ?? undefined}
+              difficulty="Challenge"
+              total={5}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </AppLayout>
+
   );
 };
 
