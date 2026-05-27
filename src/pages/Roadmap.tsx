@@ -13,13 +13,19 @@ import { generateRoadmapForUser, type RoadmapNodeRow, type NodeType } from "@/li
 import { notificationsPermission, requestNotificationPermission, showNotification } from "@/lib/notifications";
 import RoadmapCalendar from "@/components/RoadmapCalendar";
 import { AnimatedJourney } from "@/components/AnimatedJourney";
+import { RoadmapWorkspace } from "@/components/RoadmapWorkspace";
+import { ChallengeRunner } from "@/components/ChallengeRunner";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid
 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
+
 
 const SUBJECT_DOT: Record<SubjectCode, string> = {
   mathematics: "#3B82F6",
