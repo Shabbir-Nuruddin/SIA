@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { callAITool, deepStripLatex } from "../_shared/ai.ts";
+import { requireUser } from "../_shared/auth.ts";
 import { CIE_ALEVEL_SYLLABUS } from "../_shared/cieial.ts";
 
 // --- BOARD-SPECIFIC SYLLABUS IMPORTS ---
@@ -254,7 +255,9 @@ async function logGeneration(row: any) {
 serve(async (req) => {
   // CORS Preflight
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
+
   try {
     const body = await req.json();
     const { subject, unit_number, unit_name, topic, syllabus_context, board, trigger } = body;
