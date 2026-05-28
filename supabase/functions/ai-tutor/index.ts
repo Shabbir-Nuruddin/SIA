@@ -21,6 +21,8 @@ const MODELS = [
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
   if (!LOVABLE_API_KEY) {
     return new Response(JSON.stringify({ error: "AI not configured" }), {
       status: 500,
@@ -29,6 +31,12 @@ serve(async (req) => {
   }
   try {
     const { messages, context } = await req.json();
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
+      return new Response(JSON.stringify({ error: "Invalid messages payload" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const isCie = context?.board === "cie";
     const board = isCie ? "Cambridge International (CIE) A Level" : "Edexcel International A-Level";
     const name = (context?.first_name || "").toString().trim();
