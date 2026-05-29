@@ -278,7 +278,7 @@ const RoadmapPage = () => {
             <h2 className="text-2xl font-bold mb-6">Building your path</h2>
             <ul className="space-y-3 text-left">
               {steps.map((s, i) => (
-                <li key={s} className={`flex items-center gap-3 text-sm ${i <= genStep ? "text-foreground" : "text-muted-foreground/40"}`}>
+                <li key={s} className={`flex items-center gap-3 text-sm ${i <= genStep ? "text-foreground" : "text-muted-foreground"}`}>
                   {i < genStep ? <CheckCircle2 className="h-4 w-4 text-success shrink-0" /> :
                     i === genStep ? <Loader2 className="h-4 w-4 text-primary animate-spin shrink-0" /> :
                     <div className="h-4 w-4 rounded-full border border-border shrink-0" />}
@@ -1102,7 +1102,7 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
 };
 
 const StageDot = ({ label, active, done }: { label: string; active: boolean; done: boolean }) => (
-  <span className={`flex items-center gap-1.5 ${active ? "text-primary" : done ? "text-success" : "text-muted-foreground/50"}`}>
+  <span className={`flex items-center gap-1.5 ${active ? "text-primary" : done ? "text-success" : "text-muted-foreground"}`}>
     <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-primary" : done ? "bg-success" : "bg-muted-foreground/30"}`} />
     {label}
   </span>

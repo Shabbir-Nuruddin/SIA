@@ -344,7 +344,7 @@ const FlashcardDeck = ({ cards }: { cards: { q: string; a: string }[] }) => {
           className={`animate-fade-in max-w-2xl w-full ${revealed ? "text-base md:text-lg text-foreground/90" : "text-xl md:text-2xl font-semibold"}`}
           {...formattedHtmlProps(revealed ? card.a : card.q)}
         />
-        <div className="absolute bottom-3 left-0 right-0 text-[10px] font-mono text-muted-foreground/70">
+        <div className="absolute bottom-3 left-0 right-0 text-[10px] font-mono text-muted-foreground">
           Tap, press space or enter to {revealed ? "hide" : "reveal"}
         </div>
       </div>

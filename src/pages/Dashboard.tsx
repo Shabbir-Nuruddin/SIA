@@ -340,7 +340,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{urgency.message}</p>
-              <p className="text-[10px] font-mono text-muted-foreground/70 mt-1.5 tabular">{urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}</p>
+              <p className="text-[10px] font-mono text-muted-foreground mt-1.5 tabular">{urgency.daysToNearest}d to nearest exam{urgency.gradeGap > 0 ? ` · gap ${urgency.gradeGap}` : ""}</p>
             </div>
 
             <div className="glass-card rounded-3xl border border-border/70 p-5">
