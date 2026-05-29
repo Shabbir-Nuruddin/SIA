@@ -184,7 +184,7 @@ const PastPapers = () => {
           ))}
         </div>
 
-        <p className="text-[11px] text-muted-foreground/70 mb-6 italic">
+        <p className="text-[11px] text-muted-foreground mb-6 italic">
           Papers open on an external site — we don't host any PDFs ourselves.
         </p>
 

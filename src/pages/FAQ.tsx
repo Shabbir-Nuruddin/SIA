@@ -215,7 +215,7 @@ const FAQPage = () => {
                                 <div className="text-[10px] uppercase tracking-widest font-mono text-success mb-1.5">Mark scheme</div>
                                 <div className="rounded-md border-l-2 border-success bg-success/5 p-3 text-[13px] leading-relaxed" {...formattedHtmlProps(q.mark_scheme)} />
                               </div>
-                              <p className="text-[11px] text-muted-foreground/70 italic">
+                              <p className="text-[11px] text-muted-foreground italic">
                                 Each (1) above marks one awarded point. Match your answer line-by-line.
                               </p>
                             </div>

@@ -11,7 +11,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
+    <main className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
       {/* 
           CSS ENGINE: 
           Restoring the full notebook aesthetic and fixing the icon ligature issue.
@@ -497,7 +497,7 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </main>
   );
 };
 

@@ -391,7 +391,7 @@ const NodeTile = ({
       style={{ borderLeft: `3px solid ${isComplete ? "hsl(var(--success))" : isLocked ? "hsl(var(--border))" : accent}` }}
     >
       <div className="flex items-start gap-2 mb-2">
-        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 mt-1 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
+        <GripVertical className="h-3.5 w-3.5 text-muted-foreground mt-1 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-mono mb-1" style={{ color: isComplete ? "hsl(var(--success))" : accent }}>
             <Icon className="h-3 w-3" />
