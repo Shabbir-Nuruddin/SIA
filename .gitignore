@@ -25,3 +25,8 @@ supabase/functions/.env.local
 *.njsproj
 *.sln
 *.sw?
+
+# Local env files (contain secrets — never commit)
+.env
+.env.*
+!.env.example
