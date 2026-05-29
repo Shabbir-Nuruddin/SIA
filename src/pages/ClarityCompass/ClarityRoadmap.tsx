@@ -50,8 +50,7 @@ Each milestone: { "title", "description", "action_items": [], "resources": [{"na
   return JSON.parse(jsonMatch[0]) as ClarityRoadmapData;
 }
 
-  return JSON.parse(jsonMatch[0]) as ClarityRoadmapData;
-}
+
 
 interface MilestoneCardProps {
   milestone: RoadmapMilestone;

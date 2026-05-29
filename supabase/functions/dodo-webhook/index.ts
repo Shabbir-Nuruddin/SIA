@@ -42,10 +42,9 @@ Deno.serve(async (req) => {
   const signature = req.headers.get("webhook-signature") ?? req.headers.get("dodo-signature");
 
   // Soft-verify: only enforce when the Dodo webhook signing secret is configured.
-  if (DODO_WEBHOOK_SECRET && signature) {
-    const ok = await verifySignature(raw, signature);
-    if (!ok) {
-      console.warn("[dodo-webhook] signature mismatch");
+  if (DODO_WEBHOOK_SECRET) {
+    if (!signature || !(await verifySignature(raw, signature))) {
+      console.warn("[dodo-webhook] missing or invalid signature");
       return new Response("invalid signature", { status: 401, headers: corsHeaders });
     }
   }
