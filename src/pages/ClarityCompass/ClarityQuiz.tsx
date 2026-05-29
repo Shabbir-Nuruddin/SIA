@@ -14,10 +14,6 @@ import {
 } from "@/types/clarity.types";
 import { toast } from "sonner";
 
-const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL ?? "https://api.groq.com/openai/v1";
-const AI_MODEL = import.meta.env.VITE_AI_MODEL ?? "llama3-70b-8192";
-const AI_KEY = import.meta.env.VITE_AI_KEY ?? "";
-
 const LOADING_MESSAGES = [
   "Reading between the lines...",
   "Connecting the dots...",
@@ -49,31 +45,17 @@ Respond ONLY in this exact JSON (no markdown):
 When ending: { quiz_complete: true, final_analysis: { personality_summary, core_values[], working_style, hidden_strengths[], career_matches: [{ career, match_score, why_it_fits, reality_check, daily_tasks_glimpse[], experience_it_now[], skills_to_build_before_uni: [{skill,how,resource,is_free}] }], careers_to_avoid[] } }
 Return 3-4 career matches sorted by match_score descending. Be honest and specific.`;
 
-  const response = await fetch(`${AI_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${AI_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages: [{ role: "user", content: systemPrompt }],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
+  const { data, error } = await supabase.functions.invoke("clarity-ai", {
+    body: { prompt: systemPrompt, max_tokens: 2000, temperature: 0.7 },
   });
-
-  if (!response.ok) {
-    throw new Error(`AI API error: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "";
-  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);
+  if (error) throw new Error(error.message ?? "AI request failed");
+  const content: string = data?.content ?? "";
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
 
   return JSON.parse(jsonMatch[0]) as QuizQuestion;
 }
+
 
 // Answer type components
 function MultipleChoice({

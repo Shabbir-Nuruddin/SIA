@@ -14,10 +14,6 @@ import {
 } from "@/types/clarity.types";
 import { toast } from "sonner";
 
-const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL ?? "https://api.groq.com/openai/v1";
-const AI_MODEL = import.meta.env.VITE_AI_MODEL ?? "llama3-70b-8192";
-const AI_KEY = import.meta.env.VITE_AI_KEY ?? "";
-
 async function generateRoadmap(
   career: string,
   analysis: FinalAnalysis
@@ -43,26 +39,16 @@ Create a realistic, actionable 5-phase roadmap with real resources and milestone
 Each milestone: { "title", "description", "action_items": [], "resources": [{"name", "url", "is_free"}], "is_free", "priority": "essential|recommended|optional" }
 3-5 milestones per phase. Name REAL resources with real URLs. Be specific and actionable.`;
 
-  const response = await fetch(`${AI_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${AI_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages: [{ role: "user", content: systemPrompt }],
-      temperature: 0.7,
-      max_tokens: 3000,
-    }),
+  const { data, error } = await supabase.functions.invoke("clarity-ai", {
+    body: { prompt: systemPrompt, max_tokens: 3000, temperature: 0.7 },
   });
-
-  if (!response.ok) throw new Error(`AI API error: ${response.statusText}`);
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || "";
+  if (error) throw new Error(error.message ?? "AI request failed");
+  const content: string = data?.content ?? "";
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("Invalid AI response format");
+
+  return JSON.parse(jsonMatch[0]) as ClarityRoadmapData;
+}
 
   return JSON.parse(jsonMatch[0]) as ClarityRoadmapData;
 }
