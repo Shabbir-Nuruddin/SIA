@@ -1,15 +1,6 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 const LandingPage = () => {
-  // Injecting high-priority font links to prevent flickering and icon-text glitches
-  useEffect(() => {
-    const link = document.createElement("link");
-    // Using display=block and specific variable font weights for Material Symbols
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Inter:wght@400;500;600;700&family=Patrick+Hand&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-  }, []);
 
   /**
    * AUTHENTICATION HANDLER
