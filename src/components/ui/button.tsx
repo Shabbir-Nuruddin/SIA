@@ -42,7 +42,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    const isFlip = variant === "flip" || variant === "flipDark";
+    const isFlip = (variant === "flip" || variant === "flipDark") && !asChild;
     const content = isFlip ? (
       <span className="flip-btn__text-wrap relative block overflow-hidden">
         <span className="flip-btn__text relative inline-flex items-center gap-2">{children}</span>
