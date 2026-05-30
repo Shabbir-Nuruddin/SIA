@@ -19,9 +19,13 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid, Layers
 } from "lucide-react";
+import FlashcardDeck from "@/components/FlashcardDeck";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
