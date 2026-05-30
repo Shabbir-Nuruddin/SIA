@@ -157,14 +157,14 @@ const LandingPage = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
                 <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
-                  Stop Site-Hopping. Start Mastering.
+                  Built by A-Level students, for A-Level students.
                 </span>
               </div>
 
               <h1 className="text-6xl md:text-8xl font-caveat text-[#091426] leading-[0.9] mb-8">
-                Your entire IAL journey <br />
+                Stop drowning in tabs. <br />
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-[#f59e0b]">in a single tab.</span>
+                  <span className="relative z-10 text-[#f59e0b]">Start scoring A*s.</span>
                   <svg
                     className="absolute -bottom-2 left-0 w-full h-4 text-[#f59e0b]/20 -z-10"
                     preserveAspectRatio="none"
@@ -176,9 +176,9 @@ const LandingPage = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
-                Exam timers, science-backed Pomodoros, an AI mentor, and automated mock marking. We’ve unified{" "}
-                <span className="text-[#091426] font-bold">Edexcel</span> and{" "}
-                <span className="text-[#091426] font-bold">Cambridge</span> resources into one focused command center.
+                One smart hub that builds your revision plan, marks your mock papers in seconds, and explains anything
+                you snap a photo of — across <span className="text-[#091426] font-bold">Edexcel IAL</span> and{" "}
+                <span className="text-[#091426] font-bold">Cambridge</span>.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5">
@@ -186,7 +186,7 @@ const LandingPage = () => {
                   onClick={handleAuthRedirect}
                   className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group"
                 >
-                  Claim your Roadmap
+                  Build My A-Level Roadmap
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -195,7 +195,7 @@ const LandingPage = () => {
                   href="#inside"
                   className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm flex items-center justify-center"
                 >
-                  Explore Features
+                  See How It Works
                 </a>
               </div>
 
@@ -206,8 +206,24 @@ const LandingPage = () => {
                   <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
                 <p className="text-sm font-medium">
-                  Join <span className="text-[#091426] font-bold">5,000+ A* students</span> reclaiming their focus
+                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE & South Asia
                 </p>
+              </div>
+
+              {/* STATS STRIP */}
+              <div className="mt-10 grid grid-cols-3 gap-4 max-w-xl">
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
+                </div>
               </div>
             </div>
 
