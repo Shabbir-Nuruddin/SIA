@@ -388,6 +388,72 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Personalised recommendation — surfaces the weakest topic so students always have a clear next move. */}
+            {weakTopics.length > 0 && (
+              <div className="glass-card rounded-3xl border border-accent/40 p-5 bg-accent/[0.03]">
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-accent font-mono mb-3">
+                  <Sparkles className="h-3.5 w-3.5" /> Recommended next
+                </div>
+                {(() => {
+                  const top = weakTopics[0];
+                  const meta = SUBJECTS[top.subject];
+                  return (
+                    <div className="space-y-3">
+                      <p className="text-sm leading-relaxed">
+                        Your weakest spot right now is{" "}
+                        <span className="font-semibold text-foreground">{top.topic_name}</span>
+                        {meta ? <> in <span className="text-muted-foreground">{meta.name}{top.unit_number ? ` · Unit ${top.unit_number}` : ""}</span></> : null}
+                        {top.last_score_percent !== null && <> — last score <span className="font-mono tabular">{top.last_score_percent}%</span>.</>}
+                      </p>
+                      <Link
+                        to={`/questions?subject=${top.subject}${top.unit_number ? `&unit=${top.unit_number}` : ""}&topic=${encodeURIComponent(top.topic_name)}`}
+                      >
+                        <Button size="sm" className="btn-primary rounded-full w-full">
+                          Practise this now <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Performance pulse — top weak topics across all chosen subjects. */}
+            {weakTopics.length > 0 && (
+              <div className="glass-card rounded-3xl border border-border/70 p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono flex items-center gap-1.5">
+                    <TrendingDown className="h-3.5 w-3.5" /> Weak spots
+                  </div>
+                  <Link to="/questions" className="text-[10px] text-primary hover:underline">Practise</Link>
+                </div>
+                <div className="space-y-2.5">
+                  {weakTopics.map((w, idx) => {
+                    const meta = SUBJECTS[w.subject];
+                    const score = w.last_score_percent ?? 0;
+                    return (
+                      <Link
+                        key={`${w.subject}-${w.topic_name}-${idx}`}
+                        to={`/questions?subject=${w.subject}${w.unit_number ? `&unit=${w.unit_number}` : ""}&topic=${encodeURIComponent(w.topic_name)}`}
+                        className="block group"
+                      >
+                        <div className="flex items-center justify-between text-xs gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-foreground group-hover:text-primary transition-colors">{w.topic_name}</div>
+                            {meta && <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">{meta.name}{w.unit_number ? ` · U${w.unit_number}` : ""}</div>}
+                          </div>
+                          <span className="font-mono tabular text-xs" style={{ color: score < 50 ? "hsl(var(--accent))" : "hsl(var(--muted-foreground))" }}>{score}%</span>
+                        </div>
+                        <div className="mt-1 h-1 rounded-full bg-border/60 overflow-hidden">
+                          <div className="h-full transition-all" style={{ width: `${Math.max(4, score)}%`, background: score < 50 ? "hsl(var(--accent))" : "hsl(var(--primary))" }} />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </aside>
         </div>
       </div>
