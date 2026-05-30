@@ -207,8 +207,10 @@ const NotesPage = () => {
     if (!user || !subjectParam || !unitParam || !topicParam) {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setVisuals({ definitions: {} });
+      setShowVideos(false);
       return;
     }
+    setShowVideos(false);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
