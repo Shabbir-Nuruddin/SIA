@@ -462,21 +462,29 @@ const LandingPage = () => {
 
           <div className="space-y-4">
             <FAQItem
-              question="Can I really replace all my other revision websites?"
-              answer="That is the mission. We have synchronized high-quality notes, topical banks, and expert AI mentoring into one dashboard. You won't need to hop between tabs ever again."
+              question="Why pay £8/month when Save My Exams, PMT and YouTube are free?"
+              answer="Free sites give you scattered notes and PDFs. They don't mark your mock paper, don't tell you which topic to revise on Tuesday, and don't catch the specific command-word mistakes losing you marks. £8 buys you a coach, a marker and a planner — not just another notes site."
               isOpen={true}
             />
             <FAQItem
-              question="How does the photo-upload mentor work?"
-              answer="Just snap a photo of any textbook or past paper problem. Our mentor analyzes the image and explains the logic based on your specific exam board's marking standards."
+              question="Is the content actually up to date with the latest specs?"
+              answer="Yes. Every topic is mapped to the current Edexcel IAL, Edexcel UK GCE and Cambridge A-Level specifications, and reviewed each exam cycle. When boards update a spec or release a new past paper, our content updates within days — not the next academic year."
+              isOpen={false}
             />
             <FAQItem
-              question="Is the study roadmap personalized?"
-              answer="Absolutely. Input your subjects and exam dates, and we build an adaptive schedule that prioritizes your weak spots using spaced repetition techniques."
+              question="What if I sign up and don't actually use it?"
+              answer="Cancel anytime in two clicks — no contracts, no awkward emails. There's also a 7-day free trial so you can build your roadmap, mark a real mock and decide before you pay a penny."
+              isOpen={false}
             />
             <FAQItem
-              question="Does it support both IAL and CIE?"
-              answer="Absolutely. We have mapped the entire syllabus for Edexcel IAL, Edexcel UK GCE, and Cambridge (CIE) across Physics, Biology, Chemistry, and Mathematics."
+              question="How accurate is the AI marking — can I really trust it for a real grade?"
+              answer="The marker is trained on official Edexcel and Cambridge mark schemes plus published Examiner Reports. It flags exactly which mark you earned, which you missed, and why — using the board's own wording. Treat it as a strict second opinion, not a replacement for your teacher's final word."
+              isOpen={false}
+            />
+            <FAQItem
+              question="Does it cover my exact subject and board?"
+              answer="If you sit Physics, Chemistry, Biology or Maths at Edexcel IAL, Edexcel UK GCE or Cambridge A-Level, you're fully covered — every unit, every topic, every past paper. More boards and subjects are being added each term."
+              isOpen={false}
             />
           </div>
         </div>
