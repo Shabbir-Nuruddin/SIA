@@ -15,9 +15,9 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        flip: "flip-btn bg-primary text-primary-foreground [--flip-sweep:hsl(var(--primary-foreground))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
+        flip: "flip-btn relative isolate bg-primary text-primary-foreground [--flip-sweep:hsl(var(--primary-foreground))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
         flipDark:
-          "flip-btn bg-foreground text-background [--flip-sweep:hsl(var(--background))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
+          "flip-btn relative isolate bg-foreground text-background [--flip-sweep:hsl(var(--background))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
       },
       size: {
         default: "h-10 px-4 py-2",
