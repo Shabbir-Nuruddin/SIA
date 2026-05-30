@@ -421,7 +421,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath, visuals, visualsLoading]);
+  }, [notes, formatHtml, annotate, renderMath]);
 
   return (
     <div className="space-y-8">
@@ -463,30 +463,6 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
         );
       })}
 
-      {preview && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setPreview(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image preview"
-        >
-          <div className="relative max-h-[92vh] max-w-[96vw]" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setPreview(null)}
-              className="absolute -right-2 -top-2 z-10 rounded-full bg-background px-2 py-1 text-xs font-semibold shadow-md hover:bg-muted"
-            >
-              Close
-            </button>
-            <img
-              src={preview.imageUrl}
-              alt={preview.title}
-              className="max-h-[92vh] max-w-[96vw] rounded-lg object-contain shadow-2xl"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
