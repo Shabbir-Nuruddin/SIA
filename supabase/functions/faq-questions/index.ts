@@ -62,6 +62,10 @@ const tool = {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
+
   if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GEMINI_API_KEY_2") && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI not configured" }), {
       status: 500,
