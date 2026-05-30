@@ -30,6 +30,8 @@ async function fetchFirstVideoId(query: string): Promise<string | null> {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
   try {
     const { searchParams } = new URL(req.url);
     let query = searchParams.get("q") || "";
