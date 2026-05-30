@@ -5,13 +5,13 @@
  * blackboard equations, and a 3D-flip flashcard deck.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
   PencilLine, Eye, RotateCcw,
 } from "lucide-react";
-import { NotesVisualMap, WikimediaVisual } from "@/lib/wikimediaVisuals";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface KeyDef    { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
@@ -40,8 +40,6 @@ interface Props {
   formatHtml: (s: string) => string;
   renderMath: (s: string) => string;
   annotate: (s: string) => string;
-  visuals?: NotesVisualMap;
-  visualsLoading?: boolean;
 }
 
 // ─── Vibrant rotating palette ─────────────────────────────────────────────────
@@ -72,27 +70,6 @@ const subjectMeta = (subjectName: string) => {
 };
 
 // ─── Sticky badge ─────────────────────────────────────────────────────────────
-const VisualPreview = ({ visual, compact = false }: { visual: WikimediaVisual; compact?: boolean }) => (
-  <figure className={`mt-4 overflow-hidden rounded-xl border border-foreground/10 bg-card shadow-sm ${compact ? "" : "md:grid md:grid-cols-[minmax(220px,340px)_1fr]"}`}>
-    <button
-      type="button"
-      className="bg-muted/40 text-left transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-      onClick={() => {
-        window.dispatchEvent(new CustomEvent("notes-image-preview", { detail: visual }));
-      }}
-    >
-      <img
-        src={visual.imageUrl}
-        alt={visual.title}
-        loading="lazy"
-        className={`w-full object-contain ${compact ? "max-h-56" : "max-h-72 md:h-full"}`}
-      />
-    </button>
-    <figcaption className="p-3 text-xs leading-relaxed text-muted-foreground">
-      <div className="font-medium text-foreground/85">{visual.title}</div>
-    </figcaption>
-  </figure>
-);
 
 const Sticky = ({ children, variant = "" as string, className = "" }) => (
   <div className={`sticky-note ${variant} px-3 py-1.5 rounded-md text-sm font-bold animate-sticky-in ${className}`}>
@@ -158,23 +135,13 @@ const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatH
 const DefinitionsSection = ({
   defs,
   formatHtml,
-  visuals = {},
-  visualsLoading = false,
 }: {
   defs: KeyDef[];
-  formatHtml:(s:string)=>string;
-  visuals?: Record<number, WikimediaVisual>;
-  visualsLoading?: boolean;
+  formatHtml: (s: string) => string;
 }) => {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const hasAnyVisual = Object.keys(visuals).length > 0;
   return (
     <div className="space-y-4">
-      {!visualsLoading && !hasAnyVisual && (
-        <div className="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
-          Image generation is delayed right now. Your definitions are ready and images will appear when available.
-        </div>
-      )}
       <div className="grid sm:grid-cols-2 gap-4">
       {defs.map((d, i) => {
         const a = ACCENTS[i % ACCENTS.length];
@@ -196,7 +163,7 @@ const DefinitionsSection = ({
               )}
               <div className="text-xs text-muted-foreground italic mb-3 leading-relaxed border-l-2 border-foreground/15 pl-2"
                    dangerouslySetInnerHTML={{ __html: `<strong class="not-italic text-foreground/70">Mark scheme:</strong> ${formatHtml(d.mark_scheme)}` }} />
-              {visuals[i] && <VisualPreview visual={visuals[i]} compact />}
+
               {d.common_mistake && (
                 <button
                   onClick={() => setExpanded(open ? null : i)}
@@ -440,30 +407,21 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 };
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals, visualsLoading = false }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
-  const [preview, setPreview] = useState<WikimediaVisual | null>(null);
 
-  useEffect(() => {
-    const openPreview = (event: Event) => {
-      const custom = event as CustomEvent<WikimediaVisual>;
-      if (custom.detail?.imageUrl) setPreview(custom.detail);
-    };
-    window.addEventListener("notes-image-preview", openPreview as EventListener);
-    return () => window.removeEventListener("notes-image-preview", openPreview as EventListener);
-  }, []);
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} visuals={visuals?.definitions} visualsLoading={visualsLoading} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath, visuals, visualsLoading]);
+  }, [notes, formatHtml, annotate, renderMath]);
 
   return (
     <div className="space-y-8">
@@ -505,30 +463,6 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
         );
       })}
 
-      {preview && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setPreview(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image preview"
-        >
-          <div className="relative max-h-[92vh] max-w-[96vw]" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setPreview(null)}
-              className="absolute -right-2 -top-2 z-10 rounded-full bg-background px-2 py-1 text-xs font-semibold shadow-md hover:bg-muted"
-            >
-              Close
-            </button>
-            <img
-              src={preview.imageUrl}
-              alt={preview.title}
-              className="max-h-[92vh] max-w-[96vw] rounded-lg object-contain shadow-2xl"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

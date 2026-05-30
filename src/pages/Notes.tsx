@@ -21,7 +21,7 @@ import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
-import { fetchNotesVisuals, NotesVisualMap } from "@/lib/wikimediaVisuals";
+
 
 /* ────────────────────────────────────────────────────────────
    UNIFIED NOTE MODEL
@@ -174,8 +174,6 @@ const NotesPage = () => {
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [visuals, setVisuals] = useState<NotesVisualMap>({ definitions: {} });
-  const [loadingVisuals, setLoadingVisuals] = useState(false);
 
   const [selection, setSelection] = useState<{ text: string; x: number; y: number } | null>(null);
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -208,7 +206,6 @@ const NotesPage = () => {
   useEffect(() => {
     if (!user || !subjectParam || !unitParam || !topicParam) {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
-      setVisuals({ definitions: {} });
       setShowVideos(false);
       setShowFlashcards(false);
       return;
@@ -219,67 +216,6 @@ const NotesPage = () => {
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
 
-  useEffect(() => {
-    if (!notes || !subjectParam || !unitParam || !topicParam) {
-      setVisuals({ definitions: {} });
-      setLoadingVisuals(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    setVisuals({ definitions: {} });
-    setLoadingVisuals(true);
-    const unitLabel =
-      board === "cie" ? `Paper ${unitParam}` :
-      board === "cie-igcse" || board === "edexcel-igcse" ? `Section ${unitParam}` :
-      `Unit ${unitParam}`;
-
-    fetchNotesVisuals({
-      board,
-      subject: SUBJECTS[subjectParam]?.name ?? subjectParam,
-      unitLabel,
-      unitNumber: unitParam,
-      topic: topicParam,
-      definitions: notes.key_definitions.map((definition) => ({
-        term: definition.term,
-        meaning: definition.plain_english || definition.mark_scheme,
-      })),
-    }, controller.signal).then((result) => {
-      if (!controller.signal.aborted) setVisuals(result);
-    }).finally(() => {
-      if (!controller.signal.aborted) setLoadingVisuals(false);
-    });
-
-    return () => {
-      controller.abort();
-      setLoadingVisuals(false);
-    };
-  }, [notes, board, subjectParam, unitParam, topicParam, SUBJECTS]);
-
-  useEffect(() => {
-    const imageUrls = Object.values(visuals.definitions || {})
-      .map((visual) => visual?.imageUrl)
-      .filter((url): url is string => typeof url === "string" && url.length > 0);
-    if (imageUrls.length === 0) return;
-
-    let cancelled = false;
-    const preloadSequentially = async () => {
-      for (const url of imageUrls) {
-        if (cancelled) return;
-        await new Promise<void>((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-          img.src = url;
-        });
-      }
-    };
-
-    preloadSequentially();
-    return () => {
-      cancelled = true;
-    };
-  }, [visuals]);
 
   const STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
@@ -728,8 +664,6 @@ const NotesPage = () => {
                     formatHtml={formatToHtml}
                     renderMath={renderMathInString}
                     annotate={annotateHtml}
-                    visuals={visuals}
-                    visualsLoading={loadingVisuals}
                   />
 
                   {selection && !composing && (
