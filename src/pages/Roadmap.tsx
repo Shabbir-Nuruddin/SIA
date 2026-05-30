@@ -862,6 +862,7 @@ interface NotesContent {
   common_mistakes?: string[];
   worked_example?: { problem: string; steps: { step: string; reason: string }[]; answer: string };
   examiner_tips?: string[];
+  flashcards?: { q: string; a: string }[];
 }
 
 const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void>; initialStage?: FlowStage }) => {
