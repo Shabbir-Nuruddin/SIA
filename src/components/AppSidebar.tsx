@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
   MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu,
-  MessageSquare, Lock, Headphones, Compass, Shield, Star,
+  MessageSquare, Lock, Headphones, Compass, Shield, Star, TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
