@@ -594,7 +594,11 @@ const NotesPage = () => {
                 board === "cie-igcse" ? "CIE IGCSE" :
                 board === "edexcel-igcse" ? "Edexcel IGCSE" :
                 "Edexcel IAL";
-              const query = `${topicParam} ${subjName} ${boardLabel} revision`;
+              const unitLabel =
+                board === "cie" ? "Paper" :
+                board === "cie-igcse" || board === "edexcel-igcse" ? "Topic" :
+                "Unit";
+              const query = `${boardLabel} ${subjName} ${unitLabel} ${unitParam} ${topicParam} revision`;
               const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
               return (
                 <YouTubeLessonEmbed key={query} query={query} topic={topicParam} searchUrl={searchUrl} />

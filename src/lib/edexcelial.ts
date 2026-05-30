@@ -43,7 +43,7 @@ export const EDEXCEL_IAL_SYLLABUS: QualificationData = {
  
     unit1: {
       code: 'WBI11',
-      title: 'Molecules, Diet, Transport and Health',
+      title: 'Lifestyle, Transport, Genes and Health',
       allowedTopics: [
         'Water — dipole nature, role as solvent in transport, high specific heat capacity, latent heat, hydrogen bonding between water molecules',
         'Monosaccharides — glucose (α and β forms), fructose, galactose; reducing sugars',
@@ -108,7 +108,7 @@ export const EDEXCEL_IAL_SYLLABUS: QualificationData = {
  
     unit2: {
       code: 'WBI12',
-      title: 'Cells, Development, Biodiversity and Conservation',
+      title: 'Development, Plants and the Environment',
       allowedTopics: [
         'Prokaryotic cell structure — no membrane-bound nucleus, 70S ribosomes, circular DNA, plasmids, peptidoglycan cell wall, pili, flagella, capsule; typically 1–5 µm',
         'Eukaryotic cell structure — membrane-bound nucleus, 80S ribosomes, membrane-bound organelles',
