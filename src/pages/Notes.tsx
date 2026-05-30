@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen, Loader2, Sparkles, Highlighter, Trash2,
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
+  Search, Youtube, X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
@@ -178,6 +180,8 @@ const NotesPage = () => {
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draftNote, setDraftNote] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
+  const [topicSearch, setTopicSearch] = useState("");
+  const [showVideos, setShowVideos] = useState(false);
 
   // Load profile board + enrolled units
   useEffect(() => {
@@ -203,8 +207,10 @@ const NotesPage = () => {
     if (!user || !subjectParam || !unitParam || !topicParam) {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setVisuals({ definitions: {} });
+      setShowVideos(false);
       return;
     }
+    setShowVideos(false);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
@@ -456,10 +462,79 @@ const NotesPage = () => {
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
-            <div className="mb-5">
+            <div className="mb-4">
               <div className="text-[10px] uppercase tracking-[0.28em] font-mono text-muted-foreground mb-2">Topic picker</div>
               <p className="text-sm text-muted-foreground">Choose a subject, unit and topic. The note panel below opens into a full-screen revision canvas.</p>
             </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={topicSearch}
+                onChange={(e) => setTopicSearch(e.target.value)}
+                placeholder="Search topics…"
+                className="pl-8 pr-8 h-9 text-xs"
+              />
+              {topicSearch && (
+                <button
+                  onClick={() => setTopicSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            {topicSearch.trim() ? (
+              (() => {
+                const q = topicSearch.trim().toLowerCase();
+                const matches: Array<{ subject: SubjectCode; unit: number; unitCode: string; topic: string; subjectName: string }> = [];
+                for (const u of enrolled) {
+                  const m = SUBJECTS[u.subject];
+                  if (!m) continue;
+                  const unitMeta = m.units?.find(x => x.number === u.unit_number);
+                  for (const t of unitMeta?.topics ?? []) {
+                    if (t.toLowerCase().includes(q) || (unitMeta?.name ?? "").toLowerCase().includes(q)) {
+                      matches.push({
+                        subject: u.subject,
+                        unit: u.unit_number,
+                        unitCode: unitMeta?.unitCode ?? `U${u.unit_number}`,
+                        topic: t,
+                        subjectName: m.name,
+                      });
+                    }
+                  }
+                }
+                if (matches.length === 0) {
+                  return <div className="text-xs text-muted-foreground italic px-1 py-2">No topics match "{topicSearch}".</div>;
+                }
+                return (
+                  <div className="space-y-0.5">
+                    {matches.slice(0, 50).map((r) => {
+                      const active = subjectParam === r.subject && unitParam === r.unit && topicParam === r.topic;
+                      return (
+                        <button
+                          key={`${r.subject}-${r.unit}-${r.topic}`}
+                          onClick={() => selectTopic(r.subject, r.unit, r.topic)}
+                          className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{r.topic}</span>
+                          </div>
+                          <div className="text-[10px] font-mono text-muted-foreground/80 mt-0.5 ml-5">
+                            {r.subjectName} · {r.unitCode}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    {matches.length > 50 && (
+                      <div className="text-[10px] text-muted-foreground italic px-2 pt-2">Showing first 50 of {matches.length}. Refine your search.</div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <>
             {Object.entries(groupedBySubject).map(([code, units]) => {
               const m = SUBJECTS[code as SubjectCode];
               if (!m) return null;
@@ -522,6 +597,8 @@ const NotesPage = () => {
                 Add subjects in onboarding to access notes.
               </div>
             )}
+              </>
+            )}
           </aside>
 
           <div className="flex flex-col min-h-0">
@@ -533,18 +610,74 @@ const NotesPage = () => {
                   <p className="mt-3 text-sm text-muted-foreground max-w-2xl">Every topic expands to a full-width workspace for fast review, annotation and export.</p>
                 </div>
                 {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
-                  <Button
-                    onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
-                    variant="outline"
-                    size="sm"
-                    title="Regenerate notes"
-                    className="h-9 shrink-0 px-3 text-[11px]"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <Button
+                      onClick={() => setShowVideos(v => !v)}
+                      variant={showVideos ? "default" : "outline"}
+                      size="sm"
+                      className="h-9 px-3 text-[11px]"
+                      title="Toggle YouTube revision videos"
+                    >
+                      <Youtube className="h-3.5 w-3.5 mr-2" />
+                      {showVideos ? "Hide videos" : "Watch videos"}
+                    </Button>
+                    <Button
+                      onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
+                      variant="outline"
+                      size="sm"
+                      title="Regenerate notes"
+                      className="h-9 px-3 text-[11px]"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
+
+            {showVideos && subjectParam && unitParam && topicParam && (() => {
+              const subjName = SUBJECTS[subjectParam]?.name ?? subjectParam;
+              const boardLabel =
+                board === "cie" ? "CIE A Level" :
+                board === "cie-igcse" ? "CIE IGCSE" :
+                board === "edexcel-igcse" ? "Edexcel IGCSE" :
+                "Edexcel IAL";
+              const query = `${topicParam} ${subjName} ${boardLabel} revision`;
+              const embedUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+              const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+              return (
+                <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-5 mb-6 shadow-sm animate-fade-in">
+                  <div className="flex items-center justify-between mb-3 gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Youtube className="h-4 w-4 text-primary shrink-0" />
+                      <div className="text-sm font-semibold truncate">Video lessons · {topicParam}</div>
+                    </div>
+                    <a
+                      href={searchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] font-mono uppercase tracking-wider text-primary hover:text-primary/80 shrink-0"
+                    >
+                      Open on YouTube ↗
+                    </a>
+                  </div>
+                  <div className="relative w-full overflow-hidden rounded-2xl border border-border/60 bg-black" style={{ paddingTop: "56.25%" }}>
+                    <iframe
+                      key={query}
+                      src={embedUrl}
+                      title={`YouTube revision videos for ${topicParam}`}
+                      className="absolute inset-0 h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Curated from YouTube search — quality varies. Use as a supplement to the notes above.
+                  </p>
+                </div>
+              );
+            })()}
 
             <div className="flex-1 min-h-[calc(100vh-180px)]">
               {!subjectParam || !unitParam || !topicParam ? (
