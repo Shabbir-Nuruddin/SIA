@@ -511,3 +511,42 @@ html.theme-inkwell .notebook-paper,
   100% { transform: translateX(-50%); }
 }
 .animate-marquee { animation: marquee 30s linear infinite; }
+
+/* ====== FlipButton — text always legible at start & end ====== */
+.flip-btn .flip-btn__text-wrap { mix-blend-mode: difference; }
+.flip-btn .flip-btn__text { transform: translateY(0); }
+.flip-btn:hover .flip-btn__text { animation: flip-btn-move 0.42s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+
+@keyframes flip-btn-move {
+  0%   { transform: translateY(0); }
+  49%  { transform: translateY(105%); }
+  50%  { transform: translateY(-105%); }
+  100% { transform: translateY(0); }
+}
+
+.flip-btn::before,
+.flip-btn::after {
+  --skew: 0.18;
+  content: "";
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 102%;
+  background: var(--flip-sweep);
+  pointer-events: none;
+  left: calc(-50% - 50% * var(--skew));
+  top: -104%;
+  transform: skew(calc(150deg * var(--skew))) translateY(var(--flip-progress, 0));
+  transition: transform 0.32s cubic-bezier(0.65, 0, 0.35, 1);
+  z-index: 0;
+}
+.flip-btn::after {
+  --flip-progress: 0%;
+  left: calc(50% + 50% * var(--skew));
+  top: 102%;
+  z-index: -1;
+}
+.flip-btn:hover::before { --flip-progress: 100%; }
+.flip-btn:hover::after  { --flip-progress: -102%; }
+
+.flip-btn .flip-btn__text-wrap { position: relative; z-index: 1; }
