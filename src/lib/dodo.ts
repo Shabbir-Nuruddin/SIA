@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 
 // Dodo Payments product ID for the Pro plan. Override via VITE_DODO_PRODUCT_ID.
 export const DODO_PRODUCT_ID =
@@ -47,8 +48,10 @@ export async function openProCheckout(discountCode?: string): Promise<void> {
   });
   const data = await response.json().catch(() => null);
   if (!response.ok || !data?.url) {
+    trackEvent("checkout_failed", { reason: data?.error ?? "unknown" });
     throw new Error(friendlyCheckoutError(data?.error));
   }
+  trackEvent("begin_checkout", { plan: "pro", currency });
   window.location.href = data.url as string;
 }
 
@@ -64,7 +67,9 @@ export async function syncProAfterCheckout(): Promise<boolean> {
     body: JSON.stringify({ product_id: DODO_PRODUCT_ID }),
   });
   const data = await response.json().catch(() => null);
-  return Boolean(response.ok && data?.is_pro);
+  const ok = Boolean(response.ok && data?.is_pro);
+  if (ok) trackEvent("subscription_activated", { plan: "pro" });
+  return ok;
 }
 
 export async function cancelProSubscription(): Promise<string> {
