@@ -877,6 +877,7 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
   const [readSeconds, setReadSeconds] = useState(0);
   const [elaboration, setElaboration] = useState("");
   const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [recallOpen, setRecallOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
 
