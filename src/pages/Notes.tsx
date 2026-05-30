@@ -695,6 +695,32 @@ const NotesPage = () => {
               );
             })()}
 
+            {showFlashcards && notes && subjectParam && unitParam && topicParam && (
+              <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-5 mb-6 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-4 gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Layers className="h-4 w-4 text-primary shrink-0" />
+                    <div className="text-sm font-semibold truncate">Spaced repetition · {topicParam}</div>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground shrink-0">
+                    Leitner boxes 1–5
+                  </span>
+                </div>
+                <FlashcardDeck
+                  cards={notes.flashcards}
+                  source="notes"
+                  subject={subjectParam}
+                  unit_number={unitParam}
+                  topic={topicParam}
+                  board={board}
+                />
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  Cards you know get pushed further out (1 day → 3 days → 1 week → 3 weeks). Cards you forget drop back to Box 1.
+                </p>
+              </div>
+            )}
+
+
             <div className="flex-1 min-h-[calc(100vh-180px)]">
               {!subjectParam || !unitParam || !topicParam ? (
                 <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-3xl border border-border/70 bg-card p-12 text-center">
