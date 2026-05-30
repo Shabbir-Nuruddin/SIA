@@ -112,7 +112,6 @@ export const CountdownOverlay = () => {
         style={{
           height: 44,
           background: "#161B22",
-          borderBottom: "1px solid #30363D",
           color: "rgba(240,246,252,0.8)",
         }}
       >

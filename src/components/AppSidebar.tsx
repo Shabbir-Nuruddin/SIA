@@ -145,11 +145,11 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
       )}
 
       {/* Profile */}
-      <div className="mt-1 pt-3 border-t border-sidebar-border/60 space-y-2">
+      <div className="mt-1 pt-3 border-t border-sidebar-border/60 space-y-2 shrink-0">
         <div className="px-1 flex items-center gap-3">
           <div
             className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
-            style={{ backgroundImage: "linear-gradient(135deg, hsl(265 75% 62%), hsl(325 80% 65%))" }}
+            style={{ backgroundImage: "linear-gradient(135deg, hsl(160 65% 35%), hsl(160 70% 45%))" }}
           >
             {initials}
           </div>
@@ -208,10 +208,10 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
 
       {visible ? (
         <aside
-          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start"
+          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden"
           style={{ top: 0, height: "100vh" }}
         >
-          <div className="flex items-center justify-between px-3 py-3 border-b border-sidebar-border/70">
+          <div className="flex items-center justify-between px-3 py-3 border-b border-sidebar-border/70 shrink-0">
             <div className="text-sm font-semibold text-sidebar-foreground">Menu</div>
             <button
               onClick={onClose}
@@ -221,7 +221,9 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
               <Menu className="h-4 w-4" />
             </button>
           </div>
-          <SidebarBody />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <SidebarBody />
+          </div>
         </aside>
       ) : (
         <button
