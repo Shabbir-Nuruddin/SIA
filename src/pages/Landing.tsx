@@ -1,4 +1,5 @@
 import React from "react";
+import { FlipButton } from "@/components/ui/flip-button";
 
 const LandingPage = () => {
 
