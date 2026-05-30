@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_feedback_reply_admin_flag() FROM PUBLIC, anon, authenticated;
