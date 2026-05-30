@@ -21,7 +21,7 @@ const items: { to: string; icon: any; label: string; color: string; proOnly?: bo
   { to: "/questions",   icon: Zap,          label: "Topical Questions",color: "28 95% 58%"  },
   { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%", adminOnly: true },
   { to: "/notes",       icon: BookOpen,     label: "Notes",            color: "265 75% 62%" },
-  { to: "/podcast",     icon: Headphones,   label: "Podcast",          color: "325 80% 62%", adminOnly: true },
+  
   { to: "/papers",      icon: LinkIcon,     label: "Past Papers",      color: "205 85% 58%" },
   { to: "/faq",         icon: MessageCircle,label: "Exam FAQs",        color: "178 65% 48%", adminOnly: true },
   { to: "/feedback",    icon: MessageSquare,label: "Feedback",         color: "28 95% 58%"  },
