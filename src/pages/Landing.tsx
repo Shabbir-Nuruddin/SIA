@@ -286,7 +286,7 @@ const LandingPage = () => {
       </section>
 
       {/* THE ALL-IN-ONE SYSTEM SECTION */}
-      <section id="inside" className="py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
+      <section id="inside" className="py-16 sm:py-20 lg:py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
@@ -355,7 +355,7 @@ const LandingPage = () => {
       </section>
 
       {/* TESTIMONIALS SECTION */}
-      <section id="testimonials" className="py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
+      <section id="testimonials" className="py-16 sm:py-20 lg:py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
         <div className="max-w-[1200px] mx-auto px-6 md:px-16">
           <div className="text-center mb-20">
             <h2 className="text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
@@ -430,7 +430,7 @@ const LandingPage = () => {
       </section>
 
       {/* FOUNDER NOTE SECTION */}
-      <section id="story" className="py-20 bg-[#fff9ea] relative overflow-hidden">
+      <section id="story" className="py-14 sm:py-18 lg:py-20 bg-[#fff9ea] relative overflow-hidden">
         <div className="absolute top-10 left-1/2 -translate-x-32 w-24 h-8 bg-pink-300/60 rotate-2 z-10 shadow-sm"></div>
         <div className="absolute top-12 left-1/2 translate-x-32 w-24 h-8 bg-purple-300/60 -rotate-3 z-10 shadow-sm"></div>
 
@@ -455,7 +455,7 @@ const LandingPage = () => {
       </section>
 
       {/* FAQ SECTION: FIXED ICONS */}
-      <section className="py-24 bg-[#f8f9fb] paper-texture">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#f8f9fb] paper-texture">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
             <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
@@ -493,10 +493,10 @@ const LandingPage = () => {
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
+      <section className="py-20 sm:py-24 lg:py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Your A* is 7 days away.</h2>
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-caveat text-white mb-6 sm:mb-8">Your A* is 7 days away.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
           </p>
