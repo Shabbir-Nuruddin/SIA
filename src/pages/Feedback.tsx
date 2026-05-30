@@ -153,7 +153,7 @@ const Feedback = () => {
 
   return (
     <AppLayout>
-      <div className="px-6 md:px-10 py-8 max-w-6xl mx-auto">
+      <div className="min-h-[calc(100dvh-2.75rem)] px-6 md:px-10 pt-8 pb-32 max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-extrabold flex items-center gap-2">

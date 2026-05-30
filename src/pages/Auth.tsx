@@ -17,11 +17,11 @@ const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
 
 const QUOTES = {
   login: {
-    text: "Welcome back. Every revision session compounds — keep showing up.",
+    text: "Your comeback starts where your last session ended — sharpen the edge.",
     author: "MakeMeRevise",
   },
   signup: {
-    text: "Top grades aren't talent. They're a plan, executed daily.",
+    text: "Build the revision engine your future self will thank you for.",
     author: "MakeMeRevise",
   },
 };
@@ -122,9 +122,9 @@ const AuthPage = () => {
   const quote = mode === "signup" ? QUOTES.signup : QUOTES.login;
 
   return (
-    <div className="min-h-screen w-full bg-background text-foreground grid lg:grid-cols-2">
+    <div className="h-dvh min-h-screen w-full overflow-y-auto bg-background text-foreground grid lg:grid-cols-2">
       {/* ── Left: form ─────────────────────────────────────────────── */}
-      <div className="relative flex flex-col px-6 py-10 sm:px-10 md:px-14 lg:px-16">
+      <div className="relative flex min-h-screen flex-col px-6 py-10 sm:px-10 md:px-14 lg:px-16">
         <Link
           to="/"
           className="inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -140,12 +140,12 @@ const AuthPage = () => {
         <div className="mx-auto mt-12 w-full max-w-md flex-1">
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              {mode === "signup" ? "Create your account" : "Sign in to your account"}
+              {mode === "signup" ? "Start your grade comeback" : "Step back into focus"}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               {mode === "signup"
-                ? "Personalised A-Level revision in under a minute."
-                : "Pick up where you left off."}
+                ? "A sharper revision plan, ready in under a minute."
+                : "Your plan is waiting — keep the momentum alive."}
             </p>
           </div>
 
