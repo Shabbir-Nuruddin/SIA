@@ -37,6 +37,7 @@ import { ClarityQuiz } from "./pages/ClarityCompass/ClarityQuiz";
 import { ClarityResults } from "./pages/ClarityCompass/ClarityResults";
 import { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";
 import { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile";
+import Progress from "./pages/Progress";
 
 const queryClient = new QueryClient();
 
