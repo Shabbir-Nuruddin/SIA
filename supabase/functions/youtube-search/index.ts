@@ -1,5 +1,6 @@
 // Edge function: returns the first YouTube video ID matching a query.
 // Uses an HTML scrape of YouTube search results (no API key required).
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,6 +31,8 @@ async function fetchFirstVideoId(query: string): Promise<string | null> {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
   try {
     const { searchParams } = new URL(req.url);
     let query = searchParams.get("q") || "";
