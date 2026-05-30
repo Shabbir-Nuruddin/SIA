@@ -71,7 +71,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
   return (
     <div className="flex h-full flex-col p-3 warm-gradient-soft">
       {/* Logo */}
-      <div className="px-2 pt-3 pb-5">
+      <div className="px-2 pt-3 pb-5 shrink-0">
         <div className="font-display text-3xl leading-none warm-gradient-text font-bold tracking-tight">
           MakeMeRevise
         </div>
@@ -80,7 +80,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
+      <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto pr-1">
         {items.map(it => {
           if (it.adminOnly && !isAdmin) return null;
           const active = pathname === it.to || (it.to !== "/dashboard" && pathname.startsWith(it.to));
@@ -154,7 +154,7 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-display text-lg leading-none truncate text-foreground">{first} {last}</div>
+            <div className="font-display text-base leading-none truncate text-foreground">{first} {last}</div>
             <div className="flex items-center gap-2 mt-1">
               <span className="chip chip-amber !py-0 !text-[10px]">
                 <Flame className="h-2.5 w-2.5" />{profile?.current_streak ?? 0}
