@@ -4,10 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EXAM_FAQS, type Board } from "@/lib/examFaqs";
 import { SUBJECTS, type SubjectCode } from "@/lib/subjects";
-import { Search, ChevronDown, FileText, Loader2, AlertCircle } from "lucide-react";
+import { Search, ChevronDown, FileText, Loader2, AlertCircle, Layers, BookOpen } from "lucide-react";
 import { formattedHtmlProps } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import FlashcardDeck from "@/components/FlashcardDeck";
 
 interface ExamQ {
   question_text: string;
