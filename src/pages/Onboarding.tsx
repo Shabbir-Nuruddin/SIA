@@ -12,6 +12,7 @@ import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from 
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, Check } from "lucide-react";
+import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 
 interface UnitInput {
   selected: boolean;
