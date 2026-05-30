@@ -287,9 +287,9 @@ const LandingPage = () => {
 
       {/* THE ALL-IN-ONE SYSTEM SECTION */}
       <section id="inside" className="py-16 sm:py-20 lg:py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
             <p className="text-[#45474c] font-medium mt-4 opacity-70">
               Focus on the 20% of effort that gives you 80% of the results.
             </p>
@@ -356,9 +356,9 @@ const LandingPage = () => {
 
       {/* TESTIMONIALS SECTION */}
       <section id="testimonials" className="py-16 sm:py-20 lg:py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16">
           <div className="text-center mb-20">
-            <h2 className="text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
             <p className="text-[#45474c] text-xs font-bold tracking-widest uppercase mt-4">
               Real feedback from students who've stopped the site-hopping
             </p>
@@ -434,7 +434,7 @@ const LandingPage = () => {
         <div className="absolute top-10 left-1/2 -translate-x-32 w-24 h-8 bg-pink-300/60 rotate-2 z-10 shadow-sm"></div>
         <div className="absolute top-12 left-1/2 translate-x-32 w-24 h-8 bg-purple-300/60 -rotate-3 z-10 shadow-sm"></div>
 
-        <div className="max-w-3xl mx-auto px-6 relative">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6 relative">
           <div className="founder-note-clip bg-white p-12 md:p-16 shadow-2xl relative border-l-4 border-amber-400 paper-texture">
             <div className="text-amber-500 text-5xl font-serif mb-8 opacity-40">"</div>
             <div className="space-y-6 font-patrick text-2xl text-[#45474c] leading-relaxed">
@@ -456,10 +456,10 @@ const LandingPage = () => {
 
       {/* FAQ SECTION: FIXED ICONS */}
       <section className="py-16 sm:py-20 lg:py-24 bg-[#f8f9fb] paper-texture">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6">
           <div className="text-center mb-12">
             <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
-            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
           </div>
 
           <div className="space-y-4">
@@ -495,7 +495,7 @@ const LandingPage = () => {
       {/* FINAL CTA */}
       <section className="py-20 sm:py-24 lg:py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
-        <div className="max-w-4xl mx-auto px-6 relative z-10">
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 relative z-10">
           <h2 className="text-5xl sm:text-6xl md:text-7xl font-caveat text-white mb-6 sm:mb-8">Your A* is 7 days away.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
@@ -513,7 +513,7 @@ const LandingPage = () => {
 
       {/* FOOTER */}
       <footer className="bg-[#091426] py-16 border-t border-white/5">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-bold uppercase tracking-widest text-white/60">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-bold uppercase tracking-widest text-white/60">
           <div className="flex flex-col items-center md:items-start">
             <span className="font-caveat text-3xl text-white font-bold leading-none mb-2">Make Me Revise</span>
             <p className="text-white/40">© 2026 Designed in the UAE • For the Global Scholar</p>
