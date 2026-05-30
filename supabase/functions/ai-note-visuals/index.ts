@@ -150,6 +150,9 @@ const generatePollinationsImageUrl = async (prompt: string): Promise<string> => 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const auth = await requireUser(req);
+  if (auth instanceof Response) return auth;
+
   try {
     const payload = await req.json();
     const startedAt = Date.now();
