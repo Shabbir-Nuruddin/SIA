@@ -31,6 +31,7 @@ import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminLaunch from "./pages/AdminLaunch";
 import { Terms, Privacy, Refund } from "./pages/Legal";
 import { ClarityCompassHome } from "./pages/ClarityCompass/ClarityCompassHome";
 import { ClarityOnboarding } from "./pages/ClarityCompass/ClarityOnboarding";
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/launch" element={<AdminLaunch />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/refund" element={<Refund />} />

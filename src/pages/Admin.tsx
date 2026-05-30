@@ -116,19 +116,27 @@ const Admin = () => {
   return (
     <AppLayout>
       <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8">
-        <header className="flex items-center justify-between">
+        <header className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <div className="flex items-center gap-2 text-primary text-xs font-mono uppercase tracking-widest"><Shield className="h-3.5 w-3.5" /> Admin Panel</div>
             <h1 className="text-3xl font-extrabold mt-1">Make Me Revise — Control Room</h1>
             <p className="text-muted-foreground text-sm mt-1">Visible to: {ADMIN_EMAILS.join(", ")}.</p>
           </div>
-          <Button
-            variant={testMode ? "default" : "outline"}
-            onClick={() => setTestMode(!testMode)}
-            className={testMode ? "bg-accent text-accent-foreground" : ""}
-          >
-            <Eye className="h-4 w-4 mr-2" />{testMode ? "Disable Test Mode" : "Enable Test Mode"}
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link to="/admin/launch">
+              <Button variant="outline"><Rocket className="h-4 w-4 mr-2" />Launch Dashboard</Button>
+            </Link>
+            <Link to="/admin/analytics">
+              <Button variant="outline"><BarChart3 className="h-4 w-4 mr-2" />Analytics</Button>
+            </Link>
+            <Button
+              variant={testMode ? "default" : "outline"}
+              onClick={() => setTestMode(!testMode)}
+              className={testMode ? "bg-accent text-accent-foreground" : ""}
+            >
+              <Eye className="h-4 w-4 mr-2" />{testMode ? "Disable Test Mode" : "Enable Test Mode"}
+            </Button>
+          </div>
         </header>
 
         {/* Section A — Cache controls */}
