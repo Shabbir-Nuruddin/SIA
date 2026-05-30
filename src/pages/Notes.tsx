@@ -10,7 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen, Loader2, Sparkles, Highlighter, Trash2,
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
+  Search, Youtube, X, Hash, Sigma, Image as ImageIcon, Lightbulb, Layers,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
