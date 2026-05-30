@@ -187,10 +187,8 @@ const TierCard = ({ tier, currency }: { tier: Tier; currency: Currency }) => {
 
       <Button
         onClick={handleClick}
-        className={`mt-7 w-full ${
-          tier.highlight ? "btn-primary" : tier.id === "advanced" ? "bg-foreground text-background hover:bg-foreground/90" : ""
-        }`}
-        variant={tier.highlight || tier.id === "advanced" ? "default" : "outline"}
+        className={`mt-7 w-full ${tier.id === "free" ? "" : "h-12"}`}
+        variant={tier.highlight ? "flip" : tier.id === "advanced" ? "flipDark" : "outline"}
         size="lg"
       >
         {tier.id === "pro" && isPro ? "Current plan" : tier.cta}
