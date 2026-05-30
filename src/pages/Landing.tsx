@@ -494,15 +494,15 @@ const LandingPage = () => {
       <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Master your syllabus today.</h2>
+          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Your A* is 7 days away.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
-            Get your roadmap. Ask your questions. Master your mocks. Everything you need is already here.
+            Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
           </p>
           <button
             onClick={handleAuthRedirect}
             className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]"
           >
-            Begin the Journey
+            Build My A-Level Roadmap
           </button>
         </div>
       </section>
