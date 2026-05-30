@@ -296,47 +296,56 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#a855f7] shadow-sm hover:shadow-xl transition-all group">
               <div className="text-4xl mb-6">📅</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Modular Roadmaps</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Know exactly what to study, every day</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Syllabus-specific calendars that tell you exactly when to study each unit based on your actual exam
-                dates. Zero decision fatigue.
+                A personalised roadmap that adapts to your exam dates and weak topics. No more 2am panic about what
+                to revise next.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#ef4444] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">⏳</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Flow-State Timers</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Focus that actually lasts an hour</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Integrated Pomodoro timers with science-backed focus music. Master complex units in high-intensity,
-                distracted-free 25-minute bursts.
+                Built-in Pomodoro timers and curated focus music keep you locked in. Study less, retain more, stop
+                drifting to YouTube.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#f97316] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">💡</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">24/7 Expert Mentor</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Never get stuck on a question again</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Snap a photo of any textbook or past paper problem. Our mentor explains the logic using your board's
-                specific keywords.
+                Snap any past-paper or textbook problem. The AI tutor explains it step by step using your exact board's
+                command words and mark scheme.
               </p>
             </div>
 
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#3b82f6] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">📊</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Automatic Marking</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Get mocks marked in 30 seconds</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Complete a mock and get it marked instantly. We analyze your phrasing against Examiner Reports to stop
-                you from losing silly marks.
+                Submit a full mock, get a marked paper instantly — with the silly-mark traps highlighted before they
+                cost you in May.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#10b981] shadow-sm hover:shadow-xl transition-all">
+              <div className="text-4xl mb-6">🎯</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Spaced repetition that fixes weak topics</h3>
+              <p className="text-[#45474c] text-sm leading-relaxed">
+                Your weakest topics quietly resurface in your roadmap on the exact day you're about to forget them. No
+                guesswork, no flashcards to manage.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#f43f5e] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">🚀</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Clarity Compass</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">See where your A-Levels actually lead</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Future-proof your education. Use our engine to map your A-Level interests to university degrees and
-                high-growth careers.
+                The Clarity Compass maps your subjects to real university courses and growing careers — so revision
+                feels like it's going somewhere.
               </p>
             </div>
           </div>
