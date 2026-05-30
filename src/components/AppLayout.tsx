@@ -3,7 +3,6 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { CountdownOverlay } from "@/components/CountdownOverlay";
-import { TodayProgressBar } from "@/components/TodayProgressBar";
 import { PomodoroPill } from "@/components/PomodoroPill";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { MusicPlayer } from "@/components/MusicPlayer";
@@ -25,13 +24,11 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
 
   const isExam = pathname.startsWith("/mock-papers/exam");
   const chromeHidden = hideChrome || isExam;
-  const hideTodayProgress = pathname.startsWith("/notes");
   return (
     <div className="h-dvh min-h-screen overflow-hidden flex bg-background study-shell">
       {!chromeHidden && <CountdownOverlay />}
-      {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
-      <main className="flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain">{children}</main>
+      <main className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${chromeHidden ? "" : "pt-11"}`}>{children}</main>
       <PomodoroPill />
       <MusicPlayer />
       <FloatingAssistant />
