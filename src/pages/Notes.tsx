@@ -210,9 +210,11 @@ const NotesPage = () => {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setVisuals({ definitions: {} });
       setShowVideos(false);
+      setShowFlashcards(false);
       return;
     }
     setShowVideos(false);
+    setShowFlashcards(false);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
