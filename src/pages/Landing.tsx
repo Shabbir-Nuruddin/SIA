@@ -346,7 +346,7 @@ const LandingPage = () => {
               <div className="text-4xl mb-6">🚀</div>
               <h3 className="text-2xl font-bold text-[#1e293b] mb-3">See where your A-Levels actually lead</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                The Clarity Compass maps your subjects to real university courses and growing careers — so revision
+                We map your subjects to real university courses and growing careers — so revision
                 feels like it's going somewhere.
               </p>
             </div>
