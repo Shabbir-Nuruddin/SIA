@@ -15,6 +15,9 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        flip: "flip-btn bg-primary text-primary-foreground [--flip-sweep:hsl(var(--primary-foreground))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
+        flipDark:
+          "flip-btn bg-foreground text-background [--flip-sweep:hsl(var(--background))] border-2 border-transparent rounded-full font-display font-black uppercase tracking-widest cursor-pointer select-none overflow-hidden",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -37,9 +40,21 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const isFlip = variant === "flip" || variant === "flipDark";
+    const content = isFlip ? (
+      <span className="flip-btn__text-wrap relative block overflow-hidden">
+        <span className="flip-btn__text relative inline-flex items-center gap-2">{children}</span>
+      </span>
+    ) : (
+      children
+    );
+    return (
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props}>
+        {content}
+      </Comp>
+    );
   },
 );
 Button.displayName = "Button";
