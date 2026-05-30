@@ -498,12 +498,14 @@ const LandingPage = () => {
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
           </p>
-          <button
+          <FlipButton
+            tone="primary"
+            size="lg"
             onClick={handleAuthRedirect}
-            className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]"
+            className="!bg-[#f59e0b] !text-[#091426] [--flip-sweep:#091426] shadow-[0_20px_50px_rgba(245,158,11,0.25)] text-xl"
           >
             Build My A-Level Roadmap
-          </button>
+          </FlipButton>
         </div>
       </section>
 
