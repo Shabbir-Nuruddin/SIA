@@ -17,6 +17,7 @@ const items: { to: string; icon: any; label: string; color: string; proOnly?: bo
   { to: "/dashboard",   icon: Home,         label: "Today's Plan",     color: "265 75% 62%" },
   { to: "/roadmap",     icon: Calendar,     label: "Roadmap",          color: "205 85% 58%", adminOnly: true },
   { to: "/exams",       icon: GraduationCap,label: "Exams",            color: "340 80% 62%" },
+  { to: "/progress",    icon: TrendingUp,   label: "Progress",         color: "160 70% 45%" },
   { to: "/questions",   icon: Zap,          label: "Topical Questions",color: "28 95% 58%"  },
   { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%", adminOnly: true },
   { to: "/notes",       icon: BookOpen,     label: "Notes",            color: "265 75% 62%" },
