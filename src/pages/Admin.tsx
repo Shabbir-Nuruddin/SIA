@@ -21,6 +21,37 @@ const Admin = () => {
   const [keyStatus, setKeyStatus] = useState<any>(null);
   const [keyLoading, setKeyLoading] = useState(false);
   const [redeployResult, setRedeployResult] = useState<{ name: string; ok: boolean; status: number; ms: number }[] | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersStats, setUsersStats] = useState<{ total: number; pro: number } | null>(null);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-list-users");
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      setUsers(data.users || []);
+      setUsersStats({ total: data.total ?? 0, pro: data.pro ?? 0 });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load users.");
+    } finally { setUsersLoading(false); }
+  };
+
+  const deleteUser = async (u: AdminUser) => {
+    if (!confirm(`HARD DELETE ${u.email || u.id}?\n\nThis removes their account and ALL their data (roadmap, mocks, notes, progress). Cannot be undone.`)) return;
+    setDeletingUserId(u.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: u.id } });
+      if (error || data?.error) throw new Error(error?.message || data?.error);
+      setUsers(prev => prev.filter(x => x.id !== u.id));
+      setUsersStats(s => s ? { total: Math.max(0, s.total - 1), pro: s.pro - (u.is_pro ? 1 : 0) } : s);
+      toast.success("Account deleted.");
+    } catch (e: any) {
+      toast.error(e.message || "Delete failed.");
+    } finally { setDeletingUserId(null); }
+  };
 
   const redeployAll = async () => {
     if (!confirm("Warm & health-check ALL edge functions? This pings every function with a no-op so cold instances spin up.")) return;
