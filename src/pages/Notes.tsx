@@ -659,41 +659,12 @@ const NotesPage = () => {
                 board === "edexcel-igcse" ? "Edexcel IGCSE" :
                 "Edexcel IAL";
               const query = `${topicParam} ${subjName} ${boardLabel} revision`;
-              const embedUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
               const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
               return (
-                <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-5 mb-6 shadow-sm animate-fade-in">
-                  <div className="flex items-center justify-between mb-3 gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Youtube className="h-4 w-4 text-primary shrink-0" />
-                      <div className="text-sm font-semibold truncate">Video lessons · {topicParam}</div>
-                    </div>
-                    <a
-                      href={searchUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] font-mono uppercase tracking-wider text-primary hover:text-primary/80 shrink-0"
-                    >
-                      Open on YouTube ↗
-                    </a>
-                  </div>
-                  <div className="relative w-full overflow-hidden rounded-2xl border border-border/60 bg-black" style={{ paddingTop: "56.25%" }}>
-                    <iframe
-                      key={query}
-                      src={embedUrl}
-                      title={`YouTube revision videos for ${topicParam}`}
-                      className="absolute inset-0 h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  </div>
-                  <p className="mt-2 text-[11px] text-muted-foreground">
-                    Curated from YouTube search — quality varies. Use as a supplement to the notes above.
-                  </p>
-                </div>
+                <YouTubeLessonEmbed key={query} query={query} topic={topicParam} searchUrl={searchUrl} />
               );
             })()}
+
 
             {showFlashcards && notes && subjectParam && unitParam && topicParam && (
               <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-5 mb-6 shadow-sm animate-fade-in">
