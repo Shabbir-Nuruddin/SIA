@@ -460,10 +460,79 @@ const NotesPage = () => {
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
-            <div className="mb-5">
+            <div className="mb-4">
               <div className="text-[10px] uppercase tracking-[0.28em] font-mono text-muted-foreground mb-2">Topic picker</div>
               <p className="text-sm text-muted-foreground">Choose a subject, unit and topic. The note panel below opens into a full-screen revision canvas.</p>
             </div>
+            <div className="relative mb-4">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={topicSearch}
+                onChange={(e) => setTopicSearch(e.target.value)}
+                placeholder="Search topics…"
+                className="pl-8 pr-8 h-9 text-xs"
+              />
+              {topicSearch && (
+                <button
+                  onClick={() => setTopicSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            {topicSearch.trim() ? (
+              (() => {
+                const q = topicSearch.trim().toLowerCase();
+                const matches: Array<{ subject: SubjectCode; unit: number; unitCode: string; topic: string; subjectName: string }> = [];
+                for (const u of enrolled) {
+                  const m = SUBJECTS[u.subject];
+                  if (!m) continue;
+                  const unitMeta = m.units?.find(x => x.number === u.unit_number);
+                  for (const t of unitMeta?.topics ?? []) {
+                    if (t.toLowerCase().includes(q) || (unitMeta?.name ?? "").toLowerCase().includes(q)) {
+                      matches.push({
+                        subject: u.subject,
+                        unit: u.unit_number,
+                        unitCode: unitMeta?.unitCode ?? `U${u.unit_number}`,
+                        topic: t,
+                        subjectName: m.name,
+                      });
+                    }
+                  }
+                }
+                if (matches.length === 0) {
+                  return <div className="text-xs text-muted-foreground italic px-1 py-2">No topics match "{topicSearch}".</div>;
+                }
+                return (
+                  <div className="space-y-0.5">
+                    {matches.slice(0, 50).map((r) => {
+                      const active = subjectParam === r.subject && unitParam === r.unit && topicParam === r.topic;
+                      return (
+                        <button
+                          key={`${r.subject}-${r.unit}-${r.topic}`}
+                          onClick={() => selectTopic(r.subject, r.unit, r.topic)}
+                          className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${active ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{r.topic}</span>
+                          </div>
+                          <div className="text-[10px] font-mono text-muted-foreground/80 mt-0.5 ml-5">
+                            {r.subjectName} · {r.unitCode}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    {matches.length > 50 && (
+                      <div className="text-[10px] text-muted-foreground italic px-2 pt-2">Showing first 50 of {matches.length}. Refine your search.</div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <>
             {Object.entries(groupedBySubject).map(([code, units]) => {
               const m = SUBJECTS[code as SubjectCode];
               if (!m) return null;
@@ -525,6 +594,8 @@ const NotesPage = () => {
               <div className="border-t border-border/70 pt-4 text-sm text-muted-foreground">
                 Add subjects in onboarding to access notes.
               </div>
+            )}
+              </>
             )}
           </aside>
 
