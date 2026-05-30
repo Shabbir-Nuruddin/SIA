@@ -442,6 +442,69 @@ export type Database = {
         }
         Relationships: []
       }
+      flashcard_reviews: {
+        Row: {
+          answer: string
+          board: string | null
+          box: number
+          card_key: string
+          correct_streak: number
+          created_at: string
+          due_at: string
+          id: string
+          last_reviewed_at: string | null
+          question: string
+          source: string
+          subject: string | null
+          topic: string | null
+          total_correct: number
+          total_reviews: number
+          unit_number: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          board?: string | null
+          box?: number
+          card_key: string
+          correct_streak?: number
+          created_at?: string
+          due_at?: string
+          id?: string
+          last_reviewed_at?: string | null
+          question: string
+          source: string
+          subject?: string | null
+          topic?: string | null
+          total_correct?: number
+          total_reviews?: number
+          unit_number?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          board?: string | null
+          box?: number
+          card_key?: string
+          correct_streak?: number
+          created_at?: string
+          due_at?: string
+          id?: string
+          last_reviewed_at?: string | null
+          question?: string
+          source?: string
+          subject?: string | null
+          topic?: string | null
+          total_correct?: number
+          total_reviews?: number
+          unit_number?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mock_paper_questions: {
         Row: {
           awarded_marks: number | null

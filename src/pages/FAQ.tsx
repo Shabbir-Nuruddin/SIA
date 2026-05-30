@@ -4,10 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EXAM_FAQS, type Board } from "@/lib/examFaqs";
 import { SUBJECTS, type SubjectCode } from "@/lib/subjects";
-import { Search, ChevronDown, FileText, Loader2, AlertCircle } from "lucide-react";
+import { Search, ChevronDown, FileText, Loader2, AlertCircle, Layers, BookOpen } from "lucide-react";
 import { formattedHtmlProps } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import FlashcardDeck from "@/components/FlashcardDeck";
 
 interface ExamQ {
   question_text: string;
@@ -35,6 +36,7 @@ const FAQPage = () => {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [topicQs, setTopicQs] = useState<Record<string, TopicQState>>({});
+  const [quizGroup, setQuizGroup] = useState<string | null>(null);
 
   const loadTopicQuestions = async (key: string, subj: SubjectCode, topic: string) => {
     setTopicQs(s => ({ ...s, [key]: { loading: true, error: false, questions: null, expanded: new Set() } }));
@@ -136,7 +138,32 @@ const FAQPage = () => {
           const qs = topicQs[qkey];
           return (
             <section key={group} className="mb-8">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">{group}</h2>
+              <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-primary">{group}</h2>
+                <Button
+                  size="sm"
+                  variant={quizGroup === group ? "default" : "outline"}
+                  className="h-8 px-3 text-[11px]"
+                  onClick={() => setQuizGroup(quizGroup === group ? null : group)}
+                >
+                  {quizGroup === group ? <BookOpen className="h-3.5 w-3.5 mr-1.5" /> : <Layers className="h-3.5 w-3.5 mr-1.5" />}
+                  {quizGroup === group ? "Read mode" : "Quiz mode"}
+                </Button>
+              </div>
+              {quizGroup === group ? (
+                <div className="surface p-5">
+                  <div className="text-[10px] uppercase tracking-widest font-mono text-muted-foreground mb-3">
+                    {items.length} flashcards · spaced repetition
+                  </div>
+                  <FlashcardDeck
+                    cards={items.map(f => ({ q: f.question, a: `${f.answer}\n\n— ${f.examiner_note}` }))}
+                    source="faq"
+                    subject={subj}
+                    topic={topic}
+                    board={board}
+                  />
+                </div>
+              ) : (
               <div className="space-y-2">
                 {items.map(f => {
                   const open = openId === f.id;
@@ -162,6 +189,7 @@ const FAQPage = () => {
                   );
                 })}
               </div>
+              )}
 
               {/* Exam Questions */}
               <div className="mt-3">

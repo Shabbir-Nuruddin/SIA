@@ -19,9 +19,13 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import {
   BookOpen, Repeat, FileText, Coffee, Lock, CheckCircle2, ArrowRight, Loader2,
-  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid
+  Brain, Shuffle, Clock, Lightbulb, Sparkles, Bell, ChevronRight, X, Eye, Crown, Calendar, Map as MapIcon, Zap, LayoutGrid, Layers
 } from "lucide-react";
+import FlashcardDeck from "@/components/FlashcardDeck";
 import { useSubscription } from "@/hooks/useSubscription";
 import { format, parseISO, differenceInDays, isToday, isTomorrow } from "date-fns";
 import { toast } from "sonner";
@@ -862,6 +866,7 @@ interface NotesContent {
   common_mistakes?: string[];
   worked_example?: { problem: string; steps: { step: string; reason: string }[]; answer: string };
   examiner_tips?: string[];
+  flashcards?: { q: string; a: string }[];
 }
 
 const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { node: RoadmapNodeRow; onClose: () => void; onComplete: (s?: number) => Promise<void>; initialStage?: FlowStage }) => {
@@ -872,6 +877,7 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
   const [readSeconds, setReadSeconds] = useState(0);
   const [elaboration, setElaboration] = useState("");
   const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [recallOpen, setRecallOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
 
@@ -1091,9 +1097,33 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
                 finalScore != null && finalScore >= 60 ? "Good. A review is scheduled to reinforce this." :
                 "This topic needs more work. Extra practice has been added to tomorrow."}
             </p>
-            <Button onClick={onClose} className="btn-primary h-9 px-4 text-sm">
-              Continue to next topic <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {(notes?.flashcards?.length ?? 0) > 0 && (
+                <Button onClick={() => setRecallOpen(true)} variant="outline" className="h-9 px-4 text-sm">
+                  <Layers className="h-3.5 w-3.5 mr-1.5" /> Quick recall ({notes!.flashcards!.length})
+                </Button>
+              )}
+              <Button onClick={onClose} className="btn-primary h-9 px-4 text-sm">
+                Continue to next topic <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <Dialog open={recallOpen} onOpenChange={setRecallOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Recall · {node.topic_name}</DialogTitle>
+                  <DialogDescription>Spaced-repetition flashcards from the notes you just studied.</DialogDescription>
+                </DialogHeader>
+                {notes?.flashcards && notes.flashcards.length > 0 && (
+                  <FlashcardDeck
+                    cards={notes.flashcards}
+                    source="roadmap"
+                    subject={node.subject ?? null}
+                    unit_number={node.unit_number ?? null}
+                    topic={node.topic_name ?? null}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>

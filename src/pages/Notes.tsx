@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen, Loader2, Sparkles, Highlighter, Trash2,
   ChevronDown, ChevronRight, FileText, AlertTriangle, RefreshCw,
-  Search, Youtube, X,
+  Search, Youtube, X, Layers,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import FlashcardDeck from "@/components/FlashcardDeck";
 import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
@@ -182,6 +183,7 @@ const NotesPage = () => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [topicSearch, setTopicSearch] = useState("");
   const [showVideos, setShowVideos] = useState(false);
+  const [showFlashcards, setShowFlashcards] = useState(false);
 
   // Load profile board + enrolled units
   useEffect(() => {
@@ -208,9 +210,11 @@ const NotesPage = () => {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setVisuals({ definitions: {} });
       setShowVideos(false);
+      setShowFlashcards(false);
       return;
     }
     setShowVideos(false);
+    setShowFlashcards(false);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
@@ -621,6 +625,18 @@ const NotesPage = () => {
                       <Youtube className="h-3.5 w-3.5 mr-2" />
                       {showVideos ? "Hide videos" : "Watch videos"}
                     </Button>
+                    {notes.flashcards.length > 0 && (
+                      <Button
+                        onClick={() => setShowFlashcards(v => !v)}
+                        variant={showFlashcards ? "default" : "outline"}
+                        size="sm"
+                        className="h-9 px-3 text-[11px]"
+                        title="Practise with spaced-repetition flashcards"
+                      >
+                        <Layers className="h-3.5 w-3.5 mr-2" />
+                        {showFlashcards ? "Hide flashcards" : `Flashcards (${notes.flashcards.length})`}
+                      </Button>
+                    )}
                     <Button
                       onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
                       variant="outline"
@@ -678,6 +694,32 @@ const NotesPage = () => {
                 </div>
               );
             })()}
+
+            {showFlashcards && notes && subjectParam && unitParam && topicParam && (
+              <div className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-5 mb-6 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between mb-4 gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Layers className="h-4 w-4 text-primary shrink-0" />
+                    <div className="text-sm font-semibold truncate">Spaced repetition · {topicParam}</div>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground shrink-0">
+                    Leitner boxes 1–5
+                  </span>
+                </div>
+                <FlashcardDeck
+                  cards={notes.flashcards}
+                  source="notes"
+                  subject={subjectParam}
+                  unit_number={unitParam}
+                  topic={topicParam}
+                  board={board}
+                />
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  Cards you know get pushed further out (1 day → 3 days → 1 week → 3 weeks). Cards you forget drop back to Box 1.
+                </p>
+              </div>
+            )}
+
 
             <div className="flex-1 min-h-[calc(100vh-180px)]">
               {!subjectParam || !unitParam || !topicParam ? (
