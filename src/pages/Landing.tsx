@@ -563,9 +563,6 @@ const MarqueeContent = () => (
     <span className="flex items-center gap-2">
       <span className="material-symbols-outlined">history_edu</span> Instant Mock Marking
     </span>
-    <span className="flex items-center gap-2">
-      <span className="material-symbols-outlined">explore</span> Clarity Compass
-    </span>
   </>
 );
 
