@@ -36,6 +36,7 @@ const FAQPage = () => {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [topicQs, setTopicQs] = useState<Record<string, TopicQState>>({});
+  const [quizGroup, setQuizGroup] = useState<string | null>(null);
 
   const loadTopicQuestions = async (key: string, subj: SubjectCode, topic: string) => {
     setTopicQs(s => ({ ...s, [key]: { loading: true, error: false, questions: null, expanded: new Set() } }));
