@@ -87,21 +87,29 @@ const Dashboard = () => {
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [exams, setExams] = useState<ExamRow[]>([]);
   const [profile, setProfile] = useState<{ first_name: string | null; onboarded: boolean; tutorial_completed: boolean; current_streak?: number } | null>(null);
+  const [weakTopics, setWeakTopics] = useState<Array<{ subject: SubjectCode; unit_number: number | null; topic_name: string; last_score_percent: number | null; questions_attempted: number }>>([]);
 
   const todayISO = getLocalDateString();
 
   const load = async () => {
     if (!user) return;
-    const [s, u, p, e] = await Promise.all([
+    const [s, u, p, e, wt] = await Promise.all([
       supabase.from("roadmap_sessions").select("*").eq("user_id", user.id).eq("session_date", todayISO).order("order_index"),
       supabase.from("user_subjects").select("subject,unit_number,unit_name,exam_date,target_grade,current_grade").eq("user_id", user.id).order("exam_date"),
       supabase.from("profiles").select("first_name,onboarded,tutorial_completed,current_streak").eq("id", user.id).single(),
       supabase.from("exams").select("id,name,exam_date,subject,is_active").eq("user_id", user.id).eq("is_active", true).order("exam_date"),
+      supabase.from("topic_progress").select("subject,unit_number,topic_name,last_score_percent,questions_attempted,weak_flag").eq("user_id", user.id).order("last_score_percent", { ascending: true, nullsFirst: false }).limit(20),
     ]);
     if (s.data) setSessions(s.data as SessionRow[]);
     if (u.data) setUnits(u.data as UnitRow[]);
     if (p.data) setProfile(p.data as any);
     if (e.data) setExams(e.data as ExamRow[]);
+    if (wt.data) {
+      const ranked = (wt.data as any[])
+        .filter(r => r.questions_attempted >= 1 && (r.weak_flag || (r.last_score_percent !== null && r.last_score_percent < 70)))
+        .slice(0, 3);
+      setWeakTopics(ranked as any);
+    }
     setLoading(false);
   };
 
