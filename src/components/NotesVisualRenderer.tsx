@@ -407,23 +407,14 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
 };
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, visuals, visualsLoading = false }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
-  const [preview, setPreview] = useState<WikimediaVisual | null>(null);
 
-  useEffect(() => {
-    const openPreview = (event: Event) => {
-      const custom = event as CustomEvent<WikimediaVisual>;
-      if (custom.detail?.imageUrl) setPreview(custom.detail);
-    };
-    window.addEventListener("notes-image-preview", openPreview as EventListener);
-    return () => window.removeEventListener("notes-image-preview", openPreview as EventListener);
-  }, []);
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} visuals={visuals?.definitions} visualsLoading={visualsLoading} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
