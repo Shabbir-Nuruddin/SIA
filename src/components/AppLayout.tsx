@@ -31,7 +31,7 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
-      <main className="flex-1 overflow-hidden min-w-0 h-screen">{children}</main>
+      <main className="flex-1 min-w-0 min-h-screen overflow-y-auto">{children}</main>
       <PomodoroPill />
       <MusicPlayer />
       <FloatingAssistant />
