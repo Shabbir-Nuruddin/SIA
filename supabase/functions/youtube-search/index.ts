@@ -1,5 +1,7 @@
 // Edge function: returns the first YouTube video ID matching a query.
 // Uses an HTML scrape of YouTube search results (no API key required).
+import { requireUser } from "../_shared/auth.ts";
+// Uses an HTML scrape of YouTube search results (no API key required).
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
