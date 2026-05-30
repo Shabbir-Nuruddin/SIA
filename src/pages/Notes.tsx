@@ -180,6 +180,8 @@ const NotesPage = () => {
   const [composing, setComposing] = useState<{ text: string; x: number; y: number } | null>(null);
   const [draftNote, setDraftNote] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
+  const [topicSearch, setTopicSearch] = useState("");
+  const [showVideos, setShowVideos] = useState(false);
 
   // Load profile board + enrolled units
   useEffect(() => {
