@@ -105,11 +105,11 @@ const LandingPage = () => {
       </div>
 
       {/* NAVBAR */}
-      <header className="sticky top-0 z-40 bg-[#fdfcf8]/80 backdrop-blur-md border-b border-[#c5c6cd]/30">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 py-5 flex justify-between items-center">
-          <div className="flex flex-col">
-            <span className="text-3xl font-caveat font-bold text-[#091426] leading-none">Make Me Revise</span>
-            <span className="text-[9px] tracking-[0.3em] uppercase mt-1 text-[#45474c] font-bold">
+      <header className="sticky top-0 z-40 bg-[#fdfcf8]/85 backdrop-blur-md border-b border-[#c5c6cd]/30">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-16 py-3 sm:py-5 flex justify-between items-center gap-3">
+          <div className="flex flex-col min-w-0">
+            <span className="text-2xl sm:text-3xl font-caveat font-bold text-[#091426] leading-none truncate">Make Me Revise</span>
+            <span className="hidden sm:inline text-[9px] tracking-[0.3em] uppercase mt-1 text-[#45474c] font-bold">
               The Ultimate A-Level Command Center
             </span>
           </div>
@@ -127,19 +127,21 @@ const LandingPage = () => {
               Community
             </a>
           </nav>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <button
               onClick={handleAuthRedirect}
-              className="text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity"
+              className="hidden sm:inline text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity"
             >
               Log in
             </button>
-            <button
+            <FlipButton
+              tone="dark"
+              size="sm"
               onClick={handleAuthRedirect}
-              className="bg-[#091426] text-white px-7 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-[#091426]/20 hover:scale-105 transition-all"
+              className="!px-5 sm:!px-6 !py-2 sm:!py-2.5 !text-[11px] sm:!text-xs !rounded-full"
             >
               Start Scoring
-            </button>
+            </FlipButton>
           </div>
         </div>
       </header>
