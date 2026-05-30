@@ -10,6 +10,8 @@ import { ApexLogo } from "@/components/ApexLogo";
 import { getPostAuthRoute } from "@/lib/postAuthRoute";
 import { toast } from "sonner";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
+import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
 
@@ -70,10 +72,18 @@ const AuthPage = () => {
           },
         });
         if (error) throw error;
+        trackEvent("sign_up", { method: "email" });
         if (!data.session) {
           toast.success(`Check your email, ${fn} — verify to activate your account.`);
           setMode("login");
           return;
+        }
+        if (data.user) {
+          void scheduleOnboardingEmails({
+            userId: data.user.id,
+            email: data.user.email ?? email,
+            firstName: fn,
+          });
         }
         toast.success(`Welcome to MMR, ${fn}. Let's set up your revision plan.`);
         navigate("/onboarding");
@@ -98,6 +108,7 @@ const AuthPage = () => {
 
   const handleGoogle = async () => {
     setLoading(true);
+    trackEvent("sign_in_attempt", { method: "google" });
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/auth?oauth=1` });
     if (result.error) {
       toast.error("Google sign-in failed");

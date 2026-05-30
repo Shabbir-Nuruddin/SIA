@@ -30,6 +30,7 @@ import Pricing from "./pages/Pricing";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import { Terms, Privacy, Refund } from "./pages/Legal";
 import { ClarityCompassHome } from "./pages/ClarityCompass/ClarityCompassHome";
 import { ClarityOnboarding } from "./pages/ClarityCompass/ClarityOnboarding";
@@ -38,6 +39,7 @@ import { ClarityResults } from "./pages/ClarityCompass/ClarityResults";
 import { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";
 import { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile";
 import Progress from "./pages/Progress";
+import { AnalyticsTracker } from "./components/AnalyticsTracker";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+          <AnalyticsTracker />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -73,6 +76,7 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/refund" element={<Refund />} />

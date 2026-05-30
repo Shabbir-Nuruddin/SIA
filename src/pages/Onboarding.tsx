@@ -12,6 +12,7 @@ import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from 
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, Check } from "lucide-react";
+import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 
 interface UnitInput {
   selected: boolean;
@@ -58,14 +59,27 @@ const Onboarding = () => {
     (async () => {
       const { data } = await supabase.from("profiles").select("first_name").eq("id", user.id).maybeSingle();
       const existing = (data?.first_name || "").trim();
+      let resolvedName = existing;
       if (existing) {
         setFirstName(existing);
         setNeedsName(false);
       } else {
         const meta: any = (user as any)?.user_metadata || {};
         const fallback = (meta.given_name || meta.first_name || (meta.full_name || meta.name || "").split(" ")[0] || "").trim();
-        if (fallback) setFirstName(fallback);
+        if (fallback) {
+          setFirstName(fallback);
+          resolvedName = fallback;
+        }
         setNeedsName(true);
+      }
+      // Idempotently schedule the 5-email onboarding sequence
+      // (no-op for users who already have rows thanks to the unique constraint).
+      if (user.email) {
+        void scheduleOnboardingEmails({
+          userId: user.id,
+          email: user.email,
+          firstName: resolvedName || null,
+        });
       }
     })();
   }, [user]);
