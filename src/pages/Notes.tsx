@@ -625,6 +625,18 @@ const NotesPage = () => {
                       <Youtube className="h-3.5 w-3.5 mr-2" />
                       {showVideos ? "Hide videos" : "Watch videos"}
                     </Button>
+                    {notes.flashcards.length > 0 && (
+                      <Button
+                        onClick={() => setShowFlashcards(v => !v)}
+                        variant={showFlashcards ? "default" : "outline"}
+                        size="sm"
+                        className="h-9 px-3 text-[11px]"
+                        title="Practise with spaced-repetition flashcards"
+                      >
+                        <Layers className="h-3.5 w-3.5 mr-2" />
+                        {showFlashcards ? "Hide flashcards" : `Flashcards (${notes.flashcards.length})`}
+                      </Button>
+                    )}
                     <Button
                       onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
                       variant="outline"
