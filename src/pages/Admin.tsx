@@ -89,6 +89,7 @@ const Admin = () => {
         if (data) setFeedback(data.map((d: any) => ({ ...d, message: `${d.subject ? `[${d.subject}] ` : ""}${d.message || ""}` })));
       });
     loadKeyStatus();
+    loadUsers();
   }, [user]);
 
   if (loading) return <AppLayout><div className="p-10"><Loader2 className="h-6 w-6 animate-spin" /></div></AppLayout>;
