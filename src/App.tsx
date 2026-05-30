@@ -37,6 +37,7 @@ import { ClarityQuiz } from "./pages/ClarityCompass/ClarityQuiz";
 import { ClarityResults } from "./pages/ClarityCompass/ClarityResults";
 import { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";
 import { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile";
+import Progress from "./pages/Progress";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/faq" element={<RequireAdmin><FAQ /></RequireAdmin>} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/exams" element={<Exams />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/admin" element={<Admin />} />
