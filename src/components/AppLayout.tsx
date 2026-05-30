@@ -27,11 +27,11 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
   const chromeHidden = hideChrome || isExam;
   const hideTodayProgress = pathname.startsWith("/notes");
   return (
-    <div className="min-h-screen flex bg-background study-shell">
+    <div className="h-dvh min-h-screen overflow-hidden flex bg-background study-shell">
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && !hideTodayProgress && <TodayProgressBar />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
-      <main className="flex-1 min-w-0 min-h-screen overflow-y-auto">{children}</main>
+      <main className="flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain">{children}</main>
       <PomodoroPill />
       <MusicPlayer />
       <FloatingAssistant />
