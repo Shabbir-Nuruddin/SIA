@@ -5,11 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
-import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw, Rocket } from "lucide-react";
+import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw, Rocket, Users, BarChart3, Search, UserX } from "lucide-react";
 import { ADMIN_EMAILS, isAdminEmail, useTestMode } from "@/lib/admin";
 
 interface Modifier { id: string; feature: string; board: string; instruction: string; created_at: string; is_active: boolean; }
 interface FeedbackRow { id: string; created_at: string; user_id: string | null; message: string; rating: number | null; user_email?: string | null; }
+interface AdminUser { id: string; email: string; display_name: string | null; is_pro: boolean; plan: string | null; subscription_status: string | null; created_at: string; study_minutes: number; }
 
 const Admin = () => {
   const { user, loading } = useAuth();
