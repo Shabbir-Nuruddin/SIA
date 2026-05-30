@@ -608,15 +608,27 @@ const NotesPage = () => {
                   <p className="mt-3 text-sm text-muted-foreground max-w-2xl">Every topic expands to a full-width workspace for fast review, annotation and export.</p>
                 </div>
                 {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
-                  <Button
-                    onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
-                    variant="outline"
-                    size="sm"
-                    title="Regenerate notes"
-                    className="h-9 shrink-0 px-3 text-[11px]"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <Button
+                      onClick={() => setShowVideos(v => !v)}
+                      variant={showVideos ? "default" : "outline"}
+                      size="sm"
+                      className="h-9 px-3 text-[11px]"
+                      title="Toggle YouTube revision videos"
+                    >
+                      <Youtube className="h-3.5 w-3.5 mr-2" />
+                      {showVideos ? "Hide videos" : "Watch videos"}
+                    </Button>
+                    <Button
+                      onClick={() => loadOrGenerate(subjectParam, unitParam, topicParam, true)}
+                      variant="outline"
+                      size="sm"
+                      title="Regenerate notes"
+                      className="h-9 px-3 text-[11px]"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-2" /> Regenerate
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
