@@ -38,6 +38,7 @@ import { ClarityResults } from "./pages/ClarityCompass/ClarityResults";
 import { ClarityRoadmap } from "./pages/ClarityCompass/ClarityRoadmap";
 import { ClarityProfile } from "./pages/ClarityCompass/ClarityProfile";
 import Progress from "./pages/Progress";
+import { AnalyticsTracker } from "./components/AnalyticsTracker";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+          <AnalyticsTracker />
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
