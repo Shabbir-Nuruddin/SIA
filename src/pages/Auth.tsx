@@ -151,7 +151,7 @@ const AuthPage = () => {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={8} className="mt-1.5 h-11" />
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-12 bg-primary hover:bg-primary/90 text-base font-semibold">
+            <Button type="submit" variant="flip" disabled={loading} className="w-full h-12 text-base">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (mode === "signup" ? "Create account →" : "Sign in →")}
             </Button>
           </form>

@@ -453,7 +453,7 @@ const Onboarding = () => {
 
             <div className="flex gap-3">
               <Button variant="outline" size="lg" onClick={() => setStep(2)}>Back</Button>
-              <Button size="lg" onClick={handleSubmit} disabled={loading} className="bg-primary hover:bg-primary/90 h-12 px-8">
+              <Button variant="flip" size="lg" onClick={handleSubmit} disabled={loading} className="h-12 px-8">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Build my roadmap <ArrowRight className="ml-2 h-4 w-4" /></>}
               </Button>
             </div>

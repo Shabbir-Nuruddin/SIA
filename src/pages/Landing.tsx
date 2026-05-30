@@ -105,11 +105,11 @@ const LandingPage = () => {
       </div>
 
       {/* NAVBAR */}
-      <header className="sticky top-0 z-40 bg-[#fdfcf8]/80 backdrop-blur-md border-b border-[#c5c6cd]/30">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 py-5 flex justify-between items-center">
-          <div className="flex flex-col">
-            <span className="text-3xl font-caveat font-bold text-[#091426] leading-none">Make Me Revise</span>
-            <span className="text-[9px] tracking-[0.3em] uppercase mt-1 text-[#45474c] font-bold">
+      <header className="sticky top-0 z-40 bg-[#fdfcf8]/85 backdrop-blur-md border-b border-[#c5c6cd]/30">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-16 py-3 sm:py-5 flex justify-between items-center gap-3">
+          <div className="flex flex-col min-w-0">
+            <span className="text-2xl sm:text-3xl font-caveat font-bold text-[#091426] leading-none truncate">Make Me Revise</span>
+            <span className="hidden sm:inline text-[9px] tracking-[0.3em] uppercase mt-1 text-[#45474c] font-bold">
               The Ultimate A-Level Command Center
             </span>
           </div>
@@ -127,42 +127,44 @@ const LandingPage = () => {
               Community
             </a>
           </nav>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 shrink-0">
             <button
               onClick={handleAuthRedirect}
-              className="text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity"
+              className="hidden sm:inline text-[#091426] font-semibold text-sm hover:opacity-70 transition-opacity"
             >
               Log in
             </button>
-            <button
+            <FlipButton
+              tone="dark"
+              size="sm"
               onClick={handleAuthRedirect}
-              className="bg-[#091426] text-white px-7 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-[#091426]/20 hover:scale-105 transition-all"
+              className="!px-5 sm:!px-6 !py-2 sm:!py-2.5 !text-[11px] sm:!text-xs !rounded-full"
             >
               Start Scoring
-            </button>
+            </FlipButton>
           </div>
         </div>
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden paper-texture py-20">
+      <section className="relative min-h-[80vh] lg:min-h-[85vh] flex items-center overflow-hidden paper-texture py-12 sm:py-16 lg:py-20">
         <div className="absolute inset-0 grid-pattern opacity-40"></div>
         <div className="absolute inset-0 notebook-pattern opacity-10 pointer-events-none"></div>
 
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="text-left">
-              <div className="inline-flex items-center gap-3 bg-white border border-[#c5c6cd]/40 px-5 py-2 rounded-full shadow-sm mb-10 transform -rotate-1">
+              <div className="inline-flex items-center gap-2 sm:gap-3 bg-white border border-[#c5c6cd]/40 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full shadow-sm mb-6 sm:mb-10 transform -rotate-1">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f59e0b] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
-                <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
+                <span className="text-[10px] sm:text-xs font-bold tracking-wide uppercase text-[#091426]/80">
                   Built by A-Level students, for A-Level students.
                 </span>
               </div>
 
-              <h1 className="text-6xl md:text-8xl font-caveat text-[#091426] leading-[0.9] mb-8">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-caveat text-[#091426] leading-[0.9] mb-6 sm:mb-8">
                 Stop drowning in tabs. <br />
                 <span className="relative inline-block">
                   <span className="relative z-10 text-[#f59e0b]">Start scoring A*s.</span>
@@ -176,54 +178,53 @@ const LandingPage = () => {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
+              <p className="text-base sm:text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-8 sm:mb-12">
                 One smart hub that builds your revision plan, marks your mock papers in seconds, and explains anything
                 you snap a photo of — across <span className="text-[#091426] font-bold">Edexcel IAL</span> and{" "}
                 <span className="text-[#091426] font-bold">Cambridge</span>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-5">
-                <button
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                <FlipButton
+                  tone="dark"
+                  size="md"
                   onClick={handleAuthRedirect}
-                  className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group"
+                  className="!text-sm sm:!text-base !px-7 sm:!px-9 !py-3.5 sm:!py-4 shadow-2xl w-full sm:w-auto"
                 >
                   Build My A-Level Roadmap
-                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
-                </button>
+                </FlipButton>
                 <a
                   href="#inside"
-                  className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm flex items-center justify-center"
+                  className="bg-white border border-[#091426]/10 text-[#091426] px-7 sm:px-9 py-3.5 sm:py-4 rounded-full font-bold text-sm sm:text-base uppercase tracking-widest hover:bg-white/80 transition-colors shadow-sm flex items-center justify-center w-full sm:w-auto"
                 >
                   See How It Works
                 </a>
               </div>
 
-              <div className="mt-12 flex items-center gap-4 text-[#45474c]">
+              <div className="mt-8 sm:mt-12 flex items-center gap-3 sm:gap-4 text-[#45474c]">
                 <div className="flex -space-x-3">
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-200"></div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-300"></div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-200"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-300"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
-                <p className="text-sm font-medium">
-                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE & South Asia
+                <p className="text-xs sm:text-sm font-medium leading-snug">
+                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE &amp; South Asia
                 </p>
               </div>
 
               {/* STATS STRIP */}
-              <div className="mt-10 grid grid-cols-3 gap-4 max-w-xl">
+              <div className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4 max-w-xl">
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
                 </div>
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
                 </div>
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
                 </div>
               </div>
             </div>
@@ -285,10 +286,10 @@ const LandingPage = () => {
       </section>
 
       {/* THE ALL-IN-ONE SYSTEM SECTION */}
-      <section id="inside" className="py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10">
+      <section id="inside" className="py-16 sm:py-20 lg:py-24 bg-[#f3f0f7] paper-texture relative overflow-hidden">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#332211]">The High-Performance Ecosystem</h2>
             <p className="text-[#45474c] font-medium mt-4 opacity-70">
               Focus on the 20% of effort that gives you 80% of the results.
             </p>
@@ -354,10 +355,10 @@ const LandingPage = () => {
       </section>
 
       {/* TESTIMONIALS SECTION */}
-      <section id="testimonials" className="py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16">
+      <section id="testimonials" className="py-16 sm:py-20 lg:py-24 bg-[#fdfcf8] paper-texture border-t border-[#c5c6cd]/20">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16">
           <div className="text-center mb-20">
-            <h2 className="text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#091426]">The Cohort Consensus</h2>
             <p className="text-[#45474c] text-xs font-bold tracking-widest uppercase mt-4">
               Real feedback from students who've stopped the site-hopping
             </p>
@@ -429,11 +430,11 @@ const LandingPage = () => {
       </section>
 
       {/* FOUNDER NOTE SECTION */}
-      <section id="story" className="py-20 bg-[#fff9ea] relative overflow-hidden">
+      <section id="story" className="py-14 sm:py-18 lg:py-20 bg-[#fff9ea] relative overflow-hidden">
         <div className="absolute top-10 left-1/2 -translate-x-32 w-24 h-8 bg-pink-300/60 rotate-2 z-10 shadow-sm"></div>
         <div className="absolute top-12 left-1/2 translate-x-32 w-24 h-8 bg-purple-300/60 -rotate-3 z-10 shadow-sm"></div>
 
-        <div className="max-w-3xl mx-auto px-6 relative">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6 relative">
           <div className="founder-note-clip bg-white p-12 md:p-16 shadow-2xl relative border-l-4 border-amber-400 paper-texture">
             <div className="text-amber-500 text-5xl font-serif mb-8 opacity-40">"</div>
             <div className="space-y-6 font-patrick text-2xl text-[#45474c] leading-relaxed">
@@ -454,11 +455,11 @@ const LandingPage = () => {
       </section>
 
       {/* FAQ SECTION: FIXED ICONS */}
-      <section className="py-24 bg-[#f8f9fb] paper-texture">
-        <div className="max-w-3xl mx-auto px-6">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#f8f9fb] paper-texture">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6">
           <div className="text-center mb-12">
             <span className="text-[#f59e0b] font-bold text-xs tracking-widest uppercase">The Specifics</span>
-            <h2 className="text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
+            <h2 className="text-4xl sm:text-5xl font-caveat text-[#091426] mt-2">Everything you need to know</h2>
           </div>
 
           <div className="space-y-4">
@@ -492,10 +493,10 @@ const LandingPage = () => {
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
+      <section className="py-20 sm:py-24 lg:py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
-        <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Your A* is 7 days away.</h2>
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 relative z-10">
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-caveat text-white mb-6 sm:mb-8">Your A* is 7 days away.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
             Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
           </p>
@@ -512,7 +513,7 @@ const LandingPage = () => {
 
       {/* FOOTER */}
       <footer className="bg-[#091426] py-16 border-t border-white/5">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-bold uppercase tracking-widest text-white/60">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-bold uppercase tracking-widest text-white/60">
           <div className="flex flex-col items-center md:items-start">
             <span className="font-caveat text-3xl text-white font-bold leading-none mb-2">Make Me Revise</span>
             <p className="text-white/40">© 2026 Designed in the UAE • For the Global Scholar</p>
