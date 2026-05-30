@@ -147,24 +147,24 @@ const LandingPage = () => {
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden paper-texture py-20">
+      <section className="relative min-h-[80vh] lg:min-h-[85vh] flex items-center overflow-hidden paper-texture py-12 sm:py-16 lg:py-20">
         <div className="absolute inset-0 grid-pattern opacity-40"></div>
         <div className="absolute inset-0 notebook-pattern opacity-10 pointer-events-none"></div>
 
-        <div className="max-w-[1200px] mx-auto px-6 md:px-16 relative z-10 w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-[1200px] mx-auto px-5 sm:px-6 md:px-16 relative z-10 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="text-left">
-              <div className="inline-flex items-center gap-3 bg-white border border-[#c5c6cd]/40 px-5 py-2 rounded-full shadow-sm mb-10 transform -rotate-1">
+              <div className="inline-flex items-center gap-2 sm:gap-3 bg-white border border-[#c5c6cd]/40 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full shadow-sm mb-6 sm:mb-10 transform -rotate-1">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f59e0b] opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
-                <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
+                <span className="text-[10px] sm:text-xs font-bold tracking-wide uppercase text-[#091426]/80">
                   Built by A-Level students, for A-Level students.
                 </span>
               </div>
 
-              <h1 className="text-6xl md:text-8xl font-caveat text-[#091426] leading-[0.9] mb-8">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-caveat text-[#091426] leading-[0.9] mb-6 sm:mb-8">
                 Stop drowning in tabs. <br />
                 <span className="relative inline-block">
                   <span className="relative z-10 text-[#f59e0b]">Start scoring A*s.</span>
@@ -178,54 +178,53 @@ const LandingPage = () => {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
+              <p className="text-base sm:text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-8 sm:mb-12">
                 One smart hub that builds your revision plan, marks your mock papers in seconds, and explains anything
                 you snap a photo of — across <span className="text-[#091426] font-bold">Edexcel IAL</span> and{" "}
                 <span className="text-[#091426] font-bold">Cambridge</span>.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-5">
-                <button
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                <FlipButton
+                  tone="dark"
+                  size="md"
                   onClick={handleAuthRedirect}
-                  className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group"
+                  className="!text-sm sm:!text-base !px-7 sm:!px-9 !py-3.5 sm:!py-4 shadow-2xl w-full sm:w-auto"
                 >
                   Build My A-Level Roadmap
-                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
-                </button>
+                </FlipButton>
                 <a
                   href="#inside"
-                  className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm flex items-center justify-center"
+                  className="bg-white border border-[#091426]/10 text-[#091426] px-7 sm:px-9 py-3.5 sm:py-4 rounded-full font-bold text-sm sm:text-base uppercase tracking-widest hover:bg-white/80 transition-colors shadow-sm flex items-center justify-center w-full sm:w-auto"
                 >
                   See How It Works
                 </a>
               </div>
 
-              <div className="mt-12 flex items-center gap-4 text-[#45474c]">
+              <div className="mt-8 sm:mt-12 flex items-center gap-3 sm:gap-4 text-[#45474c]">
                 <div className="flex -space-x-3">
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-200"></div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-300"></div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-200"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-300"></div>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
-                <p className="text-sm font-medium">
-                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE & South Asia
+                <p className="text-xs sm:text-sm font-medium leading-snug">
+                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE &amp; South Asia
                 </p>
               </div>
 
               {/* STATS STRIP */}
-              <div className="mt-10 grid grid-cols-3 gap-4 max-w-xl">
+              <div className="mt-8 sm:mt-10 grid grid-cols-3 gap-3 sm:gap-4 max-w-xl">
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
                 </div>
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
                 </div>
                 <div>
-                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
+                  <div className="text-4xl sm:text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
+                  <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
                 </div>
               </div>
             </div>
