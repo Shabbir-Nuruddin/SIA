@@ -149,6 +149,33 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: number
+          path: string | null
+          properties: Json
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: number
+          path?: string | null
+          properties?: Json
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: number
+          path?: string | null
+          properties?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cached_faq_questions: {
         Row: {
           board: string
@@ -698,6 +725,45 @@ export type Database = {
           unit_topic?: string
           unit_topic_name?: string | null
           validation_passed?: boolean
+        }
+        Relationships: []
+      }
+      onboarding_emails: {
+        Row: {
+          created_at: string
+          email: string
+          email_number: number
+          error: string | null
+          first_name: string | null
+          id: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_number: number
+          error?: string | null
+          first_name?: string | null
+          id?: string
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_number?: number
+          error?: string | null
+          first_name?: string | null
+          id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
