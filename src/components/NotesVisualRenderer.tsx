@@ -5,7 +5,7 @@
  * blackboard equations, and a 3D-flip flashcard deck.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronDown, ChevronUp, Zap, Target, AlertTriangle, BookOpen,
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
