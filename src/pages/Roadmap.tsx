@@ -1097,9 +1097,33 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
                 finalScore != null && finalScore >= 60 ? "Good. A review is scheduled to reinforce this." :
                 "This topic needs more work. Extra practice has been added to tomorrow."}
             </p>
-            <Button onClick={onClose} className="btn-primary h-9 px-4 text-sm">
-              Continue to next topic <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {(notes?.flashcards?.length ?? 0) > 0 && (
+                <Button onClick={() => setRecallOpen(true)} variant="outline" className="h-9 px-4 text-sm">
+                  <Layers className="h-3.5 w-3.5 mr-1.5" /> Quick recall ({notes!.flashcards!.length})
+                </Button>
+              )}
+              <Button onClick={onClose} className="btn-primary h-9 px-4 text-sm">
+                Continue to next topic <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <Dialog open={recallOpen} onOpenChange={setRecallOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2"><Layers className="h-4 w-4 text-primary" /> Recall · {node.topic_name}</DialogTitle>
+                  <DialogDescription>Spaced-repetition flashcards from the notes you just studied.</DialogDescription>
+                </DialogHeader>
+                {notes?.flashcards && notes.flashcards.length > 0 && (
+                  <FlashcardDeck
+                    cards={notes.flashcards}
+                    source="roadmap"
+                    subject={node.subject ?? null}
+                    unit_number={node.unit_number ?? null}
+                    topic={node.topic_name ?? null}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>
