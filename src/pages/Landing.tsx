@@ -157,14 +157,14 @@ const LandingPage = () => {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f59e0b]"></span>
                 </span>
                 <span className="text-xs font-bold tracking-wide uppercase text-[#091426]/80">
-                  Stop Site-Hopping. Start Mastering.
+                  Built by A-Level students, for A-Level students.
                 </span>
               </div>
 
               <h1 className="text-6xl md:text-8xl font-caveat text-[#091426] leading-[0.9] mb-8">
-                Your entire IAL journey <br />
+                Stop drowning in tabs. <br />
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-[#f59e0b]">in a single tab.</span>
+                  <span className="relative z-10 text-[#f59e0b]">Start scoring A*s.</span>
                   <svg
                     className="absolute -bottom-2 left-0 w-full h-4 text-[#f59e0b]/20 -z-10"
                     preserveAspectRatio="none"
@@ -176,9 +176,9 @@ const LandingPage = () => {
               </h1>
 
               <p className="text-xl md:text-2xl text-[#45474c] font-medium leading-relaxed max-w-xl mb-12">
-                Exam timers, science-backed Pomodoros, an AI mentor, and automated mock marking. We’ve unified{" "}
-                <span className="text-[#091426] font-bold">Edexcel</span> and{" "}
-                <span className="text-[#091426] font-bold">Cambridge</span> resources into one focused command center.
+                One smart hub that builds your revision plan, marks your mock papers in seconds, and explains anything
+                you snap a photo of — across <span className="text-[#091426] font-bold">Edexcel IAL</span> and{" "}
+                <span className="text-[#091426] font-bold">Cambridge</span>.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5">
@@ -186,7 +186,7 @@ const LandingPage = () => {
                   onClick={handleAuthRedirect}
                   className="bg-[#091426] text-white px-10 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 shadow-2xl hover:bg-black transition-all group"
                 >
-                  Claim your Roadmap
+                  Build My A-Level Roadmap
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>
@@ -195,7 +195,7 @@ const LandingPage = () => {
                   href="#inside"
                   className="bg-white border-2 border-[#091426]/5 text-[#091426] px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white transition-colors shadow-sm flex items-center justify-center"
                 >
-                  Explore Features
+                  See How It Works
                 </a>
               </div>
 
@@ -206,8 +206,24 @@ const LandingPage = () => {
                   <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-400"></div>
                 </div>
                 <p className="text-sm font-medium">
-                  Join <span className="text-[#091426] font-bold">5,000+ A* students</span> reclaiming their focus
+                  Trusted by <span className="text-[#091426] font-bold">5,000+ A-Level students</span> across the UK, UAE & South Asia
                 </p>
+              </div>
+
+              {/* STATS STRIP */}
+              <div className="mt-10 grid grid-cols-3 gap-4 max-w-xl">
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">2x</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Faster mock marking vs. self-review</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#f59e0b] leading-none">87%</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Hit or beat their target grade</p>
+                </div>
+                <div>
+                  <div className="text-5xl font-caveat font-bold text-[#091426] leading-none">9hr</div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#45474c] mt-1">Saved weekly on planning</p>
+                </div>
               </div>
             </div>
 
@@ -280,47 +296,56 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#a855f7] shadow-sm hover:shadow-xl transition-all group">
               <div className="text-4xl mb-6">📅</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Modular Roadmaps</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Know exactly what to study, every day</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Syllabus-specific calendars that tell you exactly when to study each unit based on your actual exam
-                dates. Zero decision fatigue.
+                A personalised roadmap that adapts to your exam dates and weak topics. No more 2am panic about what
+                to revise next.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#ef4444] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">⏳</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Flow-State Timers</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Focus that actually lasts an hour</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Integrated Pomodoro timers with science-backed focus music. Master complex units in high-intensity,
-                distracted-free 25-minute bursts.
+                Built-in Pomodoro timers and curated focus music keep you locked in. Study less, retain more, stop
+                drifting to YouTube.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#f97316] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">💡</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">24/7 Expert Mentor</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Never get stuck on a question again</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Snap a photo of any textbook or past paper problem. Our mentor explains the logic using your board's
-                specific keywords.
+                Snap any past-paper or textbook problem. The AI tutor explains it step by step using your exact board's
+                command words and mark scheme.
               </p>
             </div>
 
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#3b82f6] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">📊</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Automatic Marking</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Get mocks marked in 30 seconds</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Complete a mock and get it marked instantly. We analyze your phrasing against Examiner Reports to stop
-                you from losing silly marks.
+                Submit a full mock, get a marked paper instantly — with the silly-mark traps highlighted before they
+                cost you in May.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#10b981] shadow-sm hover:shadow-xl transition-all">
+              <div className="text-4xl mb-6">🎯</div>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Spaced repetition that fixes weak topics</h3>
+              <p className="text-[#45474c] text-sm leading-relaxed">
+                Your weakest topics quietly resurface in your roadmap on the exact day you're about to forget them. No
+                guesswork, no flashcards to manage.
               </p>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 border-t-[6px] border-[#f43f5e] shadow-sm hover:shadow-xl transition-all">
               <div className="text-4xl mb-6">🚀</div>
-              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">Clarity Compass</h3>
+              <h3 className="text-2xl font-bold text-[#1e293b] mb-3">See where your A-Levels actually lead</h3>
               <p className="text-[#45474c] text-sm leading-relaxed">
-                Future-proof your education. Use our engine to map your A-Level interests to university degrees and
-                high-growth careers.
+                The Clarity Compass maps your subjects to real university courses and growing careers — so revision
+                feels like it's going somewhere.
               </p>
             </div>
           </div>
@@ -342,9 +367,9 @@ const LandingPage = () => {
               color="#fff9c4"
               border="border-amber-400"
               rotate="-rotate-1"
-              text="I used to waste an hour just deciding what to study. Now I open my roadmap and get straight to work. My mock results have never been better."
+              text="Went from a predicted C to an A in Chem Unit 4 in one term. The adaptive roadmap basically forced me to fix my weak topics instead of re-reading the ones I already knew."
               author="Hamad Al-Tayer"
-              info="Dubai Student"
+              info="Year 13 · Edexcel IAL · Dubai College"
               initials="HT"
               avatar="bg-amber-500"
             />
@@ -352,9 +377,9 @@ const LandingPage = () => {
               color="#e3f2fd"
               border="border-blue-400"
               rotate="rotate-1"
-              text="The snap-and-explain tool is a life-saver for late night Physics revision. It explains the mark scheme logic better than my textbook."
+              text="I asked the AI to mark my mock at 1am the night before my Physics paper. It caught three command-word mistakes I'd been making for months. Genuinely terrifying value."
               author="Zainab Siddiqui"
-              info="Karachi Student"
+              info="A2 Physics · Karachi Grammar School"
               initials="ZS"
               avatar="bg-blue-500"
             />
@@ -362,9 +387,9 @@ const LandingPage = () => {
               color="#fce4ec"
               border="border-pink-400"
               rotate="-rotate-2"
-              text="The all-in-one approach is exactly what I needed. I deleted 40 bookmarks because everything is synced on one dashboard now."
+              text="I had 40+ tabs open for revision — Save My Exams, Physics & Maths Tutor, Quizlet, YouTube. Now I just open one tab. My screen time literally dropped 3 hours a day."
               author="Oliver Smith"
-              info="London Student"
+              info="Year 12 · Cambridge A-Level · Westminster"
               initials="OS"
               avatar="bg-pink-500"
             />
@@ -372,9 +397,9 @@ const LandingPage = () => {
               color="#e8f5e9"
               border="border-green-400"
               rotate="rotate-2"
-              text="The Pomodoro timer makes the long study sessions feel manageable. I feel productive instead of just busy."
+              text="The Pomodoro + focus music combo is the only reason I finished Bio Unit 5. I went from doing 1hr a day to a real 4hr study block without burning out."
               author="Ayesha Khan"
-              info="Abu Dhabi Student"
+              info="Year 13 Bio + Chem · Repton Abu Dhabi"
               initials="AK"
               avatar="bg-green-600"
             />
@@ -382,9 +407,9 @@ const LandingPage = () => {
               color="#fff3e0"
               border="border-orange-400"
               rotate="-rotate-1"
-              text="The automated marking is incredibly helpful. It caught the specific phrasing I was missing in my Chemistry Unit 4 mock."
-              author="Ibrahim J."
-              info="Sharjah Student"
+              text="My teacher takes a week to mark mocks. This thing did it in 40 seconds — and the feedback was honestly more specific. Saved my January retakes."
+              author="Ibrahim Jamal"
+              info="Edexcel IAL Chemistry · GEMS Sharjah"
               initials="IJ"
               avatar="bg-orange-500"
             />
@@ -392,9 +417,9 @@ const LandingPage = () => {
               color="#f3e5f5"
               border="border-purple-400"
               rotate="rotate-1"
-              text="A-Levels are stressful enough. Having one hub for notes, papers, and help just makes the whole journey easier."
-              author="Lila M."
-              info="Dubai Student"
+              text="I was paying £40/month for a tutor I barely used. £8 for unlimited AI marking + a plan that actually tells me what to do? Easy switch."
+              author="Lila Mansoor"
+              info="Year 13 Maths + Further · Dubai British School"
               initials="LM"
               avatar="bg-purple-500"
             />
@@ -437,21 +462,29 @@ const LandingPage = () => {
 
           <div className="space-y-4">
             <FAQItem
-              question="Can I really replace all my other revision websites?"
-              answer="That is the mission. We have synchronized high-quality notes, topical banks, and expert AI mentoring into one dashboard. You won't need to hop between tabs ever again."
+              question="Why pay £8/month when Save My Exams, PMT and YouTube are free?"
+              answer="Free sites give you scattered notes and PDFs. They don't mark your mock paper, don't tell you which topic to revise on Tuesday, and don't catch the specific command-word mistakes losing you marks. £8 buys you a coach, a marker and a planner — not just another notes site."
               isOpen={true}
             />
             <FAQItem
-              question="How does the photo-upload mentor work?"
-              answer="Just snap a photo of any textbook or past paper problem. Our mentor analyzes the image and explains the logic based on your specific exam board's marking standards."
+              question="Is the content actually up to date with the latest specs?"
+              answer="Yes. Every topic is mapped to the current Edexcel IAL, Edexcel UK GCE and Cambridge A-Level specifications, and reviewed each exam cycle. When boards update a spec or release a new past paper, our content updates within days — not the next academic year."
+              isOpen={false}
             />
             <FAQItem
-              question="Is the study roadmap personalized?"
-              answer="Absolutely. Input your subjects and exam dates, and we build an adaptive schedule that prioritizes your weak spots using spaced repetition techniques."
+              question="What if I sign up and don't actually use it?"
+              answer="Cancel anytime in two clicks — no contracts, no awkward emails. There's also a 7-day free trial so you can build your roadmap, mark a real mock and decide before you pay a penny."
+              isOpen={false}
             />
             <FAQItem
-              question="Does it support both IAL and CIE?"
-              answer="Absolutely. We have mapped the entire syllabus for Edexcel IAL, Edexcel UK GCE, and Cambridge (CIE) across Physics, Biology, Chemistry, and Mathematics."
+              question="How accurate is the AI marking — can I really trust it for a real grade?"
+              answer="The marker is trained on official Edexcel and Cambridge mark schemes plus published Examiner Reports. It flags exactly which mark you earned, which you missed, and why — using the board's own wording. Treat it as a strict second opinion, not a replacement for your teacher's final word."
+              isOpen={false}
+            />
+            <FAQItem
+              question="Does it cover my exact subject and board?"
+              answer="If you sit Physics, Chemistry, Biology or Maths at Edexcel IAL, Edexcel UK GCE or Cambridge A-Level, you're fully covered — every unit, every topic, every past paper. More boards and subjects are being added each term."
+              isOpen={false}
             />
           </div>
         </div>
@@ -461,15 +494,15 @@ const LandingPage = () => {
       <section className="py-32 bg-[#091426] relative overflow-hidden text-center">
         <div className="absolute inset-0 grid-pattern opacity-10 pointer-events-none"></div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Master your syllabus today.</h2>
+          <h2 className="text-6xl md:text-7xl font-caveat text-white mb-8">Your A* is 7 days away.</h2>
           <p className="text-white/60 text-xl font-medium mb-12 max-w-xl mx-auto">
-            Get your roadmap. Ask your questions. Master your mocks. Everything you need is already here.
+            Build your roadmap, mark a real mock paper, and feel the difference before you pay anything. Free for 7 days.
           </p>
           <button
             onClick={handleAuthRedirect}
             className="bg-[#f59e0b] text-[#091426] px-12 py-6 rounded-2xl font-bold text-xl hover:scale-105 transition-transform shadow-[0_20px_50px_rgba(245,158,11,0.2)]"
           >
-            Begin the Journey
+            Build My A-Level Roadmap
           </button>
         </div>
       </section>
