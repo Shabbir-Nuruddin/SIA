@@ -183,6 +183,7 @@ const NotesPage = () => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [topicSearch, setTopicSearch] = useState("");
   const [showVideos, setShowVideos] = useState(false);
+  const [showFlashcards, setShowFlashcards] = useState(false);
 
   // Load profile board + enrolled units
   useEffect(() => {
