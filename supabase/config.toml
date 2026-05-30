@@ -21,3 +21,5 @@ project_id = "womqjniplkfthbxkzlkb"
     verify_jwt = false
   [functions.youtube-search]
     verify_jwt = false
+  [functions.send-onboarding-email]
+    verify_jwt = false
