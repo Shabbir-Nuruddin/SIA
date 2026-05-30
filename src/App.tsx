@@ -64,7 +64,7 @@ const App = () => (
             <Route path="/roadmap" element={<RequireAdmin><Roadmap /></RequireAdmin>} />
             <Route path="/roadmap/topic/:nodeId/notes" element={<RequireAdmin><RoadmapTopicNotes /></RequireAdmin>} />
             <Route path="/notes" element={<Notes />} />
-            <Route path="/podcast" element={<RequireAdmin><Podcast /></RequireAdmin>} />
+            
             <Route path="/papers" element={<PastPapers />} />
             <Route path="/faq" element={<RequireAdmin><FAQ /></RequireAdmin>} />
             <Route path="/settings" element={<Settings />} />
