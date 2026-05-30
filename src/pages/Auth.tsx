@@ -122,9 +122,9 @@ const AuthPage = () => {
   const quote = mode === "signup" ? QUOTES.signup : QUOTES.login;
 
   return (
-    <div className="h-dvh min-h-screen w-full overflow-y-auto bg-background text-foreground grid lg:grid-cols-2">
+    <div className="min-h-dvh w-full bg-background text-foreground grid lg:grid-cols-2">
       {/* ── Left: form ─────────────────────────────────────────────── */}
-      <div className="relative flex min-h-screen flex-col px-6 py-10 sm:px-10 md:px-14 lg:px-16">
+      <div className="relative flex flex-col px-6 py-10 sm:px-10 md:px-14 lg:px-16">
         <Link
           to="/"
           className="inline-flex w-fit items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
