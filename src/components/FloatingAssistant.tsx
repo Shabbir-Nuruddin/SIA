@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Sparkles, X, Send, Loader2, ImagePlus } from "lucide-react";
+import { Sparkles, X, Send, Loader2, ImagePlus, Maximize2, Minimize2, Expand, Shrink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
