@@ -29,6 +29,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
 export const FloatingAssistant = () => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const [size, setSize] = useState<"normal" | "large" | "fullscreen">("normal");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
