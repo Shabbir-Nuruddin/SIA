@@ -15,7 +15,31 @@ serve(async (req) => {
   if (auth instanceof Response) return auth;
 
   try {
-    const { subjects, weakTopics, availableSlots, hoursPerDay } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const rawSubjects = Array.isArray(body?.subjects) ? body.subjects : [];
+    const rawWeak = Array.isArray(body?.weakTopics) ? body.weakTopics : [];
+    const rawSlots = Array.isArray(body?.availableSlots) ? body.availableSlots : [];
+    const hoursPerDayNum = Number(body?.hoursPerDay);
+
+    const cleanStr = (v: unknown, max = 80) =>
+      typeof v === "string" ? v.replace(/[\x00-\x1f<>]/g, "").trim().slice(0, max) : "";
+
+    const subjects = rawSubjects.slice(0, 12).map((s: unknown) => cleanStr(s, 60)).filter(Boolean);
+    const availableSlots = rawSlots.slice(0, 50).map((s: unknown) => cleanStr(s, 40)).filter(Boolean);
+    const weakTopics = rawWeak.slice(0, 30).map((w: any) => ({
+      subject: cleanStr(w?.subject, 60),
+      topic: cleanStr(w?.topic, 120),
+    })).filter((w: any) => w.subject || w.topic);
+    const hoursPerDay = Number.isFinite(hoursPerDayNum)
+      ? Math.min(12, Math.max(1, Math.round(hoursPerDayNum)))
+      : 2;
+
+    if (subjects.length === 0 || availableSlots.length === 0) {
+      return new Response(JSON.stringify({ error: "subjects and availableSlots are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const system = `You are a smart revision planner for A-Level students. 
 Generate a realistic weekly study plan in JSON format based on the student's availability and weak topics.
@@ -23,9 +47,9 @@ Return ONLY valid JSON — no markdown, no explanation, no code blocks. Just the
 
     const user = `Create a weekly study plan for an A-Level student.
 
-SUBJECTS: ${(subjects as string[]).join(", ")}
+SUBJECTS: ${subjects.join(", ")}
 WEAK TOPICS (prioritise these — give them 2x more sessions): ${JSON.stringify(weakTopics)}
-AVAILABLE SLOTS THIS WEEK: ${(availableSlots as string[]).join(", ")}
+AVAILABLE SLOTS THIS WEEK: ${availableSlots.join(", ")}
 HOURS PER AVAILABLE DAY: ${hoursPerDay}
 
 Return a JSON array of session objects. Each object must have:

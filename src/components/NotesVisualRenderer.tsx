@@ -155,7 +155,7 @@ const DefinitionsSection = ({
             <div className="p-4">
               <div className="mb-2">
                 <span className={`font-handwritten text-2xl font-bold ${a.hl} px-1.5 inline-block`}
-                  dangerouslySetInnerHTML={{ __html: d.term }} />
+                  dangerouslySetInnerHTML={{ __html: formatHtml(d.term) }} />
               </div>
               {d.plain_english && (
                 <p className="text-sm text-foreground/80 leading-relaxed mb-2"
