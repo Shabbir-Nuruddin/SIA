@@ -374,7 +374,7 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
 
     let args = await callOnce();
 
-    const validation = validator ? validator(JSON.stringify(args), subject, promptKey) : { passed: true, forbiddenFound: [] };
+    const validation = validator ? validator(JSON.stringify(args), normalizedSubject, promptKey) : { passed: true, forbiddenFound: [] };
     if (!validation.passed) {
       console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
       args = await callOnce();
