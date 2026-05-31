@@ -16,8 +16,7 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 const IMAGEN_MODEL = "imagen-3.0-fast-generate-001";
 const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:generateImages`;
 
-// Pollinations fallback
-const POLLINATIONS_BASE = "https://image.pollinations.ai/prompt";
+// Pollinations removed — produces inaccurate images
 
 const MAX_IMAGES_PER_TOPIC = 3; // overview + up to 2 concept images
 const GLOBAL_BUDGET_MS = 55_000;
@@ -126,29 +125,6 @@ const generateWithImagen = async (prompt: string, apiKey: string): Promise<strin
   }
 };
 
-// Fallback: Pollinations (single attempt, clean timeout per call)
-const generateWithPollinations = async (prompt: string): Promise<string> => {
-  const seed = Math.floor(Math.random() * 1_000_000_000);
-  const encoded = encodeURIComponent(prompt);
-  const url = `${POLLINATIONS_BASE}/${encoded}?width=1024&height=576&seed=${seed}&nologo=true&model=flux`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      headers: { Accept: "image/png,image/jpeg,image/webp,*/*" },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`Pollinations ${res.status}`);
-    const ct = (res.headers.get("content-type") || "").toLowerCase();
-    if (!ct.startsWith("image/")) throw new Error("Pollinations returned non-image content");
-    return url;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
-};
-
 // Upload base64 data URL to Supabase Storage and return public URL
 const uploadImageToStorage = async (
   dataUrl: string,
@@ -176,26 +152,21 @@ const uploadImageToStorage = async (
   return publicUrl;
 };
 
-// Main image generation: try Imagen → fallback to Pollinations
+// Generate image using Gemini Imagen only — tries each key, throws if all fail
 const generateImage = async (
   prompt: string,
   geminiKeys: { value: string }[],
   storagePath: string,
 ): Promise<string> => {
-  // Try each Gemini key for Imagen
   for (const { value: apiKey } of geminiKeys) {
     try {
       const dataUrl = await generateWithImagen(prompt, apiKey);
-      // Upload to storage and return public URL
-      const publicUrl = await uploadImageToStorage(dataUrl, storagePath);
-      return publicUrl;
+      return await uploadImageToStorage(dataUrl, storagePath);
     } catch (err) {
-      console.warn("Imagen generation failed with key, trying next:", (err as Error).message?.slice(0, 100));
+      console.warn("Imagen key failed:", (err as Error).message?.slice(0, 100));
     }
   }
-  // Fall back to Pollinations
-  console.log("All Imagen keys failed, falling back to Pollinations");
-  return await generateWithPollinations(prompt);
+  throw new Error("All Imagen keys exhausted — no image generated");
 };
 
 serve(async (req) => {

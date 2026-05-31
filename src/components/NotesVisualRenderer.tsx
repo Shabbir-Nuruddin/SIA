@@ -141,10 +141,12 @@ const DefinitionsSection = ({
   defs,
   formatHtml,
   defVisuals,
+  expandAll = false,
 }: {
   defs: KeyDef[];
   formatHtml: (s: string) => string;
   defVisuals?: Record<number, { imageUrl: string; title: string }>;
+  expandAll?: boolean;
 }) => {
   const [expanded, setExpanded] = useState<number | null>(null);
   return (
@@ -185,7 +187,7 @@ const DefinitionsSection = ({
               <div className="text-xs text-muted-foreground italic mb-3 leading-relaxed border-l-2 border-foreground/15 pl-2"
                    dangerouslySetInnerHTML={{ __html: `<strong class="not-italic text-foreground/70">Mark scheme:</strong> ${formatHtml(d.mark_scheme)}` }} />
 
-              {d.common_mistake && (
+              {d.common_mistake && !expandAll && (
                 <button
                   onClick={() => setExpanded(open ? null : i)}
                   className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-orange-200 text-orange-900 hover:bg-orange-300 transition-colors"
@@ -194,7 +196,7 @@ const DefinitionsSection = ({
                   {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </button>
               )}
-              {open && d.common_mistake && (
+              {(open || expandAll) && d.common_mistake && (
                 <div className="mt-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 p-3 text-xs text-foreground/90 animate-fade-in"
                      dangerouslySetInnerHTML={{ __html: formatHtml(d.common_mistake) }} />
               )}
@@ -208,7 +210,7 @@ const DefinitionsSection = ({
 };
 
 // ─── Core Content — numbered cards with thick coloured rail ───────────────────
-const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string }) => {
+const CoreContentSection = ({ items, formatHtml, annotate, expandAll = false }: { items: CoreItem[]; formatHtml:(s:string)=>string; annotate:(s:string)=>string; expandAll?: boolean }) => {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const toggle = (i: number) => setExpanded(prev => {
     const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n;
@@ -217,13 +219,13 @@ const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]
     <div className="space-y-3">
       {items.map((c, i) => {
         const a = ACCENTS[i % ACCENTS.length];
-        const open = expanded.has(i);
+        const open = expandAll || expanded.has(i);
         const hasExtra = !!(c.worked_example || c.wrong_approach);
         return (
           <div key={i} className={`rounded-xl bg-card border-l-[6px] ${a.rail} border-y border-r border-foreground/10 shadow-sm overflow-hidden`}>
             <button
-              onClick={() => hasExtra && toggle(i)}
-              className={`w-full flex items-start gap-3 p-4 text-left ${hasExtra ? "hover:bg-foreground/5 cursor-pointer" : "cursor-default"}`}
+              onClick={() => !expandAll && hasExtra && toggle(i)}
+              className={`w-full flex items-start gap-3 p-4 text-left ${hasExtra && !expandAll ? "hover:bg-foreground/5 cursor-pointer" : "cursor-default"}`}
             >
               <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold ${a.chip} shadow-sm`}>
                 {i + 1}
@@ -236,7 +238,7 @@ const CoreContentSection = ({ items, formatHtml, annotate }: { items: CoreItem[]
                   </span>
                 )}
               </div>
-              {hasExtra && (open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
+              {hasExtra && !expandAll && (open ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0 mt-1" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />)}
             </button>
             {open && hasExtra && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in">
@@ -478,97 +480,30 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
   );
 };
 
-// ─── Short-mode compact sections ──────────────────────────────────────────────
-
-const ShortOverview = ({ text, formatHtml }: { text: string; formatHtml: (s: string) => string }) => {
-  const firstPara = text.split(/\n\n+/).map(p => p.trim()).filter(Boolean)[0] ?? "";
-  return (
-    <div className="rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 p-4">
-      <p className="text-sm leading-[1.8] text-foreground/85"
-         dangerouslySetInnerHTML={{ __html: formatHtml(firstPara) }} />
-    </div>
-  );
-};
-
-const ShortDefinitions = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml: (s: string) => string }) => (
-  <div className="rounded-xl border border-border/60 overflow-hidden divide-y divide-border/40">
-    {defs.map((d, i) => {
-      const a = ACCENTS[i % ACCENTS.length];
-      return (
-        <div key={i} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors">
-          <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full mt-0.5 ${a.chip}`}
-                dangerouslySetInnerHTML={{ __html: d.term }} />
-          <span className="text-sm text-foreground/80 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: formatHtml(d.mark_scheme) }} />
-        </div>
-      );
-    })}
-  </div>
-);
-
-const ShortCoreContent = ({ items, formatHtml }: { items: CoreItem[]; formatHtml: (s: string) => string }) => (
-  <div className="space-y-1">
-    {items.map((c, i) => (
-      <div key={i} className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-muted/30 transition-colors">
-        <span className="text-[10px] font-bold font-mono text-muted-foreground shrink-0 mt-0.5 w-5 text-right">
-          {i + 1}.
-        </span>
-        <p className="text-sm leading-relaxed text-foreground/85"
-           dangerouslySetInnerHTML={{ __html: formatHtml(c.statement) }} />
-      </div>
-    ))}
-  </div>
-);
-
-const ShortEquations = ({ eqs, renderMath }: { eqs: EqItem[]; renderMath: (s: string) => string }) => (
-  <div className="grid sm:grid-cols-2 gap-2">
-    {eqs.map((e, i) => {
-      const a = ACCENTS[i % ACCENTS.length];
-      const raw = String(e.equation ?? "").trim();
-      const mathStr = raw && !/\$/.test(raw) ? `$${raw}$` : raw;
-      return (
-        <div key={i} className={`flex items-center gap-3 rounded-lg border border-foreground/10 bg-card px-3 py-2.5`}>
-          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold ${a.chip} shrink-0`}>
-            {i + 1}
-          </span>
-          <span className="text-sm font-mono"
-                dangerouslySetInnerHTML={{ __html: renderMath(mathStr) }} />
-        </div>
-      );
-    })}
-  </div>
-);
+// ─── Long-mode: expanded DefinitionsSection ───────────────────────────────────
+// In Long Notes mode all definitions show every field without needing a click.
 
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, mode = "long", visuals }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, mode = "short", visuals }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
-  const isShort = mode === "short";
+  const isLong = mode === "long";
   const overviewImg = visuals?.overviewImage ?? null;
-
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
 
-    if (isShort) {
-      if (notes.overview) out.push({ id: "overview", title: "Quick Summary", icon: <BookOpen className="h-5 w-5" />, content: <ShortOverview text={notes.overview} formatHtml={formatHtml} /> });
-      if (notes.key_definitions.length) out.push({ id: "defs", title: "Key Terms", icon: <Hash className="h-5 w-5" />, content: <ShortDefinitions defs={notes.key_definitions} formatHtml={formatHtml} /> });
-      if (notes.core_content.length) out.push({ id: "core", title: "Core Facts", icon: <Target className="h-5 w-5" />, content: <ShortCoreContent items={notes.core_content} formatHtml={formatHtml} /> });
-      if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <ShortEquations eqs={notes.equations} renderMath={renderMath} /> });
-      if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
-      if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
-      return out;
-    }
-
+    // Short Notes AND Long Notes both show all sections.
+    // In Long Notes every card is pre-expanded (expandAll=true).
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} defVisuals={visuals?.definitions} /> });
-    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} defVisuals={visuals?.definitions} expandAll={isLong} /> });
+    if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} expandAll={isLong} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath, isShort, visuals]);
+  }, [notes, formatHtml, annotate, renderMath, isLong, visuals]);
 
   return (
     <div className="space-y-8">

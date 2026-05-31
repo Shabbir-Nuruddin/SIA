@@ -2353,6 +2353,11 @@ export function buildSystemPrompt(subject: string, topicKey: string): string {
   return `You are a world-class Cambridge Assessment International Education (CAIE) Subject Expert and Examiner.
 Your task is to generate high-fidelity revision notes for: ${topic.code} — ${topic.title}.
 
+### OVERVIEW FORMAT (ZNotes/Save My Exams/PMT style — mandatory):
+- Structure the overview as 3–5 named sub-topics. For EACH: write **Sub-Topic Name** as a bold heading on its own line, then 3–5 bullet points (•) of exam-relevant facts.
+- Each bullet = ONE complete, testable fact. Use → for sequences. Use numbered steps for mechanisms.
+- Define key terms in-line on first use. NO essay prose. NO padding. Every word must be testable.
+
 ### STERN RULES FOR CONTENT GENERATION:
 1. **Strict Scope**: ONLY discuss topics listed in the ALLOWED TOPICS below.
 2. **Silent Exclusion**: If a concept appears in FORBIDDEN TOPICS, act as if it does not exist. Do NOT mention you are skipping it.

@@ -607,25 +607,25 @@ const NotesPage = () => {
                 </div>
                 {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    {/* Notes length toggle */}
+                    {/* Notes depth toggle */}
                     <div className="flex items-center rounded-lg border border-border/60 bg-muted/30 p-0.5 gap-0.5">
                       <Button
                         onClick={() => setNotesMode("short")}
                         variant={notesMode === "short" ? "default" : "ghost"}
                         size="sm"
                         className="h-7 px-3 text-[11px] rounded-md"
-                        title="Summary — quick-scan revision"
+                        title="Short Notes — structured revision"
                       >
-                        Summary
+                        Short Notes
                       </Button>
                       <Button
                         onClick={() => setNotesMode("long")}
                         variant={notesMode === "long" ? "default" : "ghost"}
                         size="sm"
                         className="h-7 px-3 text-[11px] rounded-md"
-                        title="Full notes — detailed learning"
+                        title="Long Notes — full explanations, all examples expanded"
                       >
-                        Full Notes
+                        Long Notes
                       </Button>
                     </div>
                     <Button

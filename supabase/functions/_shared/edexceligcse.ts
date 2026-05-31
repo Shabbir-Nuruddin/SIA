@@ -1563,12 +1563,11 @@ export function buildSystemPrompt(
 - Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
 - Move all the depth into the "core_content" array: AT LEAST 8 worked examples covering different question types from this topic. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step), "wrong_approach" = a common student mistake.
 - Include AT LEAST 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
-    : `### OVERVIEW RULE (SCIENCE):
-- Write the "overview" field as 5 to 7 paragraphs (separate paragraphs with a blank line) of student-friendly theory, in the style of Save My Exams or Physics & Maths Tutor.
-- Tone: explain the *why* behind the concepts, link cause and effect, use clear analogies where helpful. NOT a lecture, NOT teacher-facing — written for a student to actually learn from.
-- On-point and exam-relevant: only include theory that gets tested. No filler, no tangents.
-- Each paragraph: 4 to 6 sentences. Define every technical term the first time it appears.
-- Do NOT just rephrase the bullet points from ALLOWED TOPICS — synthesise them into flowing explanation a student can read and remember.`;
+    : `### OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
+- Structure the overview as 3–5 sub-topics. For EACH sub-topic: write **Sub-Topic Name** on its own line as a bold heading, then 3–5 bullet points (starting with •) of precise, exam-relevant facts.
+- Each bullet = ONE complete, testable fact. Use → for sequences. Use numbered steps for mechanisms.
+- Define key terms in-line on first use. NO flowing prose. NO padding. Every word must be testable.
+- Tone: direct, exam-focused, like a ZNotes or PMT revision page.`;
 
   return `You are a world-class Pearson Edexcel IGCSE Subject Expert and Examiner.
 Your task is to generate high-fidelity revision notes for: ${topic.code} — ${topic.title}.

@@ -44,7 +44,7 @@ interface ProfileLite {
   exam_board: string | null;
 }
 
-const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
+const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose?: () => void }) => {
   const { signOut, user } = useAuth();
   const { pathname } = useLocation();
   const [testMode] = useTestMode();
@@ -70,14 +70,25 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => {
 
   return (
     <div className="flex h-full flex-col p-3 warm-gradient-soft">
-      {/* Logo */}
-      <div className="px-2 pt-3 pb-5 shrink-0">
-        <div className="font-display text-3xl leading-none warm-gradient-text font-bold tracking-tight">
-          MakeMeRevise
+      {/* Logo + collapse button */}
+      <div className="px-2 pt-3 pb-5 shrink-0 flex items-start justify-between">
+        <div>
+          <div className="font-display text-3xl leading-none warm-gradient-text font-bold tracking-tight">
+            MakeMeRevise
+          </div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mt-1">
+            Study smarter ✨
+          </div>
         </div>
-        <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground mt-1">
-          Study smarter ✨
-        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent/60 transition-colors mt-1 shrink-0"
+            aria-label="Collapse sidebar"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 min-h-0 space-y-1 overflow-y-auto pr-1">
@@ -211,18 +222,8 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
           className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden pt-11"
           style={{ top: 0, height: "100dvh" }}
         >
-          <div className="flex items-center justify-between px-3 py-3 border-b border-sidebar-border/70 shrink-0">
-            <div className="text-sm font-semibold text-sidebar-foreground">Menu</div>
-            <button
-              onClick={onClose}
-              className="h-9 w-9 rounded-full border border-sidebar-border/80 bg-background flex items-center justify-center text-sidebar-foreground hover:bg-secondary transition-colors"
-              aria-label="Hide sidebar"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
-          </div>
           <div className="flex-1 min-h-0 overflow-hidden">
-            <SidebarBody />
+            <SidebarBody onClose={onClose} />
           </div>
         </aside>
       ) : (

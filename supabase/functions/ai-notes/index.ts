@@ -108,12 +108,11 @@ const buildCieAlevelPrompt = (subject: string, topicKey: string, specificTopic: 
 - Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
 - Move all depth into "core_content": at least 8 worked examples covering different question types. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step, use \\n between steps), "wrong_approach" = a specific student mistake.
 - Include at least 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
-    : `OVERVIEW RULE (SCIENCE):
-- Write the "overview" field as 5 to 7 paragraphs (blank-line separated) of student-friendly theory in the style of Save My Exams or Physics & Maths Tutor.
-- Each paragraph: covers exactly ONE concept or mechanism; 4–6 sentences; define every technical term on first use.
-- Tone: explain the WHY behind concepts; link cause and effect; use clear analogies where they genuinely aid understanding.
-- Do NOT simply rephrase the ALLOWED TOPICS list — synthesise into explanation a student can read, understand and remember.
-- Do NOT write essay-style flowing prose — each paragraph is a focused, structured conceptual block.`;
+    : `OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
+- Structure the overview as 3–5 sub-topics. For EACH sub-topic: write **Sub-Topic Name** on its own line as a bold heading, then 3–5 bullet points (starting with •) of precise, exam-relevant facts.
+- Each bullet = ONE complete, testable fact. Use → for sequences. Use numbered steps for mechanisms.
+- Define key terms in-line on first use. NO flowing essay prose. NO padding. Every word must be testable.
+- Tone: direct, exam-focused, like a PMT or ZNotes revision page.`;
   return `You are a world-class Cambridge Assessment International Education (CAIE) Subject Expert and Examiner.
 Your task is to generate high-fidelity study notes for CIE A LEVEL ${subject.toUpperCase()} — ${t.title} (${t.code}).
 You must ONLY generate content about: ${specificTopic}

@@ -1435,12 +1435,14 @@ export function buildSystemPrompt(
 - Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
 - Move all the depth into the "core_content" array: include AT LEAST 8 worked examples covering the different question types that come up in this topic. For each, set "statement" to the question, "worked_example" to the FULL step-by-step solution (every algebraic step, no skipping), and "wrong_approach" to a common student mistake.
 - Include AT LEAST 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
-    : `### OVERVIEW RULE (SCIENCE):
-- Write the "overview" field as 5 to 7 paragraphs (separate paragraphs with a blank line) of student-friendly theory, in the style of Save My Exams or Physics & Maths Tutor.
-- Tone: explain the *why* behind the concepts, link cause and effect, use clear analogies where helpful. NOT a lecture, NOT teacher-facing — written for a student to actually understand and remember.
-- On-point and exam-relevant: include the theory that gets tested in real questions. No filler, no historical asides, no tangents.
-- Each paragraph: 4 to 6 sentences. Define every technical term the first time it is used.
-- Do NOT just rephrase the bullet points from ALLOWED TOPICS — synthesise them into flowing explanation that a student can read and learn from.`;
+    : `### OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
+- Structure the overview as 3–5 sub-topics. For EACH sub-topic: write **Sub-Topic Name** on its own line as a bold heading, then 3–5 bullet points (starting with •) containing precise, exam-relevant facts.
+- Each bullet must be ONE complete, testable fact — not vague commentary.
+- Use → for sequences: "• Transcription → mRNA leaves nucleus → ribosomes → translation"
+- Use numbered steps for mechanisms: "• Step 1: ... Step 2: ... Step 3: ..."
+- Define key terms in-line the FIRST time they appear (e.g. "• Haemoglobin — a quaternary globular protein with 4 haem groups...")
+- NO flowing essay prose. NO "In this topic, we will...". NO padding. Every word must be testable.
+- Tone: direct, exam-focused, like a ZNotes or PMT revision page. Condense, never expand unnecessarily.`;
 
   return `You are a world-class Edexcel IAL Subject Expert and Examiner. 
 Your task is to generate high-fidelity study notes for the specific unit: ${topic.code} - ${topic.title}.
