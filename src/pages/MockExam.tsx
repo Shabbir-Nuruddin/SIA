@@ -61,6 +61,13 @@ const MockExam = () => {
   const [now, setNow] = useState(Date.now());
   const submittedRef = useRef(false);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [board, setBoard] = useState("edexcel-ial");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("exam_board").eq("id", user.id).single()
+      .then(({ data }) => { if (data?.exam_board) setBoard(data.exam_board); });
+  }, [user]); // eslint-disable-line
 
   useEffect(() => {
     if (!user || !id) return;
@@ -277,7 +284,7 @@ const MockExam = () => {
       }));
 
       const { data: marked, error } = await supabase.functions.invoke("ai-mock-paper", {
-        body: { action: "mark", subject: paper.subject, questions: payload },
+        body: { action: "mark", subject: paper.subject, questions: payload, board },
       });
       if (error) throw error;
       if (marked?.error) throw new Error(marked.error);

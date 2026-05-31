@@ -124,6 +124,7 @@ async function callGeminiWithRotation(opts: {
   let lastErr = "";
 
   // Try each key exactly once, starting from startIdx, wrapping around.
+  // With N keys, attempts go: startIdx, startIdx+1, ..., N-1, 0, 1, ..., startIdx-1.
   for (let attempt = 0; attempt < keys.length; attempt++) {
     const idx = (startIdx + attempt) % keys.length;
     const key = keys[idx];
@@ -131,21 +132,26 @@ async function callGeminiWithRotation(opts: {
     for (const model of GEMINI_MODELS) {
       const r = await callGeminiOnce({ apiKey: key.value, model, ...opts });
       if (r.ok) {
-        if (idx !== startIdx || attempt > 0) await persistState(idx, keys.length);
-        else if (cachedIndex === null) await persistState(idx, keys.length);
+        // Persist the working key so next request starts here.
+        await persistState(idx, keys.length);
         console.log(`[ai] used gemini ${model} via ${key.name} (key ${idx + 1}/${keys.length})`);
         return r.parsed;
       }
       lastErr = `[${key.name} ${model}] ${r.status} ${r.body.slice(0, 200)}`;
       console.error("gemini error", lastErr);
-      // If it's a quota/rate error, stop trying remaining models on this key and rotate.
+      // Quota/rate error: skip remaining models on this key, advance to next.
       if (isQuotaError(r.status, r.body)) break;
       // Non-quota error: try next model on same key.
     }
-    // Rotate to next key (wrap to 0 after last)
+    // Advance pointer past the failed key so next request doesn't retry it immediately.
     const next = (idx + 1) % keys.length;
     await persistState(next, keys.length, lastErr);
   }
+
+  // All keys exhausted. Advance pointer by one from startIdx so the next
+  // request begins from a different key rather than the same one that led
+  // the current round-robin to fail first.
+  await persistState((startIdx + 1) % keys.length, keys.length, lastErr);
   throw new Error("all gemini keys exhausted: " + lastErr);
 }
 

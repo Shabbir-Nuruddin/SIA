@@ -208,8 +208,8 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
 
       {visible ? (
         <aside
-          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden"
-          style={{ top: 0, height: "100vh" }}
+          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden pt-11"
+          style={{ top: 0, height: "100dvh" }}
         >
           <div className="flex items-center justify-between px-3 py-3 border-b border-sidebar-border/70 shrink-0">
             <div className="text-sm font-semibold text-sidebar-foreground">Menu</div>
@@ -228,7 +228,7 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
       ) : (
         <button
           onClick={onOpen}
-          className="hidden lg:flex fixed top-4 left-4 z-50 h-10 w-10 rounded-full bg-card border border-border text-sidebar-foreground shadow-lg hover:bg-secondary transition-colors"
+          className="hidden lg:flex fixed top-[52px] left-4 z-40 h-10 w-10 rounded-full bg-card border border-border text-sidebar-foreground shadow-lg hover:bg-secondary transition-colors items-center justify-center"
           aria-label="Open sidebar"
         >
           <Menu className="h-5 w-5" />

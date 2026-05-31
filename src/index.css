@@ -388,7 +388,7 @@ html.theme-paper { color-scheme: light; }
   }
 
   .study-shell {
-    background: radial-gradient(circle at top, hsl(42 35% 96%), hsl(42 33% 92%));
+    background: hsl(var(--background));
   }
   .study-shell .surface,
   .study-shell .glass-card {

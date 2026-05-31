@@ -35,9 +35,17 @@ const NewMockPaper = () => {
   const [customTime, setCustomTime] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   const [phase, setPhase] = useState<"setup" | "loading">("setup");
+  const [board, setBoard] = useState<string>("edexcel-ial");
 
   const meta = SUBJECTS[subject];
   const qtypes = subject === "mathematics" ? MATHS_QTYPES : SCI_QTYPES;
+
+  // Load board from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("exam_board").eq("id", user.id).single()
+      .then(({ data }) => { if (data?.exam_board) setBoard(data.exam_board); });
+  }, [user]); // eslint-disable-line
 
   // Load enrolled units for chosen subject
   useEffect(() => {
@@ -102,6 +110,7 @@ const NewMockPaper = () => {
           totalMarks,
           difficultyMix: difficulty,
           syllabus_context,
+          board,
         },
       });
       if (aiErr) throw aiErr;

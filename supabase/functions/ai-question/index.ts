@@ -112,7 +112,11 @@ serve(async (req) => {
     if (action === "generate") {
       const { subject, topic, difficulty, questionType, syllabus_context, count, board } = body;
       const n = Math.min(15, Math.max(1, Number(count) || 1));
-      const boardLabel = board === "cie" ? "Cambridge International (CIE)" : "Edexcel A-Level";
+      const boardLabel =
+        board === "cie"           ? "Cambridge International A Level (CIE)" :
+        board === "cie-igcse"     ? "Cambridge IGCSE (CIE)" :
+        board === "edexcel-igcse" ? "Edexcel International GCSE (IGCSE)" :
+                                    "Edexcel International A-Level (IAL)";
       const system = `You are a senior ${boardLabel} examiner specialising in ${subject}. You write original exam questions in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers — but the scenarios, values, and content are fully original. NEVER reproduce a real past paper question verbatim. Match the cognitive demand precisely. Use UK English.
 
 EXAM AUTHENTICITY RULES:

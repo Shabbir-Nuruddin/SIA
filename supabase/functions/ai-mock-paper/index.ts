@@ -111,20 +111,43 @@ serve(async (req) => {
     const { action } = body;
 
     if (action === "generate") {
-      const { subject, units, topics, questionTypes, totalMarks, difficultyMix, syllabus_context } = body;
-      const system = `You are a senior Edexcel International A-Level (IAL) ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real Edexcel IAL papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and Edexcel command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.
+      const { subject, units, topics, questionTypes, totalMarks, difficultyMix, syllabus_context, board } = body;
+
+      // Board label — determines exam style, command words, and mark-scheme format
+      const boardLabel =
+        board === "cie"         ? "Cambridge International A Level (CIE)" :
+        board === "cie-igcse"   ? "Cambridge IGCSE (CIE)" :
+        board === "edexcel-igcse" ? "Edexcel International GCSE (IGCSE)" :
+                                   "Edexcel International A-Level (IAL)";
+      const isIAL = board === "edexcel-ial" || !board;
+      const isCIE = board === "cie" || board === "cie-igcse";
+
+      const unitLevelRule = isIAL
+        ? `- Units 1–3 are AS-level (IAS). Units 4–6 are A2-level (IA2). Generate questions ONLY at the correct level for the units specified.
+- If units include 4+, do NOT ask AS-level questions on topics that also exist at AS level. Ask the A2 version (e.g. Kinetics Unit 4 = rate equations/Arrhenius, NOT Maxwell-Boltzmann).`
+        : isCIE
+        ? `- For CIE A Level: questions for Papers 1–3 are AS Level; Papers 4–5 are A2 Level. Match the level of the units specified.
+- For CIE IGCSE: Core content applies to all students; Supplement/Extended content is harder and for Extended candidates.`
+        : `- For IGCSE: Core content is accessible to all; distinguish higher-tier content where relevant.`;
+
+      const markSchemeStyle = isCIE
+        ? "Cambridge mark-scheme style: numbered marking points (1), with 'allow' and 'reject' notes where appropriate. Do not use M1/A1 codes."
+        : "Edexcel-style point-by-point mark scheme with M1/A1/B1 codes where appropriate.";
+
+      const system = `You are a senior ${boardLabel} ${subject} examiner. Generate an original mock paper in the EXACT style, structure, mark allocation, and command-word patterns of real ${boardLabel} past papers, but invent fully original scenarios, values, and specific contexts. NEVER reproduce a past paper question verbatim. Match cognitive demand precisely. Use UK English and ${boardLabel} command words: Calculate, State, Explain, Describe, Evaluate, Compare, Suggest, Determine, Show that.
 
 UNIT-LEVEL CRITICAL RULES:
-- Units 1–3 are AS-level (IAS). Units 4–6 are A2-level (IA2). Generate questions ONLY at the correct level for the units specified.
-- If units include 4+, do NOT ask AS-level questions on topics that also exist at AS level. Ask the A2 version (e.g. Kinetics Unit 4 = rate equations/Arrhenius, NOT Maxwell-Boltzmann).
+${unitLevelRule}
 - For sciences: use real scientific contexts (named reactions, real organisms, real experimental setups) with altered specifics.
-- For maths: every calculation question must have full step-by-step mark scheme with method marks (M1) and accuracy marks (A1).
+- For maths: every calculation question must have full step-by-step mark scheme with method marks and accuracy marks.
+
+MARK-SCHEME FORMAT: ${markSchemeStyle}
 
 FORMATTING RULES:
 - Plain text only. NO LaTeX. NO dollar signs. NO backslashes for math. NO markdown headings (#) or bold asterisks (**).
 - Use Unicode for symbols: Δ, →, ⇌, ×, ², ³, ⁻¹, ½. Write "x squared" or "x²" — never "x^2". Fractions as a/b.
-- Structure with clear paragraph breaks. Numbered/bulleted lists as plain text only.${syllabus_context ? `\n\nSCOPE — every question MUST stay strictly within the official Edexcel specification statements below. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
-      const user = `Build a mock paper for Edexcel A-Level ${subject}, covering Units ${units.join(", ")}.
+- Structure with clear paragraph breaks. Numbered/bulleted lists as plain text only.${syllabus_context ? `\n\nSCOPE — every question MUST stay strictly within the official ${boardLabel} specification statements below. Do not invent content beyond the syllabus:\n${syllabus_context}` : ""}`;
+      const user = `Build a mock paper for ${boardLabel} ${subject}, covering Units ${units.join(", ")}.
 Topics to draw from: ${topics.join("; ")}.
 Allowed question types: ${questionTypes.join(", ")}.
 Target total marks: ${totalMarks} (±5). Vary marks per question realistically (MCQ 1, short 2-4, calc 3-6, describe/explain 4-6, extended 6).
@@ -145,7 +168,12 @@ Number questions sequentially starting at 1. Output via the tool.`;
     }
 
     if (action === "mark") {
-      const { subject, questions } = body;
+      const { subject, questions, board } = body;
+      const boardLabel =
+        board === "cie"         ? "Cambridge International A Level (CIE)" :
+        board === "cie-igcse"   ? "Cambridge IGCSE (CIE)" :
+        board === "edexcel-igcse" ? "Edexcel IGCSE" :
+                                   "Edexcel International A-Level (IAL)";
 
       // Pre-mark: any blank answer is automatically 0. Don't even send to AI.
       const blanks: { question_index: number; awarded_marks: number; feedback: string }[] = [];
@@ -166,7 +194,7 @@ Number questions sequentially starting at 1. Output via the tool.`;
 
       let aiResults: { question_index: number; awarded_marks: number; feedback: string }[] = [];
       if (toMark.length > 0) {
-        const system = `You are a strict but fair Edexcel A-Level ${subject} examiner. Mark each answer Edexcel-style: method marks for working, accuracy marks for correct values, banded marking for 6-mark extended responses (Band 1: 1-2 basic, Band 2: 3-4 good, Band 3: 5-6 comprehensive). Award marks for valid alternative wording. Be honest — do not inflate. CRITICAL: If a student answer is blank, empty, whitespace, or just says "(no answer)", award 0 marks — never award marks for non-answers.`;
+        const system = `You are a strict but fair ${boardLabel} ${subject} examiner. Mark each answer in the exact ${boardLabel} style: award marks point-by-point, banded marking for 6-mark extended responses (Band 1: 1-2 basic, Band 2: 3-4 good, Band 3: 5-6 comprehensive). Award marks for valid alternative wording. Be honest — do not inflate. CRITICAL: If a student answer is blank, empty, whitespace, or just says "(no answer)", award 0 marks — never award marks for non-answers.`;
         const user = `Mark these questions. Return one result per question with awarded_marks (integer, 0..marks) and 1-2 sentence feedback.
 
 ${toMark
