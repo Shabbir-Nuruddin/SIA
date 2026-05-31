@@ -288,20 +288,25 @@ serve(async (req) => {
     let validator: ((notes: string, subject: string, key: string) => { passed: boolean; forbiddenFound: string[] }) | null = null;
     let promptKey = `unit${unit_number}`;
 
+    // Normalise subject keys coming from the client (e.g. "mathematics" -> "maths")
+    const normalizedSubject = String(subject || "").toLowerCase() === "mathematics"
+      ? "maths"
+      : String(subject || "").toLowerCase();
+
     if (board === "edexcel-ial") {
-      systemPrompt = buildEdexcelIAL(subject, promptKey);
+      systemPrompt = buildEdexcelIAL(normalizedSubject, promptKey);
       validator = validateEdexcelIAL;
     } else if (board === "edexcel-igcse") {
       promptKey = `topic${unit_number}`;
-      systemPrompt = buildEdexcelIGCSE(subject, promptKey);
+      systemPrompt = buildEdexcelIGCSE(normalizedSubject, promptKey);
       validator = validateEdexcelIGCSE;
     } else if (board === "cie-igcse") {
       promptKey = `topic${unit_number}`;
-      systemPrompt = buildCIEIGCSE(subject, promptKey);
+      systemPrompt = buildCIEIGCSE(normalizedSubject, promptKey);
       validator = validateCIEIGCSE;
     } else if (board === "cie") {
-      promptKey = findCieAlevelTopicKey(subject, topic, Number(unit_number)) || `topic${unit_number}`;
-      systemPrompt = buildCieAlevelPrompt(subject, promptKey, topic);
+      promptKey = findCieAlevelTopicKey(normalizedSubject, topic, Number(unit_number)) || `topic${unit_number}`;
+      systemPrompt = buildCieAlevelPrompt(normalizedSubject, promptKey, topic);
       validator = validateCieAlevel;
     } else {
       const builtCIE = buildCIEGeneric({ qualification: board, subject, unit: unit_number, unitName: unit_name });
@@ -369,7 +374,7 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
 
     let args = await callOnce();
 
-    const validation = validator ? validator(JSON.stringify(args), subject, promptKey) : { passed: true, forbiddenFound: [] };
+    const validation = validator ? validator(JSON.stringify(args), normalizedSubject, promptKey) : { passed: true, forbiddenFound: [] };
     if (!validation.passed) {
       console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
       args = await callOnce();
