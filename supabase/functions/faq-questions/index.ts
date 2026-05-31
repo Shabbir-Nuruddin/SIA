@@ -74,9 +74,20 @@ serve(async (req) => {
   }
 
   try {
-    const { board, subject, topic } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const cleanStr = (v: unknown, max: number) =>
+      typeof v === "string" ? v.replace(/[\x00-\x1f<>]/g, "").trim().slice(0, max) : "";
+    const board = cleanStr(body?.board, 32);
+    const subject = cleanStr(body?.subject, 60);
+    const topic = cleanStr(body?.topic, 160);
     if (!board || !subject || !topic) {
       return new Response(JSON.stringify({ error: "missing parameters" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!["edexcel-ial", "cie"].includes(board)) {
+      return new Response(JSON.stringify({ error: "invalid board" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
