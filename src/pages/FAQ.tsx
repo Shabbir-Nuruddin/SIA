@@ -9,6 +9,7 @@ import { formattedHtmlProps } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import FlashcardDeck from "@/components/FlashcardDeck";
+import { SEO } from "@/components/SEO";
 
 interface ExamQ {
   question_text: string;
