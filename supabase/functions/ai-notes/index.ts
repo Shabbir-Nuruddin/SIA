@@ -193,9 +193,9 @@ const notesTool = {
           items: {
             type: "object",
             properties: {
-              statement: { type: "string" },
-              worked_example: { type: "string" },
-              wrong_approach: { type: "string" },
+              statement: { type: "string", description: "One complete, testable exam fact for this spec point." },
+              worked_example: { type: "string", description: "REQUIRED — NEVER empty. Write a specific exam-style question on this fact, then the full mark-scheme answer step-by-step (use \\n between steps). For science: show how to apply the fact to a real exam question. For maths: show the full algebraic working." },
+              wrong_approach: { type: "string", description: "REQUIRED — NEVER empty. Name the exact misconception students have and correct it in one sentence." },
               typical_marks: { type: "integer" },
             },
             required: ["statement", "worked_example", "wrong_approach", "typical_marks"],
@@ -315,7 +315,17 @@ serve(async (req) => {
     // rather than unit1/unit2 …  The client passes unitCode "P1", "P2" etc.
     // For IGCSE maths the syllabus uses topic-name keys (number, algebra …).
     const deriveMathsKey = (): string => {
+      // 1. Client-sent unitCode is the most reliable source ("P1" → "p1")
       if (unit_code) return String(unit_code).toLowerCase().replace(/\s+/g, "");
+      // 2. Hardcoded fallback for Edexcel IAL maths unit numbers
+      //    Covers the case where unit_code was not sent (old clients / cache-clear)
+      const ialMathsMap: Record<string, string> = {
+        "1":"p1","2":"p2","3":"p3","4":"p4",
+        "5":"m1","6":"m2","7":"s1","8":"s2",
+      };
+      const mapped = ialMathsMap[String(unit_number)];
+      if (mapped) return mapped;
+      // 3. Derive from unit_name as last resort (works for IGCSE "Number","Algebra"…)
       if (unit_name) return String(unit_name).toLowerCase().replace(/[^a-z]/g, "");
       return `unit${unit_number}`;
     };
@@ -373,8 +383,8 @@ REFERENCE TABLES: Only populate "reference_tables" if this topic contains data s
 OUTPUT STYLE RULES (non-negotiable — apply to every field):
 - Overview: each paragraph covers exactly ONE concept or mechanism. 4–6 sentences. No flowing essay prose.
 - Core content "statement": one complete testable fact per item. Use "→" for sequences (e.g. "Glucose → pyruvate → acetyl-CoA"). Use "Step 1: ... Step 2: ..." for mechanisms.
-- Core content "worked_example": show reasoning step-by-step, with \\n between steps. Do NOT repeat the statement — show how to answer a real exam question.
-- Core content "wrong_approach": name the specific misconception a student would have, and correct it.
+- Core content "worked_example": MANDATORY — NEVER leave empty. Write: (1) a specific exam question on this fact, then (2) the full mark-scheme answer with every step on a new line using \\n. For science: "Q: Explain why... Answer: Step 1: ... Step 2: ...". For maths: show every algebraic line.
+- Core content "wrong_approach": MANDATORY — NEVER leave empty. Name the exact misconception and correct it concisely.
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
 - For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.

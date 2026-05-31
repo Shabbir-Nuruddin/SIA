@@ -220,7 +220,9 @@ const CoreContentSection = ({ items, formatHtml, annotate, expandAll = false }: 
       {items.map((c, i) => {
         const a = ACCENTS[i % ACCENTS.length];
         const open = expandAll || expanded.has(i);
-        const hasExtra = !!(c.worked_example || c.wrong_approach);
+        // In Long Notes (expandAll), always treat the item as expandable so the
+        // worked-example section renders even if the AI returned empty strings.
+        const hasExtra = expandAll || !!(c.worked_example || c.wrong_approach);
         return (
           <div key={i} className={`rounded-xl bg-card border-l-[6px] ${a.rail} border-y border-r border-foreground/10 shadow-sm overflow-hidden`}>
             <button
@@ -242,7 +244,7 @@ const CoreContentSection = ({ items, formatHtml, annotate, expandAll = false }: 
             </button>
             {open && hasExtra && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in">
-                {c.worked_example && (
+                {c.worked_example ? (
                   <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-l-4 border-emerald-400 p-3">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-1.5">
                       <PencilLine className="h-3 w-3" /> Worked example
@@ -250,7 +252,11 @@ const CoreContentSection = ({ items, formatHtml, annotate, expandAll = false }: 
                     <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90"
                        dangerouslySetInnerHTML={{ __html: annotate(formatHtml(c.worked_example)) }} />
                   </div>
-                )}
+                ) : expandAll ? (
+                  <div className="rounded-lg bg-emerald-50/40 dark:bg-emerald-950/15 border border-dashed border-emerald-300/60 p-3 text-[11px] text-muted-foreground italic">
+                    No worked example in cached notes — click Regenerate to get a full Long Notes version.
+                  </div>
+                ) : null}
                 {c.wrong_approach && (
                   <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 border-l-4 border-orange-400 p-3">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300 mb-1.5">
