@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
+import { SEO } from "@/components/SEO";
 
 const NAME_RE = /^[A-Za-z][A-Za-z'\- ]*$/;
 
@@ -123,6 +124,12 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-dvh w-full bg-background text-foreground grid lg:grid-cols-2">
+      <SEO
+        title={mode === "signup" ? "Create your MakeMeRevise account" : "Sign in — MakeMeRevise"}
+        description="Sign in or create an account to start your personalised A-Level revision plan on MakeMeRevise."
+        path="/auth"
+        noindex
+      />
       {/* ── Left: form ─────────────────────────────────────────────── */}
       <div className="relative flex flex-col px-6 py-10 sm:px-10 md:px-14 lg:px-16">
         <Link
