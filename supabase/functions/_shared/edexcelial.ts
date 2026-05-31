@@ -1473,7 +1473,16 @@ BOUNDARY RULES:
 - If a concept appears in both this unit and another unit at different depths, only include the version appropriate to THIS unit
 - Do not introduce concepts from later units even as "preview" or "context"
 - Every formula, definition, and diagram description must trace directly to the ALLOWED list
-- Structure: Overview → Definitions → Core Content (spec points with mark allocations) → Equations → Visual Summary → Examiner Tips → Flashcards`;
+- Structure: Overview → Definitions → Core Content → Equations → Examiner Tips → Flashcards
+
+CORE CONTENT STRUCTURE RULES (non-negotiable):
+- Each "statement" must be ONE complete, testable exam fact — not a topic heading
+- Use "→" notation for sequences: "Glucose → pyruvate (glycolysis) → acetyl-CoA (link reaction)"
+- For multi-step processes, number the steps: "Step 1: ... Step 2: ... Step 3: ..."
+- "worked_example": show reasoning step-by-step with \\n between steps — do NOT repeat the statement
+- "wrong_approach": name the specific misconception and correct it concisely
+- Definitions "mark_scheme": write as examiner mark-scheme credit points, not textbook sentences
+- Do NOT write flowing essay prose in core_content — every item must be a crisp, structured note`;
 }
  
 export function buildImagePrompt(

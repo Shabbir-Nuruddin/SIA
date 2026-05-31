@@ -2384,11 +2384,19 @@ ${practicalSection}
 ${topic.boundaryNotes && topic.boundaryNotes.length > 0 ? `### CRITICAL EXAMINER BOUNDARY NOTES:\n${topic.boundaryNotes.join('\n')}` : ''}
 
 STRUCTURAL REQUIREMENTS:
-- Do NOT write an introduction/overview paragraph — go straight to definitions and content
 - Core content first; Extended/Supplement content clearly labelled "[Extended candidates only]"
 - Include practical skills as a dedicated section: "Assessed Practical Skills (Paper 5/6)"
-- Structure: Definitions → Core Content → [Extended] Content → Key Equations → Practical Skills → Examiner Tips → Flashcards
-- Every formula, definition and diagram description must trace directly to the ALLOWED TOPICS list`;
+- Structure: Overview → Definitions → Core Content → [Extended] Content → Key Equations → Practical Skills → Examiner Tips → Flashcards
+- Every formula, definition and diagram description must trace directly to the ALLOWED TOPICS list
+
+CORE CONTENT STRUCTURE RULES (non-negotiable):
+- Each "statement" must be ONE complete, testable exam fact — not a topic heading
+- Use "→" notation for sequences and processes (e.g. "Glucose + O₂ → CO₂ + H₂O + energy")
+- For multi-step processes, number the steps: "Step 1: ... Step 2: ... Step 3: ..."
+- "worked_example": show reasoning step-by-step with \\n between steps — do NOT repeat the statement
+- "wrong_approach": name the specific misconception and correct it concisely
+- Definitions "mark_scheme": write as examiner mark-scheme credit points, not dictionary definitions
+- Do NOT write flowing essay prose in core_content — every item must be a crisp, structured note`;
 }
 
 /**

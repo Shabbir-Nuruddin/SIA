@@ -11,6 +11,7 @@ import {
   Hash, Lightbulb, Star, Sparkles, FlaskConical, Atom, Dna, Sigma,
   PencilLine, Eye, RotateCcw,
 } from "lucide-react";
+import { type NotesVisualMap } from "@/lib/wikimediaVisuals";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ interface Props {
   formatHtml: (s: string) => string;
   renderMath: (s: string) => string;
   annotate: (s: string) => string;
+  mode?: "long" | "short";
+  visuals?: NotesVisualMap | null;
 }
 
 // ─── Vibrant rotating palette ─────────────────────────────────────────────────
@@ -135,9 +138,11 @@ const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatH
 const DefinitionsSection = ({
   defs,
   formatHtml,
+  defVisuals,
 }: {
   defs: KeyDef[];
   formatHtml: (s: string) => string;
+  defVisuals?: Record<number, { imageUrl: string; title: string }>;
 }) => {
   const [expanded, setExpanded] = useState<number | null>(null);
   return (
@@ -146,12 +151,26 @@ const DefinitionsSection = ({
       {defs.map((d, i) => {
         const a = ACCENTS[i % ACCENTS.length];
         const open = expanded === i;
+        const defImg = defVisuals?.[i];
         return (
           <div
             key={i}
             className={`relative rounded-xl bg-card border border-foreground/10 shadow-sm hover:shadow-md transition-all overflow-hidden`}
           >
             <div className={`h-1.5 ${a.dot}`} />
+            {/* Definition image (when available) */}
+            {defImg && (
+              <div className="overflow-hidden" style={{ maxHeight: "120px" }}>
+                <img
+                  src={defImg.imageUrl}
+                  alt={`Diagram for ${defImg.title}`}
+                  className="w-full object-cover object-center"
+                  style={{ maxHeight: "120px" }}
+                  loading="lazy"
+                  onError={(e) => { const c = (e.target as HTMLImageElement).parentElement; if (c) c.style.display = "none"; }}
+                />
+              </div>
+            )}
             <div className="p-4">
               <div className="mb-2">
                 <span className={`font-handwritten text-2xl font-bold ${a.hl} px-1.5 inline-block`}
@@ -406,49 +425,140 @@ const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHt
   );
 };
 
+// ─── Short-mode compact sections ──────────────────────────────────────────────
+
+const ShortOverview = ({ text, formatHtml }: { text: string; formatHtml: (s: string) => string }) => {
+  const firstPara = text.split(/\n\n+/).map(p => p.trim()).filter(Boolean)[0] ?? "";
+  return (
+    <div className="rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 p-4">
+      <p className="text-sm leading-[1.8] text-foreground/85"
+         dangerouslySetInnerHTML={{ __html: formatHtml(firstPara) }} />
+    </div>
+  );
+};
+
+const ShortDefinitions = ({ defs, formatHtml }: { defs: KeyDef[]; formatHtml: (s: string) => string }) => (
+  <div className="rounded-xl border border-border/60 overflow-hidden divide-y divide-border/40">
+    {defs.map((d, i) => {
+      const a = ACCENTS[i % ACCENTS.length];
+      return (
+        <div key={i} className="flex items-start gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors">
+          <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full mt-0.5 ${a.chip}`}
+                dangerouslySetInnerHTML={{ __html: d.term }} />
+          <span className="text-sm text-foreground/80 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: formatHtml(d.mark_scheme) }} />
+        </div>
+      );
+    })}
+  </div>
+);
+
+const ShortCoreContent = ({ items, formatHtml }: { items: CoreItem[]; formatHtml: (s: string) => string }) => (
+  <div className="space-y-1">
+    {items.map((c, i) => (
+      <div key={i} className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-muted/30 transition-colors">
+        <span className="text-[10px] font-bold font-mono text-muted-foreground shrink-0 mt-0.5 w-5 text-right">
+          {i + 1}.
+        </span>
+        <p className="text-sm leading-relaxed text-foreground/85"
+           dangerouslySetInnerHTML={{ __html: formatHtml(c.statement) }} />
+      </div>
+    ))}
+  </div>
+);
+
+const ShortEquations = ({ eqs, renderMath }: { eqs: EqItem[]; renderMath: (s: string) => string }) => (
+  <div className="grid sm:grid-cols-2 gap-2">
+    {eqs.map((e, i) => {
+      const a = ACCENTS[i % ACCENTS.length];
+      const raw = String(e.equation ?? "").trim();
+      const mathStr = raw && !/\$/.test(raw) ? `$${raw}$` : raw;
+      return (
+        <div key={i} className={`flex items-center gap-3 rounded-lg border border-foreground/10 bg-card px-3 py-2.5`}>
+          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold ${a.chip} shrink-0`}>
+            {i + 1}
+          </span>
+          <span className="text-sm font-mono"
+                dangerouslySetInnerHTML={{ __html: renderMath(mathStr) }} />
+        </div>
+      );
+    })}
+  </div>
+);
+
 // ─── Main renderer ────────────────────────────────────────────────────────────
-export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate }: Props) {
+export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, formatHtml, renderMath, annotate, mode = "long", visuals }: Props) {
   const meta = useMemo(() => subjectMeta(subject), [subject]);
+  const isShort = mode === "short";
+  const overviewImg = visuals?.overviewImage ?? null;
 
 
   const sections = useMemo(() => {
     const out: Array<{ id: string; title: string; icon: React.ReactNode; content: React.ReactNode }> = [];
+
+    if (isShort) {
+      if (notes.overview) out.push({ id: "overview", title: "Quick Summary", icon: <BookOpen className="h-5 w-5" />, content: <ShortOverview text={notes.overview} formatHtml={formatHtml} /> });
+      if (notes.key_definitions.length) out.push({ id: "defs", title: "Key Terms", icon: <Hash className="h-5 w-5" />, content: <ShortDefinitions defs={notes.key_definitions} formatHtml={formatHtml} /> });
+      if (notes.core_content.length) out.push({ id: "core", title: "Core Facts", icon: <Target className="h-5 w-5" />, content: <ShortCoreContent items={notes.core_content} formatHtml={formatHtml} /> });
+      if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <ShortEquations eqs={notes.equations} renderMath={renderMath} /> });
+      if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
+      return out;
+    }
+
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
-    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} /> });
+    if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} defVisuals={visuals?.definitions} /> });
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
-  }, [notes, formatHtml, annotate, renderMath]);
+  }, [notes, formatHtml, annotate, renderMath, isShort, visuals]);
 
   return (
     <div className="space-y-8">
       {/* ── Topic banner ─────────────────────────────────────────────────── */}
-      <div className={`relative rounded-2xl overflow-hidden p-7 bg-gradient-to-br ${meta.tint} border border-foreground/10 shadow-sm`}>
-        <div className="washi-tape h-4 w-40 absolute -top-1 right-8 rounded-sm" style={{ transform: "rotate(3deg)" }} />
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">{meta.emoji}</span>
-          <div className="font-marker text-sm uppercase tracking-widest text-foreground/70">
-            {subject} · {unitLabel}
+      <div className={`relative rounded-2xl overflow-hidden bg-gradient-to-br ${meta.tint} border border-foreground/10 shadow-sm`}>
+        <div className="washi-tape h-4 w-40 absolute -top-1 right-8 rounded-sm z-10" style={{ transform: "rotate(3deg)" }} />
+
+        {/* Overview image — shown when available */}
+        {overviewImg && (
+          <div className="relative w-full overflow-hidden" style={{ maxHeight: "220px" }}>
+            <img
+              src={overviewImg.imageUrl}
+              alt={`${topic} — scientific diagram`}
+              className="w-full object-cover object-center"
+              style={{ maxHeight: "220px" }}
+              loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30 pointer-events-none" />
           </div>
-        </div>
-        <h2 className="font-handwritten text-5xl md:text-6xl font-bold leading-[1.05] text-foreground">
-          {topic}
-        </h2>
-        {/* Quick-nav pills */}
-        <div className="flex gap-2 mt-5 flex-wrap">
-          {sections.map((s, i) => {
-            const a = ACCENTS[i % ACCENTS.length];
-            return (
-              <a key={s.id} href={`#notes-${s.id}`}
-                 className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${a.chip} hover:scale-105 transition-transform shadow-sm`}>
-                <span className="opacity-70">{s.icon}</span>
-                {s.title}
-              </a>
-            );
-          })}
+        )}
+
+        <div className="p-7">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">{meta.emoji}</span>
+            <div className="font-marker text-sm uppercase tracking-widest text-foreground/70">
+              {subject} · {unitLabel}
+            </div>
+          </div>
+          <h2 className="font-handwritten text-5xl md:text-6xl font-bold leading-[1.05] text-foreground">
+            {topic}
+          </h2>
+          {/* Quick-nav pills */}
+          <div className="flex gap-2 mt-5 flex-wrap">
+            {sections.map((s, i) => {
+              const a = ACCENTS[i % ACCENTS.length];
+              return (
+                <a key={s.id} href={`#notes-${s.id}`}
+                   className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${a.chip} hover:scale-105 transition-transform shadow-sm`}>
+                  <span className="opacity-70">{s.icon}</span>
+                  {s.title}
+                </a>
+              );
+            })}
+          </div>
         </div>
       </div>
 

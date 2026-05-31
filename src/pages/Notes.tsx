@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
+import { fetchNotesVisuals, type NotesVisualMap } from "@/lib/wikimediaVisuals";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
@@ -183,6 +184,9 @@ const NotesPage = () => {
   const [topicSearch, setTopicSearch] = useState("");
   const [showVideos, setShowVideos] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
+  const [notesMode, setNotesMode] = useState<"long" | "short">("long");
+  const [visuals, setVisuals] = useState<NotesVisualMap | null>(null);
+  const visualsAbortRef = useRef<AbortController | null>(null);
 
   // Load profile board + enrolled units
   useEffect(() => {
@@ -209,13 +213,48 @@ const NotesPage = () => {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setShowVideos(false);
       setShowFlashcards(false);
+      setVisuals(null);
       return;
     }
     setShowVideos(false);
     setShowFlashcards(false);
+    setVisuals(null);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
+
+  // Fetch images after notes load (non-blocking, background)
+  useEffect(() => {
+    if (!notes || !subjectParam || !unitParam || !topicParam) return;
+
+    // Cancel any previous in-flight visuals request
+    visualsAbortRef.current?.abort();
+    const controller = new AbortController();
+    visualsAbortRef.current = controller;
+
+    const subjMeta = SUBJECTS[subjectParam];
+    const unitMeta = subjMeta?.units.find(u => u.number === unitParam);
+
+    fetchNotesVisuals(
+      {
+        board,
+        subject: subjMeta?.name ?? subjectParam,
+        unitCode: unitMeta?.unitCode ?? `Unit ${unitParam}`,
+        unitNumber: unitParam,
+        topic: topicParam,
+        definitions: notes.key_definitions.slice(0, 2).map(d => ({
+          term: d.term,
+          meaning: d.mark_scheme,
+        })),
+      },
+      controller.signal,
+    ).then(v => {
+      if (!controller.signal.aborted) setVisuals(v);
+    }).catch(() => {/* silently ignore */});
+
+    return () => controller.abort();
+    // eslint-disable-next-line
+  }, [notes, subjectParam, unitParam, topicParam]);
 
 
   const STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -553,6 +592,27 @@ const NotesPage = () => {
                 </div>
                 {subjectParam && unitParam && topicParam && notes && !loadingNotes && !loadError && (
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {/* Notes length toggle */}
+                    <div className="flex items-center rounded-lg border border-border/60 bg-muted/30 p-0.5 gap-0.5">
+                      <Button
+                        onClick={() => setNotesMode("short")}
+                        variant={notesMode === "short" ? "default" : "ghost"}
+                        size="sm"
+                        className="h-7 px-3 text-[11px] rounded-md"
+                        title="Summary — quick-scan revision"
+                      >
+                        Summary
+                      </Button>
+                      <Button
+                        onClick={() => setNotesMode("long")}
+                        variant={notesMode === "long" ? "default" : "ghost"}
+                        size="sm"
+                        className="h-7 px-3 text-[11px] rounded-md"
+                        title="Full notes — detailed learning"
+                      >
+                        Full Notes
+                      </Button>
+                    </div>
                     <Button
                       onClick={() => setShowVideos(v => !v)}
                       variant={showVideos ? "default" : "outline"}
@@ -670,6 +730,8 @@ const NotesPage = () => {
                     formatHtml={formatToHtml}
                     renderMath={renderMathInString}
                     annotate={annotateHtml}
+                    mode={notesMode}
+                    visuals={visuals}
                   />
 
                   {selection && !composing && (

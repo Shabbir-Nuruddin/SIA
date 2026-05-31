@@ -99,31 +99,51 @@ const buildCieAlevelPrompt = (subject: string, topicKey: string, specificTopic: 
   if (!t) throw new Error(`Critical Error: No CIE A Level syllabus data found for ${subject} > ${topicKey}`);
   const timestamp = new Date().toISOString();
   const seed = Math.floor(10000000 + Math.random() * 90000000).toString();
-  return `You are generating study notes for CIE A LEVEL ${subject.toUpperCase()} — ${t.title} (${t.code}).
+  const isMaths = /math/i.test(subject);
+  const overviewRule = isMaths
+    ? `OVERVIEW RULE (MATHS):
+- Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
+- Move all depth into "core_content": at least 8 worked examples covering different question types. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step, use \\n between steps), "wrong_approach" = a specific student mistake.
+- Include at least 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
+    : `OVERVIEW RULE (SCIENCE):
+- Write the "overview" field as 5 to 7 paragraphs (blank-line separated) of student-friendly theory in the style of Save My Exams or Physics & Maths Tutor.
+- Each paragraph: covers exactly ONE concept or mechanism; 4–6 sentences; define every technical term on first use.
+- Tone: explain the WHY behind concepts; link cause and effect; use clear analogies where they genuinely aid understanding.
+- Do NOT simply rephrase the ALLOWED TOPICS list — synthesise into explanation a student can read, understand and remember.
+- Do NOT write essay-style flowing prose — each paragraph is a focused, structured conceptual block.`;
+  return `You are a world-class Cambridge Assessment International Education (CAIE) Subject Expert and Examiner.
+Your task is to generate high-fidelity study notes for CIE A LEVEL ${subject.toUpperCase()} — ${t.title} (${t.code}).
+You must ONLY generate content about: ${specificTopic}
 
 GENERATION TIMESTAMP: ${timestamp}
 GENERATION SEED: ${seed}
 
-You must ONLY generate content about ${specificTopic} within ${t.title}.
+### STERN RULES FOR CONTENT GENERATION:
+1. Strict Scope: ONLY discuss topics listed in the ALLOWED TOPICS below.
+2. Silent Exclusion: If a concept appears in FORBIDDEN TOPICS, act as if it does not exist. Do NOT mention you are skipping it.
+3. No Cross-Contamination: Do not introduce content from other topics or qualifications.
+4. Keyword Integration: Naturally integrate all REQUIRED KEYWORDS into your explanations.
 
-STRICT RULES:
-- Only use the ALLOWED TOPICS below.
-- Do not include forbidden or other-topic content.
-- Write student-readable revision notes like PMT/Save My Exams: short titled blocks, equations, worked examples, bullet lists and exam wording.
-- No giant paragraph dumps. Every section must be readable.
-- Do not generate HTML, SVG, Mermaid, markdown tables, or image prompts.
+### ${overviewRule}
 
-ALLOWED TOPICS:
+### ALLOWED TOPICS (STRICT SCOPE):
 ${t.allowedTopics.map((x: string, i: number) => `${i + 1}. ${x}`).join("\n")}
 
-FORBIDDEN TOPICS:
+### FORBIDDEN TOPICS (HARD BOUNDARY — DO NOT MENTION):
 ${(t.forbiddenTopics || []).map((x: string, i: number) => `${i + 1}. ${x}`).join("\n")}
 
-REQUIRED KEYWORDS:
+### REQUIRED KEYWORDS:
 ${(t.requiredKeywords || []).join(", ")}
 
-BOUNDARY NOTES:
-${(t.boundaryNotes || []).join("\n")}`;
+### CRITICAL EXAMINER BOUNDARY NOTES:
+${(t.boundaryNotes || []).join("\n")}
+
+${t.practicalNotes && t.practicalNotes.length > 0 ? `### PRACTICAL NOTES (Paper 3/5 context):\n${(t.practicalNotes as string[]).join("\n")}` : ""}
+
+BOUNDARY RULES:
+- If a concept appears in both this topic and another at different depths, only include the version for this topic.
+- Every formula, definition and diagram description must trace directly to the ALLOWED TOPICS list.
+- Structure: Overview → Definitions → Core Content → Equations → Examiner Tips → Flashcards`;
 };
 
 const validateCieAlevel = (notes: string, subject: string, topicKey: string) => {
@@ -294,10 +314,14 @@ serve(async (req) => {
 
     systemPrompt += `
 
-OUTPUT STYLE RULES:
-- Do not generate one huge overview. Use readable short paragraphs separated by blank lines.
-- Core content must be detailed, with PMT-style subtopic blocks, examples and common exam traps.
-- For equations, use plain LaTeX only when needed. Do not escape backslashes incorrectly.
+OUTPUT STYLE RULES (non-negotiable — apply to every field):
+- Overview: each paragraph covers exactly ONE concept or mechanism. 4–6 sentences. No flowing essay prose.
+- Core content "statement": one complete testable fact per item. Use "→" for sequences (e.g. "Glucose → pyruvate → acetyl-CoA"). Use "Step 1: ... Step 2: ..." for mechanisms.
+- Core content "worked_example": show reasoning step-by-step, with \\n between steps. Do NOT repeat the statement — show how to answer a real exam question.
+- Core content "wrong_approach": name the specific misconception a student would have, and correct it.
+- Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
+- Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
+- For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.
 - Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.`;
 
     // --- CACHE LOOKUP / INVALIDATION ---

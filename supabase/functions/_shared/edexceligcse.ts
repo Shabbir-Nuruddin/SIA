@@ -1607,7 +1607,16 @@ BOUNDARY RULES:
 - Do not introduce A-Level concepts or IGCSE content from other topics
 - Every formula, definition, and diagram description must trace to the ALLOWED list
 - Extension content (bold/B/C/P reference) should be clearly labelled "Extension (Paper 2 only)"
-- Structure: Overview → Definitions → Core Content → Extension Content (Paper 2) → Equations → Practical Skills → Examiner Tips → Flashcards`;
+- Structure: Overview → Definitions → Core Content → Extension Content (Paper 2) → Equations → Practical Skills → Examiner Tips → Flashcards
+
+CORE CONTENT STRUCTURE RULES (non-negotiable):
+- Each "statement" must be ONE complete, testable exam fact — not a topic heading
+- Use "→" notation for sequences and processes (e.g. "Starch → maltose → glucose (digestion)")
+- For multi-step processes, number the steps within the statement: "Step 1: ... Step 2: ... Step 3: ..."
+- "worked_example": show reasoning step-by-step with \\n between steps — do NOT repeat the statement
+- "wrong_approach": name the specific misconception and correct it concisely
+- Definitions "mark_scheme": write as examiner mark-scheme credit points, not dictionary definitions
+- Do NOT write flowing essay prose anywhere in core_content — every item must be a crisp, structured note`;
 }
 
 /**

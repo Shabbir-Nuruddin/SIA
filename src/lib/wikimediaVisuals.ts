@@ -1,20 +1,21 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export interface WikimediaVisual {
+export interface TopicVisual {
   id: string;
   title: string;
   imageUrl: string;
-  pageUrl: string;
+  isOverview?: boolean;
 }
 
 export interface NotesVisualMap {
-  definitions: Record<number, WikimediaVisual>;
+  overviewImage: TopicVisual | null;
+  definitions: Record<number, TopicVisual>;
 }
 
 interface FetchNoteVisualsInput {
   board: string;
   subject: string;
-  unitLabel?: string;
+  unitCode?: string;
   unitNumber?: number;
   topic: string;
   definitions: Array<{ term: string; meaning?: string }>;
@@ -26,7 +27,7 @@ interface GeneratedVisualPayload {
     id?: string;
     title?: string;
     imageUrl?: string;
-    pageUrl?: string;
+    isOverview?: boolean;
   }>;
 }
 
@@ -41,89 +42,87 @@ const cleanText = (value: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const parseUnitNumber = (unitLabel?: string): number | undefined => {
-  const match = String(unitLabel || "").match(/\d+/);
-  if (!match) return undefined;
-  const parsed = Number(match[0]);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
-const buildCacheKey = (input: FetchNoteVisualsInput, unitNumber: number) =>
+const buildCacheKey = (input: FetchNoteVisualsInput) =>
   JSON.stringify({
     board: cleanText(input.board).toLowerCase(),
     subject: cleanText(input.subject).toLowerCase(),
-    unit: unitNumber,
+    unit: input.unitNumber,
     topic: cleanText(input.topic).toLowerCase(),
-    defs: input.definitions
-      .map((definition) => ({
-        term: cleanText(definition.term).toLowerCase(),
-        meaning: cleanText(definition.meaning || "").toLowerCase(),
-      })),
   });
 
 export async function fetchNotesVisuals(
   input: FetchNoteVisualsInput,
   signal?: AbortSignal,
 ): Promise<NotesVisualMap> {
-  const unitNumber = input.unitNumber ?? parseUnitNumber(input.unitLabel);
-  if (!unitNumber) return { definitions: {} };
+  const empty: NotesVisualMap = { overviewImage: null, definitions: {} };
 
-  const candidates = input.definitions
-    .map((definition, index) => ({
-      index,
-      term: cleanText(definition.term),
-      meaning: cleanText(definition.meaning || ""),
-    }))
-    .filter(({ term }) => term.length >= 3);
+  if (!input.unitNumber) return empty;
+  if (signal?.aborted) return empty;
 
-  if (candidates.length === 0) return { definitions: {} };
-  if (signal?.aborted) return { definitions: {} };
-
-  const cacheKey = buildCacheKey(input, unitNumber);
+  const cacheKey = buildCacheKey(input);
   const cached = visualsCache.get(cacheKey);
   if (cached && Date.now() - cached.savedAt < MEMORY_CACHE_TTL_MS) {
     return cached.value;
   }
+
+  // Only pass the first 2 definitions to keep generation fast and accurate
+  const candidates = input.definitions
+    .slice(0, 2)
+    .map((d, index) => ({
+      index,
+      term: cleanText(d.term),
+      meaning: cleanText(d.meaning || ""),
+    }))
+    .filter(({ term }) => term.length >= 3);
 
   try {
     const { data, error } = await supabase.functions.invoke("ai-note-visuals", {
       body: {
         board: input.board,
         subject: input.subject,
-        unit_number: unitNumber,
+        unit_code: input.unitCode || "",
+        unit_number: input.unitNumber,
         topic: input.topic,
         definitions: candidates,
       },
     });
 
-    if (signal?.aborted) return { definitions: {} };
+    if (signal?.aborted) return empty;
     if (error) {
       console.warn("AI note visuals failed", error);
-      return { definitions: {} };
+      return empty;
     }
 
     const payload = (data || {}) as GeneratedVisualPayload;
-    const definitions: Record<number, WikimediaVisual> = {};
+    let overviewImage: TopicVisual | null = null;
+    const definitions: Record<number, TopicVisual> = {};
 
     for (const item of payload.definitions || []) {
-      const index = Number(item.index);
       const imageUrl = String(item.imageUrl || "");
-      if (!Number.isFinite(index) || !imageUrl) continue;
-      definitions[index] = {
-        id: String(item.id || `${cleanText(input.topic)}-${index}`),
-        title: String(item.title || candidates.find((c) => c.index === index)?.term || "AI diagram"),
+      if (!imageUrl) continue;
+
+      const visual: TopicVisual = {
+        id: String(item.id || `${cleanText(input.topic)}-${item.index}`),
+        title: String(item.title || input.topic),
         imageUrl,
-        pageUrl: String(item.pageUrl || "https://pollinations.ai/"),
+        isOverview: item.isOverview,
       };
+
+      if (item.isOverview || item.index === -1) {
+        overviewImage = visual;
+      } else {
+        const index = Number(item.index);
+        if (Number.isFinite(index)) definitions[index] = visual;
+      }
     }
 
-    const value = { definitions };
+    const value: NotesVisualMap = { overviewImage, definitions };
     visualsCache.set(cacheKey, { savedAt: Date.now(), value });
     return value;
   } catch (err) {
     if ((err as Error).name !== "AbortError") {
       console.warn("AI note visuals fetch crashed", err);
     }
-    return { definitions: {} };
+    return empty;
   }
 }
