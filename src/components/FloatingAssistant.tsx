@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Sparkles, X, Send, Loader2, ImagePlus } from "lucide-react";
+import { Sparkles, X, Send, Loader2, ImagePlus, Maximize2, Minimize2, Expand, Shrink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
 export const FloatingAssistant = () => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const [size, setSize] = useState<"normal" | "large" | "fullscreen">("normal");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [pendingImage, setPendingImage] = useState<string | null>(null);
@@ -200,24 +201,76 @@ export const FloatingAssistant = () => {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-40 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)] surface flex flex-col shadow-2xl animate-fade-in">
+        <div
+          className={
+            "fixed z-40 surface flex flex-col shadow-2xl animate-fade-in " +
+            (size === "fullscreen"
+              ? "inset-0 rounded-none"
+              : size === "large"
+              ? "bottom-5 right-5 w-[min(640px,calc(100vw-2rem))] h-[min(800px,calc(100vh-2rem))]"
+              : "bottom-5 right-5 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)]")
+          }
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full flex items-center justify-center text-white" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-7 w-7 rounded-full flex items-center justify-center text-white shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
                 <Sparkles className="h-3.5 w-3.5" />
               </div>
-              <div>
-                <div className="text-sm font-bold leading-tight">Make Me Revise Tutor</div>
-                <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider leading-tight">
+              <div className="min-w-0">
+                <div className="text-sm font-bold leading-tight truncate">Make Me Revise Tutor</div>
+                <div className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider leading-tight truncate">
                   {context?.topic ? `Re: ${context.topic}` : "Ask anything"}
                 </div>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground p-1">
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              {size !== "normal" && (
+                <button
+                  onClick={() => setSize("normal")}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                  aria-label="Shrink tutor"
+                  title="Compact view"
+                >
+                  <Minimize2 className="h-4 w-4" />
+                </button>
+              )}
+              {size !== "large" && size !== "fullscreen" && (
+                <button
+                  onClick={() => setSize("large")}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                  aria-label="Enlarge tutor"
+                  title="Large view"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </button>
+              )}
+              {size === "large" && (
+                <button
+                  onClick={() => setSize("fullscreen")}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                  aria-label="Fullscreen tutor"
+                  title="Fullscreen"
+                >
+                  <Expand className="h-4 w-4" />
+                </button>
+              )}
+              {size === "fullscreen" && (
+                <button
+                  onClick={() => setSize("large")}
+                  className="text-muted-foreground hover:text-foreground p-1"
+                  aria-label="Exit fullscreen"
+                  title="Exit fullscreen"
+                >
+                  <Shrink className="h-4 w-4" />
+                </button>
+              )}
+              <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground p-1" aria-label="Close tutor">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+
 
           <>
           {/* Messages */}

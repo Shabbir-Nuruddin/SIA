@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { recordTopicResult, findUnitForTopic, usePageTimeTracker } from "@/lib/progressTracker";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
 type QType = "Multiple Choice" | "Short Answer" | "Extended Response" | "Calculation";
@@ -76,6 +77,13 @@ const QuestionsPage = () => {
   useEffect(() => {
     setTopic(SUBJECTS[subject].units[0].topics[0]);
   }, [subject]);
+
+  usePageTimeTracker({
+    user_id: user?.id,
+    subject,
+    topic,
+    unit_number: findUnitForTopic(subject, topic),
+  });
 
   const current = batch[idx];
   const currentAnswer = answers[idx] || "";
@@ -196,6 +204,32 @@ const QuestionsPage = () => {
         c[idx] = data;
         return c;
       });
+      // Persist progress: update the ai_questions row for this attempt and bump
+      // topic_progress so the Progress & Insights page reflects the work.
+      if (user && current) {
+        const unit_number = findUnitForTopic(subject, topic);
+        await Promise.all([
+          supabase
+            .from("ai_questions")
+            .update({
+              student_answer: currentAnswer || null,
+              awarded_marks: data.awarded_marks ?? null,
+              feedback: data.feedback ?? null,
+              unit_number,
+            })
+            .eq("user_id", user.id)
+            .eq("question_text", current.question_text)
+            .is("awarded_marks", null),
+          recordTopicResult({
+            user_id: user.id,
+            subject,
+            topic,
+            unit_number,
+            awarded: data.awarded_marks ?? 0,
+            total: data.total_marks ?? current.marks,
+          }),
+        ]);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Marking failed");
     } finally {

@@ -13,6 +13,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formattedHtmlProps } from "@/lib/formatText";
+import { recordTopicResult, logStudySession } from "@/lib/progressTracker";
 
 interface Q {
   id: string;
@@ -330,6 +331,47 @@ const MockExam = () => {
         estimated_grade: grade,
         submitted_at: new Date().toISOString(),
       }).eq("id", paper.id);
+
+      // Update topic_progress per question topic so the Progress page reflects
+      // mock paper performance, and log a study session for the paper duration.
+      if (user) {
+        const byTopic = new Map<string, { awarded: number; total: number; unit: number | null }>();
+        for (const q of payload as any[]) {
+          const res = results.find((r) => r.question_index === q.question_index);
+          const studentAns = (q.student_answer ?? "").toString().trim();
+          const rawAwarded = studentAns ? res?.awarded_marks ?? 0 : 0;
+          const awarded = Math.max(0, Math.min(q.marks, rawAwarded ?? 0));
+          const origQ = questions.find((qq) => qq.id === q.id);
+          const topic = origQ?.topic || "";
+          if (!topic) continue;
+          const cur = byTopic.get(topic) || { awarded: 0, total: 0, unit: paper.units?.[0] ?? null };
+          cur.awarded += awarded;
+          cur.total += q.marks || 0;
+          byTopic.set(topic, cur);
+        }
+        await Promise.all(
+          Array.from(byTopic.entries()).map(([topic, v]) =>
+            recordTopicResult({
+              user_id: user.id,
+              subject: paper.subject,
+              topic,
+              unit_number: v.unit,
+              awarded: v.awarded,
+              total: v.total,
+            })
+          )
+        );
+        const elapsedMin = Math.min(
+          paper.time_limit_minutes,
+          Math.max(1, Math.round((Date.now() - new Date(paper.started_at).getTime()) / 60000))
+        );
+        await logStudySession({
+          user_id: user.id,
+          subject: paper.subject,
+          unit_number: paper.units?.[0] ?? null,
+          minutes: elapsedMin,
+        });
+      }
 
       if (auto) toast.warning("Time's up — paper submitted automatically.");
       navigate(`/mock-papers/${paper.id}/results`);

@@ -23,6 +23,7 @@ import { fetchNotesVisuals, type NotesVisualMap } from "@/lib/wikimediaVisuals";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { usePageTimeTracker } from "@/lib/progressTracker";
 
 
 /* ────────────────────────────────────────────────────────────
@@ -201,6 +202,14 @@ const NotesPage = () => {
   const [notesMode, setNotesMode] = useState<"long" | "short">("long");
   const [visuals, setVisuals] = useState<NotesVisualMap | null>(null);
   const visualsAbortRef = useRef<AbortController | null>(null);
+
+  // Track time spent reading notes so it counts toward the study time stat.
+  usePageTimeTracker({
+    user_id: user?.id,
+    subject: subjectParam,
+    topic: topicParam,
+    unit_number: unitParam,
+  });
 
   // Load profile board + enrolled units
   useEffect(() => {
