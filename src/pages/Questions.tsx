@@ -228,8 +228,9 @@ const QuestionsPage = () => {
         <div className="surface p-6 mb-6">
           <div className="grid md:grid-cols-4 gap-4">
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Subject</label>
+              <label htmlFor="q-subject" className="text-xs uppercase tracking-wider text-muted-foreground">Subject</label>
               <select
+                id="q-subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value as SubjectCode)}
                 className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm"
@@ -242,8 +243,9 @@ const QuestionsPage = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Topic</label>
+              <label htmlFor="q-topic" className="text-xs uppercase tracking-wider text-muted-foreground">Topic</label>
               <select
+                id="q-topic"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm"
@@ -256,8 +258,9 @@ const QuestionsPage = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Type</label>
+              <label htmlFor="q-type" className="text-xs uppercase tracking-wider text-muted-foreground">Type</label>
               <select
+                id="q-type"
                 value={qType}
                 onChange={(e) => setQType(e.target.value as QType)}
                 className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm"
@@ -268,8 +271,9 @@ const QuestionsPage = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs uppercase tracking-wider text-muted-foreground">Difficulty</label>
+              <label htmlFor="q-difficulty" className="text-xs uppercase tracking-wider text-muted-foreground">Difficulty</label>
               <select
+                id="q-difficulty"
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value as Difficulty)}
                 className="mt-1.5 w-full h-10 rounded-md bg-background border border-input px-3 text-sm"
