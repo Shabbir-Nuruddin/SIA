@@ -78,6 +78,13 @@ const QuestionsPage = () => {
     setTopic(SUBJECTS[subject].units[0].topics[0]);
   }, [subject]);
 
+  usePageTimeTracker({
+    user_id: user?.id,
+    subject,
+    topic,
+    unit_number: findUnitForTopic(subject, topic),
+  });
+
   const current = batch[idx];
   const currentAnswer = answers[idx] || "";
   const currentImage = answerImages[idx] || null;
