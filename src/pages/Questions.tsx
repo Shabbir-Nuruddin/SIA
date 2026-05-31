@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { recordTopicResult, findUnitForTopic, usePageTimeTracker } from "@/lib/progressTracker";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
 type QType = "Multiple Choice" | "Short Answer" | "Extended Response" | "Calculation";
