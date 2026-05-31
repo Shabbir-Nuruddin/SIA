@@ -23,6 +23,7 @@ import { fetchNotesVisuals, type NotesVisualMap } from "@/lib/wikimediaVisuals";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
+import { usePageTimeTracker } from "@/lib/progressTracker";
 
 
 /* ────────────────────────────────────────────────────────────
