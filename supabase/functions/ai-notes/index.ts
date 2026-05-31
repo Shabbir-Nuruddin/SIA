@@ -76,6 +76,9 @@ const normaliseNotes = (args: any, subject: string) => {
     visual_summary: null,
     examiner_tips: Array.isArray(stripped.examiner_tips) ? stripped.examiner_tips : [],
     flashcards: Array.isArray(stripped.flashcards) ? stripped.flashcards.slice(0, 10) : [],
+    reference_tables: Array.isArray(stripped.reference_tables)
+      ? stripped.reference_tables.filter((t: any) => t?.title && Array.isArray(t?.headers) && Array.isArray(t?.rows))
+      : [],
   };
 };
 
@@ -239,23 +242,42 @@ const notesTool = {
           },
         },
         flashcards: {
-          type: "array", 
-          minItems: 10, 
+          type: "array",
+          minItems: 10,
           maxItems: 10,
           items: {
             type: "object",
-            properties: { 
-              q: { type: "string" }, 
-              a: { type: "string" } 
+            properties: {
+              q: { type: "string" },
+              a: { type: "string" }
             },
             required: ["q", "a"],
             additionalProperties: false,
           },
         },
+        reference_tables: {
+          type: "array",
+          description: "Structured reference tables for memorisable data: ion colours, flame tests, ligand reactions, reagent outcomes, standard values, etc. Only include when the topic contains data that students must memorise verbatim for exam questions. Leave empty for pure theory topics.",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string", description: "Short descriptive title, e.g. 'Transition Metal Ion Colours in Aqueous Solution'" },
+              headers: { type: "array", items: { type: "string" }, description: "Column headers" },
+              rows: {
+                type: "array",
+                items: { type: "array", items: { type: "string" } },
+                description: "Each inner array is one row; entries must match the number of headers",
+              },
+              caption: { type: "string", description: "Optional short note about scope or exam relevance" },
+            },
+            required: ["title", "headers", "rows"],
+            additionalProperties: false,
+          },
+        },
       },
       required: [
-        "overview", "key_definitions", "core_content", "equations", 
-        "examiner_tips", "flashcards"
+        "overview", "key_definitions", "core_content", "equations",
+        "examiner_tips", "flashcards", "reference_tables"
       ],
       additionalProperties: false,
     },
@@ -280,42 +302,72 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { subject, unit_number, unit_name, topic, syllabus_context, board, trigger } = body;
+    const { subject, unit_number, unit_name, unit_code, topic, syllabus_context, board, trigger } = body;
     const triggerKind = trigger === "cache_clear" ? "cache_clear" : "initial";
+
+    // --- SUBJECT NORMALISATION ---
+    // All syllabus files use "maths" as the key; the client sends "mathematics".
+    const ns = String(subject || "").toLowerCase() === "mathematics"
+      ? "maths"
+      : String(subject || "").toLowerCase();
+    const isMaths = ns === "maths";
+
+    // For Edexcel IAL maths the syllabus uses paper codes (p1, p2, m1, s1 …)
+    // rather than unit1/unit2 …  The client passes unitCode "P1", "P2" etc.
+    // For IGCSE maths the syllabus uses topic-name keys (number, algebra …).
+    const deriveMathsKey = (): string => {
+      if (unit_code) return String(unit_code).toLowerCase().replace(/\s+/g, "");
+      if (unit_name) return String(unit_name).toLowerCase().replace(/[^a-z]/g, "");
+      return `unit${unit_number}`;
+    };
 
     // --- BOARD ROUTING ENGINE ---
     let systemPrompt = "";
     let validator: ((notes: string, subject: string, key: string) => { passed: boolean; forbiddenFound: string[] }) | null = null;
     let promptKey = `unit${unit_number}`;
 
-    // Normalise subject keys coming from the client (e.g. "mathematics" -> "maths")
-    const normalizedSubject = String(subject || "").toLowerCase() === "mathematics"
-      ? "maths"
-      : String(subject || "").toLowerCase();
-
     if (board === "edexcel-ial") {
-      systemPrompt = buildEdexcelIAL(normalizedSubject, promptKey);
-      validator = validateEdexcelIAL;
+      promptKey = isMaths ? deriveMathsKey() : `unit${unit_number}`;
+      systemPrompt = buildEdexcelIAL(ns, promptKey);
+      // Wrap validator to use normalised subject
+      validator = (notes: string, _s: string, key: string) => validateEdexcelIAL(notes, ns, key);
     } else if (board === "edexcel-igcse") {
-      promptKey = `topic${unit_number}`;
-      systemPrompt = buildEdexcelIGCSE(normalizedSubject, promptKey);
-      validator = validateEdexcelIGCSE;
+      promptKey = isMaths ? deriveMathsKey() : `topic${unit_number}`;
+      systemPrompt = buildEdexcelIGCSE(ns, promptKey);
+      validator = (notes: string, _s: string, key: string) => validateEdexcelIGCSE(notes, ns, key);
     } else if (board === "cie-igcse") {
-      promptKey = `topic${unit_number}`;
-      systemPrompt = buildCIEIGCSE(normalizedSubject, promptKey);
-      validator = validateCIEIGCSE;
+      promptKey = isMaths ? deriveMathsKey() : `topic${unit_number}`;
+      systemPrompt = buildCIEIGCSE(ns, promptKey);
+      validator = (notes: string, _s: string, key: string) => validateCIEIGCSE(notes, ns, key);
     } else if (board === "cie") {
-      promptKey = findCieAlevelTopicKey(normalizedSubject, topic, Number(unit_number)) || `topic${unit_number}`;
-      systemPrompt = buildCieAlevelPrompt(normalizedSubject, promptKey, topic);
-      validator = validateCieAlevel;
+      promptKey = findCieAlevelTopicKey(ns, topic, Number(unit_number)) || `topic${unit_number}`;
+      systemPrompt = buildCieAlevelPrompt(ns, promptKey, topic);
+      validator = (notes: string, _s: string, key: string) => validateCieAlevel(notes, ns, key);
     } else {
-      const builtCIE = buildCIEGeneric({ qualification: board, subject, unit: unit_number, unitName: unit_name });
+      const builtCIE = buildCIEGeneric({ qualification: board, subject: ns, unit: unit_number, unitName: unit_name });
       systemPrompt = builtCIE.systemPrompt;
       validator = (notes: string) => {
         const hits = findCIEForbidden(JSON.parse(notes), builtCIE.forbiddenList);
         return { passed: hits.length === 0, forbiddenFound: hits };
       };
     }
+
+    // For practical/synoptic units, explicitly tell the AI about reference tables
+    const isPracticalUnit = /practical|skill|lab|WCH16|WCH13|WBI13|WBI16|WPH13|WPH16/i.test(systemPrompt);
+    const hasTransitionMetals = /transition metal|vanadium|chromium|manganese|iron|cobalt|nickel|copper|ligand|complex ion/i.test(systemPrompt);
+
+    const referenceTableInstructions = (isPracticalUnit || hasTransitionMetals)
+      ? `
+REFERENCE TABLES — REQUIRED for this unit:
+- This unit contains data students must memorise verbatim. You MUST populate the "reference_tables" array.
+- Generate one table per distinct category of memorisable data.
+${hasTransitionMetals ? `- MANDATORY TABLE 1: "Transition Metal Ion Colours" — columns: Ion | Oxidation State | Colour in aqueous solution | Formula/complex. Include all: V²⁺ violet, V³⁺ green, VO²⁺ blue, VO₂⁺ yellow, Cr³⁺ green, Cr₂O₇²⁻ orange, CrO₄²⁻ yellow, Mn²⁺ pale pink, MnO₄⁻ purple, Fe²⁺ pale green, Fe³⁺ yellow-brown, Co²⁺ pink, Ni²⁺ green, Cu²⁺ blue, Zn²⁺ colourless.
+- MANDATORY TABLE 2: "Complex Ion Colours with Ligands" — columns: Central Ion | Ligand | Formula | Colour. Include: [Cu(H₂O)₆]²⁺ pale blue; [Cu(NH₃)₄(H₂O)₂]²⁺ deep blue; [CuCl₄]²⁻ yellow-green; [Fe(H₂O)₆]²⁺ pale green; [Fe(H₂O)₆]³⁺ yellow-brown; [Fe(SCN)]²⁺ blood red; [Co(H₂O)₆]²⁺ pink; [CoCl₄]²⁻ blue; [Cr(H₂O)₆]³⁺ green; [Cr(NH₃)₆]³⁺ yellow; [Ti(H₂O)₆]³⁺ purple.
+- MANDATORY TABLE 3: "Precipitate Colours with NaOH and NH₃" — columns: Ion | Precipitate with NaOH | Precipitate Colour | With excess NH₃. Include all transition metals.` : ""}
+${isPracticalUnit ? `- Generate tables for any other memorisable practical data: indicator colours, reagent colours, test results, solubility rules, flame test colours (Li red, Na yellow, K lilac, Ca brick-red, Sr crimson, Ba pale green, Cu green).` : ""}
+- Each row must be complete and exam-accurate. No approximations.`
+      : `
+REFERENCE TABLES: Only populate "reference_tables" if this topic contains data students must memorise verbatim (colours, specific values, test outcomes). Leave it as an empty array [] if the topic is purely theoretical.`;
 
     systemPrompt += `
 
@@ -327,7 +379,8 @@ OUTPUT STYLE RULES (non-negotiable — apply to every field):
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
 - For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.
-- Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.`;
+- Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.
+${referenceTableInstructions}`;
 
     // --- CACHE LOOKUP / INVALIDATION ---
     const cacheBoard = String(board || "edexcel-ial");
@@ -374,7 +427,7 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
 
     let args = await callOnce();
 
-    const validation = validator ? validator(JSON.stringify(args), normalizedSubject, promptKey) : { passed: true, forbiddenFound: [] };
+    const validation = validator ? validator(JSON.stringify(args), ns, promptKey) : { passed: true, forbiddenFound: [] };
     if (!validation.passed) {
       console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
       args = await callOnce();

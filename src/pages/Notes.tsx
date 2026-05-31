@@ -46,6 +46,7 @@ interface EquationItem { equation: string; variables: { symbol: string; meaning:
 interface VisualSummary { kind: "table" | "flowchart" | "diagram"; caption: string; content: string; }
 interface TipItem { command_word: string; tip: string; }
 interface Flashcard { q: string; a: string; }
+interface RefTable { title: string; headers: string[]; rows: string[][]; caption?: string; }
 
 interface NormalisedNotes {
   overview: string;
@@ -55,11 +56,12 @@ interface NormalisedNotes {
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
   flashcards: Flashcard[];
+  reference_tables: RefTable[];
 }
 
 const normaliseNotes = (raw: any): NormalisedNotes => {
   if (!raw || typeof raw !== "object") {
-    return { overview: "", key_definitions: [], core_content: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [] };
+    return { overview: "", key_definitions: [], core_content: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [], reference_tables: [] };
   }
   // Detect legacy shape
   const isLegacy = Array.isArray(raw.core_concepts) || (Array.isArray(raw.common_mistakes) && raw.common_mistakes.length);
@@ -137,6 +139,17 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
     ? raw.flashcards.map((f: any) => ({ q: f?.q ?? "", a: f?.a ?? "" }))
     : [];
 
+  const reference_tables: RefTable[] = Array.isArray(raw.reference_tables)
+    ? raw.reference_tables
+        .filter((t: any) => t?.title && Array.isArray(t?.headers) && Array.isArray(t?.rows))
+        .map((t: any) => ({
+          title: String(t.title ?? ""),
+          headers: (t.headers as any[]).map(String),
+          rows: (t.rows as any[][]).map(row => (Array.isArray(row) ? row.map(String) : [])),
+          caption: t.caption ? String(t.caption) : undefined,
+        }))
+    : [];
+
   return {
     overview: String(raw.overview ?? "")
       .split(/\n\s*\n+|(?<=\.)\s+(?=[A-Z][a-z])/g)
@@ -150,6 +163,7 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
     visual_summary,
     examiner_tips,
     flashcards,
+    reference_tables,
   };
 };
 
@@ -305,6 +319,7 @@ const NotesPage = () => {
             subject,
             unit_number: unit,
             unit_name: unitMeta?.name || `Unit ${unit}`,
+            unit_code: unitMeta?.unitCode || "",
             topic,
             syllabus_context,
             board,

@@ -22,6 +22,7 @@ interface EqItem    { equation: string; variables: EqVar[]; worked_substitution?
 interface TipItem   { command_word?: string; tip: string; }
 interface Flashcard { q: string; a: string; }
 interface VisualSummary { kind: string; caption: string; content: string; }
+interface RefTable  { title: string; headers: string[]; rows: string[][]; caption?: string; }
 
 export interface NotesData {
   overview: string;
@@ -31,6 +32,7 @@ export interface NotesData {
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
   flashcards: Flashcard[];
+  reference_tables?: RefTable[];
 }
 
 interface Props {
@@ -344,6 +346,57 @@ const ExaminerTipsSection = ({ tips, formatHtml }: { tips: TipItem[]; formatHtml
   </div>
 );
 
+// ─── Reference Tables — colour-coded exam data tables ─────────────────────────
+const ReferenceTablesSection = ({ tables }: { tables: RefTable[] }) => (
+  <div className="space-y-6">
+    {tables.map((table, ti) => {
+      const a = ACCENTS[ti % ACCENTS.length];
+      return (
+        <div key={ti} className="rounded-xl overflow-hidden border border-foreground/10 shadow-sm">
+          {/* Table header */}
+          <div className={`px-4 py-2.5 ${a.soft} border-b border-foreground/10 flex items-center gap-2`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold shrink-0 ${a.chip}`}>
+              {ti + 1}
+            </span>
+            <span className="font-semibold text-sm text-foreground/90">{table.title}</span>
+          </div>
+          {/* Table body */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className={`${a.soft} border-b border-foreground/10`}>
+                  {table.headers.map((h, hi) => (
+                    <th key={hi} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wide text-foreground/70 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-foreground/5">
+                {table.rows.map((row, ri) => (
+                  <tr key={ri} className="hover:bg-foreground/[0.03] transition-colors">
+                    {row.map((cell, ci) => (
+                      <td key={ci} className={`px-3 py-2 text-sm leading-snug ${ci === 0 ? "font-semibold text-foreground/90" : "text-foreground/75"}`}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Caption */}
+          {table.caption && (
+            <div className="px-4 py-2 text-[11px] text-muted-foreground italic border-t border-foreground/5">
+              {table.caption}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
+
 // ─── Flashcards — true 3D flip deck ───────────────────────────────────────────
 const FlashcardsSection = ({ cards, formatHtml }: { cards: Flashcard[]; formatHtml:(s:string)=>string }) => {
   const [idx, setIdx] = useState(0);
@@ -501,6 +554,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
       if (notes.key_definitions.length) out.push({ id: "defs", title: "Key Terms", icon: <Hash className="h-5 w-5" />, content: <ShortDefinitions defs={notes.key_definitions} formatHtml={formatHtml} /> });
       if (notes.core_content.length) out.push({ id: "core", title: "Core Facts", icon: <Target className="h-5 w-5" />, content: <ShortCoreContent items={notes.core_content} formatHtml={formatHtml} /> });
       if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <ShortEquations eqs={notes.equations} renderMath={renderMath} /> });
+      if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
       if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
       return out;
     }
@@ -511,6 +565,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
+    if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
     if (notes.flashcards.length) out.push({ id: "flash", title: "Flashcards", icon: <Star className="h-5 w-5" />, content: <FlashcardsSection cards={notes.flashcards} formatHtml={formatHtml} /> });
     return out;
   }, [notes, formatHtml, annotate, renderMath, isShort, visuals]);
