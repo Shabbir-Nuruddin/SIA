@@ -13,6 +13,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formattedHtmlProps } from "@/lib/formatText";
+import { recordTopicResult, logStudySession } from "@/lib/progressTracker";
 
 interface Q {
   id: string;
