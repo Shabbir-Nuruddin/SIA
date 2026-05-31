@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -168,6 +169,7 @@ const Exams = () => {
   if (loading) {
     return (
       <AppLayout>
+      <SEO title="Exam dates — MakeMeRevise" description="Add and track your A-Level exam dates to keep your revision roadmap and urgency score accurate." path="/exams" />
         <div className="min-h-[60vh] flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>

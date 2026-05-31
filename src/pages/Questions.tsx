@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
@@ -213,6 +214,7 @@ const QuestionsPage = () => {
 
   return (
     <AppLayout>
+      <SEO title="Practice questions — MakeMeRevise" description="AI-marked A-Level topical questions across Edexcel IAL and Cambridge — examiner-grade feedback in seconds." path="/questions" />
       <div className="p-6 md:p-10 max-w-5xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-sm text-primary font-mono uppercase tracking-widest mb-2 flex items-center gap-2">

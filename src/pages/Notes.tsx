@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
@@ -399,6 +400,7 @@ const NotesPage = () => {
 
   return (
     <AppLayout>
+      <SEO title="Notes — MakeMeRevise" description="Instant exam-focused A-Level notes generated for every topic on your syllabus." path="/notes" />
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">

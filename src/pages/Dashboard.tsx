@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { format } from "date-fns";
@@ -202,6 +203,7 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
+      <SEO title="Dashboard — MakeMeRevise" description="Your daily A-Level study plan, urgency score, and focused practice sessions tailored to your exams." path="/dashboard" />
       <div className="dashboard-shell p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="glass-card border border-border/80 bg-background-elevated p-6 md:p-8 mb-6 shadow-xl overflow-hidden">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto]">

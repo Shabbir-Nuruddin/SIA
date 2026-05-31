@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -260,6 +261,7 @@ export default function Progress() {
   if (loading) {
     return (
       <AppLayout>
+      <SEO title="Progress — MakeMeRevise" description="Track your A-Level mastery by topic, see strengths and weak spots, and watch your grade trajectory." path="/progress" />
         <div className="h-full flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -147,6 +148,7 @@ const Feedback = () => {
 
   if (loading) return (
     <AppLayout>
+      <SEO title="Send feedback — MakeMeRevise" description="Tell us what works, what doesn't, and what to build next on MakeMeRevise." path="/feedback" />
       <div className="flex items-center justify-center h-[60vh]"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
     </AppLayout>
   );
