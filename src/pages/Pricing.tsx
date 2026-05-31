@@ -17,6 +17,7 @@ import {
   detectDefaultCurrency,
   formatCurrency as formatPrice,
 } from "@/lib/currency";
+import { SEO } from "@/components/SEO";
 
 interface Tier {
   id: "free" | "pro" | "advanced";
@@ -256,6 +257,25 @@ const Pricing = () => {
 
   return (
     <AppLayout>
+      <SEO
+        title="Pricing — MakeMeRevise A-Level Pro Plan"
+        description="Pro is AED 39.99/month with a 3-day free trial. Unlimited AI-marked questions, mock papers, notes, and a personalised revision roadmap."
+        path="/pricing"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "MakeMeRevise Pro",
+          description: "Unlimited AI-marked A-Level practice questions, mock papers, topic notes, and a personalised revision roadmap for Edexcel IAL and Cambridge students.",
+          brand: { "@type": "Brand", name: "MakeMeRevise" },
+          offers: {
+            "@type": "Offer",
+            price: "39.99",
+            priceCurrency: "AED",
+            availability: "https://schema.org/InStock",
+            url: "https://makemerevise.com/pricing",
+          },
+        }}
+      />
       <div className="px-6 md:px-10 py-10 md:py-14 max-w-6xl mx-auto animate-fade-in">
         <div className="relative mb-10 md:mb-14">
           <div className="absolute right-0 top-0 hidden md:block">
