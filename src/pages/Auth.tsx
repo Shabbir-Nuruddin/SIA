@@ -275,7 +275,9 @@ const AuthPage = () => {
           src={HERO_IMAGE}
           alt="Student revising at a wooden desk surrounded by books"
           className="absolute inset-0 h-full w-full object-cover"
-          loading="lazy"
+          fetchPriority="high"
+          width={1400}
+          height={933}
         />
         <div
           className="absolute inset-0"
