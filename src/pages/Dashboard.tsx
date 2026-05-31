@@ -262,7 +262,7 @@ const Dashboard = () => {
             <div className="surface rounded-3xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground font-mono">Today's plan</div>
+                  <h2 className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground font-mono">Today's plan</h2>
                   <div className="mt-1 text-sm text-muted-foreground">Focused sessions, aligned to your next exam.</div>
                 </div>
                 <span className="text-xs text-muted-foreground font-mono tabular">{completedCount}/{sessions.length} complete</span>
@@ -334,7 +334,7 @@ const Dashboard = () => {
 
           <aside className="space-y-4 lg:sticky lg:top-14 self-start">
             <div className="glass-card rounded-3xl border border-border/70 p-5">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</div>
+              <h2 className="text-xs uppercase tracking-wider text-muted-foreground font-mono mb-3">Urgency score</h2>
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 100 60" className="w-24 h-14 shrink-0">
                   <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="hsl(var(--border))" strokeWidth="8" strokeLinecap="round" />
