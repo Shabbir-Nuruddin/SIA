@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
 import { ApexLogo } from "@/components/ApexLogo";
+import { SEO } from "@/components/SEO";
 
-const Shell = ({ title, children }: { title: string; children: ReactNode }) => (
+const Shell = ({ title, description, path, children }: { title: string; description: string; path: string; children: ReactNode }) => (
   <div className="min-h-screen bg-background text-foreground">
+    <SEO title={`${title} — MakeMeRevise`} description={description} path={path} />
     <header className="border-b border-border/50 bg-background/85 backdrop-blur-xl sticky top-0 z-40">
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" aria-label="Make Me Revise — home"><ApexLogo /></Link>
@@ -32,7 +34,7 @@ const Section = ({ n, title, children }: { n: number; title: string; children: R
 );
 
 export const Terms = () => (
-  <Shell title="Terms of Service">
+  <Shell title="Terms of Service" path="/terms" description="The terms of service that govern your use of MakeMeRevise — subscription terms, AI content disclaimer, and user responsibilities.">
     <Section n={1} title="What Make Me Revise is">
       <p>Make Me Revise is an AI-powered study platform built for A-Level students. We generate personalised revision roadmaps, practice questions, mock papers, and notes to help you prepare for your exams.</p>
     </Section>
@@ -64,7 +66,7 @@ export const Terms = () => (
 );
 
 export const Privacy = () => (
-  <Shell title="Privacy Policy">
+  <Shell title="Privacy Policy" path="/privacy" description="How MakeMeRevise collects, uses, and protects your data — we never sell your personal information.">
     <Section n={1} title="What data we collect">
       <p>We collect your name, email address, study progress, exam dates, subject choices, and the answers you submit while practising.</p>
     </Section>
@@ -90,7 +92,7 @@ export const Privacy = () => (
 );
 
 export const Refund = () => (
-  <Shell title="Refund Policy">
+  <Shell title="Refund Policy" path="/refund" description="MakeMeRevise refund policy — 7-day money-back guarantee on Pro subscriptions.">
     <Section n={1} title="7-day money-back guarantee">
       <p>If you are not satisfied within 7 days of your first payment, email us for a full refund — no questions asked.</p>
     </Section>

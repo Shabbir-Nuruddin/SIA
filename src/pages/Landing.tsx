@@ -1,5 +1,6 @@
 import React from "react";
 import { FlipButton } from "@/components/ui/flip-button";
+import { SEO } from "@/components/SEO";
 
 const LandingPage = () => {
 
@@ -13,6 +14,11 @@ const LandingPage = () => {
 
   return (
     <main className="bg-[#fdfcf8] text-[#091426] selection:bg-[#f59e0b]/30 selection:text-[#091426] font-['Inter'] antialiased min-h-screen">
+      <SEO
+        title="MakeMeRevise — A-Level Revision Platform"
+        description="Score higher in A-Levels with a personalised AI revision roadmap, instant-marked mock papers, and topic notes built for Edexcel IAL & Cambridge."
+        path="/"
+      />
       {/* 
           CSS ENGINE: 
           Restoring the full notebook aesthetic and fixing the icon ligature issue.

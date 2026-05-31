@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode, formatDuration } from "@/lib/subjects";
@@ -209,6 +210,7 @@ const SettingsPage = () => {
 
   return (
     <AppLayout>
+      <SEO title="Settings — MakeMeRevise" description="Manage your MakeMeRevise account, subscription, exam board, and notification preferences." path="/settings" />
       <div className="p-6 md:p-10 max-w-3xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-xs text-primary font-mono uppercase tracking-widest mb-2">Settings</div>

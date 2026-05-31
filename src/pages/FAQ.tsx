@@ -9,6 +9,7 @@ import { formattedHtmlProps } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import FlashcardDeck from "@/components/FlashcardDeck";
+import { SEO } from "@/components/SEO";
 
 interface ExamQ {
   question_text: string;
@@ -94,8 +95,24 @@ const FAQPage = () => {
     return m;
   }, [filtered]);
 
+  const faqJsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: EXAM_FAQS.slice(0, 30).map(f => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  }), []);
+
   return (
     <AppLayout>
+      <SEO
+        title="A-Level Exam FAQs — MakeMeRevise"
+        description="Mark-scheme-accurate answers to the A-Level questions students get wrong most — Edexcel IAL and Cambridge across all subjects."
+        path="/faq"
+        jsonLd={faqJsonLd}
+      />
       <div className="p-6 md:p-10 max-w-5xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-xs text-primary font-mono uppercase tracking-widest mb-2">Exam FAQs</div>
