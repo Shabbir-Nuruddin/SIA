@@ -55,6 +55,7 @@ export async function callGroqTool({
   temperature = 0.3,
   maxTokens = 4096,
   vision = false,
+  deadline,
 }: {
   apiKey: string;
   messages: any[];
@@ -63,15 +64,21 @@ export async function callGroqTool({
   temperature?: number;
   maxTokens?: number;
   vision?: boolean;
+  /** Absolute wall-clock deadline (ms epoch). Stops trying models once spent. */
+  deadline?: number;
 }) {
   let lastStatus = 500;
   let lastBody = "";
   const models = vision ? VISION_MODELS : TEXT_MODELS;
+  const hardDeadline = deadline ?? (Date.now() + REQUEST_TIMEOUT_MS * 2);
 
   for (const model of models) {
+    if (Date.now() >= hardDeadline) break;
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      const remaining = hardDeadline - Date.now();
+      if (remaining <= 1500) break;
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+      const timer = setTimeout(() => ctrl.abort(), Math.min(REQUEST_TIMEOUT_MS, remaining));
       try {
         const res = await fetch(GATEWAY, {
           method: "POST",

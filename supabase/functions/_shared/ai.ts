@@ -85,18 +85,23 @@ const isQuotaError = (status: number, body: string) => {
   return low.includes("quota") || low.includes("rate limit") || low.includes("exceeded");
 };
 
-// Per-request wall-clock budget. A single hung upstream call must not stall the
-// whole rotation (and trip Supabase's function timeout).
+// Per-request wall-clock cap. A single hung upstream call must not stall the
+// whole rotation (and trip Supabase's function timeout). The actual abort is
+// the SMALLER of this cap and the time left in the caller's overall budget, so
+// we never start a 60s attempt with only 10s of budget remaining.
 const REQUEST_TIMEOUT_MS = 60_000;
 
 async function callGeminiOnce({
-  apiKey, model, messages, tools, toolName, temperature, maxTokens,
+  apiKey, model, messages, tools, toolName, temperature, maxTokens, deadline,
 }: {
   apiKey: string; model: string; messages: any[]; tools: any[]; toolName: string;
-  temperature: number; maxTokens: number;
+  temperature: number; maxTokens: number; deadline: number;
 }): Promise<{ ok: true; parsed: any } | { ok: false; status: number; body: string }> {
+  const remaining = deadline - Date.now();
+  if (remaining <= 1500) return { ok: false, status: 504, body: "no time budget remaining" };
+  const timeoutMs = Math.min(REQUEST_TIMEOUT_MS, remaining);
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(GEMINI_URL, {
       method: "POST",
@@ -127,7 +132,7 @@ async function callGeminiOnce({
     return {
       ok: false,
       status: aborted ? 504 : 0,
-      body: aborted ? `request timed out after ${REQUEST_TIMEOUT_MS}ms` : (err instanceof Error ? err.message : String(err)),
+      body: aborted ? `request timed out after ${timeoutMs}ms` : (err instanceof Error ? err.message : String(err)),
     };
   } finally {
     clearTimeout(timer);
@@ -136,7 +141,7 @@ async function callGeminiOnce({
 
 async function callGeminiWithRotation(opts: {
   messages: any[]; tools: any[]; toolName: string;
-  temperature: number; maxTokens: number;
+  temperature: number; maxTokens: number; deadline: number;
 }) {
   const keys = getGeminiKeys();
   if (keys.length === 0) throw new Error("no gemini keys configured");
@@ -147,11 +152,16 @@ async function callGeminiWithRotation(opts: {
   // Try each key exactly once, starting from startIdx, wrapping around.
   // With N keys, attempts go: startIdx, startIdx+1, ..., N-1, 0, 1, ..., startIdx-1.
   for (let attempt = 0; attempt < keys.length; attempt++) {
+    // Stop rotating once the overall time budget is spent — better to fall back
+    // to Groq (or surface an error) than to keep starting calls we can't finish
+    // before Supabase's function timeout fires.
+    if (Date.now() >= opts.deadline) { lastErr = lastErr || "gemini time budget exhausted"; break; }
     const idx = (startIdx + attempt) % keys.length;
     const key = keys[idx];
 
     for (const model of GEMINI_MODELS) {
-      const r = await callGeminiOnce({ apiKey: key.value, model, ...opts });
+      if (Date.now() >= opts.deadline) { lastErr = lastErr || "gemini time budget exhausted"; break; }
+      const r = await callGeminiOnce({ apiKey: key.value, model, deadline: opts.deadline, ...opts });
       if (r.ok) {
         // Persist the working key so next request starts here.
         await persistState(idx, keys.length);
@@ -179,21 +189,32 @@ async function callGeminiWithRotation(opts: {
 export async function callAITool(opts: {
   messages: any[]; tools: any[]; toolName: string;
   temperature?: number; maxTokens?: number;
+  /** Total wall-clock budget for this whole call (all keys + fallback).
+   *  Kept under Supabase's 150s function ceiling by the caller. */
+  budgetMs?: number;
 }) {
   const temperature = opts.temperature ?? 0.3;
   const maxTokens = opts.maxTokens ?? 8000;
+  const startedAt = Date.now();
+  const deadline = startedAt + (opts.budgetMs ?? 110_000);
+
+  const groqKey = Deno.env.get("GROQ_API_KEY");
+  // If Groq is available, reserve a slice of the budget for it so an exhausted
+  // Gemini rotation still leaves enough time for the fallback to actually run.
+  const geminiDeadline = groqKey
+    ? Math.min(deadline, startedAt + Math.max(35_000, (deadline - startedAt) - 45_000))
+    : deadline;
 
   if (getGeminiKeys().length > 0) {
     try {
-      return await callGeminiWithRotation({ ...opts, temperature, maxTokens });
+      return await callGeminiWithRotation({ ...opts, temperature, maxTokens, deadline: geminiDeadline });
     } catch (e) {
-      console.error("[ai] gemini exhausted, falling back to groq:", e);
+      console.error("[ai] gemini exhausted/over budget, falling back to groq:", e);
     }
   }
-  const groqKey = Deno.env.get("GROQ_API_KEY");
   if (!groqKey) throw new Error("No AI provider available (all Gemini keys exhausted and no GROQ_API_KEY)");
   console.log("[ai] using groq fallback");
-  return await callGroqTool({ apiKey: groqKey, ...opts, temperature, maxTokens });
+  return await callGroqTool({ apiKey: groqKey, ...opts, temperature, maxTokens, deadline });
 }
 
 /** Strip LaTeX delimiters and convert common LaTeX to plain Unicode. */

@@ -705,8 +705,17 @@ const NotesPage = () => {
                 "Unit";
               const query = `${boardLabel} ${subjName} ${unitLabel} ${unitParam} ${topicParam} revision`;
               const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+              const level = board === "cie-igcse" || board === "edexcel-igcse" ? "igcse" : "a-level";
               return (
-                <YouTubeLessonEmbed key={query} query={query} topic={topicParam} searchUrl={searchUrl} />
+                <YouTubeLessonEmbed
+                  key={query}
+                  query={query}
+                  subject={subjName}
+                  level={level}
+                  videoTopic={topicParam}
+                  topic={topicParam}
+                  searchUrl={searchUrl}
+                />
               );
             })()}
 
@@ -943,7 +952,7 @@ const AnnotationTooltipLayer = ({
   );
 };
 
-function YouTubeLessonEmbed({ query, topic, searchUrl }: { query: string; topic: string; searchUrl: string }) {
+function YouTubeLessonEmbed({ query, subject, level, videoTopic, topic, searchUrl }: { query: string; subject: string; level: string; videoTopic: string; topic: string; searchUrl: string }) {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
@@ -953,7 +962,9 @@ function YouTubeLessonEmbed({ query, topic, searchUrl }: { query: string; topic:
     setVideoId(null);
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("youtube-search", { body: { q: query } });
+        const { data, error } = await supabase.functions.invoke("youtube-search", {
+          body: { q: query, subject, level, topic: videoTopic },
+        });
         if (cancelled) return;
         if (error || !data?.videoId) { setStatus("error"); return; }
         setVideoId(data.videoId);
@@ -963,7 +974,7 @@ function YouTubeLessonEmbed({ query, topic, searchUrl }: { query: string; topic:
       }
     })();
     return () => { cancelled = true; };
-  }, [query]);
+  }, [query, subject, level, videoTopic]);
 
   const embedUrl = videoId
     ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
@@ -1009,7 +1020,7 @@ function YouTubeLessonEmbed({ query, topic, searchUrl }: { query: string; topic:
         )}
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Top result from YouTube — quality varies. Use as a supplement to the notes above.
+        Picked from a trusted revision channel where available. Use as a supplement to the notes above.
       </p>
     </div>
   );

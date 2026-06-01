@@ -128,32 +128,44 @@ const Onboarding = () => {
 
   const handleSubmit = async () => {
     if (!user) return;
-    setLoading(true);
-    try {
-      const placeholderDate = sentinelFutureDate();
-      const rows: any[] = [];
-      for (const s of SUBJECT_LIST) {
-        if (!subjects[s.code].selected) continue;
-        for (const unit of s.units) {
-          const u = subjects[s.code].units[unit.number];
-          if (!u?.selected) continue;
-          rows.push({
-            user_id: user.id,
-            subject: s.code,
-            unit_number: unit.number,
-            unit_name: unit.name,
-            paper_duration_minutes: unit.durationMinutes,
-            exam_date: placeholderDate, // user adds real dates via Exams page
-            target_grade: subjects[s.code].target_grade,
-            current_grade: subjects[s.code].current_grade,
-          });
-        }
-      }
-      if (rows.length === 0) throw new Error("Pick at least one unit.");
 
+    // Validate selection BEFORE switching to the progress screen so an empty
+    // pick keeps the user on the form with a clear error.
+    const placeholderDate = sentinelFutureDate();
+    const rows: any[] = [];
+    for (const s of SUBJECT_LIST) {
+      if (!subjects[s.code].selected) continue;
+      for (const unit of s.units) {
+        const u = subjects[s.code].units[unit.number];
+        if (!u?.selected) continue;
+        rows.push({
+          user_id: user.id,
+          subject: s.code,
+          unit_number: unit.number,
+          unit_name: unit.name,
+          paper_duration_minutes: unit.durationMinutes,
+          exam_date: placeholderDate, // user adds real dates via Exams page
+          target_grade: subjects[s.code].target_grade,
+          current_grade: subjects[s.code].current_grade,
+        });
+      }
+    }
+    if (rows.length === 0) { toast.error("Pick at least one unit."); return; }
+
+    setLoading(true);
+    // Show the progress screen immediately and cycle the study-tip line while the
+    // real work runs underneath. Progress is advanced at each real stage below —
+    // not on a fixed timer — so the bar reflects actual completion.
+    setStep(4);
+    setProgress(4);
+    const statTimer = setInterval(() => setStatIdx(i => (i + 1) % STATS.length), 2200);
+
+    try {
+      setProgress(10);
       await supabase.from("user_subjects").delete().eq("user_id", user.id);
       const { error: e1 } = await supabase.from("user_subjects").insert(rows);
       if (e1) throw e1;
+      setProgress(25);
 
       const profileUpdates: any = {
         onboarded: true,
@@ -165,6 +177,7 @@ const Onboarding = () => {
       if (firstName.trim()) profileUpdates.first_name = firstName.trim();
       const { error: e2 } = await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
       if (e2) throw e2;
+      setProgress(40);
 
       // Build an "efficient revision" roadmap (no specific exam — just paced practice)
       try {
@@ -184,6 +197,7 @@ const Onboarding = () => {
       } catch (rmErr) {
         console.error("Roadmap persistence failed", rmErr);
       }
+      setProgress(70);
 
       try {
         const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
@@ -191,17 +205,13 @@ const Onboarding = () => {
       } catch (rnErr) {
         console.error("Node roadmap generation failed", rnErr);
       }
+      setProgress(100);
 
-      setStep(4);
-      const interval = setInterval(() => {
-        setProgress(p => {
-          if (p >= 100) { clearInterval(interval); return 100; }
-          return p + 2;
-        });
-        setStatIdx(i => (i + 1) % STATS.length);
-      }, 80);
-      setTimeout(() => navigate("/dashboard"), 4500);
+      clearInterval(statTimer);
+      // Brief beat so the 100% state is visible, then go straight to the dashboard.
+      setTimeout(() => navigate("/dashboard"), 500);
     } catch (err) {
+      clearInterval(statTimer);
       console.error("[Onboarding] handleSubmit failed", err);
       const msg =
         err instanceof Error && err.message
@@ -210,6 +220,8 @@ const Onboarding = () => {
           || (err as { details?: string } | null)?.details
           || "Setup failed — please try again. If it keeps failing, screenshot this and message support.";
       toast.error(msg);
+      setStep(3);       // back to the form so they can retry
+      setProgress(0);
       setLoading(false);
     }
   };

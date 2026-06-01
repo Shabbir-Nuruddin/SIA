@@ -114,6 +114,18 @@ const Exams = () => {
     }
     setOpen(false);
     setEditing(null);
+
+    // Re-sequence the roadmap against the new/changed exam date so the dashboard
+    // immediately prioritises the unit whose exam is next — without the user
+    // having to find the per-exam "Build roadmap" button.
+    try {
+      const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
+      await generateRoadmapForUser(user.id);
+      toast.success("Roadmap re-sequenced for your exam dates");
+    } catch (e) {
+      console.error("Roadmap regen after exam save failed", e);
+    }
+
     load();
   };
 

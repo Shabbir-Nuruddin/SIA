@@ -28,6 +28,8 @@ const cacheKey = (board: Board, subject: SubjectCode, topic: string) =>
 const BOARD_LABEL: Record<Board, string> = {
   "edexcel-ial": "Edexcel IAL",
   "cie": "Cambridge (CIE)",
+  "cie-igcse": "CIE IGCSE",
+  "edexcel-igcse": "Edexcel IGCSE",
 };
 
 const FAQPage = () => {

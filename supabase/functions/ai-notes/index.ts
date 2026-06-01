@@ -482,6 +482,14 @@ ${referenceTableInstructions}`;
 ${syllabus_context ? `Official syllabus statements:\n${syllabus_context}\n` : ""}
 Follow rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
 
+    // Overall wall-clock budget for this invocation. Supabase aborts the function
+    // at ~150s; we stay comfortably under so the client gets a real result (or a
+    // clean error) instead of an idle-timeout. callAITool shrinks its own attempt
+    // timeouts to fit whatever budget remains.
+    const fnStart = Date.now();
+    const FN_BUDGET_MS = 135_000;
+    const remainingBudget = () => Math.max(20_000, FN_BUDGET_MS - (Date.now() - fnStart));
+
     const callOnce = async () =>
       normaliseNotes(await callAITool({
         messages: [
@@ -493,9 +501,11 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
         temperature: 0.3,
         // The notes schema (structured overview, 8+ definitions, up to 12 worked
         // core_content items, a reactions list, equations, 8 flashcards, reference
-        // tables) is large and truncates into unparseable JSON if starved. Gemini
-        // 2.5 Flash supports far more, so give the model real headroom to finish.
-        maxTokens: 24000,
+        // tables) is large; starving it truncates into unparseable JSON. 16k gives
+        // ample headroom for a complete payload while capping worst-case latency so
+        // a single generation reliably finishes inside the function budget.
+        maxTokens: 16000,
+        budgetMs: remainingBudget(),
       }), subject);
 
     let args = await callOnce();
@@ -503,15 +513,21 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
     const check = (a: any) => validator ? validator(JSON.stringify(a), ns, promptKey) : { passed: true, forbiddenFound: [] };
     let validation = check(args);
     if (!validation.passed) {
-      // One compliance retry. Re-validate the retry and only adopt it if it is
-      // actually cleaner — otherwise keep the first result rather than blindly
-      // replacing good content with an unchecked (possibly worse) regeneration.
-      console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
-      const retry = await callOnce();
-      const retryValidation = check(retry);
-      if (retryValidation.passed || retryValidation.forbiddenFound.length < validation.forbiddenFound.length) {
-        args = retry;
-        validation = retryValidation;
+      // One compliance retry — but ONLY when enough budget remains for a second
+      // full generation. Running two long generations back-to-back is exactly what
+      // pushed past the 150s idle limit before. If time is short we keep the first
+      // (best-effort) result rather than risk a timeout. The retry is re-validated
+      // and adopted only if it is actually cleaner.
+      if (remainingBudget() > 55_000) {
+        console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
+        const retry = await callOnce();
+        const retryValidation = check(retry);
+        if (retryValidation.passed || retryValidation.forbiddenFound.length < validation.forbiddenFound.length) {
+          args = retry;
+          validation = retryValidation;
+        }
+      } else {
+        console.warn("Validation failed but skipping retry — insufficient time budget, returning best-effort notes.", validation.forbiddenFound);
       }
     }
 
