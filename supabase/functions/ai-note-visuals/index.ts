@@ -12,11 +12,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-// Gemini Imagen endpoint (uses same API keys as text generation)
-const IMAGEN_MODEL = "imagen-3.0-fast-generate-001";
-const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:generateImages`;
-
-// Pollinations removed — produces inaccurate images
+// Gemini 2.5 Flash Image ("nano banana") via generateContent — uses the same
+// API keys as text generation and has a genuine free tier (unlike Imagen, which
+// is effectively paid-only). Better instruction-following and can render clean,
+// correctly-spelled labels, which makes the diagrams actually useful for revision.
+const IMAGE_MODEL = "gemini-2.5-flash-image";
+const IMAGE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent`;
 
 const MAX_IMAGES_PER_TOPIC = 3; // overview + up to 2 concept images
 const GLOBAL_BUDGET_MS = 55_000;
@@ -67,58 +68,54 @@ const buildImagePrompt = (params: {
 
   if (params.isOverview) {
     return [
-      `Scientific educational illustration for ${board} ${subject} ${unitCode}.`,
-      `Topic: ${topic}.`,
-      `Show the key concept or process for this exact topic only.`,
-      `Style: clean flat 2D scientific diagram, white background.`,
-      `Colour-coded components using pastel shades.`,
-      `NO text, NO labels, NO annotations, NO numbers, NO watermarks, NO decorative borders, NO photorealism.`,
-      `Educational infographic style. Vector art quality.`,
-      `Accurate to ${board} ${subject} specification, not generic.`,
+      `A clean, exam-accurate labelled diagram for ${board} ${subject} (${unitCode}) — topic: ${topic}.`,
+      `Show the single key process or structure a student must understand for THIS exact topic, in textbook / Save My Exams style.`,
+      `Style: flat 2D scientific diagram, plain white background, clear colour-coding.`,
+      `Add concise, CORRECTLY-SPELLED labels for the key parts only (short words/arrows) — labels must be scientifically accurate; if unsure, omit a label rather than guess.`,
+      `NO watermarks, NO decorative borders, NO photorealism, NO long sentences, NO equations as image text.`,
+      `Must be accurate to the ${board} ${subject} specification for ${topic} — not generic clip-art.`,
     ].join(" ");
   }
 
   return [
-    `Scientific educational diagram for ${board} ${subject} ${unitCode}: ${topic}.`,
-    `Concept to illustrate: ${term}.`,
-    meaning ? `Specific aspect: ${meaning}.` : "",
-    `Style: clean flat 2D scientific illustration, white background.`,
-    `Colour-coded components. Simple accurate shapes.`,
-    `NO text, NO labels, NO annotations, NO numbers, NO watermarks, NO decorative frames.`,
-    `Vector illustration quality. Educational textbook style.`,
-    `Accurate only to ${topic} — do not show unrelated content.`,
+    `A clean, exam-accurate labelled scientific diagram for ${board} ${subject} (${unitCode}): ${topic}.`,
+    `Illustrate specifically: ${term}.`,
+    meaning ? `Focus on: ${meaning}.` : "",
+    `Style: flat 2D textbook diagram, plain white background, clear colour-coding.`,
+    `Include concise, CORRECTLY-SPELLED labels/arrows for the key parts only — every label must be scientifically accurate; omit a label rather than guess.`,
+    `NO watermarks, NO decorative frames, NO long sentences, NO photorealism.`,
+    `Show only content relevant to ${topic}.`,
   ]
     .filter(Boolean)
     .join(" ");
 };
 
-// Generate image using Gemini Imagen 3 Fast
-const generateWithImagen = async (prompt: string, apiKey: string): Promise<string> => {
+// Generate an image with Gemini 2.5 Flash Image (generateContent → inlineData).
+const generateWithGeminiImage = async (prompt: string, apiKey: string): Promise<string> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
   try {
-    const res = await fetch(`${IMAGEN_URL}?key=${apiKey}`, {
+    const res = await fetch(`${IMAGE_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: { text: prompt },
-        safetyFilterLevel: "BLOCK_ONLY_HIGH",
-        personGeneration: "DONT_ALLOW",
-        numberOfImages: 1,
-        aspectRatio: "16:9",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["TEXT", "IMAGE"], temperature: 0.4 },
       }),
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
     if (!res.ok) {
       const body = await res.text();
-      throw new Error(`Imagen ${res.status}: ${body.slice(0, 200)}`);
+      throw new Error(`Gemini image ${res.status}: ${body.slice(0, 200)}`);
     }
     const data = await res.json();
-    const imageBytes = data?.predictions?.[0]?.bytesBase64Encoded
-      ?? data?.generatedImages?.[0]?.image?.imageBytes;
-    if (!imageBytes) throw new Error("No image bytes in Imagen response");
-    return `data:image/png;base64,${imageBytes}`;
+    const parts = data?.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = parts.find((p: any) => p?.inlineData?.data);
+    const imageBytes = imgPart?.inlineData?.data;
+    const mime = imgPart?.inlineData?.mimeType || "image/png";
+    if (!imageBytes) throw new Error("No image bytes in Gemini image response");
+    return `data:${mime};base64,${imageBytes}`;
   } catch (err) {
     clearTimeout(timeoutId);
     throw err;
@@ -152,7 +149,7 @@ const uploadImageToStorage = async (
   return publicUrl;
 };
 
-// Generate image using Gemini Imagen only — tries each key, throws if all fail
+// Generate an image, rotating through Gemini keys; throws if all fail.
 const generateImage = async (
   prompt: string,
   geminiKeys: { value: string }[],
@@ -160,13 +157,13 @@ const generateImage = async (
 ): Promise<string> => {
   for (const { value: apiKey } of geminiKeys) {
     try {
-      const dataUrl = await generateWithImagen(prompt, apiKey);
+      const dataUrl = await generateWithGeminiImage(prompt, apiKey);
       return await uploadImageToStorage(dataUrl, storagePath);
     } catch (err) {
-      console.warn("Imagen key failed:", (err as Error).message?.slice(0, 100));
+      console.warn("Gemini image key failed:", (err as Error).message?.slice(0, 100));
     }
   }
-  throw new Error("All Imagen keys exhausted — no image generated");
+  throw new Error("All Gemini image keys exhausted — no image generated");
 };
 
 serve(async (req) => {

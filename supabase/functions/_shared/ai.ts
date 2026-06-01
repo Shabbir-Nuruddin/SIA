@@ -217,6 +217,65 @@ export async function callAITool(opts: {
   return await callGroqTool({ apiKey: groqKey, ...opts, temperature, maxTokens, deadline });
 }
 
+// Native Gemini endpoint (the OpenAI-compat endpoint does NOT support the
+// google_search grounding tool, so grounding must use generateContent).
+const GEMINI_GENERATE_URL = (model: string) =>
+  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+/**
+ * Best-effort grounded research: ask Gemini (with the google_search tool) to pull
+ * current, source-backed facts for a topic. Returns plain text, or null if every
+ * key is exhausted / the budget runs out. NEVER throws — grounding is an accuracy
+ * booster layered before structured generation, so a failure must degrade silently
+ * to ungrounded notes rather than break the request.
+ */
+export async function callGeminiGroundedResearch(opts: {
+  prompt: string;
+  maxTokens?: number;
+  budgetMs?: number;
+}): Promise<string | null> {
+  const keys = getGeminiKeys();
+  if (keys.length === 0) return null;
+  const deadline = Date.now() + (opts.budgetMs ?? 35_000);
+  const model = "gemini-2.5-flash";
+  const startIdx = await loadIndex(keys.length);
+
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const remaining = deadline - Date.now();
+    if (remaining < 4000) break;
+    const key = keys[(startIdx + attempt) % keys.length];
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), Math.min(REQUEST_TIMEOUT_MS, remaining));
+    try {
+      const res = await fetch(`${GEMINI_GENERATE_URL(model)}?key=${key.value}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+          tools: [{ google_search: {} }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: opts.maxTokens ?? 2048 },
+        }),
+        signal: ctrl.signal,
+      });
+      const body = await res.text();
+      if (!res.ok) {
+        console.warn(`[ai] grounded research ${res.status} via ${key.name}: ${body.slice(0, 120)}`);
+        continue; // try the next key
+      }
+      const data = tryParseJson(body);
+      const parts = data?.candidates?.[0]?.content?.parts;
+      const text = Array.isArray(parts) ? parts.map((p: any) => p?.text || "").join("").trim() : "";
+      if (text) return text;
+    } catch (err) {
+      const aborted = err instanceof DOMException && err.name === "AbortError";
+      console.warn(`[ai] grounded research ${aborted ? "timed out" : "error"} via ${key.name}`);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  return null;
+}
+
 /** Strip LaTeX delimiters and convert common LaTeX to plain Unicode. */
 export function stripLatex(s: string): string {
   if (!s) return s;

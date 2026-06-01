@@ -4,6 +4,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { buildRoadmap, UserUnitRow, StudyBlock } from "./roadmap";
 import { SUBJECTS } from "./subjects";
+import { overlayExamDates, generateRoadmapForUser } from "./roadmapNodes";
 
 function methodFor(block: StudyBlock): string {
   switch (block.type) {
@@ -30,7 +31,11 @@ export async function generateAndPersistRoadmap(
   opts: { weeklyMinutes?: number; studyStartTime?: string } = {}
 ) {
   const startTime = opts.studyStartTime || "16:00";
-  const roadmap = buildRoadmap(units, { weeklyMinutes: opts.weeklyMinutes });
+  // Overlay real exam dates so the session planner (which feeds the DASHBOARD
+  // "Today's plan") schedules the unit whose exam is next — not the lowest-numbered
+  // unit on the sentinel placeholder date.
+  const datedUnits = await overlayExamDates(userId, units as any[]) as UserUnitRow[];
+  const roadmap = buildRoadmap(datedUnits, { weeklyMinutes: opts.weeklyMinutes });
 
   // Wipe existing future sessions (don't touch completed history)
   const { getLocalDateString } = await import("./dateLocal");
@@ -77,4 +82,31 @@ export async function generateAndPersistRoadmap(
     if (error) throw error;
   }
   return { inserted: rows.length };
+}
+
+/**
+ * Rebuild BOTH roadmap systems (sessions → dashboard "Today's plan", and nodes →
+ * Roadmap page) from the user's subjects with real exam dates overlaid. Call this
+ * whenever exams change so every surface agrees on which unit is most urgent.
+ */
+export async function regenerateRoadmaps(userId: string) {
+  const { data: subjectsRows } = await supabase
+    .from("user_subjects")
+    .select("subject, unit_number, unit_name, exam_date, target_grade, current_grade")
+    .eq("user_id", userId);
+  if (!subjectsRows || subjectsRows.length === 0) return;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("hours_per_day")
+    .eq("id", userId)
+    .single();
+  const hoursPerDay = Math.max(1, (profile as any)?.hours_per_day ?? 2);
+
+  // generateAndPersistRoadmap overlays exam dates internally; pass user_subjects as-is.
+  await generateAndPersistRoadmap(userId, subjectsRows as UserUnitRow[], {
+    weeklyMinutes: hoursPerDay * 60 * 7,
+    studyStartTime: "16:00",
+  });
+  await generateRoadmapForUser(userId);
 }

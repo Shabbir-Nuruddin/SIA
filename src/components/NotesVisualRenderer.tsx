@@ -12,6 +12,9 @@ import {
   PencilLine, Eye, RotateCcw,
 } from "lucide-react";
 import { type NotesVisualMap } from "@/lib/wikimediaVisuals";
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
+} from "recharts";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,6 +27,8 @@ interface TipItem   { command_word?: string; tip: string; }
 interface Flashcard { q: string; a: string; }
 interface VisualSummary { kind: string; caption: string; content: string; }
 interface RefTable  { title: string; headers: string[]; rows: string[][]; caption?: string; }
+interface GraphCurve { label?: string; points: { x: number; y: number }[]; }
+export interface Graph { title?: string; x_label?: string; y_label?: string; curves: GraphCurve[]; caption?: string; }
 
 export interface NotesData {
   overview: string;
@@ -31,6 +36,7 @@ export interface NotesData {
   core_content: CoreItem[];
   reactions?: Rxn[];
   equations: EqItem[];
+  graphs?: Graph[];
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
   flashcards: Flashcard[];
@@ -348,6 +354,62 @@ const EquationsSection = ({ eqs, renderMath, formatHtml }: { eqs: EqItem[]; rend
   </div>
 );
 
+// ─── Graphs — rendered from data (accurate, never AI images) ──────────────────
+const GRAPH_COLORS = ["#6366f1", "#ec4899", "#14b8a6", "#f59e0b"];
+const GraphsSection = ({ graphs }: { graphs: Graph[] }) => (
+  <div className="space-y-6">
+    {graphs.map((g, gi) => {
+      // Keep only curves with ≥2 finite points so we never render a broken axis.
+      const curves = (g.curves || [])
+        .map((c) => ({
+          label: c.label || "",
+          points: (c.points || [])
+            .map((p) => ({ x: Number(p.x), y: Number(p.y) }))
+            .filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+            .slice(0, 120),
+        }))
+        .filter((c) => c.points.length >= 2);
+      if (curves.length === 0) return null;
+      return (
+        <figure key={gi} className="rounded-2xl border border-border/60 bg-background-elevated p-4 shadow-sm">
+          {g.title && <figcaption className="text-sm font-bold mb-3 text-foreground/90">{g.title}</figcaption>}
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart margin={{ top: 8, right: 20, bottom: 26, left: 16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                <ReferenceLine x={0} stroke="hsl(var(--muted-foreground))" opacity={0.4} />
+                <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" opacity={0.4} />
+                <XAxis
+                  type="number" dataKey="x" allowDecimals
+                  stroke="hsl(var(--muted-foreground))" fontSize={11}
+                  label={g.x_label ? { value: g.x_label, position: "insideBottom", offset: -14, fontSize: 11, fill: "hsl(var(--muted-foreground))" } : undefined}
+                />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))" fontSize={11}
+                  label={g.y_label ? { value: g.y_label, angle: -90, position: "insideLeft", fontSize: 11, fill: "hsl(var(--muted-foreground))" } : undefined}
+                />
+                <Tooltip
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                  labelFormatter={(v) => `${g.x_label || "x"}: ${v}`}
+                />
+                {curves.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+                {curves.map((c, ci) => (
+                  <Line
+                    key={ci} data={c.points} dataKey="y" name={c.label || `Series ${ci + 1}`}
+                    stroke={GRAPH_COLORS[ci % GRAPH_COLORS.length]} strokeWidth={2}
+                    dot={false} type="monotone" isAnimationActive={false}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {g.caption && <figcaption className="text-xs text-muted-foreground mt-2 text-center">{g.caption}</figcaption>}
+        </figure>
+      );
+    })}
+  </div>
+);
+
 // ─── Visual Summary ───────────────────────────────────────────────────────────
 const VisualSection = ({ vs, renderMath }: { vs: VisualSummary; renderMath:(s:string)=>string }) => (
   <div className="rounded-xl bg-card border-2 border-dashed border-foreground/20 overflow-hidden">
@@ -537,6 +599,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} expandAll={isLong} /> });
     if (notes.reactions?.length) out.push({ id: "reactions", title: "Reactions", icon: <FlaskConical className="h-5 w-5" />, content: <ReactionsSection reactions={notes.reactions} formatHtml={formatHtml} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
+    if (notes.graphs?.length) out.push({ id: "graphs", title: "Graphs", icon: <Sigma className="h-5 w-5" />, content: <GraphsSection graphs={notes.graphs} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
