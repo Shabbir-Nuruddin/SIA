@@ -173,7 +173,8 @@ export async function submitScore(_unusedName: string, score: number, game: Game
     const name = full.split(/\s+/)[0].slice(0, 24);
     if (!isCleanName(name)) return;
     const finalScore = Math.max(0, Math.min(1_000_000_000, Math.round(score)));
-    // One row per (user_id, game). Upsert and only bump if new score is higher.
+    // One row per (user_id, game). For CPS keep the highest score ever; for
+    // Study Tycoon overwrite with current run lifetime (resets on graduate).
     const { data: existing } = await (supabase as any)
       .from("game_scores")
       .select("score")
@@ -181,7 +182,10 @@ export async function submitScore(_unusedName: string, score: number, game: Game
       .eq("game", game)
       .maybeSingle();
     if (existing) {
-      if (finalScore > (existing.score || 0)) {
+      const shouldUpdate = game === "cps_test"
+        ? finalScore > (existing.score || 0)
+        : finalScore !== (existing.score || 0);
+      if (shouldUpdate) {
         await (supabase as any)
           .from("game_scores")
           .update({ player_name: name, score: finalScore })
