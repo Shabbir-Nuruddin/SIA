@@ -75,22 +75,10 @@ export default function StudyTycoon({ compact = false, showLeaderboard = false }
       <div className={`grid gap-4 ${showLeaderboard && !compact ? "md:grid-cols-[1.4fr_1fr]" : "grid-cols-1"}`}>
         <div>
           {mode === "tycoon" ? <TycoonMode compact={compact} /> : <CpsMode />}
-          <NameField />
         </div>
         {showLeaderboard && !compact && <Leaderboard game={mode === "cps" ? "cps_test" : "study_tycoon"} />}
       </div>
     </div>
-  );
-}
-
-// ─── Shared bits ──────────────────────────────────────────────────────────────
-function NameField() {
-  const [name, setName] = useState<string>(() => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } });
-  return (
-    <input value={name}
-      onChange={(e) => { setName(e.target.value); try { localStorage.setItem(NAME_KEY, e.target.value); } catch { /* ignore */ } }}
-      placeholder="Your leaderboard name" maxLength={24}
-      className="mt-3 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm" />
   );
 }
 
