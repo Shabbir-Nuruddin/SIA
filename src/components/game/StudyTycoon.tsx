@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Crown } from "lucide-react";
+import { Crown, Volume2, VolumeX } from "lucide-react";
 import { submitScore, getLeaderboard, getPersonalBest, type ScoreRow, type GameId } from "@/lib/leaderboard";
+import { sfx, isMuted, setMuted } from "@/lib/gameSound";
 
 /**
  * Break Arcade — a juicy idle/clicker (Study Tycoon) + a CPS Test.
@@ -11,16 +12,25 @@ import { submitScore, getLeaderboard, getPersonalBest, type ScoreRow, type GameI
 
 type Mode = "tycoon" | "cps";
 type UpKind = "auto" | "click";
-interface Upgrade { id: string; name: string; emoji: string; baseCost: number; kind: UpKind; rate: number; desc: string; }
+// `effect` upgrades add a visual/audio distraction to the arena (Stimulation-Clicker
+// style) as well as earning marks. "dvd" is special — it earns marks PER BOUNCE.
+type FX = "dvd" | "disco" | "rain" | "news" | "lofi";
+interface Upgrade { id: string; name: string; emoji: string; baseCost: number; kind: UpKind; rate: number; desc: string; fx?: FX; }
 
-// Whole-number rates so early upgrades feel real (the old fractional rates floored to "0").
+// Whole-number rates so early upgrades feel real. Ordered by cost; distraction
+// upgrades are interleaved so the screen gets more chaotic as you progress.
 const UPGRADES: Upgrade[] = [
   { id: "flashcards", name: "Flashcards",    emoji: "🃏", baseCost: 15,         kind: "auto",  rate: 1,      desc: "A deck that drills itself." },
   { id: "highlighter",name: "Highlighter",   emoji: "🖊️", baseCost: 50,         kind: "click", rate: 1,      desc: "Every tap is worth more." },
+  { id: "dvd",        name: "Bouncing Logo", emoji: "📀", baseCost: 80,         kind: "auto",  rate: 0,      desc: "An MMR logo bounces the corners — marks per bounce!", fx: "dvd" },
   { id: "coffee",     name: "Coffee",        emoji: "☕", baseCost: 120,        kind: "auto",  rate: 5,      desc: "The original study drug." },
   { id: "energy",     name: "Energy Drink",  emoji: "🥤", baseCost: 1_100,      kind: "click", rate: 6,      desc: "Taps, supercharged." },
   { id: "notes",      name: "AI Notes",      emoji: "📝", baseCost: 1_300,      kind: "auto",  rate: 25,     desc: "Revises while you sleep." },
+  { id: "disco",      name: "Disco Mode",    emoji: "🪩", baseCost: 4_000,      kind: "auto",  rate: 40,     desc: "Flashing lights. Everywhere.", fx: "disco" },
+  { id: "rain",       name: "Rain Ambience", emoji: "🌧️", baseCost: 9_000,      kind: "auto",  rate: 80,     desc: "Cosy rain on the window.", fx: "rain" },
   { id: "pastpaper",  name: "Past Papers",   emoji: "📄", baseCost: 14_000,     kind: "auto",  rate: 120,    desc: "Predict the exam." },
+  { id: "news",       name: "Breaking News", emoji: "📰", baseCost: 30_000,     kind: "auto",  rate: 220,    desc: "A 24/7 study-news ticker.", fx: "news" },
+  { id: "lofi",       name: "Lo-fi Beats",   emoji: "🎧", baseCost: 60_000,     kind: "auto",  rate: 380,    desc: "Chill beats to grind to.", fx: "lofi" },
   { id: "buddy",      name: "Study Buddy",   emoji: "🤝", baseCost: 150_000,    kind: "auto",  rate: 600,    desc: "Keeps you accountable." },
   { id: "tutor",      name: "Private Tutor", emoji: "👩‍🏫", baseCost: 1_600_000,  kind: "auto",  rate: 3_200,  desc: "On permanent retainer." },
   { id: "allnighter", name: "All-Nighter",   emoji: "🌙", baseCost: 22_000_000, kind: "auto",  rate: 16_000, desc: "Sleep is for after exams." },
@@ -33,8 +43,25 @@ const MS_KEY = "mmr_tycoon_ms_v3";
 const OFFLINE_CAP_S = 4 * 3600;
 const MILESTONES = [1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9];
 
-interface TState { marks: number; totalEarned: number; clicks: number; upgrades: Record<string, number>; lastSeen: number; }
-const DEFAULT_STATE: TState = { marks: 0, totalEarned: 0, clicks: 0, upgrades: {}, lastSeen: Date.now() };
+interface TState { marks: number; totalEarned: number; clicks: number; upgrades: Record<string, number>; degrees: number; lastSeen: number; }
+const DEFAULT_STATE: TState = { marks: 0, totalEarned: 0, clicks: 0, upgrades: {}, degrees: 0, lastSeen: Date.now() };
+
+// Prestige ("Graduate"): degrees you'd earn by graduating now, from lifetime marks.
+const degreesFromEarned = (totalEarned: number) => Math.floor(Math.sqrt(Math.max(0, totalEarned) / 1_000_000));
+
+const ACHIEVEMENTS: { id: string; name: string; desc: string; check: (s: TState) => boolean }[] = [
+  { id: "first",  name: "First Mark",        desc: "Earn your first mark",        check: (s) => s.totalEarned >= 1 },
+  { id: "tap100", name: "Warming Up",        desc: "Tap 100 times",               check: (s) => s.clicks >= 100 },
+  { id: "k",      name: "Straight A's",      desc: "Reach 1,000 lifetime marks",  check: (s) => s.totalEarned >= 1_000 },
+  { id: "dvd",    name: "Corner Hit",        desc: "Buy the Bouncing Logo",       check: (s) => (s.upgrades.dvd || 0) >= 1 },
+  { id: "disco",  name: "Disco Inferno",     desc: "Turn on Disco Mode",          check: (s) => (s.upgrades.disco || 0) >= 1 },
+  { id: "tap1k",  name: "Finger Cramp",      desc: "Tap 1,000 times",             check: (s) => s.clicks >= 1_000 },
+  { id: "m",      name: "Top of the Class",  desc: "Reach 1,000,000 lifetime marks", check: (s) => s.totalEarned >= 1_000_000 },
+  { id: "grad",   name: "Graduate",          desc: "Graduate for the first time", check: (s) => s.degrees >= 1 },
+  { id: "phd",    name: "Doctorate",         desc: "Earn 10 degrees",             check: (s) => s.degrees >= 10 },
+  { id: "galaxy", name: "Galaxy Brain",      desc: "Own a Galaxy Brain",          check: (s) => (s.upgrades.galaxy || 0) >= 1 },
+];
+const ACH_KEY = "mmr_tycoon_ach_v1";
 
 function loadState(): TState {
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) return { ...DEFAULT_STATE, ...JSON.parse(raw) }; } catch { /* ignore */ }
@@ -57,6 +84,8 @@ const autoOf = (upg: Record<string, number>) =>
 const clickBonus = (upg: Record<string, number>) =>
   UPGRADES.reduce((s, u) => s + (u.kind === "click" ? (upg[u.id] || 0) * u.rate : 0), 0);
 const costOf = (u: Upgrade, count: number) => Math.ceil(u.baseCost * Math.pow(1.15, count));
+const costForN = (u: Upgrade, count: number, n: number) => { let c = 0, k = count; for (let i = 0; i < n; i += 1) { c += costOf(u, k); k += 1; } return c; };
+const maxAffordable = (u: Upgrade, count: number, marks: number) => { let n = 0, k = count, m = marks; while (n < 10000) { const c = costOf(u, k); if (m < c) break; m -= c; k += 1; n += 1; } return n; };
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function StudyTycoon({ compact = false, showLeaderboard = false }: { compact?: boolean; showLeaderboard?: boolean }) {
@@ -149,20 +178,27 @@ function TycoonMode({ compact }: { compact: boolean }) {
   const [pop, setPop] = useState(false);
   const [combo, setCombo] = useState(0);
   const [golden, setGolden] = useState<{ id: number } | null>(null);
+  const [sparks, setSparks] = useState<{ id: number; dx: number; dy: number; c: string }[]>([]);
   const floatId = useRef(0);
+  const sparkId = useRef(0);
   const comboRef = useRef({ count: 0, last: 0 });
   const comboTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
   useEffect(() => { stateRef.current = state; }, [state]);
 
-  const auto = autoOf(state.upgrades);
-  const basePerClick = Math.max(1, 1 + clickBonus(state.upgrades) + Math.floor(auto * 0.05));
+  const degrees = state.degrees || 0;
+  const degreeMult = 1 + degrees * 0.1;                 // +10% marks per degree (permanent)
+  const rawAuto = autoOf(state.upgrades);
+  const auto = rawAuto * degreeMult;
+  const basePerClick = Math.max(1, Math.round((1 + clickBonus(state.upgrades) + Math.floor(rawAuto * 0.05)) * degreeMult));
+  const pendingDegrees = Math.max(0, degreesFromEarned(state.totalEarned) - degrees);
   const mult = 1 + Math.min(combo * 0.12, 4); // up to x5 on a hot streak
+  const [buyMode, setBuyMode] = useState<1 | 10 | 100 | "max">(1);
 
   useEffect(() => {
     const s = loadState();
     const elapsed = Math.min(OFFLINE_CAP_S, Math.max(0, (Date.now() - (s.lastSeen || Date.now())) / 1000));
-    const earned = Math.floor(autoOf(s.upgrades) * elapsed * 0.5);
+    const earned = Math.floor(autoOf(s.upgrades) * (1 + (s.degrees || 0) * 0.1) * elapsed * 0.5);
     if (earned > 0) { setState((p) => ({ ...p, marks: p.marks + earned, totalEarned: p.totalEarned + earned })); setWelcome(earned); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -170,7 +206,7 @@ function TycoonMode({ compact }: { compact: boolean }) {
   useEffect(() => {
     const id = setInterval(() => {
       setState((p) => {
-        const a = autoOf(p.upgrades);
+        const a = autoOf(p.upgrades) * (1 + (p.degrees || 0) * 0.1);
         if (a <= 0) return p;
         const next = { ...p, marks: p.marks + a * 0.2, totalEarned: p.totalEarned + a * 0.2 };
         checkMilestone(next.totalEarned);
@@ -207,6 +243,7 @@ function TycoonMode({ compact }: { compact: boolean }) {
     const m = 1 + Math.min(c.count * 0.12, 4);
     const crit = c.count > 0 && c.count % 12 === 0;
     const gain = Math.max(1, Math.round(basePerClick * m * (crit ? 3 : 1)));
+    sfx.click(); if (crit) sfx.crit();
     setState((p) => ({ ...p, marks: p.marks + gain, totalEarned: p.totalEarned + gain, clicks: p.clicks + 1 }));
     setPop(true); setTimeout(() => setPop(false), 80);
 
@@ -215,22 +252,79 @@ function TycoonMode({ compact }: { compact: boolean }) {
     const fx = e.clientX - rect.left + (Math.random() * 24 - 12);
     setFloats((f) => [...f, { id, x: fx, y: e.clientY - rect.top, v: gain, crit }]);
     setTimeout(() => setFloats((f) => f.filter((ff) => ff.id !== id)), 850);
+
+    // Spark burst out of the brain (juicy click feedback).
+    const colours = ["#ffffff", "#fde68a", "#f9a8d4", "#a5b4fc", "#5eead4"];
+    const n = crit ? 12 : 7;
+    const burst = Array.from({ length: n }, () => {
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 36 + Math.random() * 46;
+      return { id: ++sparkId.current, dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist, c: colours[Math.floor(Math.random() * colours.length)] };
+    });
+    setSparks((s) => [...s, ...burst]);
+    const ids = new Set(burst.map((b) => b.id));
+    setTimeout(() => setSparks((s) => s.filter((sp) => !ids.has(sp.id))), 600);
   };
 
   const grabGolden = () => {
     const bonus = Math.max(50, Math.floor(auto * 60), basePerClick * 30);
     setState((p) => ({ ...p, marks: p.marks + bonus, totalEarned: p.totalEarned + bonus }));
     setGolden(null);
+    sfx.golden();
     toast("✨ Golden note!", { description: `+${formatMarks(bonus)} marks` });
   };
 
-  const buy = (u: Upgrade) =>
+  const buyN = (u: Upgrade) =>
     setState((p) => {
-      const count = p.upgrades[u.id] || 0;
-      const cost = costOf(u, count);
-      if (p.marks < cost) return p;
-      return { ...p, marks: p.marks - cost, upgrades: { ...p.upgrades, [u.id]: count + 1 } };
+      let count = p.upgrades[u.id] || 0;
+      let marks = p.marks;
+      let bought = 0;
+      const target = buyMode === "max" ? Infinity : buyMode;
+      while (bought < target) {
+        const cost = costOf(u, count);
+        if (marks < cost) break;
+        marks -= cost; count += 1; bought += 1;
+      }
+      if (bought === 0) return p;
+      sfx.buy();
+      return { ...p, marks, upgrades: { ...p.upgrades, [u.id]: count } };
     });
+
+  const graduate = () => {
+    if (pendingDegrees < 1) return;
+    setState((p) => ({ ...p, degrees: (p.degrees || 0) + pendingDegrees, marks: 0, upgrades: {} }));
+    sfx.golden();
+    toast("🎓 Graduated!", { description: `+${pendingDegrees} degree${pendingDegrees > 1 ? "s" : ""} — a permanent +${pendingDegrees * 10}% to all marks!` });
+  };
+
+  // Distraction helpers
+  const owns = (id: string) => (state.upgrades[id] || 0) > 0;
+  const dvdCount = state.upgrades["dvd"] || 0;
+  const spb = Math.max(1, Math.round(dvdCount * 3 * degreeMult)); // marks per DVD bounce
+  const dvdSpeed = 1 + dvdCount * 0.25;
+  const onBounce = () => setState((p) => ({ ...p, marks: p.marks + spb, totalEarned: p.totalEarned + spb }));
+  const [mute, setMute] = useState(isMuted());
+  const toggleMute = () => { const m = !mute; setMute(m); setMuted(m); };
+  const [achCount, setAchCount] = useState(() => { try { return (JSON.parse(localStorage.getItem(ACH_KEY) || "[]") as string[]).length; } catch { return 0; } });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Unlock achievements as the state changes.
+  useEffect(() => {
+    let unlocked: string[] = [];
+    try { unlocked = JSON.parse(localStorage.getItem(ACH_KEY) || "[]"); } catch { /* ignore */ }
+    let changed = false;
+    for (const a of ACHIEVEMENTS) {
+      if (!unlocked.includes(a.id) && a.check(state)) { unlocked.push(a.id); changed = true; toast(`🏅 ${a.name}`, { description: a.desc }); }
+    }
+    if (changed) { try { localStorage.setItem(ACH_KEY, JSON.stringify(unlocked)); } catch { /* ignore */ } setAchCount(unlocked.length); }
+  }, [state]);
+
+  // Lo-fi music: loop a calm track when the Lo-fi upgrade is owned and not muted.
+  useEffect(() => {
+    const a = audioRef.current; if (!a) return;
+    if ((state.upgrades.lofi || 0) > 0 && !mute) { a.volume = 0.38; a.play().catch(() => {}); }
+    else { a.pause(); }
+  }, [state.upgrades, mute]);
 
   return (
     <div>
@@ -240,6 +334,17 @@ function TycoonMode({ compact }: { compact: boolean }) {
         </div>
       )}
 
+      <div className="flex items-center gap-2 mb-2 text-[11px]">
+        {degrees > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-500 font-bold">🎓 {degrees} · +{degrees * 10}% marks</span>}
+        <span className="px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">🏅 {achCount}/{ACHIEVEMENTS.length}</span>
+        {pendingDegrees > 0 && (
+          <button onClick={graduate} title={`Reset this run for +${pendingDegrees * 10}% permanent marks`}
+            className="ml-auto px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 text-white font-bold hover:scale-105 transition shadow">
+            🎓 Graduate +{pendingDegrees}
+          </button>
+        )}
+      </div>
+
       <div className="flex items-end justify-between mb-2">
         <div>
           <div className="text-4xl font-extrabold tabular-nums leading-none mmr-marks">{formatMarks(state.marks)}</div>
@@ -247,12 +352,20 @@ function TycoonMode({ compact }: { compact: boolean }) {
         </div>
         <div className="text-right">
           <div className="text-sm font-bold text-primary tabular-nums">{formatMarks(auto)}/s</div>
-          <div className="text-[10px] text-muted-foreground">+{formatMarks(basePerClick)} / tap</div>
+          <div className="text-[10px] text-muted-foreground">+{formatMarks(basePerClick)} / tap{dvdCount > 0 ? ` · +${formatMarks(spb)}/bounce` : ""}</div>
         </div>
       </div>
 
       <Arena>
         <div className="relative h-full flex items-center justify-center">
+          <span className="mmr-glow" />
+          {owns("disco") && <div className="mmr-disco absolute inset-0 z-0 pointer-events-none" />}
+          {owns("rain") && <RainLayer />}
+          {owns("lofi") && <LofiNotes />}
+          {dvdCount > 0 && <BouncingDVD speed={dvdSpeed} onBounce={onBounce} />}
+          <button onClick={toggleMute} className="absolute top-2 right-2 z-40 h-7 w-7 grid place-items-center rounded-full bg-black/30 text-white/80 hover:text-white" title={mute ? "Unmute" : "Mute"}>
+            {mute ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
           {golden && (
             <button onClick={grabGolden} className="mmr-golden absolute top-4 text-4xl z-20 hover:scale-125 transition-transform" title="Grab the golden note!">✨</button>
           )}
@@ -273,27 +386,48 @@ function TycoonMode({ compact }: { compact: boolean }) {
               {f.crit ? "CRIT " : ""}+{formatMarks(f.v)}
             </span>
           ))}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-white/70 font-medium">Tap the brain — fast taps build a combo!</div>
+          {sparks.map((sp) => (
+            <span key={sp.id} className="mmr-spark" style={{ ["--dx" as any]: `${sp.dx}px`, ["--dy" as any]: `${sp.dy}px`, background: sp.c }} />
+          ))}
+          {owns("news") ? <NewsTicker /> : (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-white/70 font-medium">Tap the brain — fast taps build a combo!</div>
+          )}
         </div>
       </Arena>
+
+      <div className="flex items-center gap-1 mb-2">
+        <span className="text-[10px] text-muted-foreground mr-1">Buy</span>
+        {([1, 10, 100, "max"] as const).map((m) => (
+          <button key={String(m)} onClick={() => setBuyMode(m)}
+            className={`px-2 py-0.5 rounded text-[11px] font-bold transition ${buyMode === m ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+            {m === "max" ? "Max" : `×${m}`}
+          </button>
+        ))}
+      </div>
 
       <div className={`grid grid-cols-1 ${compact ? "" : "sm:grid-cols-2"} gap-2 ${compact ? "max-h-[200px]" : "max-h-[260px]"} overflow-y-auto pr-1`}>
         {UPGRADES.map((u) => {
           const count = state.upgrades[u.id] || 0;
-          const cost = costOf(u, count);
-          const afford = state.marks >= cost;
           const unlocked = count > 0 || state.totalEarned >= u.baseCost * 0.3;
           if (!unlocked) return null;
+          const aff = maxAffordable(u, count, state.marks);
+          const n = buyMode === "max" ? aff : buyMode;
+          const cost = buyMode === "max" ? (aff > 0 ? costForN(u, count, aff) : costOf(u, count)) : costForN(u, count, n);
+          const afford = buyMode === "max" ? aff > 0 : state.marks >= cost;
+          const rateLabel = u.fx === "dvd" ? "+3 per bounce each" : u.kind === "auto" ? `+${formatMarks(u.rate)}/s each` : `+${formatMarks(u.rate)} per tap each`;
           return (
-            <button key={u.id} onClick={() => buy(u)} disabled={!afford}
+            <button key={u.id} onClick={() => buyN(u)} disabled={!afford}
               className={`group flex items-center gap-3 rounded-xl border p-2.5 text-left transition ${afford ? "border-primary/40 bg-primary/5 hover:bg-primary/15 hover:scale-[1.01] cursor-pointer" : "border-border opacity-55 cursor-not-allowed"}`}>
               <span className={`grid place-items-center h-10 w-10 rounded-lg text-2xl shrink-0 ${afford ? "bg-primary/15" : "bg-secondary"}`}>{u.emoji}</span>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold truncate">{u.name}{count > 0 && <span className="text-muted-foreground font-normal"> ×{count}</span>}</div>
                 <div className="text-[11px] text-muted-foreground truncate">{u.desc}</div>
-                <div className="text-[10px] text-primary/90 font-semibold">{u.kind === "auto" ? `+${formatMarks(u.rate)}/s each` : `+${formatMarks(u.rate)} per tap each`}</div>
+                <div className="text-[10px] text-primary/90 font-semibold">{rateLabel}</div>
               </div>
-              <div className={`text-xs font-mono font-bold tabular-nums shrink-0 ${afford ? "text-primary" : "text-muted-foreground"}`}>{formatMarks(cost)}</div>
+              <div className="text-right shrink-0">
+                <div className={`text-xs font-mono font-bold tabular-nums ${afford ? "text-primary" : "text-muted-foreground"}`}>{formatMarks(cost)}</div>
+                {buyMode !== 1 && <div className="text-[9px] text-muted-foreground">{buyMode === "max" ? `×${aff}` : `×${buyMode}`}</div>}
+              </div>
             </button>
           );
         })}
@@ -302,6 +436,7 @@ function TycoonMode({ compact }: { compact: boolean }) {
       <div className="mt-3 text-[11px] text-muted-foreground text-center">
         Lifetime <span className="font-bold text-foreground">{formatMarks(state.totalEarned)}</span> · {state.clicks.toLocaleString()} taps · your leaderboard score
       </div>
+      <audio ref={audioRef} loop preload="none" src="https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deliberate%20Thought.mp3" />
     </div>
   );
 }
@@ -388,6 +523,79 @@ function CpsMode() {
   );
 }
 
+// ─── Distraction layers (Stimulation-Clicker inspired) ───────────────────────
+function BouncingDVD({ speed, onBounce }: { speed: number; onBounce: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useRef({ x: 16, y: 16, vx: 1.5, vy: 1.15, hue: 0 });
+  const raf = useRef(0);
+  const speedRef = useRef(speed); speedRef.current = speed;
+  const onBounceRef = useRef(onBounce); onBounceRef.current = onBounce;
+  useEffect(() => {
+    const step = () => {
+      const el = ref.current;
+      if (el && el.parentElement) {
+        const W = el.parentElement.clientWidth - el.offsetWidth;
+        const H = el.parentElement.clientHeight - el.offsetHeight;
+        const p = pos.current; const s = speedRef.current;
+        p.x += p.vx * s; p.y += p.vy * s;
+        let hit = false;
+        if (p.x <= 0) { p.x = 0; p.vx = Math.abs(p.vx); hit = true; } else if (p.x >= W) { p.x = W; p.vx = -Math.abs(p.vx); hit = true; }
+        if (p.y <= 0) { p.y = 0; p.vy = Math.abs(p.vy); hit = true; } else if (p.y >= H) { p.y = H; p.vy = -Math.abs(p.vy); hit = true; }
+        if (hit) { p.hue = (p.hue + 53) % 360; onBounceRef.current(); sfx.bounce(); }
+        el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+        el.style.color = `hsl(${p.hue}, 90%, 66%)`;
+      }
+      raf.current = requestAnimationFrame(step);
+    };
+    raf.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf.current);
+  }, []);
+  return (
+    <div ref={ref} className="absolute left-0 top-0 z-30 pointer-events-none select-none" style={{ color: "#fff" }}>
+      <span className="px-1.5 py-0.5 rounded border-2 border-current text-xs font-extrabold tracking-tight" style={{ textShadow: "0 0 10px currentColor" }}>MMR</span>
+    </div>
+  );
+}
+
+const RAIN = Array.from({ length: 24 });
+function RainLayer() {
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {RAIN.map((_, i) => (
+        <span key={i} className="mmr-rain-drop" style={{ left: `${(i * 4.3) % 100}%`, animationDelay: `${(i % 7) * 0.2}s`, animationDuration: `${0.7 + (i % 5) * 0.15}s` }} />
+      ))}
+    </div>
+  );
+}
+
+const NOTES = ["🎵", "🎶", "🎧", "♪", "🎵", "🎶", "🎧", "♪"];
+function LofiNotes() {
+  return (
+    <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
+      {NOTES.map((n, i) => (
+        <span key={i} className="mmr-particle absolute text-base" style={{ left: `${8 + i * 11}%`, bottom: "-10%", animationDelay: `${i * 0.9}s`, animationDuration: `${6 + (i % 3) * 2}s` }}>{n}</span>
+      ))}
+    </div>
+  );
+}
+
+const HEADLINES = [
+  "BREAKING: Local student discovers studying actually works",
+  "Scientists baffled as combo multiplier hits ×5 again",
+  "Markets surge as marks-per-second reaches all-time high",
+  "Golden note spotted near the top of the screen",
+  "Report: 9 out of 10 brains recommend one more tap",
+];
+function NewsTicker() {
+  const text = HEADLINES.join("    •    ");
+  return (
+    <div className="absolute bottom-0 left-0 right-0 z-30 bg-red-600 text-white text-[11px] font-bold overflow-hidden flex items-center">
+      <span className="bg-white text-red-600 px-2 py-0.5 shrink-0">LIVE</span>
+      <div className="overflow-hidden flex-1"><div className="mmr-ticker whitespace-nowrap py-0.5">{text}    •    {text}</div></div>
+    </div>
+  );
+}
+
 const GAME_CSS = `
 @keyframes mmrFloatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-56px) scale(1.35)}}
 @keyframes mmrBgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
@@ -407,4 +615,14 @@ const GAME_CSS = `
 .mmr-shine{position:absolute;inset:0;border-radius:9999px;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.85),transparent 30%);pointer-events:none}
 .mmr-golden{animation:mmrGoldenMove 6s linear forwards;filter:drop-shadow(0 0 8px gold)}
 .mmr-zap{animation:mmrZap 1.4s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(99,102,241,.7))}
+.mmr-glow{position:absolute;left:50%;top:50%;width:170px;height:170px;border-radius:9999px;transform:translate(-50%,-50%);background:radial-gradient(circle,hsl(var(--primary)/0.55),transparent 64%);animation:mmrGlow 2.4s ease-in-out infinite;pointer-events:none;z-index:0}
+@keyframes mmrGlow{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:.75;transform:translate(-50%,-50%) scale(1.14)}}
+.mmr-spark{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:9999px;pointer-events:none;z-index:25;animation:mmrSpark .6s ease-out forwards}
+@keyframes mmrSpark{0%{transform:translate(-50%,-50%) translate(0,0) scale(1);opacity:1}100%{transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.mmr-disco{background:conic-gradient(from 0deg,#ef4444,#f59e0b,#eab308,#22c55e,#3b82f6,#8b5cf6,#ec4899,#ef4444);animation:mmrSpin 6s linear infinite,mmrDisco 1s steps(1) infinite;opacity:.22;mix-blend-mode:screen}
+@keyframes mmrDisco{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+.mmr-rain-drop{position:absolute;top:-12%;width:2px;height:14px;background:linear-gradient(to bottom,transparent,rgba(180,210,255,.8));animation-name:mmrRain;animation-iteration-count:infinite;animation-timing-function:linear}
+@keyframes mmrRain{0%{transform:translateY(0);opacity:0}10%{opacity:.8}100%{transform:translateY(260px);opacity:0}}
+.mmr-ticker{display:inline-block;padding-left:100%;animation:mmrTicker 14s linear infinite}
+@keyframes mmrTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 `;

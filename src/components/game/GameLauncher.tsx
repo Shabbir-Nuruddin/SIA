@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Gamepad2, ArrowDown } from "lucide-react";
 import { getPomoState } from "@/lib/pomodoro";
+import { grantOwnerBonusIfNeeded } from "@/lib/leaderboard";
 import GameModal from "./GameModal";
 import { formatMarks } from "./StudyTycoon";
 
@@ -21,6 +22,8 @@ export default function GameLauncher() {
   const [open, setOpen] = useState(false);
   const [marks, setMarks] = useState(() => readMarks());
   const [nudge, setNudge] = useState(false);
+
+  useEffect(() => { grantOwnerBonusIfNeeded().then(() => setMarks(readMarks())); }, []);
 
   useEffect(() => {
     const tick = () => { setPomo(getPomoState()); setMarks(readMarks()); };

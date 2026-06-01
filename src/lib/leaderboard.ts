@@ -74,17 +74,58 @@ export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"):
       .select("player_name, score")
       .eq("game", game)
       .order("score", { ascending: false })
-      .limit(50);
+      .limit(200);
     if (!error && Array.isArray(data)) {
       real = data.map((r: any) => ({ name: String(r.player_name || "Anonymous"), score: Number(r.score) || 0 }));
     }
   } catch { /* table missing — seeds only */ }
 
   const pb = getPersonalBest(game);
-  const merged = [...real, ...seedsFor(game)];
-  if (pb > 0) merged.push({ name: "You", score: pb, you: true });
+  let youName = "You";
+  try { youName = (localStorage.getItem("mmr_game_name") || "").trim() || "You"; } catch { /* ignore */ }
 
-  return merged.sort((a, b) => b.score - a.score).slice(0, limit);
+  const merged: ScoreRow[] = [...real, ...seedsFor(game)];
+  if (pb > 0) merged.push({ name: youName, score: pb, you: true });
+
+  // ONE entry per player (deduped by name): keep their highest score. This fixes
+  // the bug where every submission ("You", "You", "You"…) showed as a separate row.
+  const byName = new Map<string, ScoreRow>();
+  for (const r of merged) {
+    const key = r.name.trim().toLowerCase();
+    const existing = byName.get(key);
+    if (!existing) {
+      byName.set(key, { ...r });
+    } else {
+      if (r.score > existing.score) existing.score = r.score;
+      if (r.you) existing.you = true;
+      if (r.seeded) existing.seeded = existing.seeded ?? r.seeded;
+    }
+  }
+  return [...byName.values()].sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+// One-time grant for the app owner's account (their request): seed a 3,000,000
+// score + "Shabbir" leaderboard name so their own entry tops the board.
+const OWNER_EMAIL = "nuruddinshabbir3@gmail.com";
+const OWNER_GRANT_KEY = "mmr_owner_grant_v1";
+export async function grantOwnerBonusIfNeeded(): Promise<void> {
+  try {
+    if (localStorage.getItem(OWNER_GRANT_KEY)) return;
+    const { data } = await supabase.auth.getUser();
+    if ((data?.user?.email || "").toLowerCase() !== OWNER_EMAIL) return;
+
+    const TARGET = 3_000_000;
+    localStorage.setItem("mmr_game_name", "Shabbir");
+    let save: any = {};
+    try { save = JSON.parse(localStorage.getItem("mmr_tycoon_v3") || "{}"); } catch { /* ignore */ }
+    save.totalEarned = Math.max(Number(save.totalEarned) || 0, TARGET);
+    save.marks = Math.max(Number(save.marks) || 0, TARGET);
+    save.lastSeen = Date.now();
+    localStorage.setItem("mmr_tycoon_v3", JSON.stringify(save));
+    if (getPersonalBest("study_tycoon") < TARGET) localStorage.setItem(PB_KEY("study_tycoon"), String(TARGET));
+    await submitScore("Shabbir", TARGET, "study_tycoon");
+    localStorage.setItem(OWNER_GRANT_KEY, "1");
+  } catch { /* ignore */ }
 }
 
 export async function submitScore(name: string, score: number, game: GameId = "study_tycoon"): Promise<void> {
