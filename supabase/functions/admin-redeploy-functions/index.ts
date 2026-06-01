@@ -18,6 +18,7 @@ const FUNCTIONS = [
   "admin-ai-keys",
   "admin-cache-clear",
   "admin-create-ticket",
+  "admin-delete-user",
   "admin-edit-content",
   "admin-list-users",
   "admin-redeploy-functions",
@@ -27,6 +28,7 @@ const FUNCTIONS = [
   "ai-question",
   "ai-tutor",
   "auth-email-hook",
+  "clarity-ai",
   "dodo-cancel-subscription",
   "dodo-checkout",
   "dodo-sync-subscription",
@@ -34,6 +36,8 @@ const FUNCTIONS = [
   "faq-questions",
   "generate-study-plan",
   "process-email-queue",
+  "send-onboarding-email",
+  "youtube-search",
 ];
 
 serve(async (req) => {

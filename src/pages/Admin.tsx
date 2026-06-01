@@ -159,11 +159,11 @@ const Admin = () => {
             <h2 className="text-lg font-bold flex items-center gap-2"><Rocket className="h-4 w-4" /> Edge Functions</h2>
             <Button size="sm" onClick={redeployAll} disabled={busy === "redeploy"}>
               {busy === "redeploy" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Rocket className="h-4 w-4 mr-2" />}
-              Redeploy / Warm All
+              Warm / Health Check All
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mb-4">
-            Pings every edge function in parallel to wake cold instances and verify health. Code is auto-deployed on save — this forces a warm-up of the live deployment.
+            Pings every edge function in parallel to wake cold instances and verify health. Code deploys through Lovable Cloud, while this button confirms the live functions are reachable.
           </p>
           {redeployResult && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1.5">

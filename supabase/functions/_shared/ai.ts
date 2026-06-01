@@ -9,6 +9,20 @@ const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
 const tryParseJson = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
 
+const slimSchemaForGemini = (value: any): any => {
+  if (Array.isArray(value)) return value.map(slimSchemaForGemini);
+  if (!value || typeof value !== "object") return value;
+  const out: Record<string, any> = {};
+  for (const [key, child] of Object.entries(value)) {
+    // Gemini rejects large function schemas with verbose text/min-max constraints
+    // as "too many states". The system prompt carries the detail; the wire schema
+    // only needs shape + required fields.
+    if (["description", "minItems", "maxItems"].includes(key)) continue;
+    out[key] = slimSchemaForGemini(child);
+  }
+  return out;
+};
+
 const recoverArgs = (raw: string) => {
   const tryIt = (s: string) => {
     const m = s.match(/\{[\s\S]*\}/);
@@ -107,7 +121,7 @@ async function callGeminiOnce({
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model, messages, tools,
+        model, messages, tools: slimSchemaForGemini(tools),
         tool_choice: { type: "function", function: { name: toolName } },
         temperature, max_tokens: maxTokens,
       }),
