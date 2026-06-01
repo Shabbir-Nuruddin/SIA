@@ -26,25 +26,36 @@ serve(async (req) => {
     }
     const { target } = await req.json();
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const map: Record<string, string> = {
-      notes: "cached_topic_notes",
-      faq: "cached_faq_questions",
-      questions: "cached_topic_questions",
+    const map: Record<string, string[]> = {
+      // Notes are cached in two places: the shared AI cache and each user's saved
+      // generated note row. Clear both so the next visit truly regenerates.
+      notes: ["cached_topic_notes", "cached_topic_images", "topic_notes"],
+      faq: ["cached_faq_questions"],
+      questions: ["cached_topic_questions"],
     };
-    const table = map[target];
-    if (!table) {
+    const tables = map[target];
+    if (!tables) {
       return new Response(JSON.stringify({ error: "invalid target" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    // Some installs may not have cached_topic_questions yet — swallow that case.
-    const { error, count } = await admin.from(table).delete({ count: "exact" }).neq("id", "00000000-0000-0000-0000-000000000000");
-    if (error && !/relation .* does not exist/i.test(error.message)) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+    const deletedByTable: Record<string, number> = {};
+    for (const table of tables) {
+      const { error, count } = await admin
+        .from(table)
+        .delete({ count: "exact" })
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+      // Some installs may not have optional cache tables yet — swallow that case.
+      if (error && !/(relation .* does not exist|Could not find the table .* in the schema cache)/i.test(error.message)) {
+        return new Response(JSON.stringify({ error: error.message, table }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      deletedByTable[table] = count ?? 0;
     }
-    return new Response(JSON.stringify({ ok: true, deleted: count ?? 0, table }), {
+    const deleted = Object.values(deletedByTable).reduce((sum, n) => sum + n, 0);
+    return new Response(JSON.stringify({ ok: true, deleted, table: tables.join(", "), deletedByTable }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
