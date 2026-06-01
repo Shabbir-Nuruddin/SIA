@@ -172,11 +172,26 @@ export async function submitScore(_unusedName: string, score: number, game: Game
     // Use the first word of the profile name so leaderboard stays single-word.
     const name = full.split(/\s+/)[0].slice(0, 24);
     if (!isCleanName(name)) return;
-    await (supabase as any).from("game_scores").insert({
-      user_id: userId,
-      player_name: name,
-      score: Math.max(0, Math.min(1_000_000_000, Math.round(score))),
-      game,
-    });
+    const finalScore = Math.max(0, Math.min(1_000_000_000, Math.round(score)));
+    // One row per (user_id, game). Upsert and only bump if new score is higher.
+    const { data: existing } = await (supabase as any)
+      .from("game_scores")
+      .select("score")
+      .eq("user_id", userId)
+      .eq("game", game)
+      .maybeSingle();
+    if (existing) {
+      if (finalScore > (existing.score || 0)) {
+        await (supabase as any)
+          .from("game_scores")
+          .update({ player_name: name, score: finalScore })
+          .eq("user_id", userId)
+          .eq("game", game);
+      }
+    } else {
+      await (supabase as any).from("game_scores").insert({
+        user_id: userId, player_name: name, score: finalScore, game,
+      });
+    }
   } catch { /* table missing / offline */ }
 }
