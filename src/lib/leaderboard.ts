@@ -1,8 +1,7 @@
-// Game leaderboards (two boards: Study Tycoon "marks", and CPS Test "clicks/5s").
-//
-// Backed by public.game_scores, but designed to work BEFORE that table exists: a
-// set of seeded "house" scores is always merged in and the personal best is mirrored
-// to localStorage, so the board never looks empty and never hard-fails.
+// Global game leaderboards (Study Tycoon "marks" + CPS Test clicks/5s).
+// One shared board for everyone, sourced entirely from public.game_scores.
+// Each player gets at most one row (highest score per user_id). The display
+// name comes from the player's profile — they don't pick it.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,51 +10,10 @@ export type GameId = "study_tycoon" | "cps_test";
 export interface ScoreRow {
   name: string;
   score: number;
-  seeded?: boolean;
   you?: boolean;
 }
 
 const PB_KEY = (g: GameId) => `mmr_game_pb_${g}`;
-
-// Lifetime marks (Study Tycoon). Big + spaced so keen players climb over a few breaks.
-const SEED_TYCOON: ScoreRow[] = [
-  { name: "Aarav S.", score: 2_480_000, seeded: true },
-  { name: "Priya M.", score: 1_650_000, seeded: true },
-  { name: "Zainab K.", score: 940_000, seeded: true },
-  { name: "Daniel O.", score: 612_000, seeded: true },
-  { name: "Mei L.", score: 388_000, seeded: true },
-  { name: "Tomás R.", score: 245_000, seeded: true },
-  { name: "Fatima A.", score: 168_000, seeded: true },
-  { name: "Liam B.", score: 112_000, seeded: true },
-  { name: "Sofia G.", score: 74_500, seeded: true },
-  { name: "Arjun P.", score: 48_200, seeded: true },
-  { name: "Chloe W.", score: 31_900, seeded: true },
-  { name: "Yusuf H.", score: 19_400, seeded: true },
-  { name: "Ananya D.", score: 12_100, seeded: true },
-  { name: "Noah T.", score: 7_350, seeded: true },
-  { name: "Emma C.", score: 3_900, seeded: true },
-];
-
-// CPS Test score = clicks in a 5-second sprint (so 60 = 12.0 CPS). Fast but human.
-const SEED_CPS: ScoreRow[] = [
-  { name: "Reflex_Ravi", score: 67, seeded: true },
-  { name: "Zoe.K", score: 61, seeded: true },
-  { name: "Kenji", score: 58, seeded: true },
-  { name: "mxhmood", score: 54, seeded: true },
-  { name: "Aditi", score: 51, seeded: true },
-  { name: "TomTom", score: 48, seeded: true },
-  { name: "Bea", score: 45, seeded: true },
-  { name: "Hassan_R", score: 42, seeded: true },
-  { name: "Lucia", score: 39, seeded: true },
-  { name: "Dev", score: 36, seeded: true },
-  { name: "Niamh", score: 33, seeded: true },
-  { name: "Oskar", score: 30, seeded: true },
-  { name: " Amara", score: 27, seeded: true },
-  { name: "Jin", score: 24, seeded: true },
-  { name: "Sam", score: 21, seeded: true },
-];
-
-const seedsFor = (g: GameId) => (g === "cps_test" ? SEED_CPS : SEED_TYCOON);
 
 export function getPersonalBest(game: GameId = "study_tycoon"): number {
   try { return parseInt(localStorage.getItem(PB_KEY(game)) || "0", 10) || 0; } catch { return 0; }
@@ -64,44 +22,122 @@ function setPersonalBest(game: GameId, score: number) {
   try { if (score > getPersonalBest(game)) localStorage.setItem(PB_KEY(game), String(score)); } catch { /* ignore */ }
 }
 
-export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"): Promise<ScoreRow[]> {
-  let real: ScoreRow[] = [];
+async function getCurrentUserId(): Promise<string | null> {
   try {
-    // game_scores isn't in the generated Supabase types until the migration is
-    // applied + types regenerated, so cast to bypass them.
+    const { data } = await supabase.auth.getUser();
+    return data?.user?.id ?? null;
+  } catch { return null; }
+}
+
+// Pulls the player's display name from their profile — this is the name
+// the AI/app uses for them, so it's also the name shown on the leaderboard.
+async function getDisplayNameForUser(userId: string): Promise<string> {
+  try {
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, first_name, last_name")
+      .eq("id", userId)
+      .maybeSingle();
+    const name = (data?.display_name || data?.first_name ||
+      [data?.first_name, data?.last_name].filter(Boolean).join(" ")).trim();
+    if (name) return name.slice(0, 24);
+  } catch { /* fall through */ }
+  return "Player";
+}
+
+// Seeded "house" players so the board is never empty. Single-word Arab names.
+const SEED_TYCOON: { name: string; score: number }[] = [
+  { name: "Hamza", score: 2_480_000 },
+  { name: "Mahmood", score: 1_650_000 },
+  { name: "Hamdan", score: 940_000 },
+  { name: "Yusuf", score: 612_000 },
+  { name: "Khalid", score: 388_000 },
+  { name: "Omar", score: 245_000 },
+  { name: "Faisal", score: 168_000 },
+  { name: "Zayd", score: 112_000 },
+  { name: "Saif", score: 74_500 },
+  { name: "Tariq", score: 48_200 },
+  { name: "Bilal", score: 31_900 },
+  { name: "Rayan", score: 19_400 },
+  { name: "Ammar", score: 12_100 },
+  { name: "Nasser", score: 7_350 },
+  { name: "Idris", score: 3_900 },
+];
+const SEED_CPS: { name: string; score: number }[] = [
+  { name: "Hamza", score: 67 },
+  { name: "Mahmood", score: 61 },
+  { name: "Hamdan", score: 58 },
+  { name: "Kareem", score: 54 },
+  { name: "Anas", score: 51 },
+  { name: "Jamal", score: 48 },
+  { name: "Sami", score: 45 },
+  { name: "Hassan", score: 42 },
+  { name: "Rashid", score: 39 },
+  { name: "Adel", score: 36 },
+  { name: "Marwan", score: 33 },
+  { name: "Fahad", score: 30 },
+  { name: "Munir", score: 27 },
+  { name: "Salem", score: 24 },
+  { name: "Iyad", score: 21 },
+];
+const seedsFor = (g: GameId) => g === "cps_test" ? SEED_CPS : SEED_TYCOON;
+
+// Strip junk leaderboard names: "You"/"Player" placeholders or anything that
+// isn't a single word (multi-word entries look like full names — hide them).
+function isCleanName(raw: string): boolean {
+  const n = (raw || "").trim();
+  if (!n) return false;
+  if (/^you$/i.test(n)) return false;
+  if (/^player$/i.test(n)) return false;
+  if (/\s/.test(n)) return false; // must be one word
+  return true;
+}
+
+export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"): Promise<ScoreRow[]> {
+  const meId = await getCurrentUserId();
+
+  let rows: { user_id: string | null; player_name: string; score: number }[] = [];
+  try {
     const { data, error } = await (supabase as any)
       .from("game_scores")
-      .select("player_name, score")
+      .select("user_id, player_name, score")
       .eq("game", game)
       .order("score", { ascending: false })
-      .limit(200);
+      .limit(500);
     if (!error && Array.isArray(data)) {
-      real = data.map((r: any) => ({ name: String(r.player_name || "Anonymous"), score: Number(r.score) || 0 }));
+      rows = data
+        .filter((r: any) => isCleanName(String(r.player_name || "")))
+        .map((r: any) => ({
+          user_id: r.user_id ?? null,
+          player_name: String(r.player_name).trim(),
+          score: Number(r.score) || 0,
+        }));
     }
   } catch { /* table missing — seeds only */ }
 
-  const pb = getPersonalBest(game);
-  let youName = "You";
-  try { youName = (localStorage.getItem("mmr_game_name") || "").trim() || "You"; } catch { /* ignore */ }
-
-  const merged: ScoreRow[] = [...real, ...seedsFor(game)];
-  if (pb > 0) merged.push({ name: youName, score: pb, you: true });
-
-  // ONE entry per player (deduped by name): keep their highest score. This fixes
-  // the bug where every submission ("You", "You", "You"…) showed as a separate row.
-  const byName = new Map<string, ScoreRow>();
-  for (const r of merged) {
-    const key = r.name.trim().toLowerCase();
-    const existing = byName.get(key);
-    if (!existing) {
-      byName.set(key, { ...r });
-    } else {
-      if (r.score > existing.score) existing.score = r.score;
-      if (r.you) existing.you = true;
-      if (r.seeded) existing.seeded = existing.seeded ?? r.seeded;
-    }
+  // Deduplicate: one row per user_id (highest score wins). Anonymous rows
+  // (no user_id) dedupe by name. Same name from two different users is kept
+  // separate (they're distinct people).
+  const best = new Map<string, { name: string; score: number; user_id: string | null }>();
+  for (const r of rows) {
+    const key = r.user_id ? `u:${r.user_id}` : `n:${r.player_name.toLowerCase()}`;
+    const prev = best.get(key);
+    if (!prev || r.score > prev.score) best.set(key, { name: r.player_name, score: r.score, user_id: r.user_id });
   }
-  return [...byName.values()].sort((a, b) => b.score - a.score).slice(0, limit);
+
+  const merged: ScoreRow[] = Array.from(best.values()).map((r) => ({
+    name: r.name,
+    score: r.score,
+    you: !!(meId && r.user_id === meId),
+  }));
+
+  // Merge in seeds — real scores still win on a tie because they were inserted first.
+  const seenNames = new Set(merged.map((r) => r.name.toLowerCase()));
+  for (const s of seedsFor(game)) {
+    if (!seenNames.has(s.name.toLowerCase())) merged.push({ name: s.name, score: s.score });
+  }
+
+  return merged.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
 // One-time grant for the app owner's account (their request): seed a 3,000,000
@@ -128,17 +164,20 @@ export async function grantOwnerBonusIfNeeded(): Promise<void> {
   } catch { /* ignore */ }
 }
 
-export async function submitScore(name: string, score: number, game: GameId = "study_tycoon"): Promise<void> {
+export async function submitScore(_unusedName: string, score: number, game: GameId = "study_tycoon"): Promise<void> {
   setPersonalBest(game, score);
   try {
-    const { data: auth } = await supabase.auth.getUser();
-    const userId = auth?.user?.id;
-    if (!userId) return;
+    const userId = await getCurrentUserId();
+    if (!userId) return; // not signed in — local PB only
+    const full = await getDisplayNameForUser(userId);
+    // Use the first word of the profile name so leaderboard stays single-word.
+    const name = full.split(/\s+/)[0].slice(0, 24);
+    if (!isCleanName(name)) return;
     await (supabase as any).from("game_scores").insert({
       user_id: userId,
-      player_name: String(name || "Anonymous").slice(0, 24),
+      player_name: name,
       score: Math.max(0, Math.min(1_000_000_000, Math.round(score))),
       game,
     });
-  } catch { /* offline / table missing — PB saved locally */ }
+  } catch { /* table missing / offline */ }
 }
