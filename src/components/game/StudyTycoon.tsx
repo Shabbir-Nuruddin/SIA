@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Crown, Volume2, VolumeX, Share2 } from "lucide-react";
 import { submitScore, getLeaderboard, getPersonalBest, type ScoreRow, type GameId } from "@/lib/leaderboard";
 import { sfx, isMuted, setMuted } from "@/lib/gameSound";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Break Arcade — a juicy idle/clicker (Study Tycoon) + a CPS Test.
@@ -228,10 +229,19 @@ function TycoonMode({ compact }: { compact: boolean }) {
   const pendingDegrees = Math.max(0, degreesFromEarned(state.totalEarned) - degrees);
   const mult = 1 + Math.min(combo * 0.12, 4); // up to x5 on a hot streak
   const [buyMode, setBuyMode] = useState<1 | 10 | 100 | "max">(1);
-  // Owner-only cheat (nuruddinshabbir3@gmail.com). The owner flag is set by
-  // grantOwnerBonusIfNeeded(). Adds spendable marks WITHOUT touching totalEarned,
-  // so it never inflates the lifetime-earnings leaderboard.
-  const isOwner = (() => { try { return localStorage.getItem("mmr_owner") === "1"; } catch { return false; } })();
+  // Owner-only cheat (nuruddinshabbir3@gmail.com). Checks the signed-in email
+  // directly (not the localStorage flag, which can be missing). Adds spendable
+  // marks WITHOUT touching totalEarned, so it never inflates the leaderboard.
+  const [isOwner, setIsOwner] = useState(() => { try { return localStorage.getItem("mmr_owner") === "1"; } catch { return false; } });
+  useEffect(() => {
+    let alive = true;
+    supabase.auth.getUser()
+      .then(({ data }) => {
+        if (alive && (data?.user?.email || "").toLowerCase() === "nuruddinshabbir3@gmail.com") setIsOwner(true);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
   const cheatMarks = () => {
     setState((p) => ({ ...p, marks: p.marks + 1_000_000_000 }));
     sfx.golden?.();
