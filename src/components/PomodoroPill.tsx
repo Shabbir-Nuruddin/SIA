@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Pause, Play, X, Timer, ChevronDown, ChevronUp } from "lucide-react";
+import { Pause, Play, X, Timer, ChevronDown, ChevronUp, Gamepad2 } from "lucide-react";
 import {
   formatMMSS,
   getPomoState,
@@ -9,6 +9,7 @@ import {
   startPomodoro,
   stopPomodoro,
 } from "@/lib/pomodoro";
+import GameModal from "@/components/game/GameModal";
 
 // Floating Pomodoro pill — always visible (except active mock exam).
 // When idle, shows a compact "Start focus" pill. When running, shows countdown.
@@ -20,6 +21,7 @@ export const PomodoroPill = () => {
   const { pathname } = useLocation();
   const [state, setState] = useState(() => getPomoState());
   const [minimised, setMinimised] = useState<boolean>(() => localStorage.getItem(MIN_KEY) === "1");
+  const [gameOpen, setGameOpen] = useState(false);
 
   useEffect(() => {
     const tick = () => {
@@ -78,13 +80,18 @@ export const PomodoroPill = () => {
   if (!state.active) {
     return (
       <div
-        data-tutorial="pomodoro" className="fixed bottom-20 right-5 z-40 flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-full shadow-lg text-foreground border border-border bg-card"
-        style={{ minWidth: 170 }}
+        data-tutorial="pomodoro" className="fixed bottom-20 right-5 z-40 flex items-center gap-1.5 pl-3 pr-1.5 py-2 rounded-full shadow-lg text-foreground border border-primary/30 bg-card ring-1 ring-primary/15 hover:ring-primary/40 transition"
+        style={{ minWidth: 184 }}
       >
+        <span className="relative flex h-2.5 w-2.5 shrink-0">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-primary/60 animate-ping" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
+        </span>
         <Timer className="h-4 w-4 text-primary shrink-0" />
         <button
           onClick={() => startPomodoro({ mode: "focus", minutes: 25 })}
-          className="flex-1 text-left text-sm font-medium hover:text-primary transition-colors px-1"
+          className="flex-1 text-left text-sm font-semibold hover:text-primary transition-colors px-1"
+          title="Start a 25-min focus session — earn a game on your break"
         >
           Start focus · 25m
         </button>
@@ -125,6 +132,19 @@ export const PomodoroPill = () => {
         <circle cx="16" cy="16" r="14" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"
           strokeDasharray={C} strokeDashoffset={C * (1 - ratio)} />
       </svg>
+      {/* Break game — greyed out during focus, unlocks on the 5-min break. */}
+      <button
+        onClick={() => { if (isBreak) setGameOpen(true); }}
+        disabled={!isBreak}
+        className={`relative p-1 rounded-full transition ${isBreak ? "hover:bg-white/20 cursor-pointer" : "opacity-40 cursor-not-allowed"}`}
+        aria-label={isBreak ? "Play the break game" : "Game unlocks on your break"}
+        title={isBreak ? "Break time — play Revision Runner!" : "Finish your focus session to unlock the break game"}
+      >
+        <Gamepad2 className="h-3.5 w-3.5" />
+        {isBreak && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-300 animate-ping" />}
+        {isBreak && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-300" />}
+      </button>
+      <GameModal open={gameOpen} onOpenChange={setGameOpen} reason="On your break — play till focus time" />
       <button
         onClick={() => state.paused ? resumePomodoro() : pausePomodoro()}
         className="p-1 rounded-full hover:bg-white/20 transition"
