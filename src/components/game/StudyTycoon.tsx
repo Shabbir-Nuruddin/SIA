@@ -75,22 +75,10 @@ export default function StudyTycoon({ compact = false, showLeaderboard = false }
       <div className={`grid gap-4 ${showLeaderboard && !compact ? "md:grid-cols-[1.4fr_1fr]" : "grid-cols-1"}`}>
         <div>
           {mode === "tycoon" ? <TycoonMode compact={compact} /> : <CpsMode />}
-          <NameField />
         </div>
         {showLeaderboard && !compact && <Leaderboard game={mode === "cps" ? "cps_test" : "study_tycoon"} />}
       </div>
     </div>
-  );
-}
-
-// ─── Shared bits ──────────────────────────────────────────────────────────────
-function NameField() {
-  const [name, setName] = useState<string>(() => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } });
-  return (
-    <input value={name}
-      onChange={(e) => { setName(e.target.value); try { localStorage.setItem(NAME_KEY, e.target.value); } catch { /* ignore */ } }}
-      placeholder="Your leaderboard name" maxLength={24}
-      className="mt-3 w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm" />
   );
 }
 
@@ -191,8 +179,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
   // progress — this was the "my game resets" bug.
   useEffect(() => { saveState(state); }, [state]);
   useEffect(() => {
-    const id = setInterval(() => submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"), 20000);
-    return () => { clearInterval(id); saveState(stateRef.current); submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"); };
+    const id = setInterval(() => submitScore("", Math.floor(stateRef.current.totalEarned), "study_tycoon"), 20000);
+    return () => { clearInterval(id); saveState(stateRef.current); submitScore("", Math.floor(stateRef.current.totalEarned), "study_tycoon"); };
   }, []);
 
   const click = (e: React.PointerEvent) => {
@@ -338,7 +326,7 @@ function CpsMode() {
       if (left <= 0) {
         clearInterval(id); setRunning(false);
         const final = clicksRef.current; setLast(final);
-        submitScore(localStorage.getItem(NAME_KEY) || "You", final, "cps_test");
+        submitScore("", final, "cps_test");
         setBest(getPersonalBest("cps_test"));
       }
     }, 50);
