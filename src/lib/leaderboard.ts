@@ -172,11 +172,30 @@ export async function submitScore(_unusedName: string, score: number, game: Game
     // Use the first word of the profile name so leaderboard stays single-word.
     const name = full.split(/\s+/)[0].slice(0, 24);
     if (!isCleanName(name)) return;
-    await (supabase as any).from("game_scores").insert({
-      user_id: userId,
-      player_name: name,
-      score: Math.max(0, Math.min(1_000_000_000, Math.round(score))),
-      game,
-    });
+    const finalScore = Math.max(0, Math.min(1_000_000_000, Math.round(score)));
+    // One row per (user_id, game). For CPS keep the highest score ever; for
+    // Study Tycoon overwrite with current run lifetime (resets on graduate).
+    const { data: existing } = await (supabase as any)
+      .from("game_scores")
+      .select("score")
+      .eq("user_id", userId)
+      .eq("game", game)
+      .maybeSingle();
+    if (existing) {
+      const shouldUpdate = game === "cps_test"
+        ? finalScore > (existing.score || 0)
+        : finalScore !== (existing.score || 0);
+      if (shouldUpdate) {
+        await (supabase as any)
+          .from("game_scores")
+          .update({ player_name: name, score: finalScore })
+          .eq("user_id", userId)
+          .eq("game", game);
+      }
+    } else {
+      await (supabase as any).from("game_scores").insert({
+        user_id: userId, player_name: name, score: finalScore, game,
+      });
+    }
   } catch { /* table missing / offline */ }
 }

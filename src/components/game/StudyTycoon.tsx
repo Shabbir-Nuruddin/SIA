@@ -338,9 +338,13 @@ function TycoonMode({ compact }: { compact: boolean }) {
     // Owner perk: always restart a fresh run with 3M instead of 0.
     let start = 0;
     try { if (localStorage.getItem("mmr_owner") === "1") start = 3_000_000; } catch { /* ignore */ }
-    setState((p) => ({ ...p, degrees: (p.degrees || 0) + pendingDegrees, marks: start, upgrades: {} }));
+    // Lifetime earnings reset on graduate — leaderboard shows current run total.
+    setState((p) => ({ ...p, degrees: (p.degrees || 0) + pendingDegrees, marks: start, totalEarned: start, upgrades: {} }));
     sfx.golden();
     try { window.dispatchEvent(new Event("mmr-degrees-change")); } catch { /* ignore */ }
+    // Push the reset score immediately so the global board reflects the new run.
+    submitScore("", start, "study_tycoon");
+    try { localStorage.setItem("mmr_game_pb_study_tycoon", String(start)); } catch { /* ignore */ }
     toast("🎓 Graduated!", { description: `+${pendingDegrees} degree${pendingDegrees > 1 ? "s" : ""} — a permanent +${pendingDegrees * 10}% to all marks! Your 🎓 badge levelled up.` });
   };
 
