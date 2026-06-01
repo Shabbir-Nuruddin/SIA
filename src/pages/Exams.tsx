@@ -115,12 +115,12 @@ const Exams = () => {
     setOpen(false);
     setEditing(null);
 
-    // Re-sequence BOTH roadmap systems (dashboard "Today's plan" sessions AND the
-    // Roadmap page nodes) against the new/changed exam date so every surface
-    // immediately prioritises the unit whose exam is next.
+    // Re-sequence the roadmap against the new/changed exam date so the dashboard
+    // immediately prioritises the unit whose exam is next — without the user
+    // having to find the per-exam "Build roadmap" button.
     try {
-      const { regenerateRoadmaps } = await import("@/lib/persistRoadmap");
-      await regenerateRoadmaps(user.id);
+      const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
+      await generateRoadmapForUser(user.id);
       toast.success("Roadmap re-sequenced for your exam dates");
     } catch (e) {
       console.error("Roadmap regen after exam save failed", e);
@@ -143,14 +143,34 @@ const Exams = () => {
 
   const buildRoadmap = async (e: Exam) => {
     if (!user) return;
+    if (!e.subject || e.unit_numbers.length === 0) {
+      toast.error("Pick a subject and at least one unit first");
+      return;
+    }
     setBuilding(e.id);
     try {
-      // Rebuild BOTH roadmap systems from all of the user's subjects with real
-      // exam dates overlaid, so the dashboard "Today's plan" and the Roadmap page
-      // both prioritise whichever unit's exam is soonest.
-      const { regenerateRoadmaps } = await import("@/lib/persistRoadmap");
-      await regenerateRoadmaps(user.id);
-      toast.success("Roadmap rebuilt — prioritised by your exam dates");
+      // Build a UnitInput list scoped to this exam
+      const meta = SUBJECTS[e.subject];
+      const inputs = e.unit_numbers
+        .map(n => meta.units.find(u => u.number === n))
+        .filter(Boolean)
+        .map(u => ({
+          subject: e.subject as SubjectCode,
+          unit_number: u!.number,
+          unit_name: u!.name,
+          exam_date: e.exam_date,
+          target_grade: "A" as const,
+          current_grade: "C" as const,
+          paper_duration_minutes: u!.durationMinutes,
+        }));
+
+      const { generateAndPersistRoadmap } = await import("@/lib/persistRoadmap");
+      await generateAndPersistRoadmap(user.id, inputs as any, { weeklyMinutes: 14 * 60, studyStartTime: "16:00" });
+
+      const { generateRoadmapForUser } = await import("@/lib/roadmapNodes");
+      await generateRoadmapForUser(user.id);
+
+      toast.success(`Roadmap built for "${e.name}"`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not build roadmap");
     } finally {

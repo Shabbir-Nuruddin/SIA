@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
-import LoadingGameCard from "@/components/game/LoadingGameCard";
 import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from "@/lib/subjects";
 import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { toast } from "sonner";
@@ -238,7 +237,6 @@ const Onboarding = () => {
             <div className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
           </div>
           <div className="text-xs text-muted-foreground mt-3 font-mono">{progress}%</div>
-          <LoadingGameCard delayMs={1200} className="mt-10 text-left" note="Setting up your roadmap — have a quick game while it builds." />
         </div>
       </div>
     );

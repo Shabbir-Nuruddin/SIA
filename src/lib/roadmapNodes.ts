@@ -620,50 +620,35 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
 /**
  * Top-level: pull user's units + profile + weak topics, then build & persist the plan.
  */
-/**
- * Overlay real exam dates from the `exams` table onto a unit list.
- *
- * Real dates live in `exams` (subject + unit_numbers[] + exam_date), NOT in
- * `user_subjects` (which only holds the onboarding sentinel ~1yr out). Without
- * this overlay every unit ties on the placeholder date and BOTH roadmap engines
- * default to the lowest unit number — which is exactly the "studies Unit 1/4 when
- * the next exam is Unit 6 tomorrow" bug. Used by both the node planner AND the
- * session planner so the dashboard and the roadmap page stay consistent.
- */
-export async function overlayExamDates<T extends { subject: string; unit_number: number; exam_date: string }>(
-  userId: string,
-  units: T[],
-): Promise<T[]> {
-  const todayIso = getLocalDateString();
-  const { data: examRows } = await supabase
-    .from("exams")
-    .select("subject, unit_numbers, exam_date, is_active")
-    .eq("user_id", userId);
-  const activeExams = ((examRows ?? []) as any[]).filter(
-    (e) => e.is_active !== false && e.subject && Array.isArray(e.unit_numbers) && daysBetweenLocal(todayIso, e.exam_date) > 0,
-  );
-  if (activeExams.length === 0) return units;
-  return units.map((u) => {
-    const matches = activeExams.filter(
-      (e) => e.subject === u.subject && e.unit_numbers.map(Number).includes(Number(u.unit_number)),
-    );
-    if (matches.length === 0) return u;
-    const soonest = matches.reduce((a, b) => (a.exam_date <= b.exam_date ? a : b));
-    return { ...u, exam_date: soonest.exam_date };
-  });
-}
-
 export async function generateRoadmapForUser(userId: string, opts: BuildOpts = {}) {
-  const [{ data: subjectsRows, error: e1 }, { data: profile }, { data: weak }, { data: completed }] = await Promise.all([
+  const todayIso = getLocalDateString();
+  const [{ data: subjectsRows, error: e1 }, { data: profile }, { data: weak }, { data: completed }, { data: examRows }] = await Promise.all([
     supabase.from("user_subjects").select("subject, unit_number, unit_name, exam_date, target_grade, current_grade, paper_duration_minutes").eq("user_id", userId),
     supabase.from("profiles").select("hours_per_day, rest_days, exam_board").eq("id", userId).single(),
     supabase.from("topic_progress").select("subject, unit_number, topic_name, last_score_percent").eq("user_id", userId).eq("weak_flag", true),
     supabase.from("roadmap_nodes").select("*").eq("user_id", userId).eq("status", "complete").order("node_order"),
+    supabase.from("exams").select("subject, unit_numbers, exam_date, is_active").eq("user_id", userId),
   ]);
   if (e1) throw e1;
   if (!subjectsRows || subjectsRows.length === 0) return { inserted: 0 };
 
-  const units = await overlayExamDates(userId, subjectsRows as UnitInput[]);
+  // Real exam dates live in the `exams` table, NOT in user_subjects (which only
+  // holds the onboarding sentinel placeholder). Overlay the soonest active,
+  // still-upcoming exam onto each unit so the urgency engine actually schedules
+  // the unit whose exam is next — otherwise every unit ties on the placeholder
+  // date and the plan always starts at the lowest unit number.
+  const activeExams = ((examRows ?? []) as any[]).filter(
+    (e) => e.is_active !== false && e.subject && Array.isArray(e.unit_numbers) && daysBetweenLocal(todayIso, e.exam_date) > 0,
+  );
+  const units = (subjectsRows as UnitInput[]).map((u) => {
+    const matches = activeExams.filter(
+      (e) => e.subject === u.subject && e.unit_numbers.map(Number).includes(Number(u.unit_number)),
+    );
+    if (matches.length === 0) return u;
+    // Soonest matching exam wins.
+    const soonest = matches.reduce((a, b) => (a.exam_date <= b.exam_date ? a : b));
+    return { ...u, exam_date: soonest.exam_date };
+  });
 
   const hoursPerDay = (profile as any)?.hours_per_day ?? 2;
   const restDays = ((profile as any)?.rest_days ?? []) as number[];

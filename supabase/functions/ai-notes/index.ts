@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callAITool, deepStripLatex, callGeminiGroundedResearch } from "../_shared/ai.ts";
+import { callAITool, deepStripLatex } from "../_shared/ai.ts";
 import { requireUser } from "../_shared/auth.ts";
 import { CIE_ALEVEL_SYLLABUS } from "../_shared/cieial.ts";
 
@@ -99,26 +99,6 @@ const normaliseNotes = (args: any, subject: string) => {
           }))
       : [],
     equations: Array.isArray(stripped.equations) ? stripped.equations : [],
-    graphs: Array.isArray(stripped.graphs)
-      ? stripped.graphs
-          .slice(0, 3)
-          .map((g: any) => ({
-            title: String(g?.title ?? ""),
-            x_label: String(g?.x_label ?? ""),
-            y_label: String(g?.y_label ?? ""),
-            caption: String(g?.caption ?? ""),
-            curves: (Array.isArray(g?.curves) ? g.curves : [])
-              .map((c: any) => ({
-                label: String(c?.label ?? ""),
-                points: (Array.isArray(c?.points) ? c.points : [])
-                  .map((p: any) => ({ x: Number(p?.x), y: Number(p?.y) }))
-                  .filter((p: any) => Number.isFinite(p.x) && Number.isFinite(p.y))
-                  .slice(0, 60),
-              }))
-              .filter((c: any) => c.points.length >= 2),
-          }))
-          .filter((g: any) => g.curves.length > 0)
-      : [],
     visual_summary: null,
     examiner_tips: Array.isArray(stripped.examiner_tips) ? stripped.examiner_tips : [],
     flashcards: Array.isArray(stripped.flashcards) ? stripped.flashcards.slice(0, 8) : [],
@@ -303,47 +283,8 @@ const notesTool = {
             additionalProperties: false,
           },
         },
-        graphs: {
-          type: "array",
-          description:
-            "Graphs to PLOT — include ONLY where a graph is genuinely part of this topic and aids understanding (maths: function/curve shapes, transformations; physics: radioactive decay N=N₀e^(−λt), capacitor discharge, SHM displacement-time, stress-strain, I–V characteristics, velocity-time, photoelectric, cooling curves). " +
-            "You MUST provide REAL, correctly-computed (x,y) data points that trace the actual curve (10–40 points sampled across a sensible domain) so the rendered graph is accurate — never random. Use a SECOND curve only for genuine comparisons (e.g. ohmic vs filament I–V). Leave as an empty array [] for topics where a graph is not relevant (most chemistry/biology theory). Max 3 graphs.",
-          maxItems: 3,
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string", description: "Short graph title, e.g. 'Radioactive decay of a sample'." },
-              x_label: { type: "string", description: "X-axis label with unit, e.g. 'Time / s'." },
-              y_label: { type: "string", description: "Y-axis label with unit, e.g. 'Activity / Bq'." },
-              curves: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    label: { type: "string", description: "Curve label (for the legend); empty if only one curve." },
-                    points: {
-                      type: "array",
-                      description: "Ordered (x,y) points tracing the curve — 10 to 40 points across the domain.",
-                      items: {
-                        type: "object",
-                        properties: { x: { type: "number" }, y: { type: "number" } },
-                        required: ["x", "y"],
-                        additionalProperties: false,
-                      },
-                    },
-                  },
-                  required: ["label", "points"],
-                  additionalProperties: false,
-                },
-              },
-              caption: { type: "string", description: "One-line note on what the shape/gradient/intercept means for the exam." },
-            },
-            required: ["title", "x_label", "y_label", "curves", "caption"],
-            additionalProperties: false,
-          },
-        },
         examiner_tips: {
-          type: "array",
+          type: "array", 
           minItems: 5,
           items: {
             type: "object",
@@ -507,7 +448,6 @@ OUTPUT STYLE RULES (non-negotiable — apply to every field):
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
 - For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.
-- Graphs: populate "graphs" ONLY when a graph is part of this topic (maths curve shapes/transformations; physics relationships such as radioactive decay, capacitor discharge, SHM, stress–strain, I–V, velocity–time). Provide REAL computed (x,y) points (10–40) that actually trace the curve so it renders accurately — the app draws these as a proper chart, so never describe a graph in prose and never output an image. Empty array [] when no graph applies (most chemistry/biology theory).
 - Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.
 ${referenceTableInstructions}`;
 
@@ -538,42 +478,18 @@ ${referenceTableInstructions}`;
     }
 
     // --- AI GENERATION ---
-    // Overall wall-clock budget for this invocation (declared early so the grounded
-    // research step can size itself against the remaining time).
+    const userPrompt = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} for ${board.toUpperCase()} ${subject.toUpperCase()}.
+${syllabus_context ? `Official syllabus statements:\n${syllabus_context}\n` : ""}
+Follow rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
+
+    // Overall wall-clock budget for this invocation. Supabase aborts the function
+    // at ~150s; we stay comfortably under so the client gets a real result (or a
+    // clean error) instead of an idle-timeout. callAITool shrinks its own attempt
+    // timeouts to fit whatever budget remains.
     const fnStart = Date.now();
     const FN_BUDGET_MS = 135_000;
     const remainingBudget = () => Math.max(20_000, FN_BUDGET_MS - (Date.now() - fnStart));
 
-    // --- STEP 1: GROUNDED RESEARCH (best-effort) ---
-    // Pull current, source-backed facts from the web (Save My Exams, PMT, ZNotes,
-    // exam-board materials) so the structured notes are accurate and exam-specific.
-    // Only runs when there is comfortable time left; if it fails/times out we fall
-    // through to ungrounded generation. Result is folded into the user prompt below.
-    let researchBrief: string | null = null;
-    if (remainingBudget() > 95_000) {
-      const researchPrompt = `You are researching to help write exam-board-accurate revision notes for ${board.toUpperCase()} ${subject.toUpperCase()} — ${unit_name}, topic: "${topic}".
-Search current revision resources (Save My Exams, Physics & Maths Tutor, ZNotes, the official exam-board specification and past papers) for THIS exact topic and qualification.
-Produce a tight factual brief (bullet points only, no preamble) the notes-writer can rely on:
-- exact definitions and values examiners award marks for
-- key equations / reactions with conditions and observed changes (colour, precipitate, gas)
-- the worked techniques students must show (e.g. spectra/titration/derivation steps)
-- common exam question types and mark-scheme phrasing
-- the most common student mistakes
-Stay strictly within the ${board.toUpperCase()} specification scope for this topic. Be concise and factual.`;
-      researchBrief = await callGeminiGroundedResearch({
-        prompt: researchPrompt,
-        maxTokens: 1800,
-        budgetMs: 30_000,
-      });
-      if (researchBrief) console.log("[ai-notes] grounded research attached", { topic, chars: researchBrief.length });
-    }
-
-    const userPrompt = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} for ${board.toUpperCase()} ${subject.toUpperCase()}.
-${syllabus_context ? `Official syllabus statements:\n${syllabus_context}\n` : ""}${researchBrief ? `\nVERIFIED REFERENCE FACTS (researched from current exam-board resources — use to keep every field accurate and exam-specific; integrate naturally into the structured fields, do NOT copy verbatim and do NOT add a sources list):\n${researchBrief}\n` : ""}
-Follow rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
-
-    // callAITool shrinks its own attempt timeouts to fit whatever budget remains
-    // (fnStart / FN_BUDGET_MS / remainingBudget declared above, before research).
     const callOnce = async () =>
       normaliseNotes(await callAITool({
         messages: [

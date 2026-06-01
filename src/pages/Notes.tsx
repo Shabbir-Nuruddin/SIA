@@ -20,7 +20,6 @@ import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { fetchNotesVisuals, type NotesVisualMap } from "@/lib/wikimediaVisuals";
-import LoadingGameCard from "@/components/game/LoadingGameCard";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
@@ -50,7 +49,6 @@ interface VisualSummary { kind: "table" | "flowchart" | "diagram"; caption: stri
 interface TipItem { command_word: string; tip: string; }
 interface Flashcard { q: string; a: string; }
 interface RefTable { title: string; headers: string[]; rows: string[][]; caption?: string; }
-interface GraphItem { title?: string; x_label?: string; y_label?: string; curves: { label?: string; points: { x: number; y: number }[] }[]; caption?: string; }
 
 interface NormalisedNotes {
   overview: string;
@@ -58,7 +56,6 @@ interface NormalisedNotes {
   core_content: CoreItem[];
   reactions: RxnItem[];
   equations: EquationItem[];
-  graphs: GraphItem[];
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
   flashcards: Flashcard[];
@@ -67,7 +64,7 @@ interface NormalisedNotes {
 
 const normaliseNotes = (raw: any): NormalisedNotes => {
   if (!raw || typeof raw !== "object") {
-    return { overview: "", key_definitions: [], core_content: [], reactions: [], equations: [], graphs: [], visual_summary: null, examiner_tips: [], flashcards: [], reference_tables: [] };
+    return { overview: "", key_definitions: [], core_content: [], reactions: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [], reference_tables: [] };
   }
   // Detect legacy shape
   const isLegacy = Array.isArray(raw.core_concepts) || (Array.isArray(raw.common_mistakes) && raw.common_mistakes.length);
@@ -134,29 +131,6 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
       }))
     : [];
 
-  // Graphs are rendered from data (Recharts), never AI images. Coerce points to
-  // numbers and drop any curve with fewer than 2 valid points so a malformed
-  // payload can never produce a broken chart.
-  const graphs: GraphItem[] = Array.isArray(raw.graphs)
-    ? raw.graphs
-        .map((g: any) => ({
-          title: g?.title ? String(g.title) : undefined,
-          x_label: g?.x_label ? String(g.x_label) : undefined,
-          y_label: g?.y_label ? String(g.y_label) : undefined,
-          caption: g?.caption ? String(g.caption) : undefined,
-          curves: (Array.isArray(g?.curves) ? g.curves : [])
-            .map((c: any) => ({
-              label: c?.label ? String(c.label) : undefined,
-              points: (Array.isArray(c?.points) ? c.points : [])
-                .map((p: any) => ({ x: Number(p?.x), y: Number(p?.y) }))
-                .filter((p: any) => Number.isFinite(p.x) && Number.isFinite(p.y)),
-            }))
-            .filter((c: any) => c.points.length >= 2),
-        }))
-        .filter((g: any) => g.curves.length > 0)
-        .slice(0, 4)
-    : [];
-
   // Disabled: AI-generated visual summaries were producing broken HTML/SVG,
   // overlapping diagrams, and out-of-scope content. Keep the notes readable.
   const visual_summary: VisualSummary | null = null;
@@ -206,7 +180,6 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
     core_content,
     reactions,
     equations,
-    graphs,
     visual_summary,
     examiner_tips,
     flashcards,
@@ -783,10 +756,7 @@ const NotesPage = () => {
                   </div>
                 </div>
               ) : loadingNotes ? (
-                <>
-                  <NotesSkeleton topic={topicParam} board={board} />
-                  <LoadingGameCard className="mt-4" delayMs={3500} note="Your notes are generating — they'll appear here the moment they're ready." />
-                </>
+                <NotesSkeleton topic={topicParam} board={board} />
               ) : loadError ? (
                 <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-3xl border border-border/70 bg-card p-12 text-center">
                   <div>

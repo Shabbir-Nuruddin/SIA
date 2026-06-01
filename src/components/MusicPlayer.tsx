@@ -23,23 +23,22 @@ interface Track {
   url: string;
 }
 
-// Calm, ambient / solo-piano study tracks only — no jazz, lounge or upbeat tunes
-// (those pull focus). Royalty-free, Kevin MacLeod, CC BY (incompetech.com).
-// Every URL below was verified to return HTTP 200.
+// Royalty-free tracks served from incompetech.com (Kevin MacLeod, CC BY).
+// Verified to return HTTP 200 from a normal browser User-Agent.
 const TRACKS: Track[] = [
-  { id: "deliberate",      title: "Deliberate Thought",    vibe: "Calm piano · Long sessions",    url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deliberate%20Thought.mp3" },
-  { id: "meditation-01",   title: "Meditation Impromptu",  vibe: "Soft piano · Calm focus",       url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2001.mp3" },
-  { id: "meditation-03",   title: "Reflective Piano",      vibe: "Gentle piano · Reflective",     url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2003.mp3" },
-  { id: "healing",         title: "Healing",               vibe: "Soft ambient · Study",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Healing.mp3" },
-  { id: "anamalie",        title: "Anamalie",              vibe: "Ambient · Gentle",              url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Anamalie.mp3" },
-  { id: "calmant",         title: "Calmant",               vibe: "Calm · Low-key",                url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Calmant.mp3" },
-  { id: "heartwarming",    title: "Heartwarming",          vibe: "Warm · Background",             url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Heartwarming.mp3" },
-  { id: "wholesome",       title: "Wholesome",             vibe: "Light · Easy focus",            url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wholesome.mp3" },
+  { id: "lobby-time",      title: "Lobby Time",            vibe: "Chill · Focus",                 url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lobby%20Time.mp3" },
+  { id: "deliberate",      title: "Deliberate Thought",    vibe: "Calm · Long sessions",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Deliberate%20Thought.mp3" },
+  { id: "healing",         title: "Healing",               vibe: "Soft · Study",                  url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Healing.mp3" },
   { id: "floating-cities", title: "Floating Cities",       vibe: "Atmospheric · Deep work",       url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3" },
-  { id: "lightless-dawn",  title: "Lightless Dawn",        vibe: "Ambient · Deep concentration",  url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3" },
-  { id: "ossuary-rest",    title: "Rest",                  vibe: "Slow ambient · Wind-down",      url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%205%20-%20Rest.mp3" },
   { id: "inspired",        title: "Inspired",              vibe: "Smooth · Deep focus",           url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Inspired.mp3" },
-  { id: "pamgaea",         title: "Pamgaea",               vibe: "Ambient world · Steady",        url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Pamgaea.mp3" },
+  { id: "carefree",        title: "Carefree",              vibe: "Mellow · Steady",               url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3" },
+  { id: "hep-cats",        title: "Hep Cats",              vibe: "Upbeat jazz · Energetic",       url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hep%20Cats.mp3" },
+  { id: "backbay",         title: "Backbay Lounge",        vibe: "Lounge · Smooth tempo",         url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Backbay%20Lounge.mp3" },
+  { id: "bossa",           title: "Bossa Antigua",         vibe: "Bossa nova · Light",            url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bossa%20Antigua.mp3" },
+  { id: "investigations",  title: "Investigations",        vibe: "Cinematic · Deep concentration", url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Investigations.mp3" },
+  { id: "local-forecast",  title: "Local Forecast",        vibe: "Bright · Clean focus",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast%20-%20Elevator.mp3" },
+  { id: "easy-lemon",      title: "Easy Lemon",            vibe: "Light · Background",            url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Easy%20Lemon%2030%20second.mp3" },
+  { id: "cipher2",         title: "Cipher 2",              vibe: "Tense · Late session",          url: "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cipher2.mp3" },
 ];
 
 const LS_KEY = "apex-music-state";
