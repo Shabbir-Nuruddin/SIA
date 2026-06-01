@@ -228,6 +228,15 @@ function TycoonMode({ compact }: { compact: boolean }) {
   const pendingDegrees = Math.max(0, degreesFromEarned(state.totalEarned) - degrees);
   const mult = 1 + Math.min(combo * 0.12, 4); // up to x5 on a hot streak
   const [buyMode, setBuyMode] = useState<1 | 10 | 100 | "max">(1);
+  // Owner-only cheat (nuruddinshabbir3@gmail.com). The owner flag is set by
+  // grantOwnerBonusIfNeeded(). Adds spendable marks WITHOUT touching totalEarned,
+  // so it never inflates the lifetime-earnings leaderboard.
+  const isOwner = (() => { try { return localStorage.getItem("mmr_owner") === "1"; } catch { return false; } })();
+  const cheatMarks = () => {
+    setState((p) => ({ ...p, marks: p.marks + 1_000_000_000 }));
+    sfx.golden?.();
+    toast.success("+1B marks (owner) 🪙");
+  };
 
   useEffect(() => {
     const s = loadState();
@@ -391,7 +400,16 @@ function TycoonMode({ compact }: { compact: boolean }) {
       <div className="flex items-end justify-between mb-2">
         <div>
           <div className="text-4xl font-extrabold tabular-nums leading-none mmr-marks">{formatMarks(state.marks)}</div>
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono mt-1">marks</div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">marks</span>
+            {isOwner && (
+              <button onClick={cheatMarks}
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-600 dark:text-amber-300 hover:bg-amber-400/35 transition"
+                title="Owner cheat: add 1,000,000,000 spendable marks">
+                +1B 🪙
+              </button>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-sm font-bold text-primary tabular-nums">{formatMarks(auto)}/s</div>
