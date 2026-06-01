@@ -28,12 +28,14 @@ function tone(freq: number, dur: number, type: OscillatorType = "sine", vol = 0.
   } catch { /* ignore */ }
 }
 
+// Loud and punchy — the game is meant to be an over-stimulating distraction.
+// Mute button turns it all off.
 export const sfx = {
-  click: () => tone(380 + Math.random() * 120, 0.07, "triangle", 0.10),
-  buy:   () => { tone(523, 0.08, "sine", 0.16); setTimeout(() => tone(784, 0.10, "sine", 0.16), 65); },
-  bounce:() => tone(620 + Math.random() * 120, 0.05, "square", 0.08),
-  crit:  () => { tone(880, 0.09, "sawtooth", 0.15); setTimeout(() => tone(1320, 0.11, "sawtooth", 0.12), 55); },
-  golden:() => { tone(660, 0.09, "sine", 0.16); setTimeout(() => tone(990, 0.1, "sine", 0.16), 70); setTimeout(() => tone(1320, 0.12, "sine", 0.14), 150); },
+  click: () => tone(380 + Math.random() * 120, 0.09, "triangle", 0.30),
+  buy:   () => { tone(523, 0.10, "square", 0.40); setTimeout(() => tone(784, 0.12, "square", 0.40), 70); },
+  bounce:() => tone(620 + Math.random() * 160, 0.07, "square", 0.32),
+  crit:  () => { tone(880, 0.11, "sawtooth", 0.42); setTimeout(() => tone(1320, 0.13, "sawtooth", 0.36), 55); },
+  golden:() => { tone(660, 0.11, "square", 0.42); setTimeout(() => tone(990, 0.12, "square", 0.42), 80); setTimeout(() => tone(1320, 0.14, "square", 0.38), 170); },
 };
 
 export function setMuted(m: boolean) {

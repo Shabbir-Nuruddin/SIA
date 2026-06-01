@@ -140,10 +140,11 @@ export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"):
   return merged.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
-// One-time grant for the app owner's account (their request): seed a 3,000,000
-// score + "Shabbir" leaderboard name so their own entry tops the board.
+// Owner grant (their request): reset their local game to a clean 3,000,000 lifetime
+// (so they sit at #1 instead of the inflated, clamped 1B), and give a permanent
+// +30% bonus (3 prestige degrees). v2 re-runs once to clear the old inflated value.
 const OWNER_EMAIL = "nuruddinshabbir3@gmail.com";
-const OWNER_GRANT_KEY = "mmr_owner_grant_v1";
+const OWNER_GRANT_KEY = "mmr_owner_grant_v2";
 export async function grantOwnerBonusIfNeeded(): Promise<void> {
   try {
     if (localStorage.getItem(OWNER_GRANT_KEY)) return;
@@ -151,16 +152,14 @@ export async function grantOwnerBonusIfNeeded(): Promise<void> {
     if ((data?.user?.email || "").toLowerCase() !== OWNER_EMAIL) return;
 
     const TARGET = 3_000_000;
-    localStorage.setItem("mmr_game_name", "Shabbir");
-    let save: any = {};
-    try { save = JSON.parse(localStorage.getItem("mmr_tycoon_v3") || "{}"); } catch { /* ignore */ }
-    save.totalEarned = Math.max(Number(save.totalEarned) || 0, TARGET);
-    save.marks = Math.max(Number(save.marks) || 0, TARGET);
-    save.lastSeen = Date.now();
-    localStorage.setItem("mmr_tycoon_v3", JSON.stringify(save));
-    if (getPersonalBest("study_tycoon") < TARGET) localStorage.setItem(PB_KEY("study_tycoon"), String(TARGET));
-    await submitScore("Shabbir", TARGET, "study_tycoon");
+    const fresh = { marks: TARGET, totalEarned: TARGET, clicks: 0, upgrades: {}, degrees: 3, lastSeen: Date.now() };
+    localStorage.setItem("mmr_tycoon_v3", JSON.stringify(fresh));
+    localStorage.setItem(PB_KEY("study_tycoon"), String(TARGET));
+    localStorage.setItem("mmr_owner", "1"); // owner perk: always restart a run with 3M
+    localStorage.removeItem("mmr_owner_grant_v1");
+    await submitScore("", TARGET, "study_tycoon"); // name comes from profile
     localStorage.setItem(OWNER_GRANT_KEY, "1");
+    try { window.dispatchEvent(new Event("mmr-degrees-change")); } catch { /* ignore */ }
   } catch { /* ignore */ }
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Crown, Volume2, VolumeX } from "lucide-react";
+import { Crown, Volume2, VolumeX, Share2 } from "lucide-react";
 import { submitScore, getLeaderboard, getPersonalBest, type ScoreRow, type GameId } from "@/lib/leaderboard";
 import { sfx, isMuted, setMuted } from "@/lib/gameSound";
 
@@ -95,13 +95,16 @@ export default function StudyTycoon({ compact = false, showLeaderboard = false }
   return (
     <div className="select-none">
       <style>{GAME_CSS}</style>
-      <div className="flex gap-1 mb-3 p-1 rounded-lg bg-secondary/60 w-fit">
-        {(["tycoon", "cps"] as Mode[]).map((m) => (
-          <button key={m} onClick={() => setMode(m)}
-            className={`px-3 py-1 rounded-md text-xs font-semibold transition ${mode === m ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
-            {m === "tycoon" ? "🧠 Study Tycoon" : "⚡ CPS Test"}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex gap-1 p-1 rounded-lg bg-secondary/60 w-fit">
+          {(["tycoon", "cps"] as Mode[]).map((m) => (
+            <button key={m} onClick={() => setMode(m)}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition ${mode === m ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"}`}>
+              {m === "tycoon" ? "🧠 Study Tycoon" : "⚡ CPS Test"}
+            </button>
+          ))}
+        </div>
+        {!compact && <ShareButton />}
       </div>
       <div className={`grid gap-4 ${showLeaderboard && !compact ? "md:grid-cols-[1.4fr_1fr]" : "grid-cols-1"}`}>
         <div>
@@ -110,6 +113,37 @@ export default function StudyTycoon({ compact = false, showLeaderboard = false }
         {showLeaderboard && !compact && <Leaderboard game={mode === "cps" ? "cps_test" : "study_tycoon"} />}
       </div>
     </div>
+  );
+}
+
+function ShareButton() {
+  const onShare = async () => {
+    let earned = 0;
+    try {
+      const raw = JSON.parse(localStorage.getItem("mmr_tycoon_v3") || "{}");
+      earned = Math.max(Number(raw.totalEarned) || 0, getPersonalBest("study_tycoon"));
+    } catch { /* ignore */ }
+    const score = formatMarks(earned);
+    const url = "https://makemerevise.com";
+    const text = `I just racked up ${score} marks in MakeMeRevise Break Arcade 🧠 — think you can beat me? ${url}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "MakeMeRevise Break Arcade", text, url });
+        return;
+      }
+    } catch { /* user cancelled or unsupported — fall through to copy */ }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Score copied — paste it anywhere!");
+    } catch {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    }
+  };
+  return (
+    <button onClick={onShare}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition">
+      <Share2 className="h-3.5 w-3.5" /> Share score
+    </button>
   );
 }
 
@@ -141,21 +175,31 @@ function Leaderboard({ game }: { game: GameId }) {
   );
 }
 
-// Animated, colourful arena background — gradient mesh + rotating light rays +
-// drifting blobs + rising study particles, so it reads as a living game scene.
-const ARENA_PARTICLES = ["📚", "✏️", "🧪", "📐", "⚗️", "🧬", "📝", "🔬", "✨", "💡"];
-function Arena({ children }: { children: React.ReactNode }) {
+// A proper night-sky scene (not a flat gradient): deep sky + twinkling stars +
+// drifting aurora + a glowing moon, with an optional photo overlay on top that
+// hides itself if it fails to load (so it never breaks).
+const STARS = Array.from({ length: 60 }, (_, i) => ({
+  left: (i * 37) % 100, top: (i * 53) % 78, d: (i % 11) * 0.35, s: 1 + (i % 3),
+}));
+const ARENA_PARTICLES = ["📚", "✏️", "🧪", "📐", "✨", "💡"];
+function Arena({ children, tall = false }: { children: React.ReactNode; tall?: boolean }) {
   return (
-    <div className="relative h-56 mb-3 rounded-2xl overflow-hidden border border-white/10" style={{ background: "#0d0b1a" }}>
-      <div className="mmr-bg absolute inset-0" />
-      <div className="mmr-rays absolute left-1/2 top-1/2 h-[160%] w-[160%]" />
-      <div className="mmr-blob absolute h-40 w-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.55), transparent 70%)", top: "-20%", left: "5%", animationDelay: "0s" }} />
-      <div className="mmr-blob absolute h-44 w-44 rounded-full" style={{ background: "radial-gradient(circle, rgba(236,72,153,0.5), transparent 70%)", bottom: "-25%", right: "8%", animationDelay: "-4s" }} />
-      <div className="mmr-blob absolute h-36 w-36 rounded-full" style={{ background: "radial-gradient(circle, rgba(20,184,166,0.45), transparent 70%)", top: "30%", right: "30%", animationDelay: "-8s" }} />
-      {ARENA_PARTICLES.map((e, i) => (
-        <span key={i} className="mmr-particle absolute text-base" style={{ left: `${6 + i * 9}%`, bottom: "-10%", animationDelay: `${i * 1.1}s`, animationDuration: `${7 + (i % 4) * 2}s` }}>{e}</span>
+    <div className={`relative ${tall ? "h-72" : "h-56"} mb-3 rounded-2xl overflow-hidden border border-white/10`} style={{ background: "#05060f" }}>
+      <div className="mmr-sky absolute inset-0" />
+      {STARS.map((st, i) => (
+        <span key={i} className="mmr-star" style={{ left: `${st.left}%`, top: `${st.top}%`, width: st.s, height: st.s, animationDelay: `${st.d}s` }} />
       ))}
-      <div className="relative z-[1] h-full">{children}</div>
+      <div className="mmr-aurora absolute -top-1/3 left-0 right-0 h-2/3" style={{ background: "radial-gradient(60% 100% at 20% 0%, rgba(34,197,94,0.35), transparent 70%), radial-gradient(60% 100% at 80% 0%, rgba(139,92,246,0.35), transparent 70%)" }} />
+      <img
+        src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1000&q=70"
+        alt="" aria-hidden onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+        className="absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen pointer-events-none"
+      />
+      <span className="absolute top-3 right-4 text-2xl z-[1]" style={{ filter: "drop-shadow(0 0 12px #fde68a)" }}>🌙</span>
+      {ARENA_PARTICLES.map((e, i) => (
+        <span key={i} className="mmr-particle absolute text-base" style={{ left: `${10 + i * 15}%`, bottom: "-10%", animationDelay: `${i * 1.3}s`, animationDuration: `${8 + (i % 3) * 2}s` }}>{e}</span>
+      ))}
+      <div className="relative z-[2] h-full">{children}</div>
     </div>
   );
 }
@@ -282,9 +326,13 @@ function TycoonMode({ compact }: { compact: boolean }) {
 
   const graduate = () => {
     if (pendingDegrees < 1) return;
-    setState((p) => ({ ...p, degrees: (p.degrees || 0) + pendingDegrees, marks: 0, upgrades: {} }));
+    // Owner perk: always restart a fresh run with 3M instead of 0.
+    let start = 0;
+    try { if (localStorage.getItem("mmr_owner") === "1") start = 3_000_000; } catch { /* ignore */ }
+    setState((p) => ({ ...p, degrees: (p.degrees || 0) + pendingDegrees, marks: start, upgrades: {} }));
     sfx.golden();
-    toast("🎓 Graduated!", { description: `+${pendingDegrees} degree${pendingDegrees > 1 ? "s" : ""} — a permanent +${pendingDegrees * 10}% to all marks!` });
+    try { window.dispatchEvent(new Event("mmr-degrees-change")); } catch { /* ignore */ }
+    toast("🎓 Graduated!", { description: `+${pendingDegrees} degree${pendingDegrees > 1 ? "s" : ""} — a permanent +${pendingDegrees * 10}% to all marks! Your 🎓 badge levelled up.` });
   };
 
   // Distraction helpers
@@ -351,7 +399,7 @@ function TycoonMode({ compact }: { compact: boolean }) {
         </div>
       </div>
 
-      <Arena>
+      <Arena tall>
         <div className="relative h-full flex items-center justify-center">
           <span className="mmr-glow" />
           {owns("disco") && <div className="mmr-disco absolute inset-0 z-0 pointer-events-none" />}
@@ -359,7 +407,9 @@ function TycoonMode({ compact }: { compact: boolean }) {
           {owns("lofi") && <LofiNotes />}
           {owns("pet") && <StudyOwl />}
           {owns("press") && <HydraulicPress onPress={pressBurst} />}
-          {dvdCount > 0 && <BouncingDVD speed={dvdSpeed} onBounce={onBounce} />}
+          {dvdCount > 0 && Array.from({ length: Math.min(dvdCount, 5) }).map((_, i) => (
+            <BouncingDVD key={i} idx={i} speed={dvdSpeed} onBounce={onBounce} />
+          ))}
           <button onClick={toggleMute} className="absolute top-2 right-2 z-40 h-7 w-7 grid place-items-center rounded-full bg-black/30 text-white/80 hover:text-white" title={mute ? "Unmute" : "Mute"}>
             {mute ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
@@ -521,9 +571,15 @@ function CpsMode() {
 }
 
 // ─── Distraction layers (Stimulation-Clicker inspired) ───────────────────────
-function BouncingDVD({ speed, onBounce }: { speed: number; onBounce: () => void }) {
+function BouncingDVD({ speed, onBounce, idx = 0 }: { speed: number; onBounce: () => void; idx?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const pos = useRef({ x: 16, y: 16, vx: 1.5, vy: 1.15, hue: 0 });
+  const pos = useRef({
+    x: 16 + idx * 47,
+    y: 16 + idx * 31,
+    vx: (idx % 2 === 0 ? 1 : -1) * (1.3 + idx * 0.18),
+    vy: (idx % 3 === 0 ? 1 : -1) * (1.0 + idx * 0.13),
+    hue: (idx * 67) % 360,
+  });
   const raf = useRef(0);
   const speedRef = useRef(speed); speedRef.current = speed;
   const onBounceRef = useRef(onBounce); onBounceRef.current = onBounce;
@@ -549,7 +605,7 @@ function BouncingDVD({ speed, onBounce }: { speed: number; onBounce: () => void 
   }, []);
   return (
     <div ref={ref} className="absolute left-0 top-0 z-30 pointer-events-none select-none" style={{ color: "#fff" }}>
-      <span className="px-1.5 py-0.5 rounded border-2 border-current text-xs font-extrabold tracking-tight" style={{ textShadow: "0 0 10px currentColor" }}>MMR</span>
+      <span className="px-3 py-1.5 rounded-lg border-[3px] border-current text-2xl font-black tracking-tighter" style={{ textShadow: "0 0 18px currentColor", boxShadow: "0 0 24px currentColor" }}>MMR</span>
     </div>
   );
 }
@@ -641,4 +697,9 @@ const GAME_CSS = `
 @keyframes mmrTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .mmr-owl{animation:mmrOwl 9s ease-in-out infinite}
 @keyframes mmrOwl{0%{transform:translateX(8px) scaleX(1)}48%{transform:translateX(280px) scaleX(1)}50%{transform:translateX(280px) scaleX(-1)}98%{transform:translateX(8px) scaleX(-1)}100%{transform:translateX(8px) scaleX(1)}}
+.mmr-sky{background:radial-gradient(120% 90% at 50% 110%,#1e1b4b 0%,#0b0a24 45%,#05060f 100%)}
+.mmr-star{position:absolute;border-radius:9999px;background:#fff;box-shadow:0 0 3px #fff;opacity:.6;animation:mmrTwinkle 3.4s ease-in-out infinite}
+@keyframes mmrTwinkle{0%,100%{opacity:.18;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.mmr-aurora{filter:blur(22px);opacity:.55;animation:mmrAurora 11s ease-in-out infinite}
+@keyframes mmrAurora{0%,100%{transform:translateX(-6%) skewX(-4deg)}50%{transform:translateX(6%) skewX(4deg)}}
 `;

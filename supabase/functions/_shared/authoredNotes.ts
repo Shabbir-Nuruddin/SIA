@@ -1603,6 +1603,266 @@ REACTIONS: empty. GRAPHS: empty.`,
 REACTIONS: empty. GRAPHS: empty.`,
       },
     },
+
+    maths: {
+      unit1: {
+        "Algebra and Functions": `EDEXCEL IAL MATHS P1 (WMA11) — ALGEBRA AND FUNCTIONS. Overview should be one short line; put the depth into WORKED EXAMPLES.
+- Indices: a^m x a^n = a^(m+n); a^m / a^n = a^(m-n); (a^m)^n = a^(mn); a^0 = 1; a^(-n) = 1/a^n; a^(1/n) = nth root; a^(m/n) = (nth root of a)^m.
+- Surds: simplify (sqrt(ab)=sqrt a x sqrt b); rationalise denominators — monomial (x sqrt a / sqrt a) and binomial (multiply by the conjugate, (a+sqrt b)(a-sqrt b)=a^2-b).
+- Quadratics: complete the square a(x+p)^2+q (vertex), discriminant b^2-4ac (>0 two real roots, =0 one repeated, <0 none), solve by factorising/formula/completing the square; quadratic inequalities (solve then sketch/number line).
+- Simultaneous equations (linear + quadratic by substitution -> a quadratic). Polynomials: expand, factorise, factor theorem (if f(a)=0 then (x-a) is a factor), remainder theorem.
+- Graphs: sketch cubics, reciprocals y=k/x; transformations y=f(x+a) (left a), y=f(x)+a (up a), y=af(x) (vertical stretch a), y=f(ax) (horizontal stretch 1/a), y=-f(x), y=f(-x).
+WORKED-EXAMPLE MATERIAL: complete the square + use the discriminant; rationalise a surd; solve a quadratic inequality; use the factor theorem to factorise a cubic.
+COMMON MISTAKES: dropping +/- on square roots; sign slips completing the square; wrong inequality direction.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Coordinate Geometry in the (x, y) Plane": `EDEXCEL IAL MATHS P1 (WMA11) — COORDINATE GEOMETRY (STRAIGHT LINES).
+- Gradient m = (y2-y1)/(x2-x1). Line forms: y = mx + c; y - y1 = m(x - x1); ax + by + c = 0.
+- Parallel lines have equal gradient; perpendicular lines have m1 x m2 = -1. Distance between two points = sqrt((x2-x1)^2 + (y2-y1)^2). Midpoint = ((x1+x2)/2, (y1+y2)/2).
+WORKED-EXAMPLE MATERIAL: equation of a line through two points; equation of the perpendicular bisector of a segment; show two lines are perpendicular.
+COMMON MISTAKES: negative-reciprocal slip for perpendicular; not simplifying to the required form.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Trigonometry": `EDEXCEL IAL MATHS P1 (WMA11) — TRIGONOMETRY.
+- Right-angled: SOH CAH TOA. Any triangle: sine rule a/sinA = b/sinB = c/sinC; cosine rule a^2 = b^2 + c^2 - 2bc cosA; area = (1/2)ab sinC.
+- Exact values for 30, 45, 60 degrees. Radians: pi rad = 180 deg; arc length s = r(theta); sector area = (1/2)r^2(theta).
+- Graphs of sin, cos, tan (period, amplitude, asymptotes); solve equations like sin x = 0.5 over a given interval using the CAST diagram / symmetry.
+WORKED-EXAMPLE MATERIAL: cosine rule for a missing side/angle; solve a trig equation in 0 to 360; arc length and sector area.
+COMMON MISTAKES: calculator in wrong mode; missing solutions in the interval.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Differentiation": `EDEXCEL IAL MATHS P1 (WMA11) — DIFFERENTIATION.
+- From first principles: gradient = limit as h->0 of (f(x+h)-f(x))/h. Differentiate x^n -> n x^(n-1) (including negative and fractional n); sums, differences, constant multiples.
+- Uses: gradient of a curve at a point; equations of tangents and normals; stationary points (set dy/dx = 0, classify with the second derivative d2y/dx2 or a sign test); increasing/decreasing functions.
+WORKED-EXAMPLE MATERIAL: find and classify stationary points; equation of a tangent and a normal at a point.
+COMMON MISTAKES: forgetting to rewrite roots/fractions as powers before differentiating; misclassifying stationary points.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Integration": `EDEXCEL IAL MATHS P1 (WMA11) — INTEGRATION.
+- Indefinite integration is the reverse of differentiation: integral of x^n = x^(n+1)/(n+1) + c (n not equal to -1). Always include the constant of integration c.
+- Find the equation of a curve given its gradient function and a point on it (use the point to find c).
+WORKED-EXAMPLE MATERIAL: integrate a polynomial; find a curve through a given point from its gradient function.
+COMMON MISTAKES: omitting +c; not converting surds/fractions to powers first.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit2: {
+        "Proof": `EDEXCEL IAL MATHS P2 (WMA12) — PROOF.
+- Proof by deduction (logical steps from given assumptions). Proof by exhaustion (check all cases). Disproof by counterexample (one example that breaks the statement).
+WORKED-EXAMPLE MATERIAL: disprove a statement with a counterexample; a short deductive proof.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Algebra and Functions": `EDEXCEL IAL MATHS P2 (WMA12) — ALGEBRA AND FUNCTIONS.
+- Algebraic (long) division by (ax + b). Factor theorem: if f(b/a) = 0 then (ax - b) is a factor. Remainder theorem: the remainder on dividing f(x) by (ax - b) is f(b/a). Factorise cubics fully.
+WORKED-EXAMPLE MATERIAL: use the factor theorem to factorise a cubic, then solve f(x)=0; find a remainder.
+COMMON MISTAKES: sign errors in the theorem (b/a vs -b/a); incomplete factorisation.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Coordinate Geometry in the (x, y) Plane": `EDEXCEL IAL MATHS P2 (WMA12) — COORDINATE GEOMETRY (THE CIRCLE).
+- Circle: (x - a)^2 + (y - b)^2 = r^2 has centre (a, b), radius r; expand to x^2 + y^2 + 2gx + 2fy + c = 0 (centre (-g,-f), radius sqrt(g^2+f^2-c)).
+- Properties: the angle in a semicircle is 90 deg; the perpendicular from the centre bisects a chord; a tangent is perpendicular to the radius at the point of contact. Line-circle intersection via substitution then the discriminant.
+WORKED-EXAMPLE MATERIAL: find centre/radius from the general form; equation of a tangent to a circle at a point.
+COMMON MISTAKES: sign of the centre from 2g/2f; forgetting to complete the square.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Sequences and Series": `EDEXCEL IAL MATHS P2 (WMA12) — SEQUENCES AND SERIES.
+- Arithmetic: nth term a + (n-1)d; sum Sn = n/2(2a + (n-1)d) = n/2(a + l). Geometric: nth term a r^(n-1); sum Sn = a(1 - r^n)/(1 - r); sum to infinity a/(1 - r) ONLY for |r| < 1 (convergent). Sigma notation.
+- Binomial expansion (a + b)^n for a positive integer n using Pascal's triangle or nCr = n!/(r!(n-r)!).
+WORKED-EXAMPLE MATERIAL: geometric sum to infinity; a specified term/coefficient in a binomial expansion; arithmetic series sum.
+COMMON MISTAKES: using sum-to-infinity when |r| >= 1; off-by-one in n; nCr errors.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Exponentials and Logarithms": `EDEXCEL IAL MATHS P2 (WMA12) — EXPONENTIALS AND LOGARITHMS.
+- y = e^x (gradient = e^x) and y = ln x are inverses (reflections in y = x). Log laws: log(xy)=log x+log y; log(x/y)=log x-log y; log(x^n)=n log x; log_a a = 1; change of base.
+- Solve a^x = b by taking logs. Model growth/decay. Linearise: y = a x^n -> log y = log a + n log x (straight line, gradient n); y = a b^x -> ln y = ln a + x ln b.
+WORKED-EXAMPLE MATERIAL: solve 2^x = 10; reduce experimental data to linear form and find the constants from a log graph.
+COMMON MISTAKES: log of a sum (does not split); mixing log and ln; domain (x>0).
+REACTIONS: empty. GRAPHS: empty.`,
+        "Trigonometry": `EDEXCEL IAL MATHS P2 (WMA12) — TRIGONOMETRY (IDENTITIES).
+- Identities: sin^2(x) + cos^2(x) = 1; tan x = sin x / cos x; 1 + tan^2 x = sec^2 x; 1 + cot^2 x = cosec^2 x. Definitions of sec, cosec, cot (reciprocals).
+- Solve equations by rearranging to a quadratic in one ratio using an identity.
+WORKED-EXAMPLE MATERIAL: solve 2 sin^2 x = 1 + cos x in an interval using sin^2 = 1 - cos^2.
+COMMON MISTAKES: losing solutions when dividing by a trig term; interval errors.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Differentiation": `EDEXCEL IAL MATHS P2 (WMA12) — DIFFERENTIATION (RULES).
+- Chain rule dy/dx = dy/du x du/dx; product rule d(uv) = u v' + v u'; quotient rule d(u/v) = (v u' - u v')/v^2. Differentiate e^x, e^(kx), ln x, sin x, cos x, tan x. Connected rates of change.
+WORKED-EXAMPLE MATERIAL: differentiate a product/quotient with trig/exponential; a connected rates problem (e.g. dV/dt from dr/dt).
+COMMON MISTAKES: forgetting the inner-derivative in the chain rule; quotient-rule sign order.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Integration": `EDEXCEL IAL MATHS P2 (WMA12) — INTEGRATION (DEFINITE + METHODS).
+- Definite integral = area under a curve (area below the x-axis counts as negative); area between two curves. Integrate e^x, 1/x (-> ln|x| + c), sin, cos. Integration by substitution. Trapezium rule for an estimate.
+WORKED-EXAMPLE MATERIAL: definite integral for an area; integration by substitution; trapezium-rule estimate (state whether over/underestimate from concavity).
+COMMON MISTAKES: ignoring negative areas; limits not changed under substitution.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit3: {
+        "Algebra and Functions": `EDEXCEL IAL MATHS P3 (WMA13) — ALGEBRA AND FUNCTIONS.
+- Partial fractions: distinct linear factors A/(x+a)+B/(x+b); repeated factor A/(x+a)+B/(x+a)^2; quadratic factor A/(x+a)+(Bx+C)/(quadratic).
+- Modulus function |f(x)|: sketch y = |f(x)| and y = f(|x|); solve |f(x)| = a / |f(x)| = |g(x)| by cases. Functions: domain and range; composite fg(x); inverse f^-1 (exists only if one-to-one; reflect in y = x).
+WORKED-EXAMPLE MATERIAL: decompose into partial fractions; solve a modulus equation; find a composite/inverse and its domain.
+COMMON MISTAKES: missing cases in modulus equations; wrong order in fg vs gf.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Trigonometry": `EDEXCEL IAL MATHS P3 (WMA13) — TRIGONOMETRY (COMPOUND/DOUBLE ANGLE).
+- Compound angles: sin(A+/-B), cos(A+/-B), tan(A+/-B). Double angle: sin2A = 2 sinA cosA; cos2A = cos^2 A - sin^2 A = 2cos^2 A - 1 = 1 - 2 sin^2 A; tan2A.
+- R sin(theta + alpha) form: R = sqrt(a^2 + b^2), tan alpha = b/a — find max/min and solve a cos + b sin = c. Small-angle approximations (radians): sin x ~ x, tan x ~ x, cos x ~ 1 - x^2/2. Inverse trig arcsin/arccos/arctan (domains and ranges).
+WORKED-EXAMPLE MATERIAL: write a cos x + b sin x as R cos(x - alpha) and solve; prove an identity using double-angle formulae.
+COMMON MISTAKES: wrong cos2A form for the situation; degrees/radians mix-ups.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Exponentials and Logarithms": `EDEXCEL IAL MATHS P3 (WMA13) — EXPONENTIALS AND LOGARITHMS.
+- Differentiate and integrate e^(ax+b); further exponential growth/decay models; combine with logs to solve. (Builds on P2 log laws.)
+WORKED-EXAMPLE MATERIAL: solve an equation involving e^(ax+b); interpret a growth/decay model.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Differentiation": `EDEXCEL IAL MATHS P3 (WMA13) — DIFFERENTIATION (IMPLICIT/PARAMETRIC).
+- Implicit differentiation: differentiate both sides w.r.t. x (d/dx of y^2 = 2y dy/dx, etc.), then make dy/dx the subject. Parametric: dy/dx = (dy/dt)/(dx/dt). Differentiate inverse trig: d/dx arcsin x = 1/sqrt(1-x^2); d/dx arctan x = 1/(1+x^2). Second derivatives; connected rates.
+WORKED-EXAMPLE MATERIAL: tangent to an implicit curve; gradient of a parametric curve at a parameter value.
+COMMON MISTAKES: forgetting dy/dx when differentiating y-terms implicitly.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Integration": `EDEXCEL IAL MATHS P3 (WMA13) — INTEGRATION (PARTS/VOLUMES).
+- Integration by parts: integral of u dv = uv - integral of v du (choose u by LATE). Integration using partial fractions. Standard results to arctan/arcsin forms (integral of 1/(a^2+x^2) = (1/a)arctan(x/a)). Volumes of revolution V = pi integral y^2 dx (about x-axis).
+WORKED-EXAMPLE MATERIAL: integrate x e^x or x ln x by parts; a volume of revolution.
+COMMON MISTAKES: wrong choice of u; forgetting pi / squaring y in volumes.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Numerical Methods": `EDEXCEL IAL MATHS P3 (WMA13) — NUMERICAL METHODS.
+- Locate a root by a sign change of f over [a,b] (continuity). Iteration x_(n+1) = g(x_n); converges if |g'(x)| < 1 near the root; staircase/cobweb diagrams. Newton-Raphson: x_(n+1) = x_n - f(x_n)/f'(x_n).
+WORKED-EXAMPLE MATERIAL: show a root lies in an interval by sign change; carry out 2-3 Newton-Raphson iterations.
+COMMON MISTAKES: not stating continuity for sign change; rounding too early in iterations.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit4: {
+        "Proof": `EDEXCEL IAL MATHS P4 (WMA14) — PROOF.
+- Proof by contradiction (assume the negation, derive a contradiction; e.g. sqrt 2 is irrational, infinitely many primes). Proof by induction: basis (n=1), inductive step (assume true for n=k, prove for n=k+1), conclusion — for series sums and divisibility.
+WORKED-EXAMPLE MATERIAL: prove a summation formula by induction; a short proof by contradiction.
+COMMON MISTAKES: weak/missing inductive step; not stating the conclusion sentence.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Algebra and Functions": `EDEXCEL IAL MATHS P4 (WMA14) — ALGEBRA AND FUNCTIONS.
+- Further partial fractions (including for use in binomial expansion and integration).
+WORKED-EXAMPLE MATERIAL: decompose a rational expression then expand or integrate it.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Coordinate Geometry in the (x, y) Plane": `EDEXCEL IAL MATHS P4 (WMA14) — COORDINATE GEOMETRY (PARAMETRIC).
+- Parametric equations x = f(t), y = g(t): convert to Cartesian by eliminating the parameter; gradient dy/dx = (dy/dt)/(dx/dt); tangents and normals; area under a parametric curve = integral of y (dx/dt) dt.
+WORKED-EXAMPLE MATERIAL: eliminate the parameter to get the Cartesian equation; tangent to a parametric curve.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Binomial Expansion": `EDEXCEL IAL MATHS P4 (WMA14) — BINOMIAL EXPANSION (RATIONAL n).
+- (1 + x)^n = 1 + n x + n(n-1)/2! x^2 + n(n-1)(n-2)/3! x^3 + ... valid for |x| < 1. For (a + bx)^n rewrite as a^n (1 + bx/a)^n; state the range of validity. Use partial fractions first when needed; use for approximations.
+WORKED-EXAMPLE MATERIAL: expand (1 + x)^(1/2) or (a + bx)^(-1) to a few terms and give the valid range; use it to estimate a value.
+COMMON MISTAKES: forgetting to factor out a^n; wrong validity range.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Differentiation": `EDEXCEL IAL MATHS P4 (WMA14) — DIFFERENTIATION (FURTHER).
+- Further implicit and parametric differentiation, including second derivatives d2y/dx2; further connected rates of change.
+WORKED-EXAMPLE MATERIAL: second derivative of an implicit/parametric curve; a connected-rates problem.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Integration": `EDEXCEL IAL MATHS P4 (WMA14) — INTEGRATION (FURTHER).
+- Further integration techniques; integrals leading to arctan/arcsin; further volumes of revolution; (first-order linear differential equations by integrating factor if in the specification version).
+WORKED-EXAMPLE MATERIAL: a harder substitution or by-parts integral; a volume of revolution.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Vectors": `EDEXCEL IAL MATHS P4 (WMA14) — VECTORS (3D).
+- 3D vectors in column or i, j, k form; magnitude |v| = sqrt(x^2+y^2+z^2); unit vector v/|v|; position vectors. Scalar (dot) product a.b = a1b1+a2b2+a3b3 = |a||b|cos(theta); perpendicular when a.b = 0; angle between vectors.
+- Vector equation of a line r = a + t b; find intersections; parallel and SKEW lines (not parallel, do not meet); angle between lines.
+WORKED-EXAMPLE MATERIAL: angle between two vectors using the dot product; show two lines are skew; find the point of intersection of two lines.
+COMMON MISTAKES: using position vectors instead of direction vectors for the angle between lines; arithmetic in the dot product.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit5: {
+        "Mathematical Models in Mechanics": `EDEXCEL IAL MATHS M1 (WME01) — MATHEMATICAL MODELS IN MECHANICS.
+- Common modelling assumptions and what they mean: particle (mass at a point, no air resistance/size), light (negligible mass), inextensible string (constant length), smooth surface (no friction), rigid body. Be able to state and evaluate the effect of each.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Vectors in Mechanics": `EDEXCEL IAL MATHS M1 (WME01) — VECTORS IN MECHANICS.
+- Represent forces/velocities as i and j vectors; resolve into components; add to find a resultant; magnitude = sqrt(x^2+y^2) and direction = arctan(y/x). Newton's second law in vector form F = m a.
+WORKED-EXAMPLE MATERIAL: resultant of forces given as vectors; acceleration from a resultant force.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Kinematics of a Particle Moving in a Straight Line": `EDEXCEL IAL MATHS M1 (WME01) — KINEMATICS (STRAIGHT LINE).
+- SUVAT: v=u+at; s=ut+(1/2)at^2; v^2=u^2+2as; s=(1/2)(u+v)t. Velocity-time graph: gradient = acceleration, area = displacement; displacement-time gradient = velocity.
+- Non-uniform acceleration with calculus: v = ds/dt, a = dv/dt; integrate to get s from v, using initial conditions.
+WORKED-EXAMPLE MATERIAL: a multi-stage v-t graph (areas for displacement); a calculus kinematics problem.
+COMMON MISTAKES: sign convention for direction; using SUVAT when a is not constant.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Dynamics of a Particle Moving in a Straight Line or Plane": `EDEXCEL IAL MATHS M1 (WME01) — DYNAMICS.
+- Newton's 2nd law F = ma; weight W = mg. Connected particles (a string over a smooth pulley / Atwood machine; particles on a table and hanging): set up F = ma for each, with the same acceleration and equal tension. Friction F <= mu R (equal to mu R at the point of slipping or while moving). On an incline resolve weight into mg sin(theta) along and mg cos(theta) perpendicular.
+WORKED-EXAMPLE MATERIAL: connected-particles over a pulley (find acceleration and tension); a particle on a rough incline.
+COMMON MISTAKES: using the wrong weight component; forgetting the normal reaction changes on an incline.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Statics of a Particle": `EDEXCEL IAL MATHS M1 (WME01) — STATICS OF A PARTICLE.
+- In equilibrium the resultant force is zero: resolve in two perpendicular directions and set each sum to zero. Use a triangle of forces. With friction, limiting equilibrium uses F = mu R.
+WORKED-EXAMPLE MATERIAL: find unknown forces/tension for a particle in equilibrium (e.g. hanging on two strings); a body about to slip on a rough plane.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Moments": `EDEXCEL IAL MATHS M1 (WME01) — MOMENTS.
+- Moment = force x perpendicular distance from the pivot (N m). Principle of moments: for equilibrium, total clockwise moments = total anticlockwise moments. Apply to a beam/rod (find reactions at supports; the point where it is about to tilt has zero reaction at the other support).
+WORKED-EXAMPLE MATERIAL: a uniform/non-uniform beam on two supports — find the reactions; find where a mass can be placed before it tips.
+COMMON MISTAKES: using the distance not the perpendicular distance; forgetting the weight acts at the centre of mass.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit6: {
+        "Kinematics of a Particle Moving in a Straight Line or Plane": `EDEXCEL IAL MATHS M2 (WME02) — KINEMATICS (PROJECTILES + VARIABLE).
+- PROJECTILES: resolve initial velocity into horizontal (u cos(theta), constant) and vertical (u sin(theta), acceleration -g) components; use SUVAT vertically. Time of flight, maximum height (when vertical velocity = 0), range, and the equation of the path.
+- Variable acceleration in 2D using vectors and calculus (v = dr/dt, a = dv/dt; integrate with initial conditions).
+WORKED-EXAMPLE MATERIAL: range and greatest height of a projectile; whether a projectile clears a wall; 2D variable-acceleration with vectors.
+COMMON MISTAKES: applying g horizontally; not resolving the launch velocity.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Centres of Mass": `EDEXCEL IAL MATHS M2 (WME02) — CENTRES OF MASS.
+- Centre of mass of a system of particles: x-bar = sum(m_i x_i)/sum(m_i) (and similarly for y). Composite uniform laminae: split into simple shapes, use known centres, combine by moments. A suspended body hangs with its centre of mass vertically below the point of suspension.
+WORKED-EXAMPLE MATERIAL: centre of mass of a composite lamina; the angle a suspended lamina hangs at.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Work and Energy": `EDEXCEL IAL MATHS M2 (WME02) — WORK, ENERGY AND POWER.
+- Work done by a force = F s cos(theta). Kinetic energy = (1/2) m v^2; gravitational PE = m g h. Work-energy principle: work done by the resultant force = change in KE. Power = work/time = F v. Use conservation of energy where appropriate (allowing for work done against friction).
+WORKED-EXAMPLE MATERIAL: speed of a body up/down a rough incline using the work-energy principle; power of a vehicle (P = Fv) on an incline.
+COMMON MISTAKES: omitting work done against friction; mixing up PE and KE signs.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Collisions": `EDEXCEL IAL MATHS M2 (WME02) — IMPULSE AND COLLISIONS.
+- Impulse = F t = change in momentum (m v - m u), a vector. Conservation of momentum: total momentum before = total after (apply with directions/signs) for direct collisions.
+WORKED-EXAMPLE MATERIAL: impulse on a particle struck by a force/ball; speed after a 1D collision using conservation of momentum.
+COMMON MISTAKES: sign errors with directions; confusing impulse with force.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Statics of Rigid Bodies": `EDEXCEL IAL MATHS M2 (WME02) — STATICS OF RIGID BODIES.
+- A rigid body in equilibrium under coplanar forces: resolve in two directions AND take moments about a chosen point (both must be zero). Choose the pivot to eliminate an unknown. Typical problems: a ladder against a wall (with friction), a hinged rod, a beam with a reaction at a support.
+WORKED-EXAMPLE MATERIAL: a ladder in limiting equilibrium against a rough floor/smooth wall — find the friction or the angle; reaction at a hinge.
+COMMON MISTAKES: missing a force in the free-body diagram; taking moments about a poor point.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit7: {
+        "Mathematical Models in Probability and Statistics": `EDEXCEL IAL MATHS S1 (WST01) — MATHEMATICAL MODELS.
+- The statistical modelling process: observe -> model -> predict -> test against data -> refine. Recognise assumptions and limitations of a model.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Representation and Summary of Data": `EDEXCEL IAL MATHS S1 (WST01) — REPRESENTATION AND SUMMARY OF DATA.
+- Measures of location: mean, median, mode. Spread: range, interquartile range (Q3 - Q1), variance and standard deviation (Sxx/n). Use coding to simplify calculations.
+- Diagrams: histograms (frequency density = frequency / class width), box plots, outliers (e.g. beyond Q1 - 1.5 IQR or Q3 + 1.5 IQR), skewness (compare mean/median or use quartiles).
+WORKED-EXAMPLE MATERIAL: mean and standard deviation from a frequency table (with coding); interpret/draw a box plot and identify outliers and skew.
+COMMON MISTAKES: frequency density vs frequency on histograms; n vs n-1 (use the spec's formula).
+REACTIONS: empty. GRAPHS: empty.`,
+        "Probability": `EDEXCEL IAL MATHS S1 (WST01) — PROBABILITY.
+- Sample spaces; addition law P(A or B) = P(A) + P(B) - P(A and B). Conditional probability P(A|B) = P(A and B)/P(B). Independent events: P(A and B) = P(A) P(B). Use tree diagrams and Venn diagrams.
+WORKED-EXAMPLE MATERIAL: a tree-diagram conditional-probability problem; test whether two events are independent.
+COMMON MISTAKES: confusing mutually exclusive with independent; wrong conditioning.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Correlation and Regression": `EDEXCEL IAL MATHS S1 (WST01) — CORRELATION AND REGRESSION.
+- Product-moment correlation coefficient r (between -1 and +1; sign and strength). Least-squares regression line y = a + bx (b = Sxy/Sxx, a = y-bar - b x-bar). Use the line to predict — interpolation (within range, reliable) vs extrapolation (outside range, unreliable). Effect of coding.
+WORKED-EXAMPLE MATERIAL: interpret a value of r; find and use the regression line to predict; comment on reliability.
+COMMON MISTAKES: extrapolating; predicting x from the y-on-x line.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Discrete Random Variables": `EDEXCEL IAL MATHS S1 (WST01) — DISCRETE RANDOM VARIABLES.
+- A probability distribution: sum of probabilities = 1. Expectation E(X) = sum of x P(X=x). Variance Var(X) = E(X^2) - [E(X)]^2. E(aX + b) = a E(X) + b; Var(aX + b) = a^2 Var(X). Cumulative distribution function.
+WORKED-EXAMPLE MATERIAL: find a missing probability, then E(X) and Var(X); apply E(aX+b)/Var(aX+b).
+COMMON MISTAKES: forgetting to subtract the mean squared in variance; sign of b in Var(aX+b) (it drops out).
+REACTIONS: empty. GRAPHS: empty.`,
+        "The Normal Distribution": `EDEXCEL IAL MATHS S1 (WST01) — THE NORMAL DISTRIBUTION.
+- X ~ N(mu, sigma^2): symmetric, bell-shaped. Standardise with Z = (X - mu)/sigma and use the normal tables to find probabilities. Inverse problems: given a probability, find the value (or find mu/sigma from given probabilities using simultaneous equations).
+WORKED-EXAMPLE MATERIAL: find P(X < a); find the value exceeded by 10%; find mu and sigma from two probability statements.
+COMMON MISTAKES: not standardising; reading the table the wrong side (use 1 - phi for upper tails).
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+      unit8: {
+        "The Binomial and Poisson Distributions": `EDEXCEL IAL MATHS S2 (WST02) — BINOMIAL AND POISSON.
+- BINOMIAL B(n, p): conditions (fixed n, two outcomes, constant p, independent trials); P(X=x) = nCx p^x (1-p)^(n-x); mean = np, variance = np(1-p). Use cumulative tables.
+- POISSON Po(lambda): for events at a constant average rate; P(X=x) = e^(-lambda) lambda^x / x!; mean = variance = lambda; sums of independent Poissons add. Poisson approximates the binomial when n is large and p is small (lambda = np).
+WORKED-EXAMPLE MATERIAL: a binomial probability with tables; a Poisson probability; use the Poisson approximation to a binomial.
+COMMON MISTAKES: checking binomial conditions; mean vs variance of Poisson; cumulative vs exact from tables.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Continuous Random Variables": `EDEXCEL IAL MATHS S2 (WST02) — CONTINUOUS RANDOM VARIABLES.
+- Probability density function f(x): f(x) >= 0 and the integral over all x = 1; P(a < X < b) = integral of f from a to b. Cumulative distribution function F(x) = integral of f up to x (and f = F'). E(X) = integral of x f(x); Var(X) = integral of x^2 f(x) - [E(X)]^2; median (F = 0.5) and mode (max of f).
+WORKED-EXAMPLE MATERIAL: find the constant k so f is a valid pdf; find F(x), the median, E(X) and Var(X).
+COMMON MISTAKES: limits of integration; forgetting f integrates to 1.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Continuous Distributions": `EDEXCEL IAL MATHS S2 (WST02) — CONTINUOUS UNIFORM DISTRIBUTION.
+- Continuous uniform (rectangular) distribution on [a, b]: f(x) = 1/(b-a); mean = (a+b)/2; variance = (b-a)^2 / 12; probabilities are proportional to length.
+WORKED-EXAMPLE MATERIAL: probability, mean and variance for a continuous uniform distribution.
+REACTIONS: empty. GRAPHS: empty.`,
+        "Hypothesis Tests": `EDEXCEL IAL MATHS S2 (WST02) — HYPOTHESIS TESTS.
+- State the null hypothesis H0 and alternative H1; choose one- or two-tailed and a significance level. Compute the probability of the observed (or more extreme) result under H0, or use a critical region. Compare with the significance level and CONCLUDE in context (reject or do not reject H0). Tests for a binomial proportion p and for a Poisson mean lambda.
+WORKED-EXAMPLE MATERIAL: a one-tailed test on a binomial p (find the critical region or p-value, then conclude in context); a Poisson-mean test.
+COMMON MISTAKES: one- vs two-tailed; concluding without context; comparing the wrong tail probability.
+REACTIONS: empty. GRAPHS: empty.`,
+      },
+    },
   },
 };
 

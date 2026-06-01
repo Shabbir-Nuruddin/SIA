@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { PrestigeBadge } from "@/components/game/PrestigeBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
@@ -159,10 +160,11 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
       <div className="mt-1 pt-3 border-t border-sidebar-border/60 space-y-2 shrink-0">
         <div className="px-1 flex items-center gap-3">
           <div
-            className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
+            className="relative h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
             style={{ backgroundImage: "linear-gradient(135deg, hsl(160 65% 35%), hsl(160 70% 45%))" }}
           >
             {initials}
+            <PrestigeBadge className="absolute -bottom-1 -right-1" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-display text-base leading-none truncate text-foreground">{first} {last}</div>
