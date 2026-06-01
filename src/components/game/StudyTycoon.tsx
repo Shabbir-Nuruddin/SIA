@@ -122,14 +122,20 @@ function Leaderboard({ game }: { game: GameId }) {
   );
 }
 
-// Animated, colourful arena background (not one flat colour).
+// Animated, colourful arena background — gradient mesh + rotating light rays +
+// drifting blobs + rising study particles, so it reads as a living game scene.
+const ARENA_PARTICLES = ["📚", "✏️", "🧪", "📐", "⚗️", "🧬", "📝", "🔬", "✨", "💡"];
 function Arena({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative h-56 mb-3 rounded-2xl overflow-hidden border border-white/10" style={{ background: "#0d0b1a" }}>
       <div className="mmr-bg absolute inset-0" />
+      <div className="mmr-rays absolute left-1/2 top-1/2 h-[160%] w-[160%]" />
       <div className="mmr-blob absolute h-40 w-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(99,102,241,0.55), transparent 70%)", top: "-20%", left: "5%", animationDelay: "0s" }} />
       <div className="mmr-blob absolute h-44 w-44 rounded-full" style={{ background: "radial-gradient(circle, rgba(236,72,153,0.5), transparent 70%)", bottom: "-25%", right: "8%", animationDelay: "-4s" }} />
       <div className="mmr-blob absolute h-36 w-36 rounded-full" style={{ background: "radial-gradient(circle, rgba(20,184,166,0.45), transparent 70%)", top: "30%", right: "30%", animationDelay: "-8s" }} />
+      {ARENA_PARTICLES.map((e, i) => (
+        <span key={i} className="mmr-particle absolute text-base" style={{ left: `${6 + i * 9}%`, bottom: "-10%", animationDelay: `${i * 1.1}s`, animationDuration: `${7 + (i % 4) * 2}s` }}>{e}</span>
+      ))}
       <div className="relative z-[1] h-full">{children}</div>
     </div>
   );
@@ -181,7 +187,9 @@ function TycoonMode({ compact }: { compact: boolean }) {
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(() => { const t = setTimeout(() => saveState(state), 400); return () => clearTimeout(t); }, [state]);
+  // Persist on EVERY change (not debounced) so closing the modal can never lose
+  // progress — this was the "my game resets" bug.
+  useEffect(() => { saveState(state); }, [state]);
   useEffect(() => {
     const id = setInterval(() => submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"), 20000);
     return () => { clearInterval(id); saveState(stateRef.current); submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"); };
@@ -386,8 +394,12 @@ const GAME_CSS = `
 @keyframes mmrBlob{0%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-16px) scale(1.15)}100%{transform:translate(0,0) scale(1)}}
 @keyframes mmrGoldenMove{0%{left:-12%;top:8%}100%{left:108%;top:22%}}
 @keyframes mmrZap{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.12) rotate(4deg)}}
-.mmr-bg{background:linear-gradient(120deg,#6366f1,#ec4899,#8b5cf6,#14b8a6,#6366f1);background-size:300% 300%;animation:mmrBgShift 14s ease infinite;opacity:.32;filter:saturate(1.2)}
+.mmr-bg{background:linear-gradient(120deg,#6366f1,#ec4899,#8b5cf6,#14b8a6,#6366f1);background-size:300% 300%;animation:mmrBgShift 14s ease infinite;opacity:.34;filter:saturate(1.25)}
 .mmr-blob{filter:blur(8px);animation:mmrBlob 9s ease-in-out infinite}
+.mmr-rays{transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,0.06) 0deg 5deg,transparent 5deg 16deg);animation:mmrSpin 26s linear infinite;opacity:.5;pointer-events:none}
+@keyframes mmrSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.mmr-particle{opacity:0;animation-name:mmrRise;animation-timing-function:linear;animation-iteration-count:infinite;filter:drop-shadow(0 0 4px rgba(255,255,255,0.25))}
+@keyframes mmrRise{0%{transform:translateY(0) rotate(0deg);opacity:0}12%{opacity:.55}88%{opacity:.55}100%{transform:translateY(-230px) rotate(35deg);opacity:0}}
 .mmr-marks{background:linear-gradient(90deg,hsl(var(--primary)),hsl(var(--accent)));-webkit-background-clip:text;background-clip:text;color:transparent}
 .mmr-orb{background:radial-gradient(circle at 32% 28%,#fff7,transparent 38%),linear-gradient(145deg,hsl(var(--primary)),hsl(var(--accent)));box-shadow:0 12px 36px hsl(var(--primary)/0.55),inset 0 -8px 18px rgba(0,0,0,0.25);transition:transform .08s}
 .mmr-orb:hover{transform:scale(1.06)}

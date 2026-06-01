@@ -3,6 +3,7 @@ import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { confirmDialog } from "@/components/ui/confirm";
 import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw, Rocket, Users, BarChart3, Search, UserX } from "lucide-react";
@@ -40,7 +41,7 @@ const Admin = () => {
   };
 
   const deleteUser = async (u: AdminUser) => {
-    if (!confirm(`HARD DELETE ${u.email || u.id}?\n\nThis removes their account and ALL their data (roadmap, mocks, notes, progress). Cannot be undone.`)) return;
+    if (!(await confirmDialog({ title: `Hard delete ${u.email || u.id}?`, description: "This removes their account and ALL their data (roadmap, mocks, notes, progress). Cannot be undone.", confirmText: "Delete user", destructive: true }))) return;
     setDeletingUserId(u.id);
     try {
       const { data, error } = await supabase.functions.invoke("admin-delete-user", { body: { user_id: u.id } });
@@ -54,7 +55,7 @@ const Admin = () => {
   };
 
   const redeployAll = async () => {
-    if (!confirm("Warm & health-check ALL edge functions? This pings every function with a no-op so cold instances spin up.")) return;
+    if (!(await confirmDialog({ title: "Warm & health-check all edge functions?", description: "This pings every function with a no-op so cold instances spin up.", confirmText: "Run" }))) return;
     setBusy("redeploy");
     setRedeployResult(null);
     try {
@@ -96,7 +97,7 @@ const Admin = () => {
   if (!user || !isAdminEmail(user.email)) return <Navigate to="/dashboard" replace />;
 
   const clearCache = async (target: "notes" | "faq" | "questions") => {
-    if (!confirm(`Clear ALL ${target} cache? This cannot be undone.`)) return;
+    if (!(await confirmDialog({ title: `Clear all ${target} cache?`, description: "This cannot be undone.", confirmText: "Clear cache", destructive: true }))) return;
     setBusy(`clear-${target}`);
     try {
       const { data, error } = await supabase.functions.invoke("admin-cache-clear", { body: { target } });

@@ -9,6 +9,7 @@ import {
   startPomodoro,
   stopPomodoro,
 } from "@/lib/pomodoro";
+import { confirmDialog } from "@/components/ui/confirm";
 
 // Floating Pomodoro pill — always visible (except active mock exam).
 // When idle, shows a compact "Start focus" pill. When running, shows countdown.
@@ -138,7 +139,7 @@ export const PomodoroPill = () => {
         {state.paused ? <Play className="h-3.5 w-3.5" fill="currentColor" /> : <Pause className="h-3.5 w-3.5" fill="currentColor" />}
       </button>
       <button
-        onClick={() => { if (confirm("End this session?")) stopPomodoro(); }}
+        onClick={async () => { if (await confirmDialog({ title: "End this focus session?", description: "Your timer will stop and reset.", confirmText: "End session", destructive: true })) stopPomodoro(); }}
         className="p-1 rounded-full hover:bg-white/20 transition"
         aria-label="End"
       >

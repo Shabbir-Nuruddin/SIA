@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { confirmDialog } from "@/components/ui/confirm";
 import { toast } from "sonner";
 import { format, parseISO, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -103,7 +104,7 @@ export default function RoadmapCalendar() {
   }, [eventsByDate]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this session?")) return;
+    if (!(await confirmDialog({ title: "Delete this session?", confirmText: "Delete", destructive: true }))) return;
     const { error } = await supabase.from("roadmap_nodes").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Deleted");

@@ -13,6 +13,7 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { confirmDialog } from "@/components/ui/confirm";
 import { Input } from "@/components/ui/input";
 import { SUBJECTS, SubjectCode } from "@/lib/subjects";
 import { ROADMAP_TOPICS } from "@/lib/roadmapTopics";
@@ -153,7 +154,7 @@ export const RoadmapWorkspace = ({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this session?")) return;
+    if (!(await confirmDialog({ title: "Delete this session?", confirmText: "Delete", destructive: true }))) return;
     const { error } = await supabase.from("roadmap_nodes").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     await onReload();

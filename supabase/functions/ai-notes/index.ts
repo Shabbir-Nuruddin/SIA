@@ -304,45 +304,6 @@ const notesTool = {
             additionalProperties: false,
           },
         },
-        graphs: {
-          type: "array",
-          description:
-            "Graphs to PLOT — include ONLY where a graph is genuinely part of this topic and aids understanding (maths: function/curve shapes, transformations; physics: radioactive decay N=N₀e^(−λt), capacitor discharge, SHM displacement-time, stress-strain, I–V characteristics, velocity-time, photoelectric, cooling curves). " +
-            "You MUST provide REAL, correctly-computed (x,y) data points that trace the actual curve (10–40 points sampled across a sensible domain) so the rendered graph is accurate — never random. Use a SECOND curve only for genuine comparisons (e.g. ohmic vs filament I–V). Leave as an empty array [] for topics where a graph is not relevant (most chemistry/biology theory). Max 3 graphs.",
-          maxItems: 3,
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string", description: "Short graph title, e.g. 'Radioactive decay of a sample'." },
-              x_label: { type: "string", description: "X-axis label with unit, e.g. 'Time / s'." },
-              y_label: { type: "string", description: "Y-axis label with unit, e.g. 'Activity / Bq'." },
-              curves: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    label: { type: "string", description: "Curve label (for the legend); empty if only one curve." },
-                    points: {
-                      type: "array",
-                      description: "Ordered (x,y) points tracing the curve — 10 to 40 points across the domain.",
-                      items: {
-                        type: "object",
-                        properties: { x: { type: "number" }, y: { type: "number" } },
-                        required: ["x", "y"],
-                        additionalProperties: false,
-                      },
-                    },
-                  },
-                  required: ["label", "points"],
-                  additionalProperties: false,
-                },
-              },
-              caption: { type: "string", description: "One-line note on what the shape/gradient/intercept means for the exam." },
-            },
-            required: ["title", "x_label", "y_label", "curves", "caption"],
-            additionalProperties: false,
-          },
-        },
         examiner_tips: {
           type: "array",
           minItems: 5,
@@ -517,7 +478,6 @@ OUTPUT STYLE RULES (non-negotiable — apply to every field):
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
 - For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.
-- Graphs: populate "graphs" whenever a graph is genuinely part of THIS topic — CHEMISTRY topics often have one, so do not skip them. Graph these when relevant: Maxwell–Boltzmann distribution (x = molecular energy, y = fraction of molecules; mark Ea; for "effect of temperature" give TWO curves — higher T is lower and shifted right; for catalyst show Ea moved left); reaction profile / energy-level diagram (x = reaction progress, y = energy; show Ea, and a second lower-Ea curve for a catalyst); concentration–time and rate–concentration curves; titration / pH curves; Boltzmann; plus physics/maths curves (radioactive decay, capacitor discharge, SHM, stress–strain, I–V, velocity–time, function shapes). Provide REAL computed (x,y) points (10–40) that actually trace the curve — the app renders a proper chart, so NEVER describe a graph in prose and NEVER output an image. Use [] only when no graph genuinely applies.
 - Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.
 ${referenceTableInstructions}`;
 

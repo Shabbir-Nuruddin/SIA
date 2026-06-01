@@ -599,7 +599,8 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} expandAll={isLong} /> });
     if (notes.reactions?.length) out.push({ id: "reactions", title: "Reactions", icon: <FlaskConical className="h-5 w-5" />, content: <ReactionsSection reactions={notes.reactions} formatHtml={formatHtml} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
-    if (notes.graphs?.length) out.push({ id: "graphs", title: "Graphs", icon: <Sigma className="h-5 w-5" />, content: <GraphsSection graphs={notes.graphs} /> });
+    // Graphs removed: AI-generated graph data was inaccurate. Re-enable only with
+    // expert-authored graph data per topic. (GraphsSection kept but not rendered.)
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
     if (notes.reference_tables?.length) out.push({ id: "ref", title: "Quick Reference", icon: <Eye className="h-5 w-5" />, content: <ReferenceTablesSection tables={notes.reference_tables} /> });
