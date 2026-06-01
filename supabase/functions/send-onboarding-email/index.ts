@@ -173,6 +173,19 @@ async function sendOne(supabase: any, row: any) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Require service-role JWT — this endpoint is only callable by trusted
+  // server-side callers (cron / other edge functions). It must never be
+  // triggerable by anonymous or end-user requests.
+  const authHeader = req.headers.get("Authorization") || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  if (!token || token !== serviceRoleKey) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   if (!RESEND_API_KEY) {
     return new Response(JSON.stringify({ error: "RESEND_API_KEY missing" }), {
       status: 500,
@@ -182,7 +195,7 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    serviceRoleKey
   );
 
   try {
