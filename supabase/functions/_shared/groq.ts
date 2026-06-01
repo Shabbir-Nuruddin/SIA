@@ -1,19 +1,24 @@
 const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
 
+// Ordered most-capable first. Notes generation emits a large strict-schema JSON
+// payload; small 8B/9B models truncate or malform it, so they must not be tried
+// before the bigger models that can actually complete the structured output.
 const TEXT_MODELS = [
+  "llama-3.3-70b-versatile",
+  "meta-llama/llama-4-maverick-17b-128e-instruct",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
   "llama-3.1-8b-instant",
   "gemma2-9b-it",
   "llama3-8b-8192",
-  "llama-3.3-70b-versatile",
-  "meta-llama/llama-4-scout-17b-16e-instruct",
-  "meta-llama/llama-4-maverick-17b-128e-instruct",
 ];
 
 const VISION_MODELS = [
-  "meta-llama/llama-4-scout-17b-16e-instruct",
   "meta-llama/llama-4-maverick-17b-128e-instruct",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
   ...TEXT_MODELS,
 ];
+
+const REQUEST_TIMEOUT_MS = 60_000;
 
 const tryParseJson = (s: string) => {
   try {
@@ -65,6 +70,8 @@ export async function callGroqTool({
 
   for (const model of models) {
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
       try {
         const res = await fetch(GATEWAY, {
           method: "POST",
@@ -77,6 +84,7 @@ export async function callGroqTool({
             temperature,
             max_tokens: maxTokens,
           }),
+          signal: ctrl.signal,
         });
 
         const body = await res.text();
@@ -101,10 +109,13 @@ export async function callGroqTool({
         if (parsed) return parsed;
         console.error("groq no parseable tool output", { model, attempt, body: body.slice(0, 700) });
       } catch (err) {
-        console.error("groq fetch error", { model, attempt, error: err instanceof Error ? err.message : err });
-        lastStatus = 500;
-        lastBody = err instanceof Error ? err.message : String(err);
+        const aborted = err instanceof DOMException && err.name === "AbortError";
+        console.error("groq fetch error", { model, attempt, error: aborted ? "timeout" : (err instanceof Error ? err.message : err) });
+        lastStatus = aborted ? 504 : 500;
+        lastBody = aborted ? `request timed out after ${REQUEST_TIMEOUT_MS}ms` : (err instanceof Error ? err.message : String(err));
         continue;
+      } finally {
+        clearTimeout(timer);
       }
     }
   }

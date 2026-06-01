@@ -1440,8 +1440,13 @@ const LearnNodeFlow = ({ node, onClose, onComplete, initialStage = "notes" }: { 
           }
         }
 
+        // Pass the user's exam board so the edge function routes to the correct
+        // syllabus prompt (omitting it previously 500'd on board.toUpperCase()).
+        const { data: prof } = await supabase.from("profiles").select("exam_board").eq("id", user.id).single();
+        const board: "edexcel-ial" | "cie" = prof?.exam_board === "cie" ? "cie" : "edexcel-ial";
+
         const { data, error } = await supabase.functions.invoke("ai-notes", {
-          body: { subject: node.subject, unit_number: node.unit_number, unit_name: node.unit_name, topic: node.topic_name, syllabus_context },
+          body: { subject: node.subject, unit_number: node.unit_number, unit_name: node.unit_name, unit_code: node.unit_code, topic: node.topic_name, syllabus_context, board },
         });
         if (error) throw error;
         if ((data as any)?.error) throw new Error((data as any).error);

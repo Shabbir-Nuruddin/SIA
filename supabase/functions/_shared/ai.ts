@@ -85,12 +85,18 @@ const isQuotaError = (status: number, body: string) => {
   return low.includes("quota") || low.includes("rate limit") || low.includes("exceeded");
 };
 
+// Per-request wall-clock budget. A single hung upstream call must not stall the
+// whole rotation (and trip Supabase's function timeout).
+const REQUEST_TIMEOUT_MS = 60_000;
+
 async function callGeminiOnce({
   apiKey, model, messages, tools, toolName, temperature, maxTokens,
 }: {
   apiKey: string; model: string; messages: any[]; tools: any[]; toolName: string;
   temperature: number; maxTokens: number;
 }): Promise<{ ok: true; parsed: any } | { ok: false; status: number; body: string }> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
   try {
     const res = await fetch(GEMINI_URL, {
       method: "POST",
@@ -100,16 +106,31 @@ async function callGeminiOnce({
         tool_choice: { type: "function", function: { name: toolName } },
         temperature, max_tokens: maxTokens,
       }),
+      signal: ctrl.signal,
     });
     const body = await res.text();
     if (!res.ok) return { ok: false, status: res.status, body };
     const data = tryParseJson(body);
+    const finishReason = data?.choices?.[0]?.finish_reason;
     const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const parsed = typeof args === "string" ? recoverArgs(args) : null;
     if (parsed) return { ok: true, parsed };
+    // A "length" finish_reason means the model ran out of output budget and the
+    // tool JSON is truncated/unparseable — that is NOT a quota problem, so flag
+    // it distinctly (status 502) and let the caller try a different model.
+    if (finishReason === "length" || finishReason === "max_tokens") {
+      return { ok: false, status: 502, body: `truncated output (finish_reason=${finishReason})` };
+    }
     return { ok: false, status: 502, body: "no parseable tool output: " + body.slice(0, 300) };
   } catch (err) {
-    return { ok: false, status: 0, body: err instanceof Error ? err.message : String(err) };
+    const aborted = err instanceof DOMException && err.name === "AbortError";
+    return {
+      ok: false,
+      status: aborted ? 504 : 0,
+      body: aborted ? `request timed out after ${REQUEST_TIMEOUT_MS}ms` : (err instanceof Error ? err.message : String(err)),
+    };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
