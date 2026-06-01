@@ -14,7 +14,7 @@ type Mode = "tycoon" | "cps";
 type UpKind = "auto" | "click";
 // `effect` upgrades add a visual/audio distraction to the arena (Stimulation-Clicker
 // style) as well as earning marks. "dvd" is special — it earns marks PER BOUNCE.
-type FX = "dvd" | "disco" | "rain" | "news" | "lofi";
+type FX = "dvd" | "disco" | "rain" | "news" | "lofi" | "press" | "pet";
 interface Upgrade { id: string; name: string; emoji: string; baseCost: number; kind: UpKind; rate: number; desc: string; fx?: FX; }
 
 // Whole-number rates so early upgrades feel real. Ordered by cost; distraction
@@ -31,6 +31,8 @@ const UPGRADES: Upgrade[] = [
   { id: "pastpaper",  name: "Past Papers",   emoji: "📄", baseCost: 14_000,     kind: "auto",  rate: 120,    desc: "Predict the exam." },
   { id: "news",       name: "Breaking News", emoji: "📰", baseCost: 30_000,     kind: "auto",  rate: 220,    desc: "A 24/7 study-news ticker.", fx: "news" },
   { id: "lofi",       name: "Lo-fi Beats",   emoji: "🎧", baseCost: 60_000,     kind: "auto",  rate: 380,    desc: "Chill beats to grind to.", fx: "lofi" },
+  { id: "press",      name: "Hydraulic Press", emoji: "🗜️", baseCost: 90_000,   kind: "auto",  rate: 500,    desc: "Smash it for a burst of marks!", fx: "press" },
+  { id: "pet",        name: "Study Owl",     emoji: "🦉", baseCost: 280_000,    kind: "auto",  rate: 1_600,  desc: "A wise owl hoots you on.", fx: "pet" },
   { id: "buddy",      name: "Study Buddy",   emoji: "🤝", baseCost: 150_000,    kind: "auto",  rate: 600,    desc: "Keeps you accountable." },
   { id: "tutor",      name: "Private Tutor", emoji: "👩‍🏫", baseCost: 1_600_000,  kind: "auto",  rate: 3_200,  desc: "On permanent retainer." },
   { id: "allnighter", name: "All-Nighter",   emoji: "🌙", baseCost: 22_000_000, kind: "auto",  rate: 16_000, desc: "Sleep is for after exams." },
@@ -291,6 +293,11 @@ function TycoonMode({ compact }: { compact: boolean }) {
   const spb = Math.max(1, Math.round(dvdCount * 3 * degreeMult)); // marks per DVD bounce
   const dvdSpeed = 1 + dvdCount * 0.25;
   const onBounce = () => setState((p) => ({ ...p, marks: p.marks + spb, totalEarned: p.totalEarned + spb }));
+  const pressBurst = () => {
+    const amt = Math.max(10, Math.round(auto * 2));
+    setState((p) => ({ ...p, marks: p.marks + amt, totalEarned: p.totalEarned + amt }));
+    sfx.bounce();
+  };
   const [mute, setMute] = useState(isMuted());
   const toggleMute = () => { const m = !mute; setMute(m); setMuted(m); };
   const [achCount, setAchCount] = useState(() => { try { return (JSON.parse(localStorage.getItem(ACH_KEY) || "[]") as string[]).length; } catch { return 0; } });
@@ -350,6 +357,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
           {owns("disco") && <div className="mmr-disco absolute inset-0 z-0 pointer-events-none" />}
           {owns("rain") && <RainLayer />}
           {owns("lofi") && <LofiNotes />}
+          {owns("pet") && <StudyOwl />}
+          {owns("press") && <HydraulicPress onPress={pressBurst} />}
           {dvdCount > 0 && <BouncingDVD speed={dvdSpeed} onBounce={onBounce} />}
           <button onClick={toggleMute} className="absolute top-2 right-2 z-40 h-7 w-7 grid place-items-center rounded-full bg-black/30 text-white/80 hover:text-white" title={mute ? "Unmute" : "Mute"}>
             {mute ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -584,6 +593,23 @@ function NewsTicker() {
   );
 }
 
+function HydraulicPress({ onPress }: { onPress: () => void }) {
+  const [squish, setSquish] = useState(false);
+  const press = (e: React.MouseEvent) => { e.stopPropagation(); setSquish(true); setTimeout(() => setSquish(false), 160); onPress(); };
+  return (
+    <button onClick={press} className="absolute top-2 left-2 z-30 flex flex-col items-center text-white/90 hover:scale-105 transition" title="Smash the press for a burst!">
+      <span className={`text-lg leading-none transition-transform ${squish ? "translate-y-1" : ""}`}>🗜️</span>
+      <span className="text-[8px] font-bold uppercase tracking-wide bg-black/40 px-1 rounded">smash</span>
+    </button>
+  );
+}
+
+function StudyOwl() {
+  return (
+    <div className="mmr-owl absolute bottom-6 z-20 text-xl pointer-events-none" style={{ left: 0 }}>🦉</div>
+  );
+}
+
 const GAME_CSS = `
 @keyframes mmrFloatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-56px) scale(1.35)}}
 @keyframes mmrBgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
@@ -613,4 +639,6 @@ const GAME_CSS = `
 @keyframes mmrRain{0%{transform:translateY(0);opacity:0}10%{opacity:.8}100%{transform:translateY(260px);opacity:0}}
 .mmr-ticker{display:inline-block;padding-left:100%;animation:mmrTicker 14s linear infinite}
 @keyframes mmrTicker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.mmr-owl{animation:mmrOwl 9s ease-in-out infinite}
+@keyframes mmrOwl{0%{transform:translateX(8px) scaleX(1)}48%{transform:translateX(280px) scaleX(1)}50%{transform:translateX(280px) scaleX(-1)}98%{transform:translateX(8px) scaleX(-1)}100%{transform:translateX(8px) scaleX(1)}}
 `;
