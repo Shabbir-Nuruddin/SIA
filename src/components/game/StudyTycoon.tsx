@@ -326,7 +326,7 @@ function CpsMode() {
       if (left <= 0) {
         clearInterval(id); setRunning(false);
         const final = clicksRef.current; setLast(final);
-        submitScore(localStorage.getItem(NAME_KEY) || "You", final, "cps_test");
+        submitScore("", final, "cps_test");
         setBest(getPersonalBest("cps_test"));
       }
     }, 50);
