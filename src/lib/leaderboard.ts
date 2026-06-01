@@ -145,7 +145,10 @@ export async function submitScore(_unusedName: string, score: number, game: Game
   try {
     const userId = await getCurrentUserId();
     if (!userId) return; // not signed in — local PB only
-    const name = await getDisplayNameForUser(userId);
+    const full = await getDisplayNameForUser(userId);
+    // Use the first word of the profile name so leaderboard stays single-word.
+    const name = full.split(/\s+/)[0].slice(0, 24);
+    if (!isCleanName(name)) return;
     await (supabase as any).from("game_scores").insert({
       user_id: userId,
       player_name: name,
