@@ -14,27 +14,28 @@ export interface ScoreRow {
   you?: boolean;    // the current player's row
 }
 
-const GAME = "revision_runner";
-const PB_KEY = "mmr_game_pb_revision_runner";
+const GAME = "study_tycoon";
+const PB_KEY = "mmr_game_pb_study_tycoon";
 
-// Seeded "house" scores — beatable but high enough to grind toward, and they make
-// the board look alive from day one. Tuned to the runner's scoring (~10 pts/sec).
+// Seeded "house" scores (lifetime marks earned). Big enough to feel aspirational,
+// spaced so a keen player passes the lower ranks in a few breaks and grinds toward
+// the top — and they make the board look alive from day one.
 const SEED_SCORES: ScoreRow[] = [
-  { name: "Aarav S.",  score: 924, seeded: true },
-  { name: "Priya M.",  score: 871, seeded: true },
-  { name: "Zainab K.", score: 818, seeded: true },
-  { name: "Daniel O.", score: 779, seeded: true },
-  { name: "Mei L.",    score: 742, seeded: true },
-  { name: "Tomás R.",  score: 706, seeded: true },
-  { name: "Fatima A.", score: 663, seeded: true },
-  { name: "Liam B.",   score: 624, seeded: true },
-  { name: "Sofia G.",  score: 587, seeded: true },
-  { name: "Arjun P.",  score: 541, seeded: true },
-  { name: "Chloe W.",  score: 503, seeded: true },
-  { name: "Yusuf H.",  score: 458, seeded: true },
-  { name: "Ananya D.", score: 414, seeded: true },
-  { name: "Noah T.",   score: 369, seeded: true },
-  { name: "Emma C.",   score: 322, seeded: true },
+  { name: "Aarav S.",  score: 2_480_000, seeded: true },
+  { name: "Priya M.",  score: 1_650_000, seeded: true },
+  { name: "Zainab K.", score: 940_000,   seeded: true },
+  { name: "Daniel O.", score: 612_000,   seeded: true },
+  { name: "Mei L.",    score: 388_000,   seeded: true },
+  { name: "Tomás R.",  score: 245_000,   seeded: true },
+  { name: "Fatima A.", score: 168_000,   seeded: true },
+  { name: "Liam B.",   score: 112_000,   seeded: true },
+  { name: "Sofia G.",  score: 74_500,    seeded: true },
+  { name: "Arjun P.",  score: 48_200,    seeded: true },
+  { name: "Chloe W.",  score: 31_900,    seeded: true },
+  { name: "Yusuf H.",  score: 19_400,    seeded: true },
+  { name: "Ananya D.", score: 12_100,    seeded: true },
+  { name: "Noah T.",   score: 7_350,     seeded: true },
+  { name: "Emma C.",   score: 3_900,     seeded: true },
 ];
 
 export function getPersonalBest(): number {
