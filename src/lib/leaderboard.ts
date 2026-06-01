@@ -45,6 +45,54 @@ async function getDisplayNameForUser(userId: string): Promise<string> {
   return "Player";
 }
 
+// Seeded "house" players so the board is never empty. Single-word Arab names.
+const SEED_TYCOON: { name: string; score: number }[] = [
+  { name: "Hamza", score: 2_480_000 },
+  { name: "Mahmood", score: 1_650_000 },
+  { name: "Hamdan", score: 940_000 },
+  { name: "Yusuf", score: 612_000 },
+  { name: "Khalid", score: 388_000 },
+  { name: "Omar", score: 245_000 },
+  { name: "Faisal", score: 168_000 },
+  { name: "Zayd", score: 112_000 },
+  { name: "Saif", score: 74_500 },
+  { name: "Tariq", score: 48_200 },
+  { name: "Bilal", score: 31_900 },
+  { name: "Rayan", score: 19_400 },
+  { name: "Ammar", score: 12_100 },
+  { name: "Nasser", score: 7_350 },
+  { name: "Idris", score: 3_900 },
+];
+const SEED_CPS: { name: string; score: number }[] = [
+  { name: "Hamza", score: 67 },
+  { name: "Mahmood", score: 61 },
+  { name: "Hamdan", score: 58 },
+  { name: "Kareem", score: 54 },
+  { name: "Anas", score: 51 },
+  { name: "Jamal", score: 48 },
+  { name: "Sami", score: 45 },
+  { name: "Hassan", score: 42 },
+  { name: "Rashid", score: 39 },
+  { name: "Adel", score: 36 },
+  { name: "Marwan", score: 33 },
+  { name: "Fahad", score: 30 },
+  { name: "Munir", score: 27 },
+  { name: "Salem", score: 24 },
+  { name: "Iyad", score: 21 },
+];
+const seedsFor = (g: GameId) => g === "cps_test" ? SEED_CPS : SEED_TYCOON;
+
+// Strip junk leaderboard names: "You"/"Player" placeholders or anything that
+// isn't a single word (multi-word entries look like full names — hide them).
+function isCleanName(raw: string): boolean {
+  const n = (raw || "").trim();
+  if (!n) return false;
+  if (/^you$/i.test(n)) return false;
+  if (/^player$/i.test(n)) return false;
+  if (/\s/.test(n)) return false; // must be one word
+  return true;
+}
+
 export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"): Promise<ScoreRow[]> {
   const meId = await getCurrentUserId();
 
@@ -57,13 +105,15 @@ export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"):
       .order("score", { ascending: false })
       .limit(500);
     if (!error && Array.isArray(data)) {
-      rows = data.map((r: any) => ({
-        user_id: r.user_id ?? null,
-        player_name: String(r.player_name || "Player"),
-        score: Number(r.score) || 0,
-      }));
+      rows = data
+        .filter((r: any) => isCleanName(String(r.player_name || "")))
+        .map((r: any) => ({
+          user_id: r.user_id ?? null,
+          player_name: String(r.player_name).trim(),
+          score: Number(r.score) || 0,
+        }));
     }
-  } catch { /* table missing — return empty */ }
+  } catch { /* table missing — seeds only */ }
 
   // Deduplicate: one row per user_id (highest score wins). Anonymous rows
   // (no user_id) dedupe by name. Same name from two different users is kept
@@ -80,6 +130,12 @@ export async function getLeaderboard(limit = 15, game: GameId = "study_tycoon"):
     score: r.score,
     you: !!(meId && r.user_id === meId),
   }));
+
+  // Merge in seeds — real scores still win on a tie because they were inserted first.
+  const seenNames = new Set(merged.map((r) => r.name.toLowerCase()));
+  for (const s of seedsFor(game)) {
+    if (!seenNames.has(s.name.toLowerCase())) merged.push({ name: s.name, score: s.score });
+  }
 
   return merged.sort((a, b) => b.score - a.score).slice(0, limit);
 }
