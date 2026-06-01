@@ -179,8 +179,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
   // progress — this was the "my game resets" bug.
   useEffect(() => { saveState(state); }, [state]);
   useEffect(() => {
-    const id = setInterval(() => submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"), 20000);
-    return () => { clearInterval(id); saveState(stateRef.current); submitScore(localStorage.getItem(NAME_KEY) || "You", Math.floor(stateRef.current.totalEarned), "study_tycoon"); };
+    const id = setInterval(() => submitScore("", Math.floor(stateRef.current.totalEarned), "study_tycoon"), 20000);
+    return () => { clearInterval(id); saveState(stateRef.current); submitScore("", Math.floor(stateRef.current.totalEarned), "study_tycoon"); };
   }, []);
 
   const click = (e: React.PointerEvent) => {
