@@ -43,6 +43,7 @@ import { usePageTimeTracker } from "@/lib/progressTracker";
 
 interface KeyDef { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
 interface CoreItem { statement: string; worked_example: string; wrong_approach?: string; typical_marks?: number; }
+interface RxnItem { reaction: string; conditions?: string; observation?: string; type?: string; }
 interface EquationItem { equation: string; variables: { symbol: string; meaning: string; unit: string }[]; worked_substitution: string; }
 interface VisualSummary { kind: "table" | "flowchart" | "diagram"; caption: string; content: string; }
 interface TipItem { command_word: string; tip: string; }
@@ -53,6 +54,7 @@ interface NormalisedNotes {
   overview: string;
   key_definitions: KeyDef[];
   core_content: CoreItem[];
+  reactions: RxnItem[];
   equations: EquationItem[];
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
@@ -62,7 +64,7 @@ interface NormalisedNotes {
 
 const normaliseNotes = (raw: any): NormalisedNotes => {
   if (!raw || typeof raw !== "object") {
-    return { overview: "", key_definitions: [], core_content: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [], reference_tables: [] };
+    return { overview: "", key_definitions: [], core_content: [], reactions: [], equations: [], visual_summary: null, examiner_tips: [], flashcards: [], reference_tables: [] };
   }
   // Detect legacy shape
   const isLegacy = Array.isArray(raw.core_concepts) || (Array.isArray(raw.common_mistakes) && raw.common_mistakes.length);
@@ -110,6 +112,17 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
   // Legacy common_mistakes → tack onto core items as wrong_approach hints; or surface separately
   // We'll surface them as a synthesised section by reusing core_content entries when sparse.
 
+  const reactions: RxnItem[] = Array.isArray(raw.reactions)
+    ? raw.reactions
+        .filter((r: any) => r && (r.reaction || r.equation))
+        .map((r: any) => ({
+          reaction: String(r?.reaction ?? r?.equation ?? ""),
+          conditions: String(r?.conditions ?? ""),
+          observation: String(r?.observation ?? r?.colour_change ?? ""),
+          type: String(r?.type ?? ""),
+        }))
+    : [];
+
   const equations: EquationItem[] = Array.isArray(raw.equations)
     ? raw.equations.map((e: any) => ({
         equation: e?.equation ?? "",
@@ -152,14 +165,20 @@ const normaliseNotes = (raw: any): NormalisedNotes => {
     : [];
 
   return {
+    // Preserve the structured "## sub-topic" + "- bullet" overview verbatim.
+    // (The old code sentence-split this, which shredded the heading/bullet
+    // structure into fragments — the root cause of the vague "this unit
+    // contains…" reading.) Only tidy trailing whitespace and excess blank lines.
     overview: String(raw.overview ?? "")
-      .split(/\n\s*\n+|(?<=\.)\s+(?=[A-Z][a-z])/g)
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .slice(0, /math/i.test(String(raw.subject ?? "")) ? 2 : 7)
-      .join("\n\n"),
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .map((l) => l.replace(/[ \t]+$/g, ""))
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim(),
     key_definitions,
     core_content,
+    reactions,
     equations,
     visual_summary,
     examiner_tips,

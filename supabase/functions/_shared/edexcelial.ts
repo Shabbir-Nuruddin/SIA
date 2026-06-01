@@ -1436,12 +1436,15 @@ export function buildSystemPrompt(
 - Move all the depth into the "core_content" array: include AT LEAST 8 worked examples covering the different question types that come up in this topic. For each, set "statement" to the question, "worked_example" to the FULL step-by-step solution (every algebraic step, no skipping), and "wrong_approach" to a common student mistake.
 - Include AT LEAST 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
     : `### OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
-- Structure the overview as 3–5 sub-topics. For EACH sub-topic: write **Sub-Topic Name** on its own line as a bold heading, then 3–5 bullet points (starting with •) containing precise, exam-relevant facts.
-- Each bullet must be ONE complete, testable fact — not vague commentary.
-- Use → for sequences: "• Transcription → mRNA leaves nucleus → ribosomes → translation"
-- Use numbered steps for mechanisms: "• Step 1: ... Step 2: ... Step 3: ..."
-- Define key terms in-line the FIRST time they appear (e.g. "• Haemoglobin — a quaternary globular protein with 4 haem groups...")
-- NO flowing essay prose. NO "In this topic, we will...". NO padding. Every word must be testable.
+- The overview IS the main revision summary, not an introduction. Structure it as 4–7 sub-topics.
+- For EACH sub-topic write a heading line in the EXACT form "## Sub-Topic Name" (markdown H2), then 4–8 fact lines, each starting with "- ".
+- Each bullet = ONE complete, testable fact carrying real content (a value, a rule, a mechanism step, the reason WHY) — never vague commentary like "is important" or "will be covered".
+- Use → for sequences and observations: "- [Cu(H₂O)₆]²⁺ + 4NH₃ → [Cu(NH₃)₄(H₂O)₂]²⁺ (blue → deep blue)".
+- Use numbered steps for mechanisms: "- Step 1: ... Step 2: ... Step 3: ...".
+- Define key terms in-line the FIRST time they appear (e.g. "- Ligand — a species that donates a lone pair to a central metal ion (Lewis base)").
+- The overview MUST begin with the first "## " heading. NEVER write "In this unit", "This topic covers", or any preamble. NO essay prose, NO padding.
+- REACTIONS: when this unit involves chemical reactions, do not bury them in prose — put each balanced equation, its conditions, and the observed change into the "reactions" field. Cover every reaction on the spec (e.g. every transition metal with NaOH and NH₃; vanadium oxidation states; redox/organic conversions).
+- TECHNIQUES (e.g. mass spectrometry, NMR, IR, titrations): give a worked walkthrough in "core_content" showing exactly how to read/use the data to answer an exam question (M⁺ = highest m/z = Mr; n+1 splitting rule; IR functional-group ranges).
 - Tone: direct, exam-focused, like a ZNotes or PMT revision page. Condense, never expand unnecessarily.`;
 
   return `You are a world-class Edexcel IAL Subject Expert and Examiner. 
@@ -1475,7 +1478,7 @@ BOUNDARY RULES:
 - If a concept appears in both this unit and another unit at different depths, only include the version appropriate to THIS unit
 - Do not introduce concepts from later units even as "preview" or "context"
 - Every formula, definition, and diagram description must trace directly to the ALLOWED list
-- Structure: Overview → Definitions → Core Content → Equations → Examiner Tips → Flashcards
+- Structure: Overview (## sub-topics + bullets) → Definitions → Core Content (worked techniques) → Reactions → Equations → Reference Tables → Examiner Tips → Flashcards
 
 CORE CONTENT STRUCTURE RULES (non-negotiable):
 - Each "statement" must be ONE complete, testable exam fact — not a topic heading

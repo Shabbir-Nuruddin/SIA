@@ -44,13 +44,30 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 // --- HELPER UTILITIES ---
-const splitParagraphs = (s: string) =>
-  String(s || "")
-    .split(/\n\s*\n+|(?<=\.)\s+(?=[A-Z][a-z])/g)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-const paragraphiseOverview = (s: string) => splitParagraphs(s).slice(0, 7).join("\n\n");
+// Preserve the structured overview (## sub-topic headings + "- " fact bullets).
+// We deliberately do NOT sentence-split here: the old regex shredded the
+// heading/bullet structure into fragments, which is exactly what produced the
+// vague "this unit contains..." reading. We only tidy whitespace and strip any
+// throat-clearing intro line the model emits despite instructions.
+const cleanOverview = (s: string) => {
+  let text = String(s || "")
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.replace(/[ \t]+$/g, ""))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  // Drop a leading essay-style intro paragraph if it appears before the first
+  // "## " sub-topic heading (model ignored the no-preamble rule).
+  const firstHeading = text.indexOf("## ");
+  if (firstHeading > 0) {
+    const preamble = text.slice(0, firstHeading);
+    if (/^(in this|this (unit|topic|chapter)|here we|we will|overview)/i.test(preamble.trim())) {
+      text = text.slice(firstHeading).trim();
+    }
+  }
+  return text;
+};
 
 const isMathSubject = (subject: string) => /math/i.test(subject);
 
@@ -62,20 +79,30 @@ const normalizeMarks = (value: unknown): number => {
 
 const normaliseNotes = (args: any, subject: string) => {
   const stripped: any = deepStripLatex(args || {});
-  const overview = isMathSubject(subject)
-    ? splitParagraphs(stripped.overview || "").slice(0, 2).join("\n\n")
-    : paragraphiseOverview(stripped.overview || "");
+  const overview = cleanOverview(stripped.overview || "");
 
   return {
     overview,
     key_definitions: Array.isArray(stripped.key_definitions) ? stripped.key_definitions : [],
     core_content: Array.isArray(stripped.core_content)
-      ? stripped.core_content.map((c: any) => ({ ...c, typical_marks: normalizeMarks(c?.typical_marks) }))
+      ? stripped.core_content.slice(0, 12).map((c: any) => ({ ...c, typical_marks: normalizeMarks(c?.typical_marks) }))
+      : [],
+    reactions: Array.isArray(stripped.reactions)
+      ? stripped.reactions
+          .filter((r: any) => r && (r.reaction || r.equation))
+          .slice(0, 16)
+          .map((r: any) => ({
+            reaction: String(r.reaction ?? r.equation ?? ""),
+            conditions: String(r.conditions ?? ""),
+            observation: String(r.observation ?? r.colour_change ?? ""),
+            type: String(r.type ?? ""),
+          }))
       : [],
     equations: Array.isArray(stripped.equations) ? stripped.equations : [],
     visual_summary: null,
     examiner_tips: Array.isArray(stripped.examiner_tips) ? stripped.examiner_tips : [],
-    flashcards: Array.isArray(stripped.flashcards) ? stripped.flashcards.slice(0, 10) : [],
+    flashcards: Array.isArray(stripped.flashcards) ? stripped.flashcards.slice(0, 8) : [],
+    // NOTE: schema caps flashcards at 8; slice mirrors it as a safety net.
     reference_tables: Array.isArray(stripped.reference_tables)
       ? stripped.reference_tables.filter((t: any) => t?.title && Array.isArray(t?.headers) && Array.isArray(t?.rows))
       : [],
@@ -109,9 +136,11 @@ const buildCieAlevelPrompt = (subject: string, topicKey: string, specificTopic: 
 - Move all depth into "core_content": at least 8 worked examples covering different question types. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step, use \\n between steps), "wrong_approach" = a specific student mistake.
 - Include at least 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
     : `OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
-- Structure the overview as 3–5 sub-topics. For EACH sub-topic: write **Sub-Topic Name** on its own line as a bold heading, then 3–5 bullet points (starting with •) of precise, exam-relevant facts.
-- Each bullet = ONE complete, testable fact. Use → for sequences. Use numbered steps for mechanisms.
-- Define key terms in-line on first use. NO flowing essay prose. NO padding. Every word must be testable.
+- The overview IS the main revision summary, not an introduction. Structure it as 4–7 sub-topics.
+- For EACH sub-topic write a heading line in the EXACT form "## Sub-Topic Name" (markdown H2), then 4–8 fact lines each starting with "- ".
+- Each bullet = ONE complete, testable fact with real content (value, rule, mechanism step, the reason WHY). Use → for sequences/observations. Use numbered steps for mechanisms.
+- Define key terms in-line on first use. The overview MUST begin with the first "## " heading — NEVER write "This topic covers" or any preamble. NO essay prose, NO padding.
+- REACTIONS go in the "reactions" field (balanced equation + conditions + observation), not buried in prose. TECHNIQUES (MS, NMR, IR, titrations) get a worked walkthrough in "core_content".
 - Tone: direct, exam-focused, like a PMT or ZNotes revision page.`;
   return `You are a world-class Cambridge Assessment International Education (CAIE) Subject Expert and Examiner.
 Your task is to generate high-fidelity study notes for CIE A LEVEL ${subject.toUpperCase()} — ${t.title} (${t.code}).
@@ -169,9 +198,14 @@ const notesTool = {
     parameters: {
       type: "object",
       properties: {
-        overview: { 
-          type: "string", 
-          description: "5-8 paragraphs separated by blank lines, 4-6 sentences each." 
+        overview: {
+          type: "string",
+          description:
+            "The MAIN teaching summary, written like a ZNotes / Save My Exams revision page — NOT an essay and NOT a description of the unit. " +
+            "Structure it as 4–7 sub-topics. For EACH sub-topic write a heading line in the exact form '## Sub-topic name', then 4–8 fact lines each starting with '- '. " +
+            "Every bullet must be ONE complete, testable fact carrying real content (a value, a rule, a mechanism step, the WHY) — never filler like 'is important' or 'will be covered'. " +
+            "Use '→' for sequences and colour/observation changes. Define key terms inline on first use. " +
+            "The text MUST begin with the first '## ' heading. NEVER open with 'This unit contains', 'In this topic', 'This chapter', or any preamble.",
         },
         key_definitions: {
           type: "array", 
@@ -190,15 +224,37 @@ const notesTool = {
         },
         core_content: {
           type: "array",
+          minItems: 6,
+          maxItems: 12,
+          description:
+            "The deep, exam-applied layer: 6–12 items, each a HARD spec point that students must be able to DO under exam conditions. " +
+            "Prioritise techniques that need a worked walkthrough — e.g. reading a mass spectrum (M⁺ peak = highest m/z = Mr; base peak = tallest), deducing structure from ¹H NMR (n+1 rule, chemical shift, integration), identifying functional groups from IR ranges, calculating from a titration, mechanism steps. Do NOT waste items on facts already covered as bullets in the overview.",
           items: {
             type: "object",
             properties: {
-              statement: { type: "string", description: "One complete, testable exam fact for this spec point." },
-              worked_example: { type: "string", description: "REQUIRED — NEVER empty. Write a specific exam-style question on this fact, then the full mark-scheme answer step-by-step (use \\n between steps). For science: show how to apply the fact to a real exam question. For maths: show the full algebraic working." },
+              statement: { type: "string", description: "One complete, testable exam skill or fact for this spec point." },
+              worked_example: { type: "string", description: "REQUIRED — NEVER empty. Write a specific exam-style question on this fact, then the full mark-scheme answer step-by-step (use \\n between steps). For science: show how to apply the fact to a real exam question (e.g. 'Q: A compound has M⁺ at m/z 46 and a peak at 31... Answer: Step 1 the molecular ion at 46 = Mr → ...'). For maths: show the full algebraic working." },
               wrong_approach: { type: "string", description: "REQUIRED — NEVER empty. Name the exact misconception students have and correct it in one sentence." },
               typical_marks: { type: "integer" },
             },
             required: ["statement", "worked_example", "wrong_approach", "typical_marks"],
+            additionalProperties: false,
+          },
+        },
+        reactions: {
+          type: "array",
+          description:
+            "Reactions students must memorise. REQUIRED and substantial for chemistry topics involving reactions (transition metals, organic, redox, etc.) — aim for every reaction on the spec for this topic. Use an empty array [] only for topics with no reactions (most maths/physics). " +
+            "Each entry is a balanced equation plus what is observed. Lay them out like the ZNotes reaction tables: include the reagent/conditions and the colour/precipitate/gas change.",
+          items: {
+            type: "object",
+            properties: {
+              reaction: { type: "string", description: "Balanced equation with state symbols where relevant, e.g. '[Cu(H₂O)₆]²⁺ + 4NH₃ → [Cu(NH₃)₄(H₂O)₂]²⁺ + 4H₂O'." },
+              conditions: { type: "string", description: "Reagents / catalyst / temperature, e.g. 'excess NH₃(aq)', 'conc HNO₃ + conc H₂SO₄, <55°C'. Empty string if none." },
+              observation: { type: "string", description: "What is seen, e.g. 'Blue solution → deep blue solution' or 'white precipitate, soluble in excess'. Empty string if none." },
+              type: { type: "string", description: "Reaction type/label, e.g. 'Ligand exchange', 'Redox', 'Deprotonation', 'Nitration (EAS)'." },
+            },
+            required: ["reaction", "conditions", "observation", "type"],
             additionalProperties: false,
           },
         },
@@ -242,8 +298,8 @@ const notesTool = {
         },
         flashcards: {
           type: "array",
-          minItems: 10,
-          maxItems: 10,
+          minItems: 8,
+          maxItems: 8,
           items: {
             type: "object",
             properties: {
@@ -275,7 +331,7 @@ const notesTool = {
         },
       },
       required: [
-        "overview", "key_definitions", "core_content", "equations",
+        "overview", "key_definitions", "core_content", "reactions", "equations",
         "examiner_tips", "flashcards", "reference_tables"
       ],
       additionalProperties: false,
@@ -301,7 +357,10 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { subject, unit_number, unit_name, unit_code, topic, syllabus_context, board, trigger } = body;
+    const { subject, unit_number, unit_name, unit_code, topic, syllabus_context, trigger } = body;
+    // Some callers (e.g. the Roadmap workspace) omit `board`. Default it instead of
+    // letting `board.toUpperCase()` below throw and 500 the whole request.
+    const board: string = body.board || "edexcel-ial";
     const triggerKind = trigger === "cache_clear" ? "cache_clear" : "initial";
 
     // --- SUBJECT NORMALISATION ---
@@ -381,9 +440,10 @@ REFERENCE TABLES: Only populate "reference_tables" if this topic contains data s
     systemPrompt += `
 
 OUTPUT STYLE RULES (non-negotiable — apply to every field):
-- Overview: each paragraph covers exactly ONE concept or mechanism. 4–6 sentences. No flowing essay prose.
-- Core content "statement": one complete testable fact per item. Use "→" for sequences (e.g. "Glucose → pyruvate → acetyl-CoA"). Use "Step 1: ... Step 2: ..." for mechanisms.
-- Core content "worked_example": MANDATORY — NEVER leave empty. Write: (1) a specific exam question on this fact, then (2) the full mark-scheme answer with every step on a new line using \\n. For science: "Q: Explain why... Answer: Step 1: ... Step 2: ...". For maths: show every algebraic line.
+- Overview: this is the MAIN revision summary in ZNotes / Save My Exams style. Write 4–7 sub-topics. Each sub-topic = a heading line in the exact form "## Sub-topic name", then 4–8 fact lines each starting with "- ". Every bullet is ONE complete testable fact with real content (a value, a rule, a mechanism step, the reason WHY). Use "→" for sequences/observations. Define terms inline on first use. START with the first "## " heading — NEVER write "This unit contains", "In this topic", or any preamble. NO essay prose, NO filler.
+- Reactions: for chemistry topics that involve reactions you MUST populate "reactions" thoroughly — give the balanced equation, the conditions/reagents, and the observation (colour change / precipitate / gas), exactly like a ZNotes reaction table. Cover every reaction on the spec for this topic, including each transition metal where relevant. Leave "reactions" empty ONLY for topics with genuinely no reactions.
+- Core content "statement": one complete testable skill/fact per item. Prioritise techniques that need a walkthrough (reading a mass spectrum, deducing structure from NMR splitting + integration + chemical shift, identifying functional groups from IR, titration calculations, mechanism steps). Use "→" for sequences. Use "Step 1: ... Step 2: ..." for procedures.
+- Core content "worked_example": MANDATORY — NEVER leave empty. Write (1) a specific exam question on this fact, then (2) the full mark-scheme answer with every step on a new line using \\n. Make spectroscopy/technique examples concrete (e.g. "the molecular ion peak is the highest-mass m/z, so Mr = 46; the peak at m/z 31 = CH₂OH⁺ ...").
 - Core content "wrong_approach": MANDATORY — NEVER leave empty. Name the exact misconception and correct it concisely.
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
@@ -431,15 +491,28 @@ Follow rules strictly. Generate readable revision notes only; do not generate di
         tools: [notesTool],
         toolName: "create_topic_notes",
         temperature: 0.3,
-        maxTokens: 8000,
+        // The notes schema (structured overview, 8+ definitions, up to 12 worked
+        // core_content items, a reactions list, equations, 8 flashcards, reference
+        // tables) is large and truncates into unparseable JSON if starved. Gemini
+        // 2.5 Flash supports far more, so give the model real headroom to finish.
+        maxTokens: 24000,
       }), subject);
 
     let args = await callOnce();
 
-    const validation = validator ? validator(JSON.stringify(args), ns, promptKey) : { passed: true, forbiddenFound: [] };
+    const check = (a: any) => validator ? validator(JSON.stringify(a), ns, promptKey) : { passed: true, forbiddenFound: [] };
+    let validation = check(args);
     if (!validation.passed) {
+      // One compliance retry. Re-validate the retry and only adopt it if it is
+      // actually cleaner — otherwise keep the first result rather than blindly
+      // replacing good content with an unchecked (possibly worse) regeneration.
       console.warn("Validation failed, retrying for compliance...", validation.forbiddenFound);
-      args = await callOnce();
+      const retry = await callOnce();
+      const retryValidation = check(retry);
+      if (retryValidation.passed || retryValidation.forbiddenFound.length < validation.forbiddenFound.length) {
+        args = retry;
+        validation = retryValidation;
+      }
     }
 
     // --- LOGGING & PERSISTENCE ---

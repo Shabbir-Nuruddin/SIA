@@ -17,6 +17,7 @@ import { type NotesVisualMap } from "@/lib/wikimediaVisuals";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface KeyDef    { term: string; mark_scheme: string; plain_english?: string; common_mistake?: string; }
 interface CoreItem  { statement: string; worked_example?: string; wrong_approach?: string; typical_marks?: number; }
+interface Rxn       { reaction: string; conditions?: string; observation?: string; type?: string; }
 interface EqVar     { symbol: string; meaning: string; unit: string; }
 interface EqItem    { equation: string; variables: EqVar[]; worked_substitution?: string; }
 interface TipItem   { command_word?: string; tip: string; }
@@ -28,6 +29,7 @@ export interface NotesData {
   overview: string;
   key_definitions: KeyDef[];
   core_content: CoreItem[];
+  reactions?: Rxn[];
   equations: EqItem[];
   visual_summary: VisualSummary | null;
   examiner_tips: TipItem[];
@@ -99,42 +101,32 @@ const SectionHeader = ({ icon, title, subtitle, accent, n }: { icon: React.React
   </div>
 );
 
-// ─── Overview — paragraphs with drop-caps + alternating highlighter tints ────
-const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatHtml: (s:string)=>string; annotate: (s:string)=>string }) => {
-  const paragraphs = text.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
-  const tints = [
-    "bg-amber-100/40 dark:bg-amber-900/15",
-    "bg-violet-100/40 dark:bg-violet-900/15",
-    "bg-emerald-100/40 dark:bg-emerald-900/15",
-    "bg-sky-100/40 dark:bg-sky-900/15",
-    "bg-rose-100/40 dark:bg-rose-900/15",
-  ];
-  const dropColors = ["text-amber-600", "text-violet-600", "text-emerald-600", "text-sky-600", "text-rose-600"];
-  return (
-    <div className="space-y-4 relative">
-      {paragraphs.map((para, i) => {
-        const tint = tints[i % tints.length];
-        const dc = dropColors[i % dropColors.length];
-        return (
-          <div key={i} className={`relative rounded-xl ${tint} p-5 pl-6 border border-foreground/5`}>
-            {i === 0 && (
-              <div className="absolute -top-3 left-4 z-10">
-                <Sticky variant="" className="text-xs">📌 Introduction</Sticky>
-              </div>
-            )}
-            <p className="text-[15px] leading-[1.85] text-foreground/90"
-               dangerouslySetInnerHTML={{
-                 __html: annotate(formatHtml(para)).replace(
-                   /^([A-Za-z])/,
-                   (m) => `<span class="font-handwritten ${dc} text-5xl leading-none float-left mr-2 -mt-1 font-bold">${m}</span>`
-                 ),
-               }} />
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+// ─── Overview — ZNotes/SME-style revision summary (## sub-topics + bullets) ──
+// The overview text is a structured summary: "## Sub-topic" headings followed by
+// "- fact" bullets. formatHtml turns these into <h2>/<ul><li>/<strong>/KaTeX, so
+// we render the whole thing once and style the elements as a clean revision sheet.
+// (No drop-caps, no "Introduction" framing — this IS the teaching content.)
+const OverviewSection = ({ text, formatHtml, annotate }: { text: string; formatHtml: (s:string)=>string; annotate: (s:string)=>string }) => (
+  <div
+    className={[
+      "rounded-xl bg-card border border-foreground/10 shadow-sm px-6 py-5",
+      "[&_h1]:hidden",
+      "[&_h2]:font-handwritten [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-foreground",
+      "[&_h2]:mt-6 [&_h2]:mb-2.5 [&_h2]:first:mt-0 [&_h2]:pb-1.5",
+      "[&_h2]:border-b-2 [&_h2]:border-dashed [&_h2]:border-foreground/15",
+      "[&_h3]:font-bold [&_h3]:text-lg [&_h3]:text-foreground/90 [&_h3]:mt-4 [&_h3]:mb-1.5",
+      "[&_ul]:list-none [&_ul]:space-y-2 [&_ul]:my-2.5 [&_ul]:pl-0.5",
+      "[&_li]:relative [&_li]:pl-5 [&_li]:text-[15px] [&_li]:leading-[1.7] [&_li]:text-foreground/90",
+      "[&_li]:before:content-['▸'] [&_li]:before:absolute [&_li]:before:left-0 [&_li]:before:top-0 [&_li]:before:text-amber-500 [&_li]:before:font-bold",
+      "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-2 [&_ol]:my-2.5 [&_ol]:marker:font-bold [&_ol]:marker:text-amber-600",
+      "[&_ol_li]:text-[15px] [&_ol_li]:leading-[1.7] [&_ol_li]:text-foreground/90",
+      "[&_p]:text-[15px] [&_p]:leading-[1.8] [&_p]:text-foreground/90 [&_p]:my-2.5",
+      "[&_strong]:font-bold [&_strong]:text-foreground",
+      "[&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-foreground/[0.06] [&_code]:text-[13px]",
+    ].join(" ")}
+    dangerouslySetInnerHTML={{ __html: annotate(formatHtml(text)) }}
+  />
+);
 
 // ─── Definitions — index-card grid ────────────────────────────────────────────
 const DefinitionsSection = ({
@@ -274,6 +266,46 @@ const CoreContentSection = ({ items, formatHtml, annotate, expandAll = false }: 
     </div>
   );
 };
+
+// ─── Reactions — equation cards with conditions + observation ─────────────────
+const ReactionsSection = ({ reactions, formatHtml }: { reactions: Rxn[]; formatHtml:(s:string)=>string }) => (
+  <div className="space-y-3">
+    {reactions.map((r, i) => {
+      const a = ACCENTS[i % ACCENTS.length];
+      return (
+        <div key={i} className={`rounded-xl bg-card border-l-[6px] ${a.rail} border-y border-r border-foreground/10 shadow-sm overflow-hidden`}>
+          <div className="p-4">
+            <div className="flex items-start gap-2 flex-wrap">
+              {r.type && (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${a.chip}`}>
+                  {r.type}
+                </span>
+              )}
+              <div className="flex-1 min-w-0 font-mono text-[15px] leading-relaxed text-foreground/90 break-words"
+                   dangerouslySetInnerHTML={{ __html: formatHtml(r.reaction) }} />
+            </div>
+            {(r.conditions || r.observation) && (
+              <div className="mt-2.5 space-y-1.5">
+                {r.conditions && (
+                  <div className="text-sm text-foreground/75">
+                    <span className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground mr-1.5">Conditions</span>
+                    <span dangerouslySetInnerHTML={{ __html: formatHtml(r.conditions) }} />
+                  </div>
+                )}
+                {r.observation && (
+                  <div className="flex items-start gap-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-400 px-3 py-1.5 text-sm text-foreground/90">
+                    <Eye className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span dangerouslySetInnerHTML={{ __html: formatHtml(r.observation) }} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
 
 // ─── Equations — chalkboard cards ─────────────────────────────────────────────
 const EquationsSection = ({ eqs, renderMath, formatHtml }: { eqs: EqItem[]; renderMath:(s:string)=>string; formatHtml:(s:string)=>string }) => (
@@ -503,6 +535,7 @@ export default function NotesVisualRenderer({ notes, topic, subject, unitLabel, 
     if (notes.overview) out.push({ id: "overview", title: "Overview", icon: <BookOpen className="h-5 w-5" />, content: <OverviewSection text={notes.overview} formatHtml={formatHtml} annotate={annotate} /> });
     if (notes.key_definitions.length) out.push({ id: "defs", title: "Definitions", icon: <Hash className="h-5 w-5" />, content: <DefinitionsSection defs={notes.key_definitions} formatHtml={formatHtml} defVisuals={visuals?.definitions} expandAll={isLong} /> });
     if (notes.core_content.length) out.push({ id: "core", title: "Core Content", icon: <Target className="h-5 w-5" />, content: <CoreContentSection items={notes.core_content} formatHtml={formatHtml} annotate={annotate} expandAll={isLong} /> });
+    if (notes.reactions?.length) out.push({ id: "reactions", title: "Reactions", icon: <FlaskConical className="h-5 w-5" />, content: <ReactionsSection reactions={notes.reactions} formatHtml={formatHtml} /> });
     if (notes.equations.length) out.push({ id: "eqs", title: "Equations", icon: <Zap className="h-5 w-5" />, content: <EquationsSection eqs={notes.equations} renderMath={renderMath} formatHtml={formatHtml} /> });
     if (notes.visual_summary?.content) out.push({ id: "visual", title: "Visual Summary", icon: <Eye className="h-5 w-5" />, content: <VisualSection vs={notes.visual_summary} renderMath={renderMath} /> });
     if (notes.examiner_tips.length) out.push({ id: "tips", title: "Examiner Tips", icon: <Lightbulb className="h-5 w-5" />, content: <ExaminerTipsSection tips={notes.examiner_tips} formatHtml={formatHtml} /> });
