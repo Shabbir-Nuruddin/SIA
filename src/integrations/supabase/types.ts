@@ -532,6 +532,33 @@ export type Database = {
         }
         Relationships: []
       }
+      game_scores: {
+        Row: {
+          created_at: string
+          game: string
+          id: string
+          player_name: string
+          score: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          game?: string
+          id?: string
+          player_name: string
+          score: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          game?: string
+          id?: string
+          player_name?: string
+          score?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mock_paper_questions: {
         Row: {
           awarded_marks: number | null
