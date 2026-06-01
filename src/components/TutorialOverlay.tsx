@@ -35,7 +35,13 @@ const buildSteps = (firstName: string, days: number): Step[] => [
   {
     selector: "pomodoro",
     title: "The Pomodoro Timer",
-    body: "25 minutes of focus, 5 minutes rest. Scientifically proven to improve concentration. Starts automatically when you begin a session. Stays visible everywhere on the site.",
+    body: "25 minutes of focus, 5 minutes rest — proven to improve concentration. Start it from here (bottom-right); it begins automatically when you start a session and stays visible everywhere.",
+    position: "above",
+  },
+  {
+    selector: "break-game",
+    title: "Earn a break game 🎮",
+    body: "Finish a 25-minute focus block and the Break Arcade unlocks right here — Study Tycoon (an idle clicker) and a CPS click-speed test, both with global leaderboards. It's your reward for studying, and your progress saves between breaks.",
     position: "above",
   },
   {

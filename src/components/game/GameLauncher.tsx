@@ -1,70 +1,93 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Gamepad2, Lock } from "lucide-react";
+import { Gamepad2, Lock, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { getPomoState } from "@/lib/pomodoro";
 import GameModal from "./GameModal";
+import { formatMarks } from "./StudyTycoon";
 
 /**
- * Standalone, always-visible Break Game launcher (separate from the Pomodoro pill).
- * Locked by default — it only unlocks during a Pomodoro break, which is the whole
- * motivation loop: finish a 25-min focus block → earn your 5-min break game.
+ * Standalone game launcher, docked just above the Pomodoro pill (bottom-right) so
+ * the timer and its reward sit together. Locked only DURING an active focus block
+ * (keeps students studying); freely continuable when idle or on a break. Shows the
+ * player's running mark count so progress feels alive even when they're not playing.
  */
+function readMarks(): number {
+  try { const r = JSON.parse(localStorage.getItem("mmr_tycoon_v2") || "{}"); return Math.floor(r.marks || 0); } catch { return 0; }
+}
+
 export default function GameLauncher() {
   const { pathname } = useLocation();
   const [pomo, setPomo] = useState(() => getPomoState());
   const [open, setOpen] = useState(false);
+  const [marks, setMarks] = useState(() => readMarks());
+  const [nudge, setNudge] = useState(false);
 
   useEffect(() => {
-    const tick = () => setPomo(getPomoState());
-    const id = setInterval(tick, 500);
+    const tick = () => { setPomo(getPomoState()); setMarks(readMarks()); };
+    const id = setInterval(tick, 1000);
     window.addEventListener("apex-pomo-change", tick);
     window.addEventListener("focus", tick);
-    return () => {
-      clearInterval(id);
-      window.removeEventListener("apex-pomo-change", tick);
-      window.removeEventListener("focus", tick);
-    };
+    return () => { clearInterval(id); window.removeEventListener("apex-pomo-change", tick); window.removeEventListener("focus", tick); };
   }, []);
 
   const hide =
-    pathname === "/" ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/mock-papers/exam");
+    pathname === "/" || pathname.startsWith("/auth") ||
+    pathname.startsWith("/onboarding") || pathname.startsWith("/mock-papers/exam");
   if (hide) return null;
 
   const isBreak = pomo.active && pomo.mode === "break";
+  const isFocusLocked = pomo.active && pomo.mode === "focus" && !pomo.paused;
+  const hasProgress = marks > 0;
+
+  const handleClose = (v: boolean) => {
+    setOpen(v);
+    if (!v && readMarks() > 0) { setNudge(true); setTimeout(() => setNudge(false), 6000); }
+  };
 
   const onClick = () => {
-    if (isBreak) { setOpen(true); return; }
-    toast("🎮 Break game locked", {
-      description: "Finish a 25-minute Pomodoro focus block — the game unlocks on your 5-minute break.",
-    });
+    if (isFocusLocked) {
+      toast("🔒 Stay focused", { description: "The Break Arcade unlocks the moment your 25-minute focus block ends." });
+      return;
+    }
+    setOpen(true);
   };
+
+  const label = isBreak ? "Play break game" : isFocusLocked ? "Locked · focus" : hasProgress ? `Continue · ${formatMarks(marks)}` : "Brain game";
 
   return (
     <>
+      {nudge && (
+        <div className="fixed bottom-[12.5rem] right-5 z-40 max-w-[220px] rounded-xl border border-primary/40 bg-card p-3 shadow-xl animate-fade-in">
+          <div className="text-xs font-semibold mb-0.5">Your game is saved ✅</div>
+          <div className="text-[11px] text-muted-foreground">Continue any time from here →</div>
+          <ArrowDown className="absolute -bottom-2 right-6 h-4 w-4 text-primary animate-bounce" />
+        </div>
+      )}
+
       <button
+        data-tutorial="break-game"
         onClick={onClick}
-        title={isBreak ? "Break time — play Study Tycoon!" : "Finish your 25-minute Pomodoro block to unlock the break game"}
-        className={`fixed bottom-5 left-5 z-40 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-lg border transition-transform ${
+        title={isFocusLocked ? "Finish your 25-minute focus block to unlock the Break Arcade" : isBreak ? "Break time — play the Break Arcade!" : "Open the Break Arcade — earn marks, climb the leaderboard"}
+        className={`fixed bottom-32 right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-lg border transition-transform ${
           isBreak
             ? "bg-gradient-to-r from-primary to-accent text-white border-transparent hover:scale-105"
-            : "bg-card text-muted-foreground border-border hover:text-foreground"
+            : isFocusLocked
+              ? "bg-card text-muted-foreground border-border opacity-70"
+              : "bg-card text-foreground border-primary/30 ring-1 ring-primary/15 hover:ring-primary/40"
         }`}
+        style={{ minWidth: 150 }}
       >
-        {isBreak ? (
-          <span className="relative flex h-5 w-5 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 animate-ping" />
+        {isFocusLocked ? <Lock className="h-4 w-4 shrink-0" /> : (
+          <span className="relative flex h-5 w-5 items-center justify-center shrink-0">
+            {isBreak && <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 animate-ping" />}
             <Gamepad2 className="relative h-5 w-5" />
           </span>
-        ) : (
-          <Lock className="h-4 w-4" />
         )}
-        <span className="text-sm font-bold">{isBreak ? "Play break game" : "Break game"}</span>
+        <span className="text-sm font-bold truncate">{label}</span>
       </button>
-      <GameModal open={open} onOpenChange={setOpen} reason="On your break — earn marks!" />
+
+      <GameModal open={open} onOpenChange={handleClose} reason={isBreak ? "On your break — earn marks!" : "Earn marks & climb the board"} />
     </>
   );
 }
