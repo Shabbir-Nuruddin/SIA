@@ -5,11 +5,8 @@ const GATEWAY = "https://api.groq.com/openai/v1/chat/completions";
 // before the bigger models that can actually complete the structured output.
 const TEXT_MODELS = [
   "llama-3.3-70b-versatile",
-  "meta-llama/llama-4-maverick-17b-128e-instruct",
   "meta-llama/llama-4-scout-17b-16e-instruct",
   "llama-3.1-8b-instant",
-  "gemma2-9b-it",
-  "llama3-8b-8192",
 ];
 
 const VISION_MODELS = [
@@ -89,7 +86,7 @@ export async function callGroqTool({
             tools,
             tool_choice: { type: "function", function: { name: toolName } },
             temperature,
-            max_tokens: maxTokens,
+            max_tokens: Math.min(maxTokens, 8192),
           }),
           signal: ctrl.signal,
         });
