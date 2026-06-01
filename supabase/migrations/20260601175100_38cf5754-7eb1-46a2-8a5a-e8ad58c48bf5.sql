@@ -1,0 +1,1 @@
+DELETE FROM public.game_scores WHERE lower(player_name) IN ('you','player') OR player_name ~ '\s';
