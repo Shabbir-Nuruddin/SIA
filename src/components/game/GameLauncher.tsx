@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Gamepad2, Lock, ArrowDown } from "lucide-react";
-import { toast } from "sonner";
+import { Gamepad2, ArrowDown } from "lucide-react";
 import { getPomoState } from "@/lib/pomodoro";
 import GameModal from "./GameModal";
 import { formatMarks } from "./StudyTycoon";
@@ -13,7 +12,7 @@ import { formatMarks } from "./StudyTycoon";
  * player's running mark count so progress feels alive even when they're not playing.
  */
 function readMarks(): number {
-  try { const r = JSON.parse(localStorage.getItem("mmr_tycoon_v2") || "{}"); return Math.floor(r.marks || 0); } catch { return 0; }
+  try { const r = JSON.parse(localStorage.getItem("mmr_tycoon_v3") || "{}"); return Math.floor(r.marks || 0); } catch { return 0; }
 }
 
 export default function GameLauncher() {
@@ -37,7 +36,6 @@ export default function GameLauncher() {
   if (hide) return null;
 
   const isBreak = pomo.active && pomo.mode === "break";
-  const isFocusLocked = pomo.active && pomo.mode === "focus" && !pomo.paused;
   const hasProgress = marks > 0;
 
   const handleClose = (v: boolean) => {
@@ -45,15 +43,9 @@ export default function GameLauncher() {
     if (!v && readMarks() > 0) { setNudge(true); setTimeout(() => setNudge(false), 6000); }
   };
 
-  const onClick = () => {
-    if (isFocusLocked) {
-      toast("🔒 Stay focused", { description: "The Break Arcade unlocks the moment your 25-minute focus block ends." });
-      return;
-    }
-    setOpen(true);
-  };
-
-  const label = isBreak ? "Play break game" : isFocusLocked ? "Locked · focus" : hasProgress ? `Continue · ${formatMarks(marks)}` : "Brain game";
+  // Always playable — a reward you can dip into any time (incl. while things load).
+  // The Pomodoro break just promotes/celebrates it rather than gating it.
+  const label = isBreak ? "Break bonus — play!" : hasProgress ? `Continue · ${formatMarks(marks)}` : "Brain game";
 
   return (
     <>
@@ -67,23 +59,19 @@ export default function GameLauncher() {
 
       <button
         data-tutorial="break-game"
-        onClick={onClick}
-        title={isFocusLocked ? "Finish your 25-minute focus block to unlock the Break Arcade" : isBreak ? "Break time — play the Break Arcade!" : "Open the Break Arcade — earn marks, climb the leaderboard"}
-        className={`fixed bottom-32 right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-lg border transition-transform ${
+        onClick={() => setOpen(true)}
+        title={isBreak ? "Break time — play the Break Arcade!" : "Open the Break Arcade — earn marks, climb the leaderboard"}
+        className={`fixed bottom-32 right-5 z-40 flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full shadow-lg border transition-transform hover:scale-105 ${
           isBreak
-            ? "bg-gradient-to-r from-primary to-accent text-white border-transparent hover:scale-105"
-            : isFocusLocked
-              ? "bg-card text-muted-foreground border-border opacity-70"
-              : "bg-card text-foreground border-primary/30 ring-1 ring-primary/15 hover:ring-primary/40"
+            ? "bg-gradient-to-r from-primary to-accent text-white border-transparent"
+            : "bg-card text-foreground border-primary/30 ring-1 ring-primary/15 hover:ring-primary/40"
         }`}
         style={{ minWidth: 150 }}
       >
-        {isFocusLocked ? <Lock className="h-4 w-4 shrink-0" /> : (
-          <span className="relative flex h-5 w-5 items-center justify-center shrink-0">
-            {isBreak && <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 animate-ping" />}
-            <Gamepad2 className="relative h-5 w-5" />
-          </span>
-        )}
+        <span className="relative flex h-5 w-5 items-center justify-center shrink-0">
+          {isBreak && <span className="absolute inline-flex h-full w-full rounded-full bg-white/40 animate-ping" />}
+          <Gamepad2 className="relative h-5 w-5" />
+        </span>
         <span className="text-sm font-bold truncate">{label}</span>
       </button>
 

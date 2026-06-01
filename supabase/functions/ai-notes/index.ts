@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { callAITool, deepStripLatex, callGeminiGroundedResearch } from "../_shared/ai.ts";
+import { getAuthoredBrief } from "../_shared/authoredNotes.ts";
 import { requireUser } from "../_shared/auth.ts";
 import { CIE_ALEVEL_SYLLABUS } from "../_shared/cieial.ts";
 
@@ -553,33 +554,36 @@ ${referenceTableInstructions}`;
     const FN_BUDGET_MS = 135_000;
     const remainingBudget = () => Math.max(20_000, FN_BUDGET_MS - (Date.now() - fnStart));
 
-    // --- STEP 1: GROUNDED RESEARCH (best-effort) ---
-    // Pull current, source-backed facts from the web (Save My Exams, PMT, ZNotes,
-    // exam-board materials) so the structured notes are accurate and exam-specific.
-    // Only runs when there is comfortable time left; if it fails/times out we fall
-    // through to ungrounded generation. Result is folded into the user prompt below.
+    // --- STEP 1: SOURCE CONTENT (authored-first) ---
+    // Preferred path: an expert-authored, spec-accurate brief for THIS exact topic.
+    // When present, the model formats it rather than inventing content — accurate,
+    // on-topic, on-level and fast (one call, no web round-trip). Falls back to
+    // optional web grounding only when no brief exists AND grounding is enabled.
+    const authoredBrief = getAuthoredBrief(board, ns, unit_number, topic);
+    // Web grounding is OFF by default: on the free Gemini tier it doubles quota use
+    // and latency (a whole extra call) and was a major cause of "notes generate
+    // nothing / take ages". Flip to true only if you have paid quota headroom.
+    const ENABLE_GROUNDING = false;
     let researchBrief: string | null = null;
-    if (remainingBudget() > 95_000) {
-      const researchPrompt = `You are researching to help write exam-board-accurate revision notes for ${board.toUpperCase()} ${subject.toUpperCase()} — ${unit_name}, topic: "${topic}".
-Search current revision resources (Save My Exams, Physics & Maths Tutor, ZNotes, the official exam-board specification and past papers) for THIS exact topic and qualification.
-Produce a tight factual brief (bullet points only, no preamble) the notes-writer can rely on:
-- exact definitions and values examiners award marks for
-- key equations / reactions with conditions and observed changes (colour, precipitate, gas)
-- the worked techniques students must show (e.g. spectra/titration/derivation steps)
-- common exam question types and mark-scheme phrasing
-- the most common student mistakes
-Stay strictly within the ${board.toUpperCase()} specification scope for this topic. Be concise and factual.`;
-      researchBrief = await callGeminiGroundedResearch({
-        prompt: researchPrompt,
-        maxTokens: 1800,
-        budgetMs: 30_000,
-      });
+    if (authoredBrief) {
+      console.log("[ai-notes] using AUTHORED brief", { topic, chars: authoredBrief.length });
+    } else if (ENABLE_GROUNDING && remainingBudget() > 95_000) {
+      const researchPrompt = `Research exam-board-accurate facts for ${board.toUpperCase()} ${subject.toUpperCase()} — ${unit_name}, topic "${topic}" (Save My Exams, PMT, ZNotes, the spec, past papers). Tight factual bullets only: exact definitions/values, key equations/reactions with conditions and observed changes, worked techniques, common mark-scheme phrasing, common mistakes. Stay strictly within the ${board.toUpperCase()} spec for THIS topic.`;
+      researchBrief = await callGeminiGroundedResearch({ prompt: researchPrompt, maxTokens: 1800, budgetMs: 30_000 });
       if (researchBrief) console.log("[ai-notes] grounded research attached", { topic, chars: researchBrief.length });
     }
 
-    const userPrompt = `Generate comprehensive revision notes for the topic: ${topic}, ${unit_name} for ${board.toUpperCase()} ${subject.toUpperCase()}.
-${syllabus_context ? `Official syllabus statements:\n${syllabus_context}\n` : ""}${researchBrief ? `\nVERIFIED REFERENCE FACTS (researched from current exam-board resources — use to keep every field accurate and exam-specific; integrate naturally into the structured fields, do NOT copy verbatim and do NOT add a sources list):\n${researchBrief}\n` : ""}
-Follow rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
+    const sourceBlock = authoredBrief
+      ? `\nAUTHORITATIVE, EXAM-ACCURATE CONTENT FOR THE EXACT TOPIC "${topic}" (written by subject experts to the ${board.toUpperCase()} specification). BUILD THE ENTIRE NOTE ON THIS: format it into the required fields, write the worked examples / flashcards / reactions FROM IT, and keep it exam-specific. You MAY add brief clarifying detail, but DO NOT introduce content outside this brief's scope and DO NOT pull in other topics from this unit:\n${authoredBrief}\n`
+      : researchBrief
+        ? `\nVERIFIED REFERENCE FACTS (use to keep every field accurate and exam-specific; integrate, do NOT copy verbatim, do NOT add a sources list):\n${researchBrief}\n`
+        : "";
+
+    const userPrompt = `Generate comprehensive revision notes for the topic: "${topic}" (${unit_name}) for ${board.toUpperCase()} ${subject.toUpperCase()}.
+
+STRICT SCOPE — generate notes about ONLY the topic "${topic}". This unit contains other topics, but you MUST NOT include them or their content. (For example, if the topic is "Organic Synthesis" do NOT write about electrode potentials or transition-metal ion colours; if the topic is "Kinetics" cover the A2 rate-equation/orders/Arrhenius material for this unit, NOT AS-level collision theory / Maxwell–Boltzmann unless this exact topic requires it.)
+${syllabus_context ? `\nOfficial syllabus statements:\n${syllabus_context}\n` : ""}${sourceBlock}
+Follow the rules strictly. Generate readable revision notes only; do not generate diagrams, SVG, HTML, or visual summaries.`;
 
     // callAITool shrinks its own attempt timeouts to fit whatever budget remains
     // (fnStart / FN_BUDGET_MS / remainingBudget declared above, before research).
