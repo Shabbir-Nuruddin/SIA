@@ -549,7 +549,11 @@ const LandingPage = () => {
 
           <div className="pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-3" style={{ borderColor: "#333" }}>
             <p className="text-xs text-white/30">© {new Date().getFullYear()} Scholars International Academy. For SIA members only.</p>
-            <p className="text-xs text-white/20">Powered by AI · Built exclusively for SIA</p>
+            <div className="flex items-center gap-4 text-xs text-white/40">
+              <button onClick={() => navigate("/privacy")} className="hover:text-white/80 transition-colors">Privacy Policy</button>
+              <span className="text-white/20">·</span>
+              <button onClick={() => navigate("/terms")} className="hover:text-white/80 transition-colors">Terms of Service</button>
+            </div>
           </div>
         </div>
       </footer>
