@@ -36,10 +36,10 @@ export default function LoadingGameOverlay({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/55 p-3 backdrop-blur-sm animate-fade-in sm:p-6">
-      <div className="relative mt-4 w-full max-w-3xl rounded-2xl border border-border bg-background-elevated shadow-2xl sm:mt-10">
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <Gamepad2 className="h-4 w-4 text-primary" /> Play while you wait
+      <div className="relative mt-4 w-full max-w-5xl rounded-2xl border border-border bg-background-elevated shadow-2xl sm:mt-8">
+        <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-3">
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <Gamepad2 className="h-4 w-4 text-primary" /> SIA Break Arcade
           </div>
           <button
             onClick={() => setDismissed(true)}
@@ -49,7 +49,14 @@ export default function LoadingGameOverlay({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[80vh] overflow-y-auto p-4">
+        <div className="max-h-[82vh] overflow-y-auto p-4 sm:p-5">
+          <div className="mb-4 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-center">
+            <div className="text-sm font-extrabold text-foreground">⏳ Hang tight — we're building your personalised revision roadmap.</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Meanwhile, play <b className="text-primary">Study Tycoon</b>: tap the brain to earn marks, buy study tools, and climb the SIA leaderboard.
+              This closes itself the moment your roadmap is ready. 🎉
+            </div>
+          </div>
           <StudyTycoon showLeaderboard />
           <p className="mt-3 text-center text-[11px] text-muted-foreground">{note}</p>
         </div>

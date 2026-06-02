@@ -157,17 +157,54 @@ function Leaderboard({ game }: { game: GameId }) {
     return () => { alive = false; clearInterval(id); };
   }, [game]);
   const fmt = (n: number) => (game === "cps_test" ? `${(n / 5).toFixed(1)} cps` : formatMarks(n));
+  const initials = (n: string) => (n || "?").trim().charAt(0).toUpperCase();
+  const top3 = rows.slice(0, 3);
+  const rest = rows.slice(3);
+  const medal = ["🥇", "🥈", "🥉"];
+  const ringColor = ["#C8102E", "#9ca3af", "#b45309"];
+  // Podium display order: 2nd · 1st · 3rd, with 1st raised.
+  const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+  const podiumIdx = top3.length === 3 ? [1, 0, 2] : top3.map((_, i) => i);
+
   return (
-    <div className="rounded-xl border border-border bg-background-elevated p-3 h-fit">
-      <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
-        <Crown className="h-3.5 w-3.5 text-amber-400" /> Top 15
+    <div className="rounded-2xl border border-border bg-background-elevated p-4 h-fit shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="h-9 w-9 rounded-xl grid place-items-center bg-primary/10 shrink-0">
+          <Crown className="h-4 w-4 text-primary" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-extrabold text-foreground leading-tight">School Leaderboard</div>
+          <div className="text-[10px] text-muted-foreground">Live · everyone at SIA is competing</div>
+        </div>
       </div>
-      <ol className="space-y-0.5 max-h-[330px] overflow-y-auto">
-        {rows.map((r, i) => (
-          <li key={`${r.name}-${i}`} className={`flex items-center gap-2 px-2 py-1 rounded text-sm ${r.you ? "bg-primary/15 text-primary font-semibold" : ""}`}>
-            <span className={`w-5 text-right tabular-nums ${i < 3 ? "text-amber-400 font-bold" : "text-muted-foreground"}`}>{i + 1}</span>
-            <span className="flex-1 truncate">{r.name}{r.you ? " (you)" : ""}</span>
-            <span className="font-mono tabular-nums">{fmt(r.score)}</span>
+
+      {top3.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-3 items-end">
+          {podiumOrder.map((r, slot) => {
+            const rank = podiumIdx[slot];
+            const raised = rank === 0;
+            return (
+              <div key={slot} className={`relative rounded-xl border p-2 text-center ${r.you ? "border-primary bg-primary/10" : "border-border bg-card"} ${raised ? "-mt-2 pb-3" : ""}`}>
+                <div className={raised ? "text-2xl leading-none" : "text-lg leading-none"}>{medal[rank]}</div>
+                <div className="mx-auto my-1 grid place-items-center rounded-full text-white font-bold"
+                  style={{ height: raised ? 34 : 28, width: raised ? 34 : 28, fontSize: raised ? 13 : 11, background: ringColor[rank] }}>
+                  {initials(r.name)}
+                </div>
+                <div className="text-[11px] font-bold truncate text-foreground">{r.name}{r.you ? " (you)" : ""}</div>
+                <div className="text-[11px] font-mono font-extrabold text-primary">{fmt(r.score)}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <ol className="space-y-1 max-h-[260px] overflow-y-auto pr-1">
+        {rest.map((r, i) => (
+          <li key={`${r.name}-${i}`} className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm transition-colors ${r.you ? "bg-primary/15 ring-1 ring-primary/30" : "hover:bg-secondary/60"}`}>
+            <span className="w-5 text-center text-xs font-bold tabular-nums text-muted-foreground">{i + 4}</span>
+            <span className="h-6 w-6 rounded-full grid place-items-center text-[10px] font-bold text-white shrink-0 bg-gradient-to-br from-primary to-accent">{initials(r.name)}</span>
+            <span className={`flex-1 truncate ${r.you ? "font-bold text-primary" : "text-foreground"}`}>{r.name}{r.you ? " (you)" : ""}</span>
+            <span className="font-mono tabular-nums text-xs font-semibold text-foreground">{fmt(r.score)}</span>
           </li>
         ))}
       </ol>
@@ -182,8 +219,9 @@ function Arena({ children, tall = false }: { children: React.ReactNode; tall?: b
   return (
     <div
       className={`relative ${tall ? "h-72" : "h-56"} mb-3 rounded-2xl overflow-hidden border`}
-      style={{ background: "linear-gradient(160deg,#ffffff 0%,#fff5f6 55%,#fbe3e7 100%)", borderColor: "rgba(200,16,46,0.18)" }}
+      style={{ background: "#ffffff", borderColor: "rgba(200,16,46,0.18)" }}
     >
+      <div className="mmr-arena-bg absolute inset-0" />
       <div className="mmr-blob absolute -top-16 -left-10 h-56 w-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(200,16,46,0.20), transparent 70%)" }} />
       <div className="mmr-blob absolute -bottom-20 -right-8 h-64 w-64 rounded-full" style={{ background: "radial-gradient(circle, rgba(122,10,28,0.16), transparent 70%)", animationDelay: "2.4s" }} />
       <div className="mmr-blob absolute top-1/3 left-1/2 h-40 w-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(255,215,221,0.55), transparent 70%)", animationDelay: "1.2s" }} />
@@ -486,16 +524,20 @@ function TycoonMode({ compact }: { compact: boolean }) {
           const rateLabel = u.fx === "dvd" ? "+3 per bounce each" : u.kind === "auto" ? `+${formatMarks(u.rate)}/s each` : `+${formatMarks(u.rate)} per tap each`;
           return (
             <button key={u.id} onClick={() => buyN(u)} disabled={!afford}
-              className={`group flex items-center gap-3 rounded-xl border p-2.5 text-left transition ${afford ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:scale-[1.01] cursor-pointer shadow-sm" : "border-border bg-card cursor-not-allowed"}`}>
-              <span className={`grid place-items-center h-10 w-10 rounded-lg text-2xl shrink-0 ${afford ? "bg-primary/15" : "bg-muted"}`}>{u.emoji}</span>
+              className={`group relative flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${afford ? "border-primary/50 bg-gradient-to-br from-primary/[0.09] to-transparent hover:from-primary/20 hover:-translate-y-0.5 hover:shadow-md cursor-pointer" : "border-border/70 bg-card cursor-not-allowed"}`}>
+              <span className={`grid place-items-center h-11 w-11 rounded-xl text-2xl shrink-0 transition-transform group-hover:scale-110 ${afford ? "bg-primary/15" : "bg-muted"}`}>{u.emoji}</span>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold truncate">{u.name}{count > 0 && <span className="text-muted-foreground font-normal"> ×{count}</span>}</div>
-                <div className="text-[11px] text-muted-foreground truncate">{u.desc}</div>
-                <div className="text-[10px] text-primary/90 font-semibold">{rateLabel}</div>
+                <div className="text-sm font-bold text-foreground truncate">
+                  {u.name}{count > 0 && <span className="ml-1 align-middle text-[10px] font-extrabold text-primary">×{count}</span>}
+                </div>
+                <div className="text-[11px] text-muted-foreground truncate leading-tight">{u.desc}</div>
+                <div className="mt-0.5 text-[10px] font-bold text-primary">{rateLabel}</div>
               </div>
               <div className="text-right shrink-0">
-                <div className={`text-xs font-mono font-bold tabular-nums ${afford ? "text-primary" : "text-muted-foreground"}`}>{formatMarks(cost)}</div>
-                {buyMode !== 1 && <div className="text-[9px] text-muted-foreground">{buyMode === "max" ? `×${aff}` : `×${buyMode}`}</div>}
+                <div className={`text-sm font-mono font-extrabold tabular-nums ${afford ? "text-primary" : "text-muted-foreground"}`}>{formatMarks(cost)}</div>
+                <div className="text-[9px] uppercase tracking-wide font-semibold text-muted-foreground">
+                  {afford ? (buyMode === 1 ? "buy" : buyMode === "max" ? `buy ×${aff}` : `buy ×${buyMode}`) : "need more"}
+                </div>
               </div>
             </button>
           );
@@ -696,6 +738,7 @@ const GAME_CSS = `
 @keyframes mmrZap{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.12) rotate(4deg)}}
 .mmr-bg{background:linear-gradient(120deg,#6366f1,#ec4899,#8b5cf6,#14b8a6,#6366f1);background-size:300% 300%;animation:mmrBgShift 14s ease infinite;opacity:.34;filter:saturate(1.25)}
 .mmr-blob{filter:blur(8px);animation:mmrBlob 9s ease-in-out infinite}
+.mmr-arena-bg{background:linear-gradient(130deg,#ffffff,#fff0f2,#ffe1e6,#fff0f2,#ffffff);background-size:320% 320%;animation:mmrBgShift 16s ease infinite}
 .mmr-rays{transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,0.06) 0deg 5deg,transparent 5deg 16deg);animation:mmrSpin 26s linear infinite;opacity:.5;pointer-events:none}
 @keyframes mmrSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 .mmr-particle{opacity:0;animation-name:mmrRise;animation-timing-function:linear;animation-iteration-count:infinite;filter:drop-shadow(0 0 4px rgba(255,255,255,0.25))}
