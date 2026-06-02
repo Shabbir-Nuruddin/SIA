@@ -53,6 +53,13 @@ export interface StudentMetrics {
   mocksTaken: number;
   mockAvgPct: number | null;
   mockBestGrade: string | null;
+  // Roadmap progress
+  roadmapTotal: number;
+  roadmapDone: number;
+  roadmapPct: number | null;
+  // Engagement
+  siteSeconds: number;        // total time on platform (user_activity)
+  activeDays: number;         // distinct days with a study session
 }
 
 const startOfWeekISO = () => {
@@ -77,17 +84,21 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
 
   const weekStart = startOfWeekISO();
 
-  const [sessionsRes, progressRes, subjectsRes, mocksRes] = await Promise.all([
+  const [sessionsRes, progressRes, subjectsRes, mocksRes, roadmapRes, activityRes] = await Promise.all([
     supabase.from("study_sessions").select("user_id,duration_minutes,completed_at").in("user_id", ids),
     supabase.from("topic_progress").select("user_id,last_score_percent,weak_flag,questions_attempted,questions_correct").in("user_id", ids),
     supabase.from("user_subjects").select("user_id,subject,target_grade,current_grade").in("user_id", ids),
     supabase.from("mock_papers").select("user_id,awarded_marks,total_marks,estimated_grade,submitted_at").in("user_id", ids).not("submitted_at", "is", null),
+    supabase.from("roadmap_nodes").select("user_id,completed_at").in("user_id", ids),
+    supabase.from("user_activity").select("user_id,total_seconds").in("user_id", ids),
   ]);
 
   const sessions = (sessionsRes.data as any[]) || [];
   const progress = (progressRes.data as any[]) || [];
   const subjects = (subjectsRes.data as any[]) || [];
   const mocks = (mocksRes.data as any[]) || [];
+  const roadmap = (roadmapRes.data as any[]) || [];
+  const activity = (activityRes.data as any[]) || [];
 
   const gradeRank = (g: string) => "UEDCBA".indexOf((g || "").toUpperCase()[0] || "U");
 
@@ -133,6 +144,19 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
         .filter(Boolean)
         .sort((a, b) => gradeRank(b) - gradeRank(a))[0] || null;
 
+    const myRoadmap = roadmap.filter((r) => r.user_id === profile.id);
+    const roadmapTotal = myRoadmap.length;
+    const roadmapDone = myRoadmap.filter((r) => r.completed_at).length;
+    const roadmapPct = roadmapTotal > 0 ? Math.round((roadmapDone / roadmapTotal) * 100) : null;
+
+    const siteSeconds = activity
+      .filter((a) => a.user_id === profile.id)
+      .reduce((acc, a) => acc + (a.total_seconds || 0), 0);
+
+    const activeDays = new Set(
+      mySessions.filter((s) => s.completed_at).map((s) => String(s.completed_at).slice(0, 10)),
+    ).size;
+
     return {
       profile,
       totalMinutes,
@@ -149,6 +173,11 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
       mocksTaken: myMocks.length,
       mockAvgPct,
       mockBestGrade,
+      roadmapTotal,
+      roadmapDone,
+      roadmapPct,
+      siteSeconds,
+      activeDays,
     };
   });
 }

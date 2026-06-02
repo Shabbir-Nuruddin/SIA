@@ -56,6 +56,10 @@ const AuthPage = () => {
       try {
         const pending = localStorage.getItem("sia_pending_role");
         if (pending && ["student", "teacher", "parent"].includes(pending)) {
+          // Persist to auth metadata (robust) AND profiles (best-effort).
+          if ((user.user_metadata as any)?.role !== pending) {
+            await supabase.auth.updateUser({ data: { role: pending } });
+          }
           await supabase.from("profiles").upsert({ id: user.id, role: pending } as any, { onConflict: "id" });
           localStorage.removeItem("sia_pending_role");
         }

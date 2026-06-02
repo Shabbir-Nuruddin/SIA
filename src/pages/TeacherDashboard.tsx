@@ -158,7 +158,7 @@ const TeacherDashboard = () => {
                     <thead>
                       <tr className="text-left" style={{ background: "#fdf8f8", color: "#999" }}>
                         <Th>Student</Th><Th>Subjects</Th>
-                        <Th right>Streak</Th><Th right>Week</Th><Th right>Topic avg</Th>
+                        <Th right>Streak</Th><Th right>Week</Th><Th right>Roadmap</Th><Th right>Topic avg</Th>
                         <Th right>Mock avg</Th><Th right>Questions</Th><Th right>Active</Th><Th right>Task</Th>
                       </tr>
                     </thead>
@@ -181,6 +181,7 @@ const TeacherDashboard = () => {
                           </td>
                           <td className="px-4 py-3 text-right font-semibold tabular-nums">{m.profile.current_streak ?? 0}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{fmtMinutes(m.weekMinutes)}</td>
+                          <td className="px-4 py-3 text-right tabular-nums">{m.roadmapPct != null ? `${m.roadmapPct}%` : "—"}</td>
                           <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.avgScore != null && m.avgScore < 50 ? RED : "#444" }}>{m.avgScore != null ? `${m.avgScore}%` : "—"}</td>
                           <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.mockAvgPct != null && m.mockAvgPct < 50 ? RED : "#444" }}>{m.mockAvgPct != null ? `${m.mockAvgPct}%` : "—"}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{m.questionsAttempted}</td>

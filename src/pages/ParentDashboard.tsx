@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SEO } from "@/components/SEO";
 import { toast } from "sonner";
-import { Loader2, Plus, Flame, Clock, Target, AlertTriangle, BookOpen, UserPlus, FileText, ListChecks } from "lucide-react";
+import { Loader2, Plus, Flame, Clock, Target, BookOpen, UserPlus, FileText, ListChecks, Map, Eye, CalendarCheck } from "lucide-react";
 import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
   type ChildProfile, type StudentMetrics,
@@ -128,14 +128,28 @@ function ChildCard({ m }: { m: StudentMetrics }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <Stat icon={<Clock className="h-3.5 w-3.5" />} label="Study time" value={fmtMinutes(m.totalMinutes)} />
         <Stat icon={<Clock className="h-3.5 w-3.5" />} label="This week" value={fmtMinutes(m.weekMinutes)} />
-        <Stat icon={<Clock className="h-3.5 w-3.5" />} label="Total time" value={fmtMinutes(m.totalMinutes)} />
+        <Stat icon={<Eye className="h-3.5 w-3.5" />} label="Time on site" value={fmtMinutes(Math.round(m.siteSeconds / 60))} />
+        <Stat icon={<CalendarCheck className="h-3.5 w-3.5" />} label="Active days" value={String(m.activeDays)} />
+        <Stat icon={<Map className="h-3.5 w-3.5" />} label="Roadmap" value={m.roadmapPct != null ? `${m.roadmapPct}%` : "—"} />
         <Stat icon={<Target className="h-3.5 w-3.5" />} label="Topic avg" value={m.avgScore != null ? `${m.avgScore}%` : "—"} />
         <Stat icon={<FileText className="h-3.5 w-3.5" />} label="Mock avg" value={m.mockAvgPct != null ? `${m.mockAvgPct}%` : "—"} />
         <Stat icon={<ListChecks className="h-3.5 w-3.5" />} label="Questions" value={String(m.questionsAttempted)} />
-        <Stat icon={<AlertTriangle className="h-3.5 w-3.5" />} label="Weak topics" value={String(m.weakTopics)} />
       </div>
+
+      {m.roadmapTotal > 0 && (
+        <div className="mb-5">
+          <div className="flex justify-between text-xs mb-1" style={{ color: "#999" }}>
+            <span className="font-semibold">Roadmap progress</span>
+            <span>{m.roadmapDone}/{m.roadmapTotal} topics</span>
+          </div>
+          <div className="h-2.5 rounded-full" style={{ background: "#f0e0e2" }}>
+            <div className="h-2.5 rounded-full" style={{ width: `${m.roadmapPct || 0}%`, background: RED }} />
+          </div>
+        </div>
+      )}
 
       {m.subjects.length > 0 && (
         <div>
@@ -155,7 +169,7 @@ function ChildCard({ m }: { m: StudentMetrics }) {
 
       <div className="mt-4 text-xs" style={{ color: "#bbb" }}>
         {m.weekSessions} session{m.weekSessions === 1 ? "" : "s"} this week · {m.mocksTaken} mock paper{m.mocksTaken === 1 ? "" : "s"}
-        {m.mockBestGrade ? ` (best grade ${m.mockBestGrade})` : ""} · {m.questionsCorrect}/{m.questionsAttempted} questions correct · {m.topicsTracked} topics tracked
+        {m.mockBestGrade ? ` (best grade ${m.mockBestGrade})` : ""} · {m.questionsCorrect}/{m.questionsAttempted} questions correct · {m.weakTopics} weak topic{m.weakTopics === 1 ? "" : "s"} · {m.topicsTracked} topics tracked
       </div>
     </div>
   );

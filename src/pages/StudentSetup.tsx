@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { YEAR_GROUPS, SECTIONS } from "@/lib/studentMetrics";
 import { SEO } from "@/components/SEO";
 import { toast } from "sonner";
-import { Loader2, ArrowRight, IdCard, GraduationCap } from "lucide-react";
+import { Loader2, ArrowRight, IdCard, GraduationCap, Check } from "lucide-react";
 
 const RED = "#C8102E";
 const RED_DARK = "#7A0A1C";
@@ -22,6 +22,7 @@ const StudentSetup = () => {
   const [grade, setGrade] = useState<string>("");
   const [section, setSection] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [rosterMatch, setRosterMatch] = useState<{ first_name?: string; last_name?: string; grade?: string; section?: string } | null>(null);
 
   // Prefill if returning to edit
   useEffect(() => {
@@ -29,6 +30,25 @@ const StudentSetup = () => {
     if (profile?.grade) setGrade(profile.grade);
     if (profile?.section) setSection(profile.section);
   }, [profile?.student_id, profile?.grade, profile?.section]);
+
+  // Look the ID up in the school roster — if found, auto-fill grade/section.
+  useEffect(() => {
+    const id = studentId.trim();
+    if (id.length < 3) { setRosterMatch(null); return; }
+    let alive = true;
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("student_roster")
+        .select("first_name,last_name,grade,section")
+        .eq("student_id", id)
+        .maybeSingle();
+      if (!alive) return;
+      const r = (data as any) || null;
+      setRosterMatch(r);
+      if (r) { if (r.grade) setGrade(r.grade); if (r.section) setSection(r.section); }
+    }, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [studentId]);
 
   if (loading) {
     return (
@@ -52,9 +72,12 @@ const StudentSetup = () => {
 
     setSaving(true);
     try {
+      const update: any = { student_id: id, grade, section };
+      if (rosterMatch?.first_name) update.first_name = rosterMatch.first_name;
+      if (rosterMatch?.last_name) update.last_name = rosterMatch.last_name;
       const { error } = await supabase
         .from("profiles")
-        .update({ student_id: id, grade, section } as any)
+        .update(update)
         .eq("id", user.id);
 
       if (error) {
@@ -111,6 +134,13 @@ const StudentSetup = () => {
             <p className="text-xs" style={{ color: "#999" }}>
               Use your official SIA student number. Your parent will enter this exact ID to link to your account.
             </p>
+            {rosterMatch && (
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium" style={{ background: "#ecfdf3", color: "#15803d" }}>
+                <Check className="h-3.5 w-3.5" />
+                Matched school records{rosterMatch.first_name ? `: ${rosterMatch.first_name} ${rosterMatch.last_name || ""}` : ""}
+                {rosterMatch.grade ? ` · ${rosterMatch.grade}` : ""}{rosterMatch.section ? ` · Sec ${rosterMatch.section}` : ""}
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5">

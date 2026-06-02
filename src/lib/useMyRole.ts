@@ -36,8 +36,9 @@ export function useMyRole() {
       .then(({ data }) => {
         if (!alive) return;
         const d = (data as any) || {};
+        const metaRole = (user.user_metadata as any)?.role;
         setProfile({
-          role: (d.role || "student") as SiaRole,
+          role: (d.role || metaRole || "student") as SiaRole,
           first_name: d.first_name ?? null,
           last_name: d.last_name ?? null,
           student_id: d.student_id ?? null,
