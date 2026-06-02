@@ -2,17 +2,8 @@
 // defined in src/index.css. Persists across sessions via localStorage AND
 // the `profiles.theme` column when the user is signed in.
 
-export type ThemeName =
-  | "sia"        // SIA red + white (school default)
-  | "midnight"   // default dark navy
-  | "light"      // clean light
-  | "ocean"      // dark teal
-  | "forest"     // dark green
-  | "rose"       // dark warm rose
-  | "amber"      // dark warm amber
-  | "paper"      // warm light paper
-  | "notebook"   // cream notebook paper
-  | "inkwell";   // dark notebook / chalkboard
+// SIA is a single-theme app: collegiate red + white only.
+export type ThemeName = "sia";
 
 export interface ThemeMeta {
   name: ThemeName;
@@ -22,16 +13,7 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ThemeMeta[] = [
-  { name: "sia",      label: "SIA Red",    isLight: true,  swatches: ["#ffffff", "#fbeaec", "#c8102e", "#7a0a1c"] },
-  { name: "notebook", label: "Notebook",   isLight: true,  swatches: ["#f7f0d9", "#ffffff", "#3b6fd8", "#dc2c5e"] },
-  { name: "inkwell",  label: "Inkwell",    isLight: false, swatches: ["#161e2c", "#1d2636", "#f0b740", "#d8487a"] },
-  { name: "midnight", label: "Midnight",   isLight: false, swatches: ["#0f1620", "#1a2332", "#3b6fb8", "#7aa8e8"] },
-  { name: "ocean",    label: "Ocean",      isLight: false, swatches: ["#0a1f2a", "#13323f", "#2d8a9e", "#5cbdb9"] },
-  { name: "forest",   label: "Forest",     isLight: false, swatches: ["#0f1d16", "#16291e", "#2d8a4e", "#7ad19e"] },
-  { name: "rose",     label: "Rose Noir",  isLight: false, swatches: ["#1d1216", "#2a1a20", "#d96a8a", "#f0a8b8"] },
-  { name: "amber",    label: "Ember",      isLight: false, swatches: ["#1a1410", "#2a1f18", "#d97706", "#f0b85a"] },
-  { name: "light",    label: "Daylight",   isLight: true,  swatches: ["#f7f9fc", "#ffffff", "#3b6fb8", "#1f3a5f"] },
-  { name: "paper",    label: "Warm Paper", isLight: true,  swatches: ["#f5f0e6", "#ffffff", "#a05a2c", "#3a2a1a"] },
+  { name: "sia", label: "SIA Red", isLight: true, swatches: ["#ffffff", "#fbeaec", "#c8102e", "#7a0a1c"] },
 ];
 
 const STORAGE_KEY = "apex_theme";

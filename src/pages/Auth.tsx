@@ -12,7 +12,7 @@ import { trackEvent } from "@/lib/analytics";
 import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 import { SEO } from "@/components/SEO";
 
-const SIA_LOGO = "https://sia.ae/wp-content/uploads/2022/03/cropped-sia-sub-logo-2-270x270.png";
+const SIA_LOGO = "/sia-logo.png";
 const HERO_IMAGE = "https://sia.ae/wp-content/uploads/2022/03/BEN_6032.jpg";
 const RED = "#C8102E";
 const RED_DARK = "#7A0A1C";

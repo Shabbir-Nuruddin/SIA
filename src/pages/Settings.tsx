@@ -389,8 +389,7 @@ const SettingsPage = () => {
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Pick the look that helps you focus.</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {THEMES.map(t => {
-                const active = (profile.theme || "midnight") === t.name
-                  || (profile.theme === "dark" && t.name === "midnight");
+                const active = (profile.theme || "sia") === t.name;
                 return (
                   <button
                     key={t.name}

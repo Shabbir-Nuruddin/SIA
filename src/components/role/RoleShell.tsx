@@ -4,7 +4,7 @@ import { Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMyRole, SiaRole } from "@/lib/useMyRole";
 
-const SIA_LOGO = "https://sia.ae/wp-content/uploads/2022/03/cropped-sia-sub-logo-2-270x270.png";
+const SIA_LOGO = "/sia-logo.png";
 const RED = "#C8102E";
 const RED_DARK = "#7A0A1C";
 

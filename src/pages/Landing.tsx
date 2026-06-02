@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
 
-const SIA_LOGO = "https://sia.ae/wp-content/uploads/2022/03/cropped-sia-sub-logo-2-270x270.png";
+const SIA_LOGO = "/sia-logo.png";
 const HERO_IMAGE = "https://sia.ae/wp-content/uploads/2022/03/BEN_6032.jpg";
 const CAMPUS_IMAGE = "https://sia.ae/wp-content/uploads/2022/03/sia-building.jpg";
 

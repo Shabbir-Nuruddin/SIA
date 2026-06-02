@@ -74,7 +74,7 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
       <div className="px-2 pt-3 pb-5 shrink-0 flex items-start justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
-            src="https://sia.ae/wp-content/uploads/2022/03/cropped-sia-sub-logo-2-270x270.png"
+            src="/sia-logo.png"
             alt="SIA"
             className="h-9 w-9 rounded-full shrink-0 object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}

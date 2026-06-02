@@ -141,7 +141,7 @@ function ShareButton() {
   };
   return (
     <button onClick={onShare}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 transition">
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition">
       <Share2 className="h-3.5 w-3.5" /> Share score
     </button>
   );
@@ -175,29 +175,20 @@ function Leaderboard({ game }: { game: GameId }) {
   );
 }
 
-// A proper night-sky scene (not a flat gradient): deep sky + twinkling stars +
-// drifting aurora + a glowing moon, with an optional photo overlay on top that
-// hides itself if it fails to load (so it never breaks).
-const STARS = Array.from({ length: 60 }, (_, i) => ({
-  left: (i * 37) % 100, top: (i * 53) % 78, d: (i % 11) * 0.35, s: 1 + (i % 3),
-}));
+// Light SIA red + white arena: soft white canvas, drifting red glow blobs and
+// floating study emojis. Clean and collegiate — no dark night sky.
 const ARENA_PARTICLES = ["📚", "✏️", "🧪", "📐", "✨", "💡"];
 function Arena({ children, tall = false }: { children: React.ReactNode; tall?: boolean }) {
   return (
-    <div className={`relative ${tall ? "h-72" : "h-56"} mb-3 rounded-2xl overflow-hidden border border-white/10`} style={{ background: "#05060f" }}>
-      <div className="mmr-sky absolute inset-0" />
-      {STARS.map((st, i) => (
-        <span key={i} className="mmr-star" style={{ left: `${st.left}%`, top: `${st.top}%`, width: st.s, height: st.s, animationDelay: `${st.d}s` }} />
-      ))}
-      <div className="mmr-aurora absolute -top-1/3 left-0 right-0 h-2/3" style={{ background: "radial-gradient(60% 100% at 20% 0%, rgba(34,197,94,0.35), transparent 70%), radial-gradient(60% 100% at 80% 0%, rgba(139,92,246,0.35), transparent 70%)" }} />
-      <img
-        src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1000&q=70"
-        alt="" aria-hidden onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-        className="absolute inset-0 h-full w-full object-cover opacity-35 mix-blend-screen pointer-events-none"
-      />
-      <span className="absolute top-3 right-4 text-2xl z-[1]" style={{ filter: "drop-shadow(0 0 12px #fde68a)" }}>🌙</span>
+    <div
+      className={`relative ${tall ? "h-72" : "h-56"} mb-3 rounded-2xl overflow-hidden border`}
+      style={{ background: "linear-gradient(160deg,#ffffff 0%,#fff5f6 55%,#fbe3e7 100%)", borderColor: "rgba(200,16,46,0.18)" }}
+    >
+      <div className="mmr-blob absolute -top-16 -left-10 h-56 w-56 rounded-full" style={{ background: "radial-gradient(circle, rgba(200,16,46,0.20), transparent 70%)" }} />
+      <div className="mmr-blob absolute -bottom-20 -right-8 h-64 w-64 rounded-full" style={{ background: "radial-gradient(circle, rgba(122,10,28,0.16), transparent 70%)", animationDelay: "2.4s" }} />
+      <div className="mmr-blob absolute top-1/3 left-1/2 h-40 w-40 rounded-full" style={{ background: "radial-gradient(circle, rgba(255,215,221,0.55), transparent 70%)", animationDelay: "1.2s" }} />
       {ARENA_PARTICLES.map((e, i) => (
-        <span key={i} className="mmr-particle absolute text-base" style={{ left: `${10 + i * 15}%`, bottom: "-10%", animationDelay: `${i * 1.3}s`, animationDuration: `${8 + (i % 3) * 2}s` }}>{e}</span>
+        <span key={i} className="mmr-particle absolute text-base opacity-80" style={{ left: `${10 + i * 15}%`, bottom: "-10%", animationDelay: `${i * 1.3}s`, animationDuration: `${8 + (i % 3) * 2}s` }}>{e}</span>
       ))}
       <div className="relative z-[2] h-full">{children}</div>
     </div>
@@ -448,8 +439,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
             <button onClick={grabGolden} className="mmr-golden absolute top-4 text-4xl z-20 hover:scale-125 transition-transform" title="Grab the golden note!">✨</button>
           )}
           {combo > 3 && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 text-sm font-extrabold text-amber-300 drop-shadow">
-              🔥 x{mult.toFixed(1)} <span className="text-[10px] font-mono text-amber-200/80">combo</span>
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 text-sm font-extrabold drop-shadow" style={{ color: "#C8102E" }}>
+              🔥 x{mult.toFixed(1)} <span className="text-[10px] font-mono" style={{ color: "#7A0A1C" }}>combo</span>
             </div>
           )}
           <button onPointerDown={click}
@@ -459,8 +450,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
             🧠
           </button>
           {floats.map((f) => (
-            <span key={f.id} className={`pointer-events-none absolute font-extrabold z-20 ${f.crit ? "text-amber-300 text-lg" : "text-white text-sm"}`}
-              style={{ left: `calc(50% + ${f.x - 90}px)`, top: f.y, animation: "mmrFloatUp 0.85s ease-out forwards", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
+            <span key={f.id} className={`pointer-events-none absolute font-extrabold z-20 ${f.crit ? "text-amber-500 text-lg" : "text-sm"}`}
+              style={{ left: `calc(50% + ${f.x - 90}px)`, top: f.y, color: f.crit ? undefined : "#C8102E", animation: "mmrFloatUp 0.85s ease-out forwards", textShadow: "0 1px 5px rgba(255,255,255,0.8)" }}>
               {f.crit ? "CRIT " : ""}+{formatMarks(f.v)}
             </span>
           ))}
@@ -468,7 +459,7 @@ function TycoonMode({ compact }: { compact: boolean }) {
             <span key={sp.id} className="mmr-spark" style={{ ["--dx" as any]: `${sp.dx}px`, ["--dy" as any]: `${sp.dy}px`, background: sp.c }} />
           ))}
           {owns("news") ? <NewsTicker /> : (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-white/70 font-medium">Tap the brain — fast taps build a combo!</div>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] font-medium" style={{ color: "rgba(122,10,28,0.7)" }}>Tap the brain — fast taps build a combo!</div>
           )}
         </div>
       </Arena>
@@ -582,8 +573,8 @@ function CpsMode() {
         <Arena>
           <div className="h-full flex flex-col items-center justify-center gap-1">
             <div className="text-6xl mmr-zap">⚡</div>
-            <div className="text-sm font-bold text-white">{running ? `${clicks} clicks` : last !== null ? `Result: ${(last / 5).toFixed(1)} cps` : "Tap as fast as you can!"}</div>
-            <div className="text-[11px] text-white/70">{running ? "go go go!" : "Tap to start the 5-second sprint"}</div>
+            <div className="text-sm font-bold" style={{ color: "#7A0A1C" }}>{running ? `${clicks} clicks` : last !== null ? `Result: ${(last / 5).toFixed(1)} cps` : "Tap as fast as you can!"}</div>
+            <div className="text-[11px]" style={{ color: "rgba(122,10,28,0.7)" }}>{running ? "go go go!" : "Tap to start the 5-second sprint"}</div>
           </div>
         </Arena>
       </button>
@@ -715,7 +706,7 @@ const GAME_CSS = `
 .mmr-pop{transform:scale(.9)!important}
 .mmr-shine{position:absolute;inset:0;border-radius:9999px;background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.85),transparent 30%);pointer-events:none}
 .mmr-golden{animation:mmrGoldenMove 6s linear forwards;filter:drop-shadow(0 0 8px gold)}
-.mmr-zap{animation:mmrZap 1.4s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(99,102,241,.7))}
+.mmr-zap{animation:mmrZap 1.4s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(200,16,46,.6))}
 .mmr-glow{position:absolute;left:50%;top:50%;width:170px;height:170px;border-radius:9999px;transform:translate(-50%,-50%);background:radial-gradient(circle,hsl(var(--primary)/0.55),transparent 64%);animation:mmrGlow 2.4s ease-in-out infinite;pointer-events:none;z-index:0}
 @keyframes mmrGlow{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:.75;transform:translate(-50%,-50%) scale(1.14)}}
 .mmr-spark{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:9999px;pointer-events:none;z-index:25;animation:mmrSpark .6s ease-out forwards}
