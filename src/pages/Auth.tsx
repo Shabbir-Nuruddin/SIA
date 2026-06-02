@@ -38,7 +38,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
 
   // One-time toast after email verification redirect.
@@ -48,15 +48,19 @@ const AuthPage = () => {
     }
   }, [params]);
 
+  // Auto-redirect ONLY right after a fresh sign-in: a Google OAuth return
+  // (sia_pending_role set) or an email-verification return (?verified=1).
+  // An existing/persisted session does NOT auto-redirect — instead we show the
+  // "already signed in" panel so the user can switch accounts.
   useEffect(() => {
     if (authLoading || !user) return;
+    const pending = localStorage.getItem("sia_pending_role");
+    const verified = params.get("verified") === "1";
+    if (!pending && !verified) return;
     let cancelled = false;
     (async () => {
-      // Apply a role chosen before an OAuth redirect (Google sign-in).
       try {
-        const pending = localStorage.getItem("sia_pending_role");
         if (pending && ["student", "teacher", "parent"].includes(pending)) {
-          // Persist to auth metadata (robust) AND profiles (best-effort).
           if ((user.user_metadata as any)?.role !== pending) {
             await supabase.auth.updateUser({ data: { role: pending } });
           }
@@ -68,7 +72,15 @@ const AuthPage = () => {
       if (!cancelled) navigate(route, { replace: true });
     })();
     return () => { cancelled = true; };
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user, navigate, params]);
+
+  const goToPortal = async () => {
+    if (!user) return;
+    navigate(await getPostAuthRoute(user.id), { replace: true });
+  };
+  const switchAccount = async () => {
+    await signOut(); // stays on /auth; the sign-in form then shows
+  };
 
   const handleGoogle = async () => {
     try {
@@ -86,6 +98,8 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Email auth carries its own role via metadata — drop any stale OAuth pending role.
+    localStorage.removeItem("sia_pending_role");
     if (mode === "signup") {
       const fn = firstName.trim();
       const ln = lastName.trim();
@@ -139,6 +153,29 @@ const AuthPage = () => {
       setLoading(false);
     }
   };
+
+  // Already signed in (persisted session, no fresh-login redirect pending):
+  // offer to continue or switch accounts instead of silently redirecting.
+  if (user && !authLoading && !localStorage.getItem("sia_pending_role") && params.get("verified") !== "1") {
+    return (
+      <div className="min-h-dvh w-full flex items-center justify-center px-5" style={{ fontFamily: "'Source Sans 3','Inter',sans-serif", background: "#fdf8f8" }}>
+        <SEO title="Sign in — SIA Smart Revision" description="Access SIA Smart Revision." path="/auth" noindex />
+        <div className="w-full max-w-md rounded-2xl border bg-white p-8 text-center shadow-sm" style={{ borderColor: "#f0e0e2" }}>
+          <img src={SIA_LOGO} alt="SIA" className="mx-auto h-12 w-12 rounded-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          <h1 className="mt-4 text-2xl font-bold" style={{ fontFamily: "'Playfair Display',Georgia,serif", color: RED_DARK }}>You're already signed in</h1>
+          <p className="mt-1 text-sm" style={{ color: "#888" }}>{user.email}</p>
+          <div className="mt-6 space-y-3">
+            <Button onClick={goToPortal} className="h-12 w-full text-base font-semibold text-white" style={{ background: RED }}>
+              Continue →
+            </Button>
+            <Button onClick={switchAccount} variant="outline" className="h-12 w-full text-base font-semibold">
+              Sign out & use another account
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh w-full grid lg:grid-cols-2" style={{ fontFamily: "'Source Sans 3','Inter',sans-serif" }}>
