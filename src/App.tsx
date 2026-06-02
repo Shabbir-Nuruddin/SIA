@@ -11,6 +11,9 @@ import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
 
 import Onboarding from "./pages/Onboarding";
+import StudentSetup from "./pages/StudentSetup";
+import ParentDashboard from "./pages/ParentDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import Dashboard from "./pages/Dashboard";
 import Questions from "./pages/Questions";
 import MockPapers from "./pages/MockPapers";
@@ -59,6 +62,9 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage />} />
 
+            <Route path="/student-setup" element={<StudentSetup />} />
+            <Route path="/parent" element={<ParentDashboard />} />
+            <Route path="/teacher" element={<TeacherDashboard />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<Questions />} />

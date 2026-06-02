@@ -41,12 +41,44 @@ const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
+  // One-time toast after email verification redirect.
+  useEffect(() => {
+    if (params.get("verified") === "1") {
+      toast.success("Email verified — you're all set. Welcome to SIA Smart Revision.");
+    }
+  }, [params]);
+
   useEffect(() => {
     if (authLoading || !user) return;
     let cancelled = false;
-    getPostAuthRoute(user.id).then((route) => { if (!cancelled) navigate(route, { replace: true }); });
+    (async () => {
+      // Apply a role chosen before an OAuth redirect (Google sign-in).
+      try {
+        const pending = localStorage.getItem("sia_pending_role");
+        if (pending && ["student", "teacher", "parent"].includes(pending)) {
+          await supabase.from("profiles").upsert({ id: user.id, role: pending } as any, { onConflict: "id" });
+          localStorage.removeItem("sia_pending_role");
+        }
+      } catch { /* non-blocking */ }
+      const route = await getPostAuthRoute(user.id);
+      if (!cancelled) navigate(route, { replace: true });
+    })();
     return () => { cancelled = true; };
   }, [authLoading, user, navigate]);
+
+  const handleGoogle = async () => {
+    try {
+      // Remember the role tab so we can persist it when Google redirects back.
+      localStorage.setItem("sia_pending_role", role);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth` },
+      });
+      if (error) throw error;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,6 +229,34 @@ const AuthPage = () => {
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account →" : "Sign in →"}
             </Button>
           </form>
+
+          {/* Divider */}
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1" style={{ background: "#eee" }} />
+            <span className="text-xs font-medium" style={{ color: "#bbb" }}>OR</span>
+            <span className="h-px flex-1" style={{ background: "#eee" }} />
+          </div>
+
+          {/* Google */}
+          <button type="button" onClick={handleGoogle}
+            className="h-12 w-full rounded-md border flex items-center justify-center gap-3 text-sm font-semibold transition-colors hover:bg-gray-50"
+            style={{ borderColor: "#ddd", color: "#374151" }}>
+            <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" />
+            </svg>
+            Continue with Google
+          </button>
+
+          {mode === "signup" && (
+            <p className="mt-4 text-center text-xs" style={{ color: "#aaa" }}>
+              {role === "student" && "After signing up you'll confirm your Student ID and year group."}
+              {role === "parent" && "After signing up you'll link your child using their Student ID."}
+              {role === "teacher" && "Teacher accounts can view all students' grades and progress."}
+            </p>
+          )}
 
           <p className="mt-6 text-center text-sm" style={{ color: "#888" }}>
             {mode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
