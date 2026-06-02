@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── SIA BRAND TOKENS ───────────────────────────────────────────────────────
+   Used by SIA-branded pages (Landing, Auth, Parent/Teacher dashboards).
+   The existing dark theme is preserved for the student study environment.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --sia-navy:          #1B2A4A;
+  --sia-navy-light:    #2A3F6B;
+  --sia-gold:          #C9A84C;
+  --sia-gold-light:    #E8C870;
+  --sia-bg:            #F7F7F5;
+  --sia-surface:       #FFFFFF;
+  --sia-text:          #2D2D2D;
+  --sia-text-muted:    #6B7280;
+  --sia-success:       #2E7D32;
+  --sia-warning:       #F59E0B;
+  --sia-danger:        #DC2626;
+  --font-heading:      'Playfair Display', Georgia, serif;
+  --font-body:         'Source Sans 3', 'Inter', sans-serif;
+}
+
 /* APEX — Academic war room. Deep navy, electric blue, no purple. */
 
 @layer base {
