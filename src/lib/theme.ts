@@ -3,6 +3,7 @@
 // the `profiles.theme` column when the user is signed in.
 
 export type ThemeName =
+  | "sia"        // SIA red + white (school default)
   | "midnight"   // default dark navy
   | "light"      // clean light
   | "ocean"      // dark teal
@@ -21,6 +22,7 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ThemeMeta[] = [
+  { name: "sia",      label: "SIA Red",    isLight: true,  swatches: ["#ffffff", "#fbeaec", "#c8102e", "#7a0a1c"] },
   { name: "notebook", label: "Notebook",   isLight: true,  swatches: ["#f7f0d9", "#ffffff", "#3b6fd8", "#dc2c5e"] },
   { name: "inkwell",  label: "Inkwell",    isLight: false, swatches: ["#161e2c", "#1d2636", "#f0b740", "#d8487a"] },
   { name: "midnight", label: "Midnight",   isLight: false, swatches: ["#0f1620", "#1a2332", "#3b6fb8", "#7aa8e8"] },
@@ -37,10 +39,10 @@ const ALL_CLASSES = THEMES.map(t => `theme-${t.name}`);
 
 // Map legacy values from when "theme" was just "dark" | "light".
 const normalise = (raw: string | null | undefined): ThemeName => {
-  if (!raw) return "notebook";
+  if (!raw) return "sia";
   if (raw === "dark") return "midnight";
   if (THEMES.some(t => t.name === raw)) return raw as ThemeName;
-  return "notebook";
+  return "sia";
 };
 
 export function applyTheme(name: string | null | undefined) {
@@ -55,7 +57,7 @@ export function applyTheme(name: string | null | undefined) {
 }
 
 export function getStoredTheme(): ThemeName {
-  try { return normalise(localStorage.getItem(STORAGE_KEY)); } catch { return "midnight"; }
+  try { return normalise(localStorage.getItem(STORAGE_KEY)); } catch { return "sia"; }
 }
 
 // Apply immediately on module import so first paint is themed.

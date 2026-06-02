@@ -23,7 +23,7 @@ interface Upgrade { id: string; name: string; emoji: string; baseCost: number; k
 const UPGRADES: Upgrade[] = [
   { id: "flashcards", name: "Flashcards",    emoji: "🃏", baseCost: 15,         kind: "auto",  rate: 1,      desc: "A deck that drills itself." },
   { id: "highlighter",name: "Highlighter",   emoji: "🖊️", baseCost: 50,         kind: "click", rate: 1,      desc: "Every tap is worth more." },
-  { id: "dvd",        name: "Bouncing Logo", emoji: "📀", baseCost: 80,         kind: "auto",  rate: 0,      desc: "An MMR logo bounces the corners — marks per bounce!", fx: "dvd" },
+  { id: "dvd",        name: "Bouncing Logo", emoji: "📀", baseCost: 80,         kind: "auto",  rate: 0,      desc: "An SIA logo bounces the corners — marks per bounce!", fx: "dvd" },
   { id: "coffee",     name: "Coffee",        emoji: "☕", baseCost: 120,        kind: "auto",  rate: 5,      desc: "The original study drug." },
   { id: "energy",     name: "Energy Drink",  emoji: "🥤", baseCost: 1_100,      kind: "click", rate: 6,      desc: "Taps, supercharged." },
   { id: "notes",      name: "AI Notes",      emoji: "📝", baseCost: 1_300,      kind: "auto",  rate: 25,     desc: "Revises while you sleep." },
@@ -125,11 +125,10 @@ function ShareButton() {
       earned = Math.max(Number(raw.totalEarned) || 0, getPersonalBest("study_tycoon"));
     } catch { /* ignore */ }
     const score = formatMarks(earned);
-    const url = "https://makemerevise.com";
-    const text = `I just racked up ${score} marks in MakeMeRevise Break Arcade 🧠 — think you can beat me? ${url}`;
+    const text = `I just racked up ${score} marks in the SIA Smart Revision Break Arcade 🧠 — think you can beat me?`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "MakeMeRevise Break Arcade", text, url });
+        await navigator.share({ title: "SIA Smart Revision Break Arcade", text });
         return;
       }
     } catch { /* user cancelled or unsupported — fall through to copy */ }
@@ -637,7 +636,7 @@ function BouncingDVD({ speed, onBounce, idx = 0 }: { speed: number; onBounce: ()
   }, []);
   return (
     <div ref={ref} className="absolute left-0 top-0 z-30 pointer-events-none select-none" style={{ color: "#fff" }}>
-      <span className="px-3 py-1.5 rounded-lg border-[3px] border-current text-2xl font-black tracking-tighter" style={{ textShadow: "0 0 18px currentColor", boxShadow: "0 0 24px currentColor" }}>MMR</span>
+      <span className="px-3 py-1.5 rounded-lg border-[3px] border-current text-2xl font-black tracking-tighter" style={{ textShadow: "0 0 18px currentColor", boxShadow: "0 0 24px currentColor" }}>SIA</span>
     </div>
   );
 }

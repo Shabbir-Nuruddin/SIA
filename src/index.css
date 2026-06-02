@@ -2,26 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── SIA BRAND TOKENS ───────────────────────────────────────────────────────
-   Used by SIA-branded pages (Landing, Auth, Parent/Teacher dashboards).
-   The existing dark theme is preserved for the student study environment.
-   ─────────────────────────────────────────────────────────────────────────── */
-:root {
-  --sia-navy:          #1B2A4A;
-  --sia-navy-light:    #2A3F6B;
-  --sia-gold:          #C9A84C;
-  --sia-gold-light:    #E8C870;
-  --sia-bg:            #F7F7F5;
-  --sia-surface:       #FFFFFF;
-  --sia-text:          #2D2D2D;
-  --sia-text-muted:    #6B7280;
-  --sia-success:       #2E7D32;
-  --sia-warning:       #F59E0B;
-  --sia-danger:        #DC2626;
-  --font-heading:      'Playfair Display', Georgia, serif;
-  --font-body:         'Source Sans 3', 'Inter', sans-serif;
-}
-
 /* APEX — Academic war room. Deep navy, electric blue, no purple. */
 
 @layer base {
@@ -120,6 +100,45 @@
    regardless of source order. They still cascade by specificity (html.theme-X). */
 
   html.theme-midnight { /* uses :root tokens */ }
+
+  /* SIA — Scholars International Academy. Collegiate red on clean white. */
+  html.theme-sia {
+    --background: 0 0% 99%;
+    --background-elevated: 0 0% 100%;
+    --foreground: 222 30% 14%;
+    --card: 0 0% 100%;
+    --card-hover: 350 40% 97%;
+    --card-foreground: 222 30% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 14%;
+    --primary: 350 85% 42%;             /* SIA red #C8102E */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 350 78% 52%;
+    --secondary: 350 30% 96%;
+    --secondary-foreground: 222 30% 16%;
+    --muted: 220 16% 95%;
+    --muted-foreground: 220 12% 40%;
+    --accent: 350 72% 38%;              /* deep maroon accent */
+    --accent-foreground: 0 0% 100%;
+    --success: 142 60% 38%;
+    --warning: 32 90% 48%;
+    --urgent: 0 75% 50%;
+    --urgent-foreground: 0 0% 100%;
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 88%;
+    --input: 220 14% 90%;
+    --ring: 350 85% 42%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 25% 28%;
+    --sidebar-primary: 350 85% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 350 35% 95%;
+    --sidebar-accent-foreground: 350 80% 38%;
+    --sidebar-border: 220 14% 88%;
+    --sidebar-ring: 350 85% 42%;
+  }
+  html.theme-sia { color-scheme: light; }
 
   html.theme-ocean {
     --background: 196 45% 8%;
