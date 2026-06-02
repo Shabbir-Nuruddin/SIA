@@ -10,6 +10,7 @@ export interface MyProfile {
   last_name: string | null;
   student_id: string | null;
   grade: string | null;
+  section: string | null;
   onboarded: boolean;
 }
 
@@ -29,7 +30,7 @@ export function useMyRole() {
     let alive = true;
     supabase
       .from("profiles")
-      .select("role, first_name, last_name, student_id, grade, onboarded")
+      .select("role, first_name, last_name, student_id, grade, section, onboarded")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -41,6 +42,7 @@ export function useMyRole() {
           last_name: d.last_name ?? null,
           student_id: d.student_id ?? null,
           grade: d.grade ?? null,
+          section: d.section ?? null,
           onboarded: !!d.onboarded,
         });
         setLoading(false);

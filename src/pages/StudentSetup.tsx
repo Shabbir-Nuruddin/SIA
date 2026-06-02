@@ -6,7 +6,7 @@ import { useMyRole } from "@/lib/useMyRole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { YEAR_GROUPS } from "@/lib/studentMetrics";
+import { YEAR_GROUPS, SECTIONS } from "@/lib/studentMetrics";
 import { SEO } from "@/components/SEO";
 import { toast } from "sonner";
 import { Loader2, ArrowRight, IdCard, GraduationCap } from "lucide-react";
@@ -20,13 +20,15 @@ const StudentSetup = () => {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState("");
   const [grade, setGrade] = useState<string>("");
+  const [section, setSection] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   // Prefill if returning to edit
   useEffect(() => {
     if (profile?.student_id) setStudentId(profile.student_id);
     if (profile?.grade) setGrade(profile.grade);
-  }, [profile?.student_id, profile?.grade]);
+    if (profile?.section) setSection(profile.section);
+  }, [profile?.student_id, profile?.grade, profile?.section]);
 
   if (loading) {
     return (
@@ -46,12 +48,13 @@ const StudentSetup = () => {
     const id = studentId.trim();
     if (!id) { toast.error("Please enter your Student ID."); return; }
     if (!grade) { toast.error("Please select your year group."); return; }
+    if (!section) { toast.error("Please select your section."); return; }
 
     setSaving(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ student_id: id, grade } as any)
+        .update({ student_id: id, grade, section } as any)
         .eq("id", user.id);
 
       if (error) {
@@ -128,6 +131,30 @@ const StudentSetup = () => {
                     }}
                   >
                     {g}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="section">Section</Label>
+            <div className="grid grid-cols-6 gap-2">
+              {SECTIONS.map((s) => {
+                const active = section === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSection(s)}
+                    className="py-3 rounded-xl border-2 text-sm font-bold transition-all"
+                    style={{
+                      borderColor: active ? RED : "#e5e7eb",
+                      background: active ? RED : "#fff",
+                      color: active ? "#fff" : "#374151",
+                    }}
+                  >
+                    {s}
                   </button>
                 );
               })}

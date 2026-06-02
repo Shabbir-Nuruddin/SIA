@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Home, Calendar, Zap, FileText, BookOpen, Link as LinkIcon,
   MessageCircle, Settings, LogOut, Flame, GraduationCap, Sparkles, Menu,
-  MessageSquare, Lock, Headphones, Compass, Shield, Star, TrendingUp,
+  MessageSquare, Lock, Headphones, Compass, Shield, Star, TrendingUp, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -16,11 +16,12 @@ import { ADMIN_EMAIL, useTestMode } from "@/lib/admin";
 
 const items: { to: string; icon: any; label: string; color: string; proOnly?: boolean; adminOnly?: boolean }[] = [
   { to: "/dashboard",   icon: Home,         label: "Today's Plan",     color: "265 75% 62%" },
-  { to: "/roadmap",     icon: Calendar,     label: "Roadmap",          color: "205 85% 58%", adminOnly: true },
+  { to: "/roadmap",     icon: Calendar,     label: "Roadmap",          color: "205 85% 58%" },
   { to: "/exams",       icon: GraduationCap,label: "Exams",            color: "340 80% 62%" },
   { to: "/progress",    icon: TrendingUp,   label: "Progress",         color: "160 70% 45%" },
+  { to: "/tasks",       icon: ClipboardList,label: "My Tasks",         color: "350 80% 55%" },
   { to: "/questions",   icon: Zap,          label: "Topical Questions",color: "28 95% 58%"  },
-  { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%", adminOnly: true },
+  { to: "/mock-papers", icon: FileText,     label: "Mock Papers",      color: "178 65% 48%" },
   { to: "/notes",       icon: BookOpen,     label: "Notes",            color: "265 75% 62%" },
   
   { to: "/papers",      icon: LinkIcon,     label: "Past Papers",      color: "205 85% 58%" },

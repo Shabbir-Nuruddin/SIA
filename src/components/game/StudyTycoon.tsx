@@ -486,8 +486,8 @@ function TycoonMode({ compact }: { compact: boolean }) {
           const rateLabel = u.fx === "dvd" ? "+3 per bounce each" : u.kind === "auto" ? `+${formatMarks(u.rate)}/s each` : `+${formatMarks(u.rate)} per tap each`;
           return (
             <button key={u.id} onClick={() => buyN(u)} disabled={!afford}
-              className={`group flex items-center gap-3 rounded-xl border p-2.5 text-left transition ${afford ? "border-primary/40 bg-primary/5 hover:bg-primary/15 hover:scale-[1.01] cursor-pointer" : "border-border opacity-55 cursor-not-allowed"}`}>
-              <span className={`grid place-items-center h-10 w-10 rounded-lg text-2xl shrink-0 ${afford ? "bg-primary/15" : "bg-secondary"}`}>{u.emoji}</span>
+              className={`group flex items-center gap-3 rounded-xl border p-2.5 text-left transition ${afford ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:scale-[1.01] cursor-pointer shadow-sm" : "border-border bg-card cursor-not-allowed"}`}>
+              <span className={`grid place-items-center h-10 w-10 rounded-lg text-2xl shrink-0 ${afford ? "bg-primary/15" : "bg-muted"}`}>{u.emoji}</span>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold truncate">{u.name}{count > 0 && <span className="text-muted-foreground font-normal"> ×{count}</span>}</div>
                 <div className="text-[11px] text-muted-foreground truncate">{u.desc}</div>

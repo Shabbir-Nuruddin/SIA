@@ -13,7 +13,7 @@ export async function getPostAuthRoute(userId: string): Promise<string> {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const result = await supabase
       .from("profiles")
-      .select("role, student_id, grade, onboarded")
+      .select("role, student_id, grade, section, onboarded")
       .eq("id", userId)
       .maybeSingle();
     data = result.data;
@@ -26,6 +26,6 @@ export async function getPostAuthRoute(userId: string): Promise<string> {
   if (role === "parent") return "/parent";
 
   // student
-  if (!data?.student_id || !data?.grade) return "/student-setup";
+  if (!data?.student_id || !data?.grade || !data?.section) return "/student-setup";
   return data?.onboarded ? "/dashboard" : "/onboarding";
 }

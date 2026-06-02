@@ -1,21 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { RoleShell, RED, RED_DARK } from "@/components/role/RoleShell";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { SEO } from "@/components/SEO";
-import { Loader2, Search, Flame, Clock, Target, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Search, Flame, Clock, Target, Users, FileText, ClipboardPlus, X } from "lucide-react";
 import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
-  YEAR_GROUPS, type ChildProfile, type StudentMetrics,
+  YEAR_GROUPS, SECTIONS, type ChildProfile, type StudentMetrics,
 } from "@/lib/studentMetrics";
 
-const STUDENT_FIELDS = "id, first_name, last_name, student_id, grade, current_streak, exam_board, last_session_date";
+const STUDENT_FIELDS = "id, first_name, last_name, student_id, grade, section, current_streak, exam_board, last_session_date";
 
 const TeacherDashboard = () => {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<StudentMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [gradeFilter, setGradeFilter] = useState<string>("all");
+  const [sectionFilter, setSectionFilter] = useState<string>("all");
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
+  const [assignTarget, setAssignTarget] = useState<StudentMetrics[] | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -33,130 +41,273 @@ const TeacherDashboard = () => {
     return () => { alive = false; };
   }, []);
 
+  const allSubjects = useMemo(() => {
+    const s = new Set<string>();
+    metrics.forEach((m) => m.subjects.forEach((x) => s.add(x.subject)));
+    return Array.from(s).sort();
+  }, [metrics]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return metrics
       .filter((m) => gradeFilter === "all" || m.profile.grade === gradeFilter)
+      .filter((m) => sectionFilter === "all" || m.profile.section === sectionFilter)
+      .filter((m) => subjectFilter === "all" || m.subjects.some((s) => s.subject === subjectFilter))
       .filter((m) =>
         !q ||
         fullName(m.profile).toLowerCase().includes(q) ||
         (m.profile.student_id || "").toLowerCase().includes(q))
-      .sort((a, b) => fullName(a.profile).localeCompare(fullName(b.profile)));
-  }, [metrics, gradeFilter, query]);
+      .sort((a, b) =>
+        (a.profile.grade || "").localeCompare(b.profile.grade || "") ||
+        (a.profile.section || "").localeCompare(b.profile.section || "") ||
+        fullName(a.profile).localeCompare(fullName(b.profile)));
+  }, [metrics, gradeFilter, sectionFilter, subjectFilter, query]);
 
-  // School-wide aggregates for the filtered set
   const summary = useMemo(() => {
     const n = filtered.length;
     const totalMin = filtered.reduce((a, m) => a + m.totalMinutes, 0);
     const scored = filtered.filter((m) => m.avgScore != null);
     const avg = scored.length ? Math.round(scored.reduce((a, m) => a + (m.avgScore || 0), 0) / scored.length) : null;
+    const mockScored = filtered.filter((m) => m.mockAvgPct != null);
+    const mockAvg = mockScored.length ? Math.round(mockScored.reduce((a, m) => a + (m.mockAvgPct || 0), 0) / mockScored.length) : null;
     const active = filtered.filter((m) => m.weekSessions > 0).length;
-    return { n, totalMin, avg, active };
+    return { n, totalMin, avg, mockAvg, active };
   }, [filtered]);
 
   const gradeCounts = useMemo(() => {
     const map = new Map<string, number>();
-    for (const m of metrics) {
-      const g = m.profile.grade || "Unassigned";
-      map.set(g, (map.get(g) || 0) + 1);
-    }
+    for (const m of metrics) map.set(m.profile.grade || "—", (map.get(m.profile.grade || "—") || 0) + 1);
     return map;
   }, [metrics]);
 
-  return (
-    <RoleShell role="teacher" title="Teacher Dashboard" subtitle="Track every student's grade, progress and revision activity.">
-      <SEO title="Teacher Dashboard — SIA Smart Revision" description="Monitor all SIA students' progress." path="/teacher" noindex />
+  // Group filtered students by grade → section for the analytics view.
+  const groups = useMemo(() => {
+    const map = new Map<string, StudentMetrics[]>();
+    for (const m of filtered) {
+      const key = `${m.profile.grade || "Unassigned"} · Section ${m.profile.section || "—"}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(m);
+    }
+    return Array.from(map.entries());
+  }, [filtered]);
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  return (
+    <RoleShell role="teacher" title="Teacher Analytics" subtitle="Track students by grade, section and subject — and set them tasks.">
+      <SEO title="Teacher Analytics — SIA Smart Revision" description="Monitor all SIA students' progress." path="/teacher" noindex />
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         <SummaryCard icon={<Users className="h-4 w-4" />} label="Students" value={String(summary.n)} />
         <SummaryCard icon={<Flame className="h-4 w-4" />} label="Active this week" value={String(summary.active)} />
-        <SummaryCard icon={<Clock className="h-4 w-4" />} label="Total study time" value={fmtMinutes(summary.totalMin)} />
-        <SummaryCard icon={<Target className="h-4 w-4" />} label="Avg score" value={summary.avg != null ? `${summary.avg}%` : "—"} />
+        <SummaryCard icon={<Clock className="h-4 w-4" />} label="Study time" value={fmtMinutes(summary.totalMin)} />
+        <SummaryCard icon={<Target className="h-4 w-4" />} label="Topic avg" value={summary.avg != null ? `${summary.avg}%` : "—"} />
+        <SummaryCard icon={<FileText className="h-4 w-4" />} label="Mock avg" value={summary.mockAvg != null ? `${summary.mockAvg}%` : "—"} />
       </div>
 
       {/* Filters */}
+      <div className="space-y-2 mb-4">
+        <FilterRow label="Grade">
+          <Pill active={gradeFilter === "all"} onClick={() => setGradeFilter("all")}>All ({metrics.length})</Pill>
+          {YEAR_GROUPS.map((g) => (
+            <Pill key={g} active={gradeFilter === g} onClick={() => setGradeFilter(g)}>{g} ({gradeCounts.get(g) || 0})</Pill>
+          ))}
+        </FilterRow>
+        <FilterRow label="Section">
+          <Pill active={sectionFilter === "all"} onClick={() => setSectionFilter("all")}>All</Pill>
+          {SECTIONS.map((s) => (
+            <Pill key={s} active={sectionFilter === s} onClick={() => setSectionFilter(s)}>{s}</Pill>
+          ))}
+        </FilterRow>
+        <FilterRow label="Subject">
+          <Pill active={subjectFilter === "all"} onClick={() => setSubjectFilter("all")}>All</Pill>
+          {allSubjects.map((s) => (
+            <Pill key={s} active={subjectFilter === s} onClick={() => setSubjectFilter(s)}>{subjectLabel(s)}</Pill>
+          ))}
+        </FilterRow>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2 mb-5">
-        <button onClick={() => setGradeFilter("all")}
-          className="px-3.5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all"
-          style={{ borderColor: gradeFilter === "all" ? RED : "#e5e7eb", background: gradeFilter === "all" ? RED : "#fff", color: gradeFilter === "all" ? "#fff" : "#374151" }}>
-          All grades ({metrics.length})
-        </button>
-        {YEAR_GROUPS.map((g) => (
-          <button key={g} onClick={() => setGradeFilter(g)}
-            className="px-3.5 py-1.5 rounded-full text-sm font-semibold border-2 transition-all"
-            style={{ borderColor: gradeFilter === g ? RED : "#e5e7eb", background: gradeFilter === g ? RED : "#fff", color: gradeFilter === g ? "#fff" : "#374151" }}>
-            {g} ({gradeCounts.get(g) || 0})
-          </button>
-        ))}
-        <div className="relative ml-auto">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#bbb" }} />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or ID" className="h-10 pl-9 w-56" />
         </div>
+        <Button
+          onClick={() => filtered.length ? setAssignTarget(filtered) : toast.error("No students in this view.")}
+          className="h-10 ml-auto font-semibold text-white" style={{ background: RED }}>
+          <ClipboardPlus className="h-4 w-4 mr-1.5" /> Assign task to {filtered.length} student{filtered.length === 1 ? "" : "s"}
+        </Button>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin" style={{ color: RED }} /></div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 rounded-2xl border bg-white" style={{ borderColor: "#f0e0e2" }}>
           <div className="text-4xl mb-3">🎓</div>
           <p className="font-semibold" style={{ color: RED_DARK }}>No students found</p>
-          <p className="text-sm mt-1" style={{ color: "#999" }}>Students appear here once they sign up and set their Student ID.</p>
+          <p className="text-sm mt-1" style={{ color: "#999" }}>Students appear here once they sign up and set their Student ID, grade and section.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border bg-white overflow-hidden shadow-sm" style={{ borderColor: "#f0e0e2" }}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left" style={{ background: "#fdf8f8", color: "#999" }}>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Student</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Grade</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide">Subjects</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide text-right">Streak</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide text-right">This week</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide text-right">Avg score</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide text-right">Weak</th>
-                  <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wide text-right">Last active</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((m, i) => (
-                  <tr key={m.profile.id} className="border-t" style={{ borderColor: "#f5ebec", background: i % 2 ? "#fff" : "#fffcfc" }}>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold" style={{ color: RED_DARK }}>{fullName(m.profile)}</div>
-                      <div className="text-xs" style={{ color: "#bbb" }}>{m.profile.student_id || "—"}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: "#fce8eb", color: RED_DARK }}>{m.profile.grade || "—"}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1 max-w-[220px]">
-                        {m.subjects.length === 0 ? <span style={{ color: "#ccc" }}>—</span> :
-                          m.subjects.map((s) => (
-                            <span key={s.subject} className="text-[11px] px-2 py-0.5 rounded-full border" style={{ borderColor: "#f0e0e2", color: "#666" }}>
-                              {subjectLabel(s.subject)} <span className="font-mono" style={{ color: "#bbb" }}>{s.target_grade}</span>
-                            </span>
-                          ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums">{m.profile.current_streak ?? 0}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{fmtMinutes(m.weekMinutes)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.avgScore != null && m.avgScore < 50 ? RED : "#444" }}>
-                      {m.avgScore != null ? `${m.avgScore}%` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums" style={{ color: m.weakTopics > 0 ? "#c2410c" : "#ccc" }}>{m.weakTopics}</td>
-                    <td className="px-4 py-3 text-right text-xs" style={{ color: "#999" }}>{relativeTime(m.lastActive)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-6">
+          {groups.map(([groupName, rows]) => (
+            <div key={groupName}>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-bold" style={{ color: RED_DARK }}>{groupName} <span className="font-normal" style={{ color: "#bbb" }}>· {rows.length}</span></h2>
+              </div>
+              <div className="rounded-2xl border bg-white overflow-hidden shadow-sm" style={{ borderColor: "#f0e0e2" }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left" style={{ background: "#fdf8f8", color: "#999" }}>
+                        <Th>Student</Th><Th>Subjects</Th>
+                        <Th right>Streak</Th><Th right>Week</Th><Th right>Topic avg</Th>
+                        <Th right>Mock avg</Th><Th right>Questions</Th><Th right>Active</Th><Th right>Task</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((m, i) => (
+                        <tr key={m.profile.id} className="border-t" style={{ borderColor: "#f5ebec", background: i % 2 ? "#fff" : "#fffcfc" }}>
+                          <td className="px-4 py-3">
+                            <div className="font-semibold" style={{ color: RED_DARK }}>{fullName(m.profile)}</div>
+                            <div className="text-xs" style={{ color: "#bbb" }}>{m.profile.student_id || "—"}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1 max-w-[200px]">
+                              {m.subjects.length === 0 ? <span style={{ color: "#ccc" }}>—</span> :
+                                m.subjects.map((s) => (
+                                  <span key={s.subject} className="text-[11px] px-2 py-0.5 rounded-full border" style={{ borderColor: "#f0e0e2", color: "#666" }}>
+                                    {subjectLabel(s.subject)} <span className="font-mono" style={{ color: "#bbb" }}>{s.target_grade}</span>
+                                  </span>
+                                ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums">{m.profile.current_streak ?? 0}</td>
+                          <td className="px-4 py-3 text-right tabular-nums">{fmtMinutes(m.weekMinutes)}</td>
+                          <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.avgScore != null && m.avgScore < 50 ? RED : "#444" }}>{m.avgScore != null ? `${m.avgScore}%` : "—"}</td>
+                          <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.mockAvgPct != null && m.mockAvgPct < 50 ? RED : "#444" }}>{m.mockAvgPct != null ? `${m.mockAvgPct}%` : "—"}</td>
+                          <td className="px-4 py-3 text-right tabular-nums">{m.questionsAttempted}</td>
+                          <td className="px-4 py-3 text-right text-xs" style={{ color: "#999" }}>{relativeTime(m.lastActive)}</td>
+                          <td className="px-4 py-3 text-right">
+                            <button onClick={() => setAssignTarget([m])} className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50" style={{ color: RED }}>
+                              + Task
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+      )}
+
+      {assignTarget && (
+        <AssignTaskModal
+          teacherId={user?.id || null}
+          students={assignTarget}
+          subjects={allSubjects}
+          onClose={() => setAssignTarget(null)}
+        />
       )}
     </RoleShell>
   );
 };
+
+function AssignTaskModal({
+  teacherId, students, subjects, onClose,
+}: { teacherId: string | null; students: StudentMetrics[]; subjects: string[]; onClose: () => void }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [subject, setSubject] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    if (!title.trim()) { toast.error("Enter a task title."); return; }
+    setSaving(true);
+    try {
+      const rows = students.map((m) => ({
+        teacher_id: teacherId,
+        student_id: m.profile.id,
+        title: title.trim(),
+        description: description.trim() || null,
+        subject: subject || null,
+        due_date: dueDate || null,
+      }));
+      const { error } = await supabase.from("student_tasks").insert(rows as any);
+      if (error) throw error;
+      toast.success(`Task assigned to ${students.length} student${students.length === 1 ? "" : "s"}.`);
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not assign task.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const label = students.length === 1 ? fullName(students[0].profile) : `${students.length} students`;
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#f0e0e2" }}>
+          <h3 className="font-bold" style={{ color: RED_DARK }}>Assign task · {label}</h3>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-100"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="space-y-1.5">
+            <Label>Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Complete Unit 4 past paper" className="h-11" maxLength={120} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Details (optional)</Label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any instructions…"
+              className="w-full min-h-[80px] rounded-md border px-3 py-2 text-sm" style={{ borderColor: "#e5e7eb" }} maxLength={500} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Subject</Label>
+              <select value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full h-11 rounded-md border px-3 text-sm" style={{ borderColor: "#e5e7eb" }}>
+                <option value="">General</option>
+                {subjects.map((s) => <option key={s} value={s}>{subjectLabel(s)}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Due date</Label>
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-11" />
+            </div>
+          </div>
+          <Button onClick={submit} disabled={saving} className="h-11 w-full font-semibold text-white" style={{ background: RED }}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : `Assign to ${label}`}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-semibold uppercase tracking-wide w-16 shrink-0" style={{ color: "#bbb" }}>{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick}
+      className="px-3 py-1 rounded-full text-sm font-semibold border-2 transition-all"
+      style={{ borderColor: active ? RED : "#e5e7eb", background: active ? RED : "#fff", color: active ? "#fff" : "#374151" }}>
+      {children}
+    </button>
+  );
+}
+
+function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
+  return <th className={`px-4 py-3 font-semibold text-xs uppercase tracking-wide ${right ? "text-right" : ""}`}>{children}</th>;
+}
 
 function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (

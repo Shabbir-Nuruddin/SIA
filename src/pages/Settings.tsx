@@ -17,8 +17,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Palette, Trash2, Pencil, Check } from "lucide-react";
-import { THEMES, applyTheme, ThemeName } from "@/lib/theme";
+import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Trash2, Pencil } from "lucide-react";
+import { applyTheme } from "@/lib/theme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cancelProSubscription } from "@/lib/dodo";
 
@@ -378,36 +378,6 @@ const SettingsPage = () => {
                   );
                 })}
               </div>
-            </div>
-          </div>
-        </SettingsSection>
-
-        {/* Section 5 — Appearance */}
-        <SettingsSection icon={Palette} title="Appearance">
-          <div>
-            <Label>Theme</Label>
-            <p className="text-xs text-muted-foreground mt-0.5 mb-3">Pick the look that helps you focus.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {THEMES.map(t => {
-                const active = (profile.theme || "sia") === t.name;
-                return (
-                  <button
-                    key={t.name}
-                    onClick={() => updatePref("theme", t.name)}
-                    className={`relative rounded-lg border-2 p-2.5 text-left transition-all ${active ? "border-primary" : "border-border hover:border-foreground/30"}`}
-                  >
-                    <div className="flex gap-1 mb-2">
-                      {t.swatches.map((c, i) => (
-                        <div key={i} className="h-6 flex-1 rounded-sm" style={{ background: c }} />
-                      ))}
-                    </div>
-                    <div className="text-xs font-semibold flex items-center justify-between">
-                      <span>{t.label}</span>
-                      {active && <Check className="h-3.5 w-3.5 text-primary" />}
-                    </div>
-                  </button>
-                );
-              })}
             </div>
           </div>
         </SettingsSection>

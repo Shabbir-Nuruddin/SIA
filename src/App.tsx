@@ -12,6 +12,7 @@ import AuthPage from "./pages/Auth";
 
 import Onboarding from "./pages/Onboarding";
 import StudentSetup from "./pages/StudentSetup";
+import StudentTasks from "./pages/StudentTasks";
 import ParentDashboard from "./pages/ParentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import Dashboard from "./pages/Dashboard";
@@ -68,13 +69,13 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<Questions />} />
-            {/* Admin-only previews */}
-            <Route path="/mock-papers" element={<RequireAdmin><MockPapers /></RequireAdmin>} />
-            <Route path="/mock-papers/new" element={<RequireAdmin><NewMockPaper /></RequireAdmin>} />
-            <Route path="/mock-papers/exam/:id" element={<RequireAdmin><MockExam /></RequireAdmin>} />
-            <Route path="/mock-papers/:id/results" element={<RequireAdmin><MockResults /></RequireAdmin>} />
-            <Route path="/roadmap" element={<RequireAdmin><Roadmap /></RequireAdmin>} />
-            <Route path="/roadmap/topic/:nodeId/notes" element={<RequireAdmin><RoadmapTopicNotes /></RequireAdmin>} />
+            <Route path="/mock-papers" element={<MockPapers />} />
+            <Route path="/mock-papers/new" element={<NewMockPaper />} />
+            <Route path="/mock-papers/exam/:id" element={<MockExam />} />
+            <Route path="/mock-papers/:id/results" element={<MockResults />} />
+            <Route path="/roadmap" element={<Roadmap />} />
+            <Route path="/roadmap/topic/:nodeId/notes" element={<RoadmapTopicNotes />} />
+            <Route path="/tasks" element={<StudentTasks />} />
             <Route path="/notes" element={<Notes />} />
             
             <Route path="/papers" element={<PastPapers />} />

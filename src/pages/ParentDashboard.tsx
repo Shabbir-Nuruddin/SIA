@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SEO } from "@/components/SEO";
 import { toast } from "sonner";
-import { Loader2, Plus, Flame, Clock, Target, AlertTriangle, BookOpen, UserPlus } from "lucide-react";
+import { Loader2, Plus, Flame, Clock, Target, AlertTriangle, BookOpen, UserPlus, FileText, ListChecks } from "lucide-react";
 import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
   type ChildProfile, type StudentMetrics,
 } from "@/lib/studentMetrics";
 
-const CHILD_FIELDS = "id, first_name, last_name, student_id, grade, current_streak, exam_board, last_session_date";
+const CHILD_FIELDS = "id, first_name, last_name, student_id, grade, section, current_streak, exam_board, last_session_date";
 
 const ParentDashboard = () => {
   const { user } = useAuth();
@@ -116,7 +116,9 @@ function ChildCard({ m }: { m: StudentMetrics }) {
         <div>
           <h3 className="text-xl font-bold" style={{ fontFamily: "'Playfair Display',Georgia,serif", color: RED_DARK }}>{fullName(p)}</h3>
           <div className="flex items-center gap-2 mt-1 text-xs" style={{ color: "#999" }}>
-            <span className="px-2 py-0.5 rounded-full font-semibold" style={{ background: "#fce8eb", color: RED_DARK }}>{p.grade || "—"}</span>
+            <span className="px-2 py-0.5 rounded-full font-semibold" style={{ background: "#fce8eb", color: RED_DARK }}>
+              {p.grade || "—"}{p.section ? ` · Sec ${p.section}` : ""}
+            </span>
             <span>ID: {p.student_id || "—"}</span>
             <span>· Last active {relativeTime(m.lastActive)}</span>
           </div>
@@ -126,10 +128,12 @@ function ChildCard({ m }: { m: StudentMetrics }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
         <Stat icon={<Clock className="h-3.5 w-3.5" />} label="This week" value={fmtMinutes(m.weekMinutes)} />
         <Stat icon={<Clock className="h-3.5 w-3.5" />} label="Total time" value={fmtMinutes(m.totalMinutes)} />
-        <Stat icon={<Target className="h-3.5 w-3.5" />} label="Avg score" value={m.avgScore != null ? `${m.avgScore}%` : "—"} />
+        <Stat icon={<Target className="h-3.5 w-3.5" />} label="Topic avg" value={m.avgScore != null ? `${m.avgScore}%` : "—"} />
+        <Stat icon={<FileText className="h-3.5 w-3.5" />} label="Mock avg" value={m.mockAvgPct != null ? `${m.mockAvgPct}%` : "—"} />
+        <Stat icon={<ListChecks className="h-3.5 w-3.5" />} label="Questions" value={String(m.questionsAttempted)} />
         <Stat icon={<AlertTriangle className="h-3.5 w-3.5" />} label="Weak topics" value={String(m.weakTopics)} />
       </div>
 
@@ -150,7 +154,8 @@ function ChildCard({ m }: { m: StudentMetrics }) {
       )}
 
       <div className="mt-4 text-xs" style={{ color: "#bbb" }}>
-        {m.weekSessions} study session{m.weekSessions === 1 ? "" : "s"} this week · {m.topicsTracked} topics tracked
+        {m.weekSessions} session{m.weekSessions === 1 ? "" : "s"} this week · {m.mocksTaken} mock paper{m.mocksTaken === 1 ? "" : "s"}
+        {m.mockBestGrade ? ` (best grade ${m.mockBestGrade})` : ""} · {m.questionsCorrect}/{m.questionsAttempted} questions correct · {m.topicsTracked} topics tracked
       </div>
     </div>
   );

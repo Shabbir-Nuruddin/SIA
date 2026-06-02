@@ -50,7 +50,7 @@ export default function LoadingGameOverlay({
           </button>
         </div>
         <div className="max-h-[80vh] overflow-y-auto p-4">
-          <StudyTycoon compact />
+          <StudyTycoon showLeaderboard />
           <p className="mt-3 text-center text-[11px] text-muted-foreground">{note}</p>
         </div>
       </div>

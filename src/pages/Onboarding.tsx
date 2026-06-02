@@ -10,9 +10,8 @@ import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
 import LoadingGameOverlay from "@/components/game/LoadingGameOverlay";
 import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from "@/lib/subjects";
-import { THEMES, applyTheme, getStoredTheme, ThemeName } from "@/lib/theme";
 import { toast } from "sonner";
-import { ArrowRight, Loader2, Check } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 
 interface UnitInput {
@@ -49,10 +48,6 @@ const Onboarding = () => {
   const [hoursPerDay, setHoursPerDay] = useState(2);
   const [firstName, setFirstName] = useState("");
   const [needsName, setNeedsName] = useState(false);
-  const [theme, setTheme] = useState<ThemeName>(() => getStoredTheme());
-
-  // Live-apply theme as the user picks during onboarding
-  useEffect(() => { applyTheme(theme); }, [theme]);
 
   // If the user signed in via Google (no first_name on profile), prompt for it.
   useEffect(() => {
@@ -173,7 +168,7 @@ const Onboarding = () => {
         exam_board: board,
         // hours_per_day column is an integer — round the half-step slider value
         hours_per_day: Math.max(1, Math.round(hoursPerDay)),
-        theme,
+        theme: "sia",
       };
       if (firstName.trim()) profileUpdates.first_name = firstName.trim();
       const { error: e2 } = await supabase.from("profiles").update(profileUpdates).eq("id", user.id);
@@ -270,34 +265,6 @@ const Onboarding = () => {
                 />
               </div>
             )}
-
-            <div className="mb-10">
-              <div className="text-[11px] uppercase font-mono tracking-widest text-muted-foreground mb-3">Pick a theme</div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 max-w-3xl">
-                {THEMES.map(t => {
-                  const active = theme === t.name;
-                  return (
-                    <button
-                      key={t.name}
-                      type="button"
-                      onClick={() => setTheme(t.name)}
-                      className={`relative rounded-lg border-2 p-2 text-left transition-all hover:-translate-y-0.5 ${active ? "border-primary" : "border-border hover:border-foreground/30"}`}
-                    >
-                      <div className="flex gap-1 mb-1.5">
-                        {t.swatches.map((c, i) => (
-                          <div key={i} className="h-5 flex-1 rounded-sm" style={{ background: c }} />
-                        ))}
-                      </div>
-                      <div className="text-[11px] font-semibold flex items-center justify-between">
-                        <span className="truncate">{t.label}</span>
-                        {active && <Check className="h-3 w-3 text-primary shrink-0" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">You can change this anytime in Settings.</p>
-            </div>
 
             <h1 className="text-4xl md:text-5xl font-extrabold mb-3">Which exam board?</h1>
             <p className="text-muted-foreground mb-10">We tailor every question, mark scheme and tip to your board.</p>

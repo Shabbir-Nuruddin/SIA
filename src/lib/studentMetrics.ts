@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const YEAR_GROUPS = ["Year 10", "Year 11", "Year 12", "Year 13"] as const;
 export type YearGroup = (typeof YEAR_GROUPS)[number];
 
+/** Class sections within a year group. */
+export const SECTIONS = ["A", "B", "C", "D", "E", "F"] as const;
+export type Section = (typeof SECTIONS)[number];
+
 const SUBJECT_LABELS: Record<string, string> = {
   mathematics: "Mathematics",
   biology: "Biology",
@@ -19,6 +23,7 @@ export interface ChildProfile {
   last_name: string | null;
   student_id: string | null;
   grade: string | null;
+  section: string | null;
   current_streak: number | null;
   exam_board: string | null;
   last_session_date: string | null;
@@ -41,6 +46,13 @@ export interface StudentMetrics {
   weakTopics: number;
   subjects: SubjectTarget[];
   lastActive: string | null;
+  // Topical questions (from topic_progress)
+  questionsAttempted: number;
+  questionsCorrect: number;
+  // Mock papers (completed = submitted)
+  mocksTaken: number;
+  mockAvgPct: number | null;
+  mockBestGrade: string | null;
 }
 
 const startOfWeekISO = () => {
@@ -65,15 +77,19 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
 
   const weekStart = startOfWeekISO();
 
-  const [sessionsRes, progressRes, subjectsRes] = await Promise.all([
+  const [sessionsRes, progressRes, subjectsRes, mocksRes] = await Promise.all([
     supabase.from("study_sessions").select("user_id,duration_minutes,completed_at").in("user_id", ids),
-    supabase.from("topic_progress").select("user_id,last_score_percent,weak_flag").in("user_id", ids),
+    supabase.from("topic_progress").select("user_id,last_score_percent,weak_flag,questions_attempted,questions_correct").in("user_id", ids),
     supabase.from("user_subjects").select("user_id,subject,target_grade,current_grade").in("user_id", ids),
+    supabase.from("mock_papers").select("user_id,awarded_marks,total_marks,estimated_grade,submitted_at").in("user_id", ids).not("submitted_at", "is", null),
   ]);
 
   const sessions = (sessionsRes.data as any[]) || [];
   const progress = (progressRes.data as any[]) || [];
   const subjects = (subjectsRes.data as any[]) || [];
+  const mocks = (mocksRes.data as any[]) || [];
+
+  const gradeRank = (g: string) => "UEDCBA".indexOf((g || "").toUpperCase()[0] || "U");
 
   return profiles.map((profile) => {
     const mySessions = sessions.filter((s) => s.user_id === profile.id);
@@ -103,6 +119,20 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
         return !latest || s.completed_at > latest ? s.completed_at : latest;
       }, null) || profile.last_session_date || null;
 
+    const questionsAttempted = myProgress.reduce((a, p) => a + (p.questions_attempted || 0), 0);
+    const questionsCorrect = myProgress.reduce((a, p) => a + (p.questions_correct || 0), 0);
+
+    const myMocks = mocks.filter((m) => m.user_id === profile.id);
+    const mockPcts = myMocks
+      .filter((m) => m.total_marks > 0 && m.awarded_marks != null)
+      .map((m) => (m.awarded_marks / m.total_marks) * 100);
+    const mockAvgPct = mockPcts.length ? Math.round(mockPcts.reduce((a, p) => a + p, 0) / mockPcts.length) : null;
+    const mockBestGrade =
+      myMocks
+        .map((m) => m.estimated_grade)
+        .filter(Boolean)
+        .sort((a, b) => gradeRank(b) - gradeRank(a))[0] || null;
+
     return {
       profile,
       totalMinutes,
@@ -114,6 +144,11 @@ export async function fetchMetricsFor(profiles: ChildProfile[]): Promise<Student
       weakTopics: myProgress.filter((p) => p.weak_flag).length,
       subjects: Array.from(subjMap.values()),
       lastActive,
+      questionsAttempted,
+      questionsCorrect,
+      mocksTaken: myMocks.length,
+      mockAvgPct,
+      mockBestGrade,
     };
   });
 }
