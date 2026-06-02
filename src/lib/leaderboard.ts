@@ -193,9 +193,12 @@ export async function submitScore(_unusedName: string, score: number, game: Game
           .eq("game", game);
       }
     } else {
-      await (supabase as any).from("game_scores").insert({
-        user_id: userId, player_name: name, score: finalScore, game,
-      });
+      // Upsert (not insert) so a concurrent submission can't create a second row
+      // — there is now a unique index on (user_id, game).
+      await (supabase as any).from("game_scores").upsert(
+        { user_id: userId, player_name: name, score: finalScore, game },
+        { onConflict: "user_id,game" },
+      );
     }
   } catch { /* table missing / offline */ }
 }

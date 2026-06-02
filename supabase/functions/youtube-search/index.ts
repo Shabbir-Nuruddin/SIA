@@ -87,16 +87,25 @@ async function resolveVideoId(opts: {
   topic: string;
   subject: string;
   level: string;
+  exam: string;
   fallbackQuery: string;
 }): Promise<{ id: string | null; source: string }> {
   const channels = channelsFor(opts.subject, opts.level);
   const base = (opts.topic || opts.fallbackQuery).trim();
+  // The exam board MUST be in the query, otherwise channel-scoped searches return
+  // whichever board's video ranks highest (often AQA) instead of the student's
+  // board. Order: exam board + topic + subject + channel.
+  const exam = (opts.exam || "").trim();
 
   for (const channel of channels) {
-    const id = await scrapeVideoId(`${base} ${opts.subject} ${channel}`);
+    // Try with the exam board first (board-accurate); then without, as a softer
+    // fallback so we still find SOMETHING from a trusted channel.
+    const id =
+      (exam ? await scrapeVideoId(`${exam} ${base} ${opts.subject} ${channel}`) : null) ||
+      (await scrapeVideoId(`${base} ${opts.subject} ${channel}`));
     if (id) return { id, source: channel };
   }
-  // Fall back to the caller's generic query (board + subject + unit + topic).
+  // Fall back to the caller's generic query (board + subject + topic).
   const id = await scrapeVideoId(opts.fallbackQuery);
   return { id, source: "search" };
 }
@@ -111,6 +120,7 @@ Deno.serve(async (req) => {
     let subject = searchParams.get("subject") || "";
     let level = searchParams.get("level") || "";
     let topic = searchParams.get("topic") || "";
+    let exam = searchParams.get("exam") || "";
     if (req.method === "POST") {
       try {
         const body = await req.json();
@@ -118,12 +128,14 @@ Deno.serve(async (req) => {
         subject = body?.subject ?? subject;
         level = body?.level ?? level;
         topic = body?.topic ?? topic;
+        exam = body?.exam ?? exam;
       } catch { /* ignore */ }
     }
     query = String(query).slice(0, 200).trim();
     subject = String(subject).slice(0, 40).trim();
     level = String(level).slice(0, 40).trim();
     topic = String(topic).slice(0, 120).trim();
+    exam = String(exam).slice(0, 40).trim();
 
     if (!query && !topic) {
       return new Response(JSON.stringify({ error: "Missing q" }), {
@@ -132,8 +144,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Cache key includes subject/level so different qualifications don't collide.
-    const key = `${subject}|${level}|${topic || query}`.toLowerCase();
+    // Cache key includes exam/subject/level so different boards/qualifications
+    // don't collide (an Edexcel topic must not serve a cached AQA/CIE video).
+    const key = `${exam}|${subject}|${level}|${topic || query}`.toLowerCase();
     const hit = cache.get(key);
     if (hit && Date.now() - hit.at < TTL_MS) {
       return new Response(JSON.stringify({ videoId: hit.id, cached: true }), {
@@ -141,7 +154,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { id, source } = await resolveVideoId({ topic, subject, level, fallbackQuery: query });
+    const { id, source } = await resolveVideoId({ topic, subject, level, exam, fallbackQuery: query });
     if (!id) {
       return new Response(JSON.stringify({ videoId: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -19,8 +19,7 @@ import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
-import { fetchNotesVisuals, type NotesVisualMap } from "@/lib/wikimediaVisuals";
-import LoadingGameCard from "@/components/game/LoadingGameCard";
+import LoadingGameOverlay from "@/components/game/LoadingGameOverlay";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
@@ -246,8 +245,6 @@ const NotesPage = () => {
   const [showVideos, setShowVideos] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [notesMode, setNotesMode] = useState<"long" | "short">("long");
-  const [visuals, setVisuals] = useState<NotesVisualMap | null>(null);
-  const visualsAbortRef = useRef<AbortController | null>(null);
 
   // Track time spent reading notes so it counts toward the study time stat.
   usePageTimeTracker({
@@ -282,48 +279,13 @@ const NotesPage = () => {
       setNotes(null); setNoteRowId(null); setAnnotations([]); setLoadError(null);
       setShowVideos(false);
       setShowFlashcards(false);
-      setVisuals(null);
       return;
     }
     setShowVideos(false);
     setShowFlashcards(false);
-    setVisuals(null);
     loadOrGenerate(subjectParam, unitParam, topicParam);
     // eslint-disable-next-line
   }, [user, subjectParam, unitParam, topicParam]);
-
-  // Fetch images after notes load (non-blocking, background)
-  useEffect(() => {
-    if (!notes || !subjectParam || !unitParam || !topicParam) return;
-
-    // Cancel any previous in-flight visuals request
-    visualsAbortRef.current?.abort();
-    const controller = new AbortController();
-    visualsAbortRef.current = controller;
-
-    const subjMeta = SUBJECTS[subjectParam];
-    const unitMeta = subjMeta?.units.find(u => u.number === unitParam);
-
-    fetchNotesVisuals(
-      {
-        board,
-        subject: subjMeta?.name ?? subjectParam,
-        unitCode: unitMeta?.unitCode ?? `Unit ${unitParam}`,
-        unitNumber: unitParam,
-        topic: topicParam,
-        definitions: notes.key_definitions.slice(0, 2).map(d => ({
-          term: d.term,
-          meaning: d.mark_scheme,
-        })),
-      },
-      controller.signal,
-    ).then(v => {
-      if (!controller.signal.aborted) setVisuals(v);
-    }).catch(() => {/* silently ignore */});
-
-    return () => controller.abort();
-    // eslint-disable-next-line
-  }, [notes, subjectParam, unitParam, topicParam]);
 
 
   const STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -510,6 +472,7 @@ const NotesPage = () => {
   return (
     <AppLayout>
       <SEO title="Notes — MakeMeRevise" description="Instant exam-focused A-Level notes generated for every topic on your syllabus." path="/notes" />
+      <LoadingGameOverlay open={loadingNotes} note="Your notes are generating — this overlay closes itself the moment they're ready." />
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
@@ -730,7 +693,14 @@ const NotesPage = () => {
                 board === "cie" ? "Paper" :
                 board === "cie-igcse" || board === "edexcel-igcse" ? "Topic" :
                 "Unit";
-              const query = `${boardLabel} ${subjName} ${unitLabel} ${unitParam} ${topicParam} revision`;
+              // Exam keyword that maximises board-correct YouTube matches (so an
+              // Edexcel student doesn't get AQA videos). Kept short on purpose.
+              const exam =
+                board === "cie" ? "Cambridge A Level" :
+                board === "cie-igcse" ? "Cambridge IGCSE" :
+                board === "edexcel-igcse" ? "Edexcel IGCSE" :
+                "Edexcel"; // edexcel-ial / A-level
+              const query = `${boardLabel} ${subjName} ${topicParam} revision`;
               const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
               const level = board === "cie-igcse" || board === "edexcel-igcse" ? "igcse" : "a-level";
               return (
@@ -739,6 +709,7 @@ const NotesPage = () => {
                   query={query}
                   subject={subjName}
                   level={level}
+                  exam={exam}
                   videoTopic={topicParam}
                   topic={topicParam}
                   searchUrl={searchUrl}
@@ -783,10 +754,7 @@ const NotesPage = () => {
                   </div>
                 </div>
               ) : loadingNotes ? (
-                <>
-                  <NotesSkeleton topic={topicParam} board={board} />
-                  <LoadingGameCard className="mt-4" delayMs={3500} note="Your notes are generating — they'll appear here the moment they're ready." />
-                </>
+                <NotesSkeleton topic={topicParam} board={board} />
               ) : loadError ? (
                 <div className="glass-card flex h-full min-h-[520px] items-center justify-center rounded-3xl border border-border/70 bg-card p-12 text-center">
                   <div>
@@ -813,7 +781,6 @@ const NotesPage = () => {
                     renderMath={renderMathInString}
                     annotate={annotateHtml}
                     mode={notesMode}
-                    visuals={visuals}
                   />
 
                   {selection && !composing && (
@@ -982,7 +949,7 @@ const AnnotationTooltipLayer = ({
   );
 };
 
-function YouTubeLessonEmbed({ query, subject, level, videoTopic, topic, searchUrl }: { query: string; subject: string; level: string; videoTopic: string; topic: string; searchUrl: string }) {
+function YouTubeLessonEmbed({ query, subject, level, exam, videoTopic, topic, searchUrl }: { query: string; subject: string; level: string; exam: string; videoTopic: string; topic: string; searchUrl: string }) {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
@@ -993,7 +960,7 @@ function YouTubeLessonEmbed({ query, subject, level, videoTopic, topic, searchUr
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("youtube-search", {
-          body: { q: query, subject, level, topic: videoTopic },
+          body: { q: query, subject, level, exam, topic: videoTopic },
         });
         if (cancelled) return;
         if (error || !data?.videoId) { setStatus("error"); return; }
@@ -1004,7 +971,7 @@ function YouTubeLessonEmbed({ query, subject, level, videoTopic, topic, searchUr
       }
     })();
     return () => { cancelled = true; };
-  }, [query, subject, level, videoTopic]);
+  }, [query, subject, level, exam, videoTopic]);
 
   const embedUrl = videoId
     ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1`
