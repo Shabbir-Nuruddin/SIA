@@ -8,8 +8,14 @@ const SUBJECT_CODES = ["mathematics", "physics", "chemistry", "biology"] as cons
 const NAMES: [string, string][] = [
   ["Ahmed", "Al-Rashidi"], ["Sara", "Khan"], ["Yusuf", "Patel"], ["Layla", "Hassan"],
   ["Omar", "Siddiqui"], ["Fatima", "Noor"], ["Zayd", "Malik"], ["Aisha", "Rahman"],
-  ["Bilal", "Ahmed"], ["Mariam", "Iqbal"], ["Hamza", "Sheikh"], ["Noor", "Abbas"],
-  ["Khalid", "Yousef"], ["Hana", "Saleh"], ["Idris", "Karim"], ["Salma", "Darwish"],
+  ["Bilal", "Ahmed"], ["Hamza", "Sheikh"], ["Noor", "Abbas"], ["Khalid", "Yousef"],
+  ["Hana", "Saleh"], ["Idris", "Karim"], ["Salma", "Darwish"], ["Adam", "Farooq"],
+  // + 20 more
+  ["Zara", "Mahmood"], ["Ali", "Haider"], ["Maya", "Suleiman"], ["Rayan", "Aziz"],
+  ["Lina", "Mansoor"], ["Tariq", "Jamal"], ["Dina", "Khalil"], ["Saif", "Anwar"],
+  ["Huda", "Bashir"], ["Kareem", "Nabil"], ["Amira", "Fadel"], ["Faris", "Lutfi"],
+  ["Reem", "Hadid"], ["Nael", "Qureshi"], ["Sana", "Tariq"], ["Jad", "Halabi"],
+  ["Yara", "Othman"], ["Musa", "Imran"], ["Hala", "Nasr"], ["Zaid", "Mansour"],
 ];
 
 const GRADES = ["Year 11", "Year 12", "Year 13"];
@@ -79,4 +85,4 @@ function makeStudent(i: number): StudentMetrics {
   };
 }
 
-export const DEMO_STUDENTS: StudentMetrics[] = Array.from({ length: 14 }, (_, i) => makeStudent(i));
+export const DEMO_STUDENTS: StudentMetrics[] = Array.from({ length: 34 }, (_, i) => makeStudent(i));

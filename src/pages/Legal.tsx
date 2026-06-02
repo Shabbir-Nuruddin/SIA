@@ -1,26 +1,30 @@
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
-import { ApexLogo } from "@/components/ApexLogo";
 import { SEO } from "@/components/SEO";
+
+const SIA_LOGO = "/sia-logo.png";
+const SUPPORT_EMAIL = "admissions@sia.ae";
 
 const Shell = ({ title, description, path, children }: { title: string; description: string; path: string; children: ReactNode }) => (
   <div className="min-h-screen bg-background text-foreground">
-    <SEO title={`${title} — MakeMeRevise`} description={description} path={path} />
+    <SEO title={`${title} — SIA Smart Revision`} description={description} path={path} />
     <header className="border-b border-border/50 bg-background/85 backdrop-blur-xl sticky top-0 z-40">
       <div className="container flex h-14 items-center justify-between">
-        <Link to="/" aria-label="Make Me Revise — home"><ApexLogo /></Link>
+        <Link to="/" aria-label="SIA Smart Revision — home" className="flex items-center gap-2">
+          <img src={SIA_LOGO} alt="SIA" className="h-8 w-8 rounded-full object-contain" />
+          <span className="font-bold text-sm" style={{ fontFamily: "'Playfair Display',Georgia,serif", color: "hsl(var(--primary))" }}>SIA Smart Revision</span>
+        </Link>
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition">← Back to home</Link>
       </div>
     </header>
     <main className="container max-w-3xl py-12 md:py-16">
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">{title}</h1>
-      <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-10">Effective date: May 2025</p>
+      <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-10">Effective date: June 2026 · Scholars International Academy, Sharjah, UAE</p>
       <div className="space-y-8 text-[15px] leading-relaxed text-foreground/90">{children}</div>
       <footer className="mt-16 pt-8 border-t border-border/50 flex flex-wrap gap-5 text-xs text-muted-foreground">
         <Link to="/terms" className="hover:text-foreground">Terms</Link>
         <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-        <Link to="/refund" className="hover:text-foreground">Refunds</Link>
-        <span className="ml-auto">© 2026 Make Me Revise</span>
+        <span className="ml-auto">© {new Date().getFullYear()} Scholars International Academy</span>
       </footer>
     </main>
   </div>
@@ -34,76 +38,83 @@ const Section = ({ n, title, children }: { n: number; title: string; children: R
 );
 
 export const Terms = () => (
-  <Shell title="Terms of Service" path="/terms" description="The terms of service that govern your use of MakeMeRevise — subscription terms, AI content disclaimer, and user responsibilities.">
-    <Section n={1} title="What Make Me Revise is">
-      <p>Make Me Revise is an AI-powered study platform built for A-Level students. We generate personalised revision roadmaps, practice questions, mock papers, and notes to help you prepare for your exams.</p>
+  <Shell title="Terms of Service" path="/terms" description="The terms that govern use of SIA Smart Revision — the official AI revision platform of Scholars International Academy.">
+    <Section n={1} title="About SIA Smart Revision">
+      <p>SIA Smart Revision is the official AI-powered revision platform provided by Scholars International Academy ("SIA", "the school", "we") for its students, parents, and teaching staff. It offers personalised revision roadmaps, AI-generated notes, practice questions, and mock papers to support exam preparation.</p>
     </Section>
-    <Section n={2} title="Subscription terms">
-      <p>Paid plans are billed monthly on a recurring basis. You can cancel anytime from your account settings — your access continues until the end of the current billing period.</p>
+    <Section n={2} title="Who can use it">
+      <p>The platform is provided for the SIA community: currently enrolled SIA students, their parents or guardians, and SIA staff. Accounts are personal to each user and must not be shared. The school may issue, suspend, or remove accounts at its discretion.</p>
     </Section>
-    <Section n={3} title="Free tier limitations">
-      <p>The free plan includes the first 3 days of your roadmap, up to 10 AI-marked questions per day, and 1 mock paper per week. Upgrade to remove these limits.</p>
+    <Section n={3} title="No charge">
+      <p>SIA Smart Revision is provided to the SIA community free of charge as part of the school's educational services. There are no subscriptions, fees, or payments associated with using the platform.</p>
     </Section>
-    <Section n={4} title="Pro tier">
-      <p>Pro unlocks the full roadmap, unlimited questions, unlimited mock papers, unlimited notes, and the AI tutor. Pro is AED 39.99 per month, or the equivalent in your local currency.</p>
+    <Section n={4} title="Acceptable use">
+      <p>You agree to use the platform only for legitimate study and educational purposes. You must not share your login, attempt to access other users' data, scrape or copy content in bulk, or interfere with the platform's operation.</p>
     </Section>
-    <Section n={5} title="User responsibilities">
-      <p>You must be at least 13 years old to use Make Me Revise. Accounts are personal — do not share your login with anyone else. Each account is for a single user.</p>
+    <Section n={5} title="Roles and visibility">
+      <p>The platform supports student, parent, and teacher roles. A student's study activity and progress may be visible to their linked parent(s)/guardian(s) and to SIA teaching staff, for the purpose of supporting the student's learning.</p>
     </Section>
     <Section n={6} title="AI-generated content disclaimer">
-      <p>All questions, notes, mark schemes, and feedback are generated by AI for revision guidance. While we work hard to keep content accurate and aligned to your syllabus, we do not guarantee exam accuracy. Always cross-check important facts with your teacher or official board materials.</p>
+      <p>Questions, notes, mark schemes, and feedback are generated by AI for revision guidance. While we work to keep content accurate and aligned to the relevant syllabus, accuracy is not guaranteed. Always cross-check important facts with your teacher and official exam-board materials.</p>
     </Section>
     <Section n={7} title="Intellectual property">
-      <p>All content, branding, software, and AI-generated material on Make Me Revise belongs to Make Me Revise. You may use it for personal study but you may not republish, resell, or distribute it.</p>
+      <p>The platform, its branding, and its content are provided for the personal study of the SIA community. You may not republish, resell, or distribute the content outside the school.</p>
     </Section>
-    <Section n={8} title="Termination">
-      <p>We may suspend or terminate accounts that abuse the platform — including sharing accounts, scraping content, attempting to break our systems, or violating these terms.</p>
+    <Section n={8} title="Availability">
+      <p>The platform is provided "as is". The school may update, change, or withdraw features at any time, and does not guarantee uninterrupted availability.</p>
     </Section>
-    <Section n={9} title="Contact">
-      <p>Questions about these terms? Email <a className="text-primary hover:underline" href="mailto:support@makemerevise.com">support@makemerevise.com</a>.</p>
+    <Section n={9} title="Termination">
+      <p>The school may suspend or remove access for accounts that misuse the platform or breach these terms.</p>
+    </Section>
+    <Section n={10} title="Contact">
+      <p>Questions about these terms? Email <a className="text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
     </Section>
   </Shell>
 );
 
 export const Privacy = () => (
-  <Shell title="Privacy Policy" path="/privacy" description="How MakeMeRevise collects, uses, and protects your data — we never sell your personal information.">
-    <Section n={1} title="What data we collect">
-      <p>We collect your name, email address, study progress, exam dates, subject choices, and the answers you submit while practising.</p>
+  <Shell title="Privacy Policy" path="/privacy" description="How SIA Smart Revision collects, uses, and protects student, parent, and teacher data. We never sell personal information.">
+    <Section n={1} title="Who controls your data">
+      <p>Scholars International Academy is the data controller for SIA Smart Revision. This policy explains what we collect and how it is used within the platform.</p>
     </Section>
-    <Section n={2} title="How we use it">
-      <p>We use your data to personalise your roadmap and study plan, mark your work, track your progress, and improve the platform.</p>
+    <Section n={2} title="What we collect">
+      <p>We collect your name, email address, role (student / parent / teacher), and — for students — Student ID, year group and section. We also record study activity such as time studied, roadmap progress, questions attempted, mock-paper scores, and login activity.</p>
     </Section>
-    <Section n={3} title="We do not sell your data">
-      <p>We do not sell, rent, or trade your personal data to any third party. Ever.</p>
+    <Section n={3} title="How we use it">
+      <p>We use this data to personalise revision, mark work, track progress, and show that progress to the student, their linked parent(s)/guardian(s), and SIA teaching staff so they can support the student's learning.</p>
     </Section>
-    <Section n={4} title="Service providers">
-      <p>We use Lovable Cloud to securely store your account and study data, and Dodo Payments to process payments. These providers only receive the data they need to deliver their service.</p>
+    <Section n={4} title="Who can see student data">
+      <p>A student's data is visible to: the student themselves, parent(s)/guardian(s) who have linked to that student using the Student ID, and SIA teaching staff. It is not visible to other students or to anyone outside the school.</p>
     </Section>
-    <Section n={5} title="Cookies">
-      <p>We use essential cookies only — needed to keep you logged in and to remember your preferences. We do not use advertising or tracking cookies.</p>
+    <Section n={5} title="We do not sell your data">
+      <p>We do not sell, rent, or trade personal data to any third party. Ever.</p>
     </Section>
-    <Section n={6} title="Your rights">
-      <p>You can request a copy or full deletion of your data at any time by emailing <a className="text-primary hover:underline" href="mailto:support@makemerevise.com">support@makemerevise.com</a>. We will action deletion requests within 30 days.</p>
+    <Section n={6} title="Service providers">
+      <p>We use trusted providers strictly to operate the platform: Supabase (secure cloud storage and authentication), Google (optional "Sign in with Google"), and AI providers such as Google Gemini to generate study content. They receive only the data needed to deliver their service.</p>
     </Section>
-    <Section n={7} title="Contact">
-      <p>Privacy questions? Email <a className="text-primary hover:underline" href="mailto:support@makemerevise.com">support@makemerevise.com</a>.</p>
+    <Section n={7} title="Cookies">
+      <p>We use essential cookies only — needed to keep you signed in and remember your preferences. We do not use advertising or third-party tracking cookies.</p>
+    </Section>
+    <Section n={8} title="Children's data">
+      <p>The platform is used by school students under the care of SIA. The school acts as the data controller and handles student data in line with its safeguarding and data-protection responsibilities.</p>
+    </Section>
+    <Section n={9} title="Your rights">
+      <p>You can request a copy or deletion of your data by emailing <a className="text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. Requests are actioned in line with the school's data-protection process.</p>
+    </Section>
+    <Section n={10} title="Contact">
+      <p>Privacy questions? Email <a className="text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
     </Section>
   </Shell>
 );
 
+// Retained for the /refund route — the platform is free, so this simply explains that.
 export const Refund = () => (
-  <Shell title="Refund Policy" path="/refund" description="MakeMeRevise refund policy — 7-day money-back guarantee on Pro subscriptions.">
-    <Section n={1} title="7-day money-back guarantee">
-      <p>If you are not satisfied within 7 days of your first payment, email us for a full refund — no questions asked.</p>
+  <Shell title="No Payments" path="/refund" description="SIA Smart Revision is provided free of charge by Scholars International Academy.">
+    <Section n={1} title="Provided free of charge">
+      <p>SIA Smart Revision is provided to the SIA community free of charge as part of the school's educational services. There are no subscriptions, fees, payments, or refunds associated with the platform.</p>
     </Section>
-    <Section n={2} title="After 7 days">
-      <p>We do not refund the current billing period after the 7-day window. You can cancel anytime from your account settings and you will not be charged again.</p>
-    </Section>
-    <Section n={3} title="How to request a refund">
-      <p>Email <a className="text-primary hover:underline" href="mailto:support@makemerevise.com">support@makemerevise.com</a> with the subject line <span className="font-mono text-foreground">"Refund Request"</span>. Include the email address on your account so we can find your payment.</p>
-    </Section>
-    <Section n={4} title="Processing time">
-      <p>Approved refunds are processed within 5–10 business days. The funds may take a few additional days to appear depending on your bank or card provider.</p>
+    <Section n={2} title="Questions">
+      <p>For any questions, email <a className="text-primary hover:underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p>
     </Section>
   </Shell>
 );

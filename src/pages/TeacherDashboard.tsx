@@ -25,9 +25,8 @@ const TeacherDashboard = () => {
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [assignTarget, setAssignTarget] = useState<StudentMetrics[] | null>(null);
-  // Demo mode (default ON) shows sample students so the portal looks ready
-  // before the real roster is imported. Toggle off to see live signups.
-  const [demo, setDemo] = useState(true);
+  // Sample students are always shown for now (real roster import comes later).
+  const demo = true;
   const data = demo ? DEMO_STUDENTS : metrics;
 
   useEffect(() => {
@@ -135,27 +134,16 @@ const TeacherDashboard = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#bbb" }} />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or ID" className="h-10 pl-9 w-56" />
         </div>
-        <button
-          onClick={() => setDemo((d) => !d)}
-          className="h-10 inline-flex items-center gap-1.5 px-3 rounded-md border-2 text-sm font-semibold transition-all"
-          style={{ borderColor: demo ? RED : "#e5e7eb", background: demo ? RED : "#fff", color: demo ? "#fff" : "#374151" }}
-          title="Toggle between sample demo students and live signups">
-          <FlaskConical className="h-4 w-4" /> {demo ? "Demo data: ON" : "Demo data: OFF"}
-        </button>
         <Button
-          disabled={demo}
           onClick={() => filtered.length ? setAssignTarget(filtered) : toast.error("No students in this view.")}
-          className="h-10 ml-auto font-semibold text-white" style={{ background: RED }}
-          title={demo ? "Turn off demo data to assign real tasks" : undefined}>
+          className="h-10 ml-auto font-semibold text-white" style={{ background: RED }}>
           <ClipboardPlus className="h-4 w-4 mr-1.5" /> Assign task to {filtered.length} student{filtered.length === 1 ? "" : "s"}
         </Button>
       </div>
-      {demo && (
-        <div className="mb-4 rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-2" style={{ background: "#fff7ed", color: "#c2410c" }}>
-          <FlaskConical className="h-3.5 w-3.5" />
-          Showing sample demo students. Toggle <b>Demo data: OFF</b> to see real signups (and import your roster to populate them).
-        </div>
-      )}
+      <div className="mb-4 rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-2" style={{ background: "#fff7ed", color: "#c2410c" }}>
+        <FlaskConical className="h-3.5 w-3.5" />
+        Preview mode — showing sample students. Once your school roster is imported, your real students appear here automatically.
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin" style={{ color: RED }} /></div>
@@ -207,9 +195,9 @@ const TeacherDashboard = () => {
                           <td className="px-4 py-3 text-right tabular-nums">{m.questionsAttempted}</td>
                           <td className="px-4 py-3 text-right text-xs" style={{ color: "#999" }}>{relativeTime(m.lastActive)}</td>
                           <td className="px-4 py-3 text-right">
-                            <button onClick={() => setAssignTarget([m])} disabled={demo}
-                              className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                              style={{ color: RED }} title={demo ? "Turn off demo data to assign tasks" : undefined}>
+                            <button onClick={() => setAssignTarget([m])}
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50"
+                              style={{ color: RED }}>
                               + Task
                             </button>
                           </td>
@@ -247,6 +235,12 @@ function AssignTaskModal({
 
   const submit = async () => {
     if (!title.trim()) { toast.error("Enter a task title."); return; }
+    // Demo students aren't real accounts — simulate the assignment for the preview.
+    if (students.every((m) => m.profile.id.startsWith("demo-"))) {
+      toast.success(`Task assigned to ${students.length} student${students.length === 1 ? "" : "s"} (preview).`);
+      onClose();
+      return;
+    }
     setSaving(true);
     try {
       const rows = students.map((m) => ({
