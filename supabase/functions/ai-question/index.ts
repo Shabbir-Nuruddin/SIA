@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { callAITool, getGeminiKeys } from "../_shared/ai.ts";
 import { callGroqTool } from "../_shared/groq.ts";
 import { requireUser } from "../_shared/auth.ts";
+import { getCachedSet, saveSet } from "../_shared/questionBank.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,6 +95,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const auth = await requireUser(req);
   if (auth instanceof Response) return auth;
+  const userId = auth.userId;
   if (getGeminiKeys().length === 0 && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI service not configured" }), {
       status: 500,
@@ -108,10 +110,25 @@ serve(async (req) => {
     let messages: any[] = [];
     let tools: any[] = [];
     let toolName = "";
+    // Set in the generate branch so we can save the result to the reuse pool after marking-safe post-processing.
+    let bankCtx: { kind: "topical"; board: string; subject: string; signature: string; userId: string } | null = null;
 
     if (action === "generate") {
       const { subject, topic, difficulty, questionType, syllabus_context, count, board } = body;
       const n = Math.min(15, Math.max(1, Number(count) || 1));
+
+      // Reuse pool: serve a set this user hasn't seen (saves AI credits). ~1 in 3
+      // requests still generates fresh. Falls through to generation on any miss.
+      const bankBoard = String(board || "edexcel-ial");
+      const signature = `${topic}|${difficulty}|${questionType}|${n}`.toLowerCase();
+      bankCtx = { kind: "topical", board: bankBoard, subject: String(subject), signature, userId };
+      const cachedSet = await getCachedSet(bankCtx);
+      if (cachedSet) {
+        return new Response(JSON.stringify(cachedSet), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const boardLabel =
         board === "cie"           ? "Cambridge International A Level (CIE)" :
         board === "cie-igcse"     ? "Cambridge IGCSE (CIE)" :
@@ -248,6 +265,9 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
         onePointPerMark(q);
         return true;
       });
+      // Add the fresh set to the reuse pool (best-effort) so other students can
+      // reuse it and this user won't be served it again.
+      if (bankCtx && args.questions.length > 0) await saveSet(bankCtx, args);
     }
 
     if (action === "mark") {

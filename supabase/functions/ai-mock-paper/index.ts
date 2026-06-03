@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callGroqTool } from "../_shared/groq.ts";
+import { callAITool, getGeminiKeys } from "../_shared/ai.ts";
 import { requireUser } from "../_shared/auth.ts";
+import { getCachedSet, saveSet } from "../_shared/questionBank.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -92,15 +93,18 @@ const markPaperTool = {
   },
 };
 
+// Gemini (multi-key rotation) primary, Groq fallback — same as notes/questions,
+// so mock papers work with the configured Gemini keys (previously Groq-only).
 async function callAI(messages: any[], tools: any[], toolName: string) {
-  return callGroqTool({ apiKey: GROQ_API_KEY, messages, tools, toolName, temperature: 0.3, maxTokens: 6500 });
+  return callAITool({ messages, tools, toolName, temperature: 0.3, maxTokens: 6500 });
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const auth = await requireUser(req);
   if (auth instanceof Response) return auth;
-  if (!GROQ_API_KEY) {
+  const userId = auth.userId;
+  if (getGeminiKeys().length === 0 && !GROQ_API_KEY) {
     return new Response(JSON.stringify({ error: "AI service not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -112,6 +116,25 @@ serve(async (req) => {
 
     if (action === "generate") {
       const { subject, units, topics, questionTypes, totalMarks, difficultyMix, syllabus_context, board } = body;
+
+      // Reuse pool: serve a paper this user hasn't seen before (saves AI credits);
+      // other students doing the same config can reuse it. ~1 in 3 generate fresh.
+      const bankBoard = String(board || "edexcel-ial");
+      const signature = [
+        (units || []).slice().sort().join(","),
+        (topics || []).slice().sort().join(","),
+        difficultyMix,
+        totalMarks,
+        (questionTypes || []).slice().sort().join(","),
+      ].join("|").toLowerCase();
+      const bankCtx = { kind: "mock" as const, board: bankBoard, subject: String(subject), signature, userId };
+      const cachedPaper = await getCachedSet(bankCtx);
+      if (cachedPaper) {
+        return new Response(JSON.stringify(cachedPaper), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Board label — determines exam style, command words, and mark-scheme format
       const boardLabel =
@@ -161,6 +184,8 @@ Number questions sequentially starting at 1. Output via the tool.`;
         [generatePaperTool],
         "create_mock_paper",
       );
+      // Save to the reuse pool (best-effort) for other students + dedupe for this user.
+      if (Array.isArray(result?.questions) && result.questions.length > 0) await saveSet(bankCtx, result);
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
