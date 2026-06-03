@@ -3,7 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callAITool } from "../_shared/ai.ts";
+import { callAITool, getGeminiKeys } from "../_shared/ai.ts";
 import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
@@ -66,7 +66,7 @@ serve(async (req) => {
   const auth = await requireUser(req);
   if (auth instanceof Response) return auth;
 
-  if (!Deno.env.get("GEMINI_API_KEY") && !Deno.env.get("GEMINI_API_KEY_2") && !Deno.env.get("GROQ_API_KEY")) {
+  if (getGeminiKeys().length === 0 && !Deno.env.get("GROQ_API_KEY")) {
     return new Response(JSON.stringify({ error: "AI not configured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

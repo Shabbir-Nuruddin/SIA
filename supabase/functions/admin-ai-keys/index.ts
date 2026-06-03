@@ -14,7 +14,8 @@ const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 function listKeyNames(): string[] {
   const out: string[] = [];
   if (Deno.env.get("GEMINI_API_KEY")) out.push("GEMINI_API_KEY");
-  for (let i = 2; i <= 20; i++) {
+  // Start at _1 so keys named GEMINI_API_KEY_1, _2, _3, … are all reported.
+  for (let i = 1; i <= 20; i++) {
     if (Deno.env.get(`GEMINI_API_KEY_${i}`)) out.push(`GEMINI_API_KEY_${i}`);
   }
   return out;

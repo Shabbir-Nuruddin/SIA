@@ -35,15 +35,18 @@ const recoverArgs = (raw: string) => {
   return tryIt(raw);
 };
 
-/** Collect every Gemini key from env: GEMINI_API_KEY, GEMINI_API_KEY_2..GEMINI_API_KEY_20 */
+/** Collect every Gemini key from env: GEMINI_API_KEY, GEMINI_API_KEY_1..GEMINI_API_KEY_20.
+ *  Both the suffixless primary AND the numbered keys (starting at _1) are read, so any
+ *  naming the admin used in Supabase secrets — GEMINI_API_KEY_1, _2, _3, … — is picked up. */
 export function getGeminiKeys(): { name: string; value: string }[] {
   const out: { name: string; value: string }[] = [];
-  const primary = Deno.env.get("GEMINI_API_KEY");
-  if (primary) out.push({ name: "GEMINI_API_KEY", value: primary });
-  for (let i = 2; i <= 20; i++) {
-    const v = Deno.env.get(`GEMINI_API_KEY_${i}`);
-    if (v) out.push({ name: `GEMINI_API_KEY_${i}`, value: v });
-  }
+  const seen = new Set<string>();
+  const add = (name: string) => {
+    const v = Deno.env.get(name);
+    if (v && !seen.has(v)) { seen.add(v); out.push({ name, value: v }); }
+  };
+  add("GEMINI_API_KEY");
+  for (let i = 1; i <= 20; i++) add(`GEMINI_API_KEY_${i}`);
   return out;
 }
 

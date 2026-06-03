@@ -193,7 +193,7 @@ const Admin = () => {
           {!keyStatus ? (
             <p className="text-sm text-muted-foreground italic">{keyLoading ? "Loading…" : "—"}</p>
           ) : keyStatus.totalKeys === 0 ? (
-            <p className="text-sm text-urgent">No Gemini keys configured. Add GEMINI_API_KEY (and GEMINI_API_KEY_2, GEMINI_API_KEY_3, …) in secrets.</p>
+            <p className="text-sm text-urgent">No Gemini keys configured. Add GEMINI_API_KEY (and GEMINI_API_KEY_1, GEMINI_API_KEY_2, GEMINI_API_KEY_3, …) in secrets, then redeploy the edge functions.</p>
           ) : (
             <div className="space-y-3">
               <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
