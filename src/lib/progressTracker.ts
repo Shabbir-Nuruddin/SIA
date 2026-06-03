@@ -66,6 +66,27 @@ export async function recordTopicResult(opts: {
   }
 }
 
+/**
+ * Bump the daily study streak: +1 if the last study day was yesterday, reset to 1
+ * if there was a gap, no-op if already counted today. Drives `current_streak` on
+ * the profile (shown in the sidebar/dashboard/parent view). Never throws.
+ */
+export async function bumpDailyStreak(user_id: string) {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const { data: p } = await supabase
+      .from("profiles")
+      .select("current_streak,last_session_date")
+      .eq("id", user_id)
+      .maybeSingle();
+    if (!p) return;
+    if ((p as any).last_session_date === today) return; // already counted today
+    const next = (p as any).last_session_date === yesterday ? ((p as any).current_streak || 0) + 1 : 1;
+    await supabase.from("profiles").update({ current_streak: next, last_session_date: today }).eq("id", user_id);
+  } catch { /* streak is best-effort */ }
+}
+
 /** Insert a study_sessions row. Silently ignores sub-minute sessions. */
 export async function logStudySession(opts: {
   user_id: string;
@@ -83,6 +104,8 @@ export async function logStudySession(opts: {
     unit_number: opts.unit_number ?? null,
     duration_minutes: minutes,
   });
+  // Studying today counts toward the streak.
+  await bumpDailyStreak(opts.user_id);
 }
 
 /**
