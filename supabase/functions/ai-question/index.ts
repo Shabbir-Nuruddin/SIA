@@ -160,6 +160,8 @@ For EVERY generated question, its mark_scheme must contain exactly the same numb
 
 CRITICAL RULES ABOUT QUESTION PHRASING:
 - NO drawing/sketching/plotting/labelling/diagram-completion questions. The student is typing in a text box.
+- SELF-CONTAINED ONLY: the student sees ONLY your text — there are NO images, diagrams, graphs, figures or tables. NEVER write a question that refers to "the diagram/graph/figure/image/table above/below/shown", "the following diagram", "use the graph", "from the data shown", or any visual that is not fully written out in words. If a graph or diagram would normally be provided, instead give the needed values/equation/description IN THE QUESTION TEXT so it is answerable without seeing anything.
+- Do NOT write "which of the following" / "which of these lines/statements/options/graphs" UNLESS every option is written out in the question (and for Multiple Choice, in the options array). Never reference choices the student cannot see.
 ${
   questionType === "Multiple Choice"
     ? `- Every question MUST include exactly 4 plausible options in the "options" array. Never omit options.
@@ -240,6 +242,9 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
     // Post-filter: drop drawing/sketching questions and clean malformed math.
     const drawPattern =
       /\b(draw|sketch|plot (a|the) graph|label (the|a) diagram|complete the (diagram|structure)|construct (the|a) (diagram|graph)|curly[- ]arrow mechanism)\b/i;
+    // Drop questions that reference a visual the student can't see (no images here).
+    const visualRefPattern =
+      /\b(shown (above|below)|(diagram|graph|figure|image|table|chart) (above|below|shown|opposite)|the (following|above|below) (diagram|graph|figure|image|table)|refer to the (diagram|graph|figure|image|table)|using the (graph|diagram|figure|table)|the (diagram|graph|figure|image) (shows|below|above)|from the (graph|diagram|data shown))\b/i;
     const cleanMath = (s: string) =>
       String(s || "")
         .replace(/\$\$\s*\$\$/g, "") // empty $$$$
@@ -251,6 +256,7 @@ Mark this answer. Be fair: award marks for any valid alternative wording. Be str
       args.questions = args.questions.filter((q: any) => {
         const t = String(q?.question_text || "");
         if (drawPattern.test(t)) return false;
+        if (visualRefPattern.test(t)) return false; // references an image/graph the student can't see
         if (body.questionType !== "Multiple Choice") {
           const mcqPattern =
             /\b(which (one )?of the following|select the correct|identify which|choose the (option|statement)|which statement is correct)\b/i;

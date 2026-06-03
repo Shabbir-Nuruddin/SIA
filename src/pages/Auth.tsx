@@ -62,13 +62,12 @@ const AuthPage = () => {
     }
   }, [params]);
 
-  // Auto-redirect ONLY right after a fresh sign-in.
+  // Any signed-in user who lands on /auth goes straight to their portal — no
+  // "already signed in" screen. (Fresh sign-ins also handle pending-role setup.)
   useEffect(() => {
     if (authLoading || !user) return;
     const pending   = localStorage.getItem("sia_pending_role");
-    const verified  = params.get("verified") === "1";
     const demoJump  = localStorage.getItem("sia_demo_jump");
-    if (!pending && !verified && !demoJump) return;
     let cancelled = false;
     (async () => {
       try {
@@ -167,25 +166,12 @@ const AuthPage = () => {
     }
   };
 
-  // Already signed in — offer continue or switch.
-  if (user && !authLoading && !localStorage.getItem("sia_pending_role") && !localStorage.getItem("sia_demo_jump") && params.get("verified") !== "1") {
+  // Signed in → show a brief spinner while the effect above redirects to the portal.
+  if (user && !authLoading) {
     return (
-      <div className="min-h-dvh w-full flex items-center justify-center px-5" style={{ fontFamily: "'Source Sans 3','Inter',sans-serif", background: "#fdf8f8" }}>
+      <div className="min-h-dvh w-full flex items-center justify-center" style={{ background: "#fdf8f8" }}>
         <SEO title="Sign in — SIA Smart Revision" description="Access SIA Smart Revision." path="/auth" noindex />
-        <div className="w-full max-w-md rounded-2xl border bg-white p-8 text-center shadow-sm" style={{ borderColor: "#f0e0e2" }}>
-          <img src={SIA_LOGO} alt="SIA" className="mx-auto h-12 w-12 rounded-full object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-          <h1 className="mt-4 text-2xl font-bold" style={{ fontFamily: "'Playfair Display',Georgia,serif", color: RED_DARK }}>You're already signed in</h1>
-          <p className="mt-1 text-sm" style={{ color: "#888" }}>{user.email}</p>
-          <div className="mt-6 space-y-3">
-            <Button onClick={goToPortal} className="h-12 w-full text-base font-semibold text-white" style={{ background: RED }}>
-              Continue →
-            </Button>
-            <Button onClick={switchAccount} variant="outline" className="h-12 w-full text-base font-semibold">
-              Sign out &amp; use another account
-            </Button>
-          </div>
-        </div>
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: RED }} />
       </div>
     );
   }

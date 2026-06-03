@@ -377,8 +377,8 @@ const QuestionsPage = () => {
               <div className="font-mono text-sm bg-secondary px-3 py-1.5 rounded-md">[{current.marks} marks]</div>
             </div>
 
-            <div className="prose prose-invert max-w-none mb-6">
-              <div className="text-lg leading-relaxed" {...formattedHtmlProps(current.question_text)} />
+            <div className="mb-6">
+              <div className="text-lg leading-relaxed text-foreground" {...formattedHtmlProps(current.question_text)} />
             </div>
 
             {!currentMark && (

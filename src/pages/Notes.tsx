@@ -232,6 +232,27 @@ const NotesPage = () => {
   const unitParam = params.get("unit") ? Number(params.get("unit")) : null;
   const topicParam = params.get("topic") || null;
 
+  // Remember the last-opened topic and restore it when returning to Notes (the
+  // sidebar link goes to /notes with no params, which would otherwise reset it).
+  useEffect(() => {
+    if (subjectParam && topicParam) {
+      try { localStorage.setItem("sia_last_note", JSON.stringify({ subject: subjectParam, unit: unitParam, topic: topicParam })); } catch { /* ignore */ }
+    }
+  }, [subjectParam, unitParam, topicParam]);
+
+  useEffect(() => {
+    if (subjectParam || topicParam) return; // a selection is already in the URL
+    try {
+      const last = JSON.parse(localStorage.getItem("sia_last_note") || "null");
+      if (last?.subject && last?.topic) {
+        const next: Record<string, string> = { subject: last.subject, topic: last.topic };
+        if (last.unit != null && last.unit !== "") next.unit = String(last.unit);
+        setParams(next, { replace: true });
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [notes, setNotes] = useState<NormalisedNotes | null>(null);
   const [noteRowId, setNoteRowId] = useState<string | null>(null);
   const [loadingNotes, setLoadingNotes] = useState(false);

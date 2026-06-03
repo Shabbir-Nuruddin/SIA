@@ -251,6 +251,13 @@ const renderMathWithPlaceholders = (text: string): { text: string; store: string
 
 const inlineFormat = (raw: string, store: string[]): string => {
   let s = escapeHtml(raw);
+  // Text-formatting LaTeX that leaks into prose (outside $…$): render it instead
+  // of showing raw "\textit{least}". Math versions are already KaTeX-rendered.
+  s = s.replace(/\\textit\{([^{}]*)\}/g, "<em>$1</em>");
+  s = s.replace(/\\emph\{([^{}]*)\}/g, "<em>$1</em>");
+  s = s.replace(/\\textbf\{([^{}]*)\}/g, "<strong>$1</strong>");
+  s = s.replace(/\\underline\{([^{}]*)\}/g, "<u>$1</u>");
+  s = s.replace(/\\text(?:rm|sf|tt|normal)?\{([^{}]*)\}/g, "$1");
   s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
   s = s.replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
