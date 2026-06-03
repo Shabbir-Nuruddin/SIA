@@ -534,7 +534,7 @@ ${referenceTableInstructions}`;
     }
 
     const sourceBlock = authoredBrief
-      ? `\nAUTHORITATIVE, EXAM-ACCURATE CONTENT FOR THE EXACT TOPIC "${topic}" (written by subject experts to the ${board.toUpperCase()} specification). Use this as the DEFINITIVE scope and accuracy anchor: every fact, equation, definition and value below is correct and in-scope, so build the note around it and never contradict it.\n\nThe brief may be terse — it is a skeleton, not the finished note. FULLY DEVELOP it into comprehensive revision notes: expand each point into clear explanations, write 6+ worked examples / flashcards / reactions derived from it, add the standard exam-relevant definitions, common mistakes and examiner tips a top student would need for THIS topic. Stay strictly WITHIN the scope of this topic "${topic}" — do NOT pull in other topics from this unit — but DO go deeper than the bullet points to produce a rich, exam-ready note:\n${authoredBrief}\n`
+      ? `\nAUTHORITATIVE, EXAM-ACCURATE CONTENT FOR THE EXACT TOPIC "${topic}" (written by subject experts to the ${board.toUpperCase()} specification). BUILD THE ENTIRE NOTE ON THIS: format it into the required fields, write the worked examples / flashcards / reactions FROM IT, and keep it exam-specific. You MAY add brief clarifying detail, but DO NOT introduce content outside this brief's scope and DO NOT pull in other topics from this unit:\n${authoredBrief}\n`
       : researchBrief
         ? `\nVERIFIED REFERENCE FACTS (use to keep every field accurate and exam-specific; integrate, do NOT copy verbatim, do NOT add a sources list):\n${researchBrief}\n`
         : "";

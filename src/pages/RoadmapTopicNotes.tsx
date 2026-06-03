@@ -8,7 +8,8 @@ import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
 import { ArrowLeft, ArrowRight, Loader2, BookOpen, Quote, Layers, Sigma, Eye, GraduationCap, Brain, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { formattedHtmlProps, renderedMathHtmlProps } from "@/lib/formatText";
+import { formattedHtmlProps } from "@/lib/formatText";
+import YouTubeLessonEmbed from "@/components/YouTubeLessonEmbed";
 
 // Full-screen Notes route consuming the structured ai-notes JSON.
 // Tabs: Overview / Definitions / Worked Examples / Equations / Visual / Tips / Flashcards.
@@ -179,10 +180,27 @@ const RoadmapTopicNotes = () => {
         {!loading && notes && (
           <article className="prose-content text-[15px] leading-relaxed">
             {tab === "overview" && (
-              <section className="space-y-4">
-                {notes.overview?.split(/\n\n+/).map((p, i) => (
-                  <p key={i} className="text-foreground/90" {...formattedHtmlProps(p)} />
-                ))}
+              <section>
+                {/* Render the structured "## sub-topic" + "- bullet" overview as one
+                    block — identical formatting to the Notes page so the roadmap shows
+                    the exact same note content (including short authored briefs). */}
+                <div
+                  className={[
+                    "rounded-xl bg-card border border-foreground/10 shadow-sm px-6 py-5",
+                    "[&_h1]:hidden",
+                    "[&_h2]:font-bold [&_h2]:text-2xl [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:mb-2.5 [&_h2]:first:mt-0 [&_h2]:pb-1.5 [&_h2]:border-b-2 [&_h2]:border-dashed [&_h2]:border-foreground/15",
+                    "[&_h3]:font-bold [&_h3]:text-lg [&_h3]:text-foreground/90 [&_h3]:mt-4 [&_h3]:mb-1.5",
+                    "[&_ul]:list-none [&_ul]:space-y-2 [&_ul]:my-2.5 [&_ul]:pl-0.5",
+                    "[&_li]:relative [&_li]:pl-5 [&_li]:text-[15px] [&_li]:leading-[1.7] [&_li]:text-foreground/90",
+                    "[&_li]:before:content-['▸'] [&_li]:before:absolute [&_li]:before:left-0 [&_li]:before:top-0 [&_li]:before:text-amber-500 [&_li]:before:font-bold",
+                    "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-2 [&_ol]:my-2.5 [&_ol]:marker:font-bold [&_ol]:marker:text-amber-600",
+                    "[&_ol_li]:text-[15px] [&_ol_li]:leading-[1.7] [&_ol_li]:text-foreground/90",
+                    "[&_p]:text-[15px] [&_p]:leading-[1.8] [&_p]:text-foreground/90 [&_p]:my-2.5",
+                    "[&_strong]:font-bold [&_strong]:text-foreground",
+                    "[&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-foreground/[0.06] [&_code]:text-[13px]",
+                  ].join(" ")}
+                  {...formattedHtmlProps(notes.overview ?? "")}
+                />
               </section>
             )}
 
@@ -251,16 +269,25 @@ const RoadmapTopicNotes = () => {
 
             {tab === "visual" && (
               <section>
-                {notes.visual_summary ? (
-                  <div className="surface p-5">
-                    <div className="text-[11px] uppercase font-mono text-primary tracking-wider mb-2">{notes.visual_summary.kind} · {notes.visual_summary.caption}</div>
-                    {notes.visual_summary.content.includes("<table") || notes.visual_summary.content.includes("<tr") ? (
-                      <div className="overflow-x-auto [&_td]:px-3 [&_td]:py-1.5 [&_th]:px-3 [&_th]:py-1.5 [&_th]:text-left [&_table]:w-full" {...renderedMathHtmlProps(notes.visual_summary.content)} />
-                    ) : (
-                      <pre className="whitespace-pre-wrap font-mono text-[13px] bg-secondary rounded-md p-3 overflow-x-auto" {...renderedMathHtmlProps(notes.visual_summary.content)} />
-                    )}
-                  </div>
-                ) : <p className="text-muted-foreground text-sm italic">No visual summary.</p>}
+                {node?.topic_name && node?.subject ? (() => {
+                  const subjName = subjectMeta?.name ?? node.subject;
+                  const boardLabel = board === "cie" ? "CIE A Level" : "Edexcel IAL";
+                  const exam = board === "cie" ? "Cambridge A Level" : "Edexcel";
+                  const query = `${boardLabel} ${subjName} ${node.topic_name} revision`;
+                  const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                  return (
+                    <YouTubeLessonEmbed
+                      key={query}
+                      query={query}
+                      subject={subjName}
+                      level="a-level"
+                      exam={exam}
+                      videoTopic={node.topic_name}
+                      topic={node.topic_name}
+                      searchUrl={searchUrl}
+                    />
+                  );
+                })() : <p className="text-muted-foreground text-sm italic">No video for this topic.</p>}
               </section>
             )}
 
