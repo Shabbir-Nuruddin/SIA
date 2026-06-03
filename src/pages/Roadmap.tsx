@@ -461,16 +461,16 @@ const RoadmapPage = () => {
         {/* ── HEADER ────────────────────────────────────────────────────── */}
         <header
           className="relative overflow-hidden border-b border-border"
-          style={{ background: "linear-gradient(135deg, hsl(160 70% 10%) 0%, hsl(160 55% 16%) 60%, hsl(160 40% 12%) 100%)" }}
+          style={{ background: "linear-gradient(135deg, hsl(350 75% 20%) 0%, hsl(350 80% 30%) 55%, hsl(345 70% 18%) 100%)" }}
         >
           {/* Grid texture */}
-          <div aria-hidden className="absolute inset-0 opacity-[0.04]" style={{
-            backgroundImage: "linear-gradient(hsl(43 80% 60%) 1px,transparent 1px),linear-gradient(90deg,hsl(43 80% 60%) 1px,transparent 1px)",
+          <div aria-hidden className="absolute inset-0 opacity-[0.05]" style={{
+            backgroundImage: "linear-gradient(hsl(0 0% 100%) 1px,transparent 1px),linear-gradient(90deg,hsl(0 0% 100%) 1px,transparent 1px)",
             backgroundSize: "48px 48px",
           }} />
-          {/* Gold glow */}
+          {/* Red glow */}
           <div aria-hidden className="absolute -left-32 -top-32 h-96 w-96 rounded-full pointer-events-none" style={{
-            background: "radial-gradient(circle,hsl(43 70% 50%/0.18),transparent 65%)",
+            background: "radial-gradient(circle,hsl(350 90% 60%/0.22),transparent 65%)",
           }} />
 
           <div className="relative px-5 md:px-10 py-7 md:py-9">
@@ -520,8 +520,8 @@ const RoadmapPage = () => {
                   style={{
                     width: `${pct}%`,
                     background: pct === 100
-                      ? "#4ade80"
-                      : "linear-gradient(90deg,#34d399,#fbbf24)",
+                      ? "#16a34a"
+                      : "linear-gradient(90deg,#C8102E,#f0708a)",
                   }}
                 />
               </div>
@@ -648,9 +648,13 @@ const RoadmapPage = () => {
                   <div className="px-5 py-5 overflow-x-auto">
                     <div className="flex items-start min-w-max">
                       {group.nodes.map((node, ni) => {
-                        const isLocked   = node.status === "locked";
+                        // Learn (notes) topics are ALWAYS openable — students can jump
+                        // to any topic in any unit without finishing earlier ones.
+                        // Reviews/mocks still unlock in sequence.
+                        const isLearn    = node.node_type === "learn";
+                        const isLocked   = node.status === "locked" && !isLearn;
                         const isDone     = node.status === "complete";
-                        const isActive   = node.status === "unlocked" || node.status === "in_progress";
+                        const isActive   = node.status === "unlocked" || node.status === "in_progress" || isLearn;
                         const isExpanded = activeNodeId === node.id;
 
                         const handleClick = () => {

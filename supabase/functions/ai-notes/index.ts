@@ -152,9 +152,10 @@ const buildCieAlevelPrompt = (subject: string, topicKey: string, specificTopic: 
   const seed = Math.floor(10000000 + Math.random() * 90000000).toString();
   const isMaths = /math/i.test(subject);
   const overviewRule = isMaths
-    ? `OVERVIEW RULE (MATHS):
-- Write the "overview" field as ONE OR TWO short sentences only — a quick description of what the topic is about. No theory paragraphs.
-- Move all depth into "core_content": at least 8 worked examples covering different question types. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step, use \\n between steps), "wrong_approach" = a specific student mistake.
+    ? `OVERVIEW RULE (MATHS) — concise method summary in bullets (NOT one sentence, NOT long theory):
+- Structure the "overview" as 3–5 "## Sub-topic" headings, each with 3–6 "- " bullets stating the KEY methods, formulae, rules and results a student must know for this topic (e.g. the laws/identities, the standard technique, conditions, common results). Keep each bullet short and exam-critical — this is a quick-reference, the full worked depth goes in core_content.
+- START with the first "## " heading; never open with "This unit covers..." or any preamble sentence.
+- Move all worked depth into "core_content": at least 8 worked examples covering different question types. For each: "statement" = the question, "worked_example" = full step-by-step solution (every algebraic step, use \\n between steps), "wrong_approach" = a specific student mistake.
 - Include at least 4 entries in "equations" with full variable definitions and a numerical "worked_substitution".`
     : `OVERVIEW RULE (SCIENCE) — ZNotes/Save My Exams/PMT style:
 - The overview IS the main revision summary, not an introduction. Structure it as 4–7 sub-topics.

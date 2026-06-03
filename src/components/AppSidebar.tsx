@@ -70,7 +70,7 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
   const board = (profile?.exam_board || "edexcel").toUpperCase();
 
   return (
-    <div className="flex h-full flex-col p-3 warm-gradient-soft">
+    <div className="flex h-full flex-col p-3 bg-sidebar">
       {/* Logo + collapse button */}
       <div className="px-2 pt-3 pb-5 shrink-0 flex items-start justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -167,7 +167,7 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
         <div className="px-1 flex items-center gap-3">
           <div
             className="relative h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
-            style={{ backgroundImage: "linear-gradient(135deg, hsl(160 65% 35%), hsl(160 70% 45%))" }}
+            style={{ backgroundImage: "linear-gradient(135deg, hsl(350 85% 45%), hsl(345 80% 30%))" }}
           >
             {initials}
             <PrestigeBadge className="absolute -bottom-1 -right-1" />
