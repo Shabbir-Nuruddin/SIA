@@ -227,7 +227,7 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
 
       {visible ? (
         <aside
-          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden pt-11"
+          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden"
           style={{ top: 0, height: "100dvh" }}
         >
           <div className="flex-1 min-h-0 overflow-hidden">

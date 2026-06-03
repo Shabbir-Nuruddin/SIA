@@ -38,7 +38,9 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
     <div className="h-dvh min-h-screen overflow-hidden flex bg-background study-shell">
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
-      <main className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${chromeHidden ? "" : "pt-11"}`}>{children}</main>
+      {/* pt-11 on mobile only: leaves room for the fixed hamburger button. On
+          desktop the sidebar is always visible, so no top gap (was dead space). */}
+      <main className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${chromeHidden ? "" : "pt-11 lg:pt-0"}`}>{children}</main>
 
       {/* Floating tools cluster. In exam mode (chromeHidden) it stays as-is. On
           normal pages it can be minimised to a single small button. */}
