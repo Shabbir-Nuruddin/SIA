@@ -227,14 +227,24 @@ const TeacherDashboard = () => {
 function AssignTaskModal({
   teacherId, students, subjects, onClose,
 }: { teacherId: string | null; students: StudentMetrics[]; subjects: string[]; onClose: () => void }) {
+  const [taskType, setTaskType] = useState<"questions" | "mock" | "notes" | "custom">("questions");
+  const [count, setCount] = useState(10);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const subjText = subject ? subjectLabel(subject) : "";
+  const autoTitle =
+    taskType === "questions" ? `Complete ${count} topical question${count === 1 ? "" : "s"}${subjText ? ` — ${subjText}` : ""}` :
+    taskType === "mock"      ? `Sit ${count} mock paper${count === 1 ? "" : "s"}${subjText ? ` — ${subjText}` : ""}` :
+    taskType === "notes"     ? `Revise ${count} topic${count === 1 ? "" : "s"} of notes${subjText ? ` — ${subjText}` : ""}` :
+                               title.trim();
+
   const submit = async () => {
-    if (!title.trim()) { toast.error("Enter a task title."); return; }
+    const finalTitle = taskType === "custom" ? title.trim() : autoTitle;
+    if (!finalTitle) { toast.error("Enter a task title."); return; }
     // Demo students aren't real accounts — simulate the assignment for the preview.
     if (students.every((m) => m.profile.id.startsWith("demo-"))) {
       toast.success(`Task assigned to ${students.length} student${students.length === 1 ? "" : "s"} (preview).`);
@@ -246,7 +256,7 @@ function AssignTaskModal({
       const rows = students.map((m) => ({
         teacher_id: teacherId,
         student_id: m.profile.id,
-        title: title.trim(),
+        title: finalTitle,
         description: description.trim() || null,
         subject: subject || null,
         due_date: dueDate || null,
@@ -273,9 +283,40 @@ function AssignTaskModal({
         </div>
         <div className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <Label>Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Complete Unit 4 past paper" className="h-11" maxLength={120} />
+            <Label>What to assign</Label>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { id: "questions", label: "Topical Questions" },
+                { id: "mock", label: "Mock Paper" },
+                { id: "notes", label: "Notes" },
+                { id: "custom", label: "Custom" },
+              ] as const).map((t) => (
+                <Pill key={t.id} active={taskType === t.id} onClick={() => setTaskType(t.id)}>{t.label}</Pill>
+              ))}
+            </div>
           </div>
+
+          {taskType === "custom" ? (
+            <div className="space-y-1.5">
+              <Label>Title</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Complete Unit 4 past paper" className="h-11" maxLength={120} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>How many</Label>
+                <Input type="number" min={1} max={50} value={count}
+                  onChange={(e) => setCount(Math.max(1, Math.min(50, Number(e.target.value) || 1)))} className="h-11" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Preview</Label>
+                <div className="h-11 flex items-center rounded-md border px-3 text-xs text-gray-600" style={{ borderColor: "#e5e7eb", background: "#fafafa" }}>
+                  {autoTitle}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label>Details (optional)</Label>
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any instructions…"
