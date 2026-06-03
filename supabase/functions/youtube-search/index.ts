@@ -55,9 +55,46 @@ function channelsFor(subject: string, level: string): string[] {
   return CHANNELS[key][tier] ?? [];
 }
 
-async function scrapeVideoId(query: string): Promise<string | null> {
+// Recursively pull the first videoId out of an InnerTube JSON response. This is
+// far more robust than regex-scraping HTML, which YouTube serves differently
+// (and behind a consent wall) to datacenter IPs like Deno Deploy / Supabase.
+function findVideoId(node: unknown): string | null {
+  if (!node || typeof node !== "object") return null;
+  const obj = node as Record<string, unknown>;
+  const id = obj.videoId;
+  if (typeof id === "string" && /^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+  for (const v of Object.values(obj)) {
+    const found = findVideoId(v);
+    if (found) return found;
+  }
+  return null;
+}
+
+// Public web client key used by youtube.com itself for the InnerTube API.
+const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
+
+async function searchInnertube(query: string): Promise<string | null> {
+  try {
+    const res = await fetch(`https://www.youtube.com/youtubei/v1/search?key=${INNERTUBE_KEY}&prettyPrint=false`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        context: { client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "en", gl: "US" } },
+        query,
+        params: "EgIQAQ%3D%3D", // filter: type=video (skip channels/playlists/Shorts shelves)
+      }),
+    });
+    if (!res.ok) return null;
+    return findVideoId(await res.json());
+  } catch {
+    return null;
+  }
+}
+
+// HTML scrape fallback. Sends a CONSENT cookie so EU/consent walls don't replace
+// the results page with a cookie-consent interstitial (a common cause of empty scrapes).
+async function scrapeHtml(query: string): Promise<string | null> {
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&hl=en&sp=EgIQAQ%253D%253D`;
-  // sp=EgIQAQ%3D%3D restricts to type:video (skips channels/playlists/Shorts shelves).
   let res: Response;
   try {
     res = await fetch(url, {
@@ -65,6 +102,7 @@ async function scrapeVideoId(query: string): Promise<string | null> {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
+        Cookie: "CONSENT=YES+1; SOCS=CAI",
       },
     });
   } catch {
@@ -76,6 +114,11 @@ async function scrapeVideoId(query: string): Promise<string | null> {
   if (m1) return m1[1];
   const m2 = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
   return m2 ? m2[1] : null;
+}
+
+// Try the JSON API first (reliable from server IPs); fall back to HTML scraping.
+async function scrapeVideoId(query: string): Promise<string | null> {
+  return (await searchInnertube(query)) || (await scrapeHtml(query));
 }
 
 /**
