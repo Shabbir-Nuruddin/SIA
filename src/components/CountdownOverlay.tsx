@@ -39,7 +39,7 @@ function formatExamDate(iso: string) {
   });
 }
 
-export const CountdownOverlay = () => {
+export const CountdownOverlay = ({ onVisibilityChange }: { onVisibilityChange?: (visible: boolean) => void } = {}) => {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const [items, setItems] = useState<ExamRow[]>([]);
@@ -70,9 +70,9 @@ export const CountdownOverlay = () => {
     return () => clearInterval(id);
   }, []);
 
-  if (hide || items.length === 0) return null;
-
   const now = Date.now();
+  // Upcoming = scheduled exams not yet more than a day past (so a passed exam
+  // automatically drops off and the top bar collapses on its own).
   const upcoming = items
     .map(u => {
       const examLocal = parseLocalDate(u.exam_date);
@@ -86,7 +86,11 @@ export const CountdownOverlay = () => {
     .filter(u => u.ms >= -86_400_000)
     .sort((a, b) => a.ms - b.ms);
 
-  if (upcoming.length === 0) return null;
+  // Report visibility so the layout only reserves top padding when the bar shows.
+  const visible = !hide && upcoming.length > 0;
+  useEffect(() => { onVisibilityChange?.(visible); }, [visible, onVisibilityChange]);
+
+  if (!visible) return null;
   const next = upcoming[0];
   const meta = next.subject ? SUBJECTS[next.subject as SubjectCode] : null;
   const msg = urgencyMessage(next.days);

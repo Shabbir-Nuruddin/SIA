@@ -203,7 +203,7 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
   );
 };
 
-export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: boolean; onClose?: () => void; onOpen?: () => void }) => {
+export const AppSidebar = ({ visible = true, topInset = false, onClose, onOpen }: { visible?: boolean; topInset?: boolean; onClose?: () => void; onOpen?: () => void }) => {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
@@ -227,7 +227,7 @@ export const AppSidebar = ({ visible = true, onClose, onOpen }: { visible?: bool
 
       {visible ? (
         <aside
-          className="hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden"
+          className={`hidden lg:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar sticky self-start overflow-hidden ${topInset ? "pt-11" : ""}`}
           style={{ top: 0, height: "100dvh" }}
         >
           <div className="flex-1 min-h-0 overflow-hidden">
