@@ -8,10 +8,19 @@ import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import GameLauncher from "@/components/game/GameLauncher";
 import { useNotificationScheduler } from "@/lib/useNotificationScheduler";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, Wrench } from "lucide-react";
 
 export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideChrome?: boolean }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  // Collapse the floating tools cluster (game / focus / music / assistant) so it
+  // doesn't clutter the screen — persisted, like the sidebar's collapsed state.
+  const [dockOpen, setDockOpen] = useState(() => {
+    try { return localStorage.getItem("sia_dock_open") !== "0"; } catch { return true; }
+  });
+  const toggleDock = (open: boolean) => {
+    setDockOpen(open);
+    try { localStorage.setItem("sia_dock_open", open ? "1" : "0"); } catch { /* ignore */ }
+  };
   const { user, loading } = useAuth();
   const { pathname } = useLocation();
   useNotificationScheduler();
@@ -30,10 +39,40 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
       {!chromeHidden && <CountdownOverlay />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
       <main className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${chromeHidden ? "" : "pt-11"}`}>{children}</main>
-      <PomodoroPill />
-      <MusicPlayer />
-      {!chromeHidden && <GameLauncher />}
-      <FloatingAssistant />
+
+      {/* Floating tools cluster. In exam mode (chromeHidden) it stays as-is. On
+          normal pages it can be minimised to a single small button. */}
+      {chromeHidden ? (
+        <>
+          <PomodoroPill />
+          <MusicPlayer />
+          <FloatingAssistant />
+        </>
+      ) : dockOpen ? (
+        <>
+          <GameLauncher />
+          <PomodoroPill />
+          <MusicPlayer />
+          <FloatingAssistant />
+          <button
+            onClick={() => toggleDock(false)}
+            title="Hide tools"
+            aria-label="Hide floating tools"
+            className="fixed bottom-44 right-5 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground shadow-md backdrop-blur hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <ChevronDown className="h-3.5 w-3.5" /> Hide
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => toggleDock(true)}
+          title="Show tools (game, focus timer, music, assistant)"
+          aria-label="Show floating tools"
+          className="fixed bottom-5 right-5 z-40 h-11 w-11 rounded-full bg-card border border-primary/30 ring-1 ring-primary/15 shadow-lg flex items-center justify-center text-primary hover:scale-105 transition-transform"
+        >
+          <Wrench className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 };
