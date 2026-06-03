@@ -74,9 +74,43 @@ const QuestionsPage = () => {
       });
   }, [user]);
 
+  // When the user changes subject, reset to its first topic — but skip this once
+  // during restore so a saved topic isn't clobbered.
+  const skipTopicReset = useRef(false);
   useEffect(() => {
+    if (skipTopicReset.current) { skipTopicReset.current = false; return; }
     setTopic(SUBJECTS[subject].units[0].topics[0]);
   }, [subject]);
+
+  // Restore the question set the user was working on (so leaving and returning
+  // to this tab doesn't wipe it). Skipped when arriving via a URL link to a
+  // specific topic (e.g. a roadmap review).
+  useEffect(() => {
+    if (params.get("subject") || params.get("topic")) return;
+    let saved: any = null;
+    try { saved = JSON.parse(localStorage.getItem("sia_questions_state") || "null"); } catch { /* ignore */ }
+    if (!saved || !Array.isArray(saved.batch) || saved.batch.length === 0) return;
+    skipTopicReset.current = true;
+    if (saved.subject) setSubject(saved.subject);
+    if (saved.topic) setTopic(saved.topic);
+    if (saved.difficulty) setDifficulty(saved.difficulty);
+    if (saved.qType) setQType(saved.qType);
+    setBatch(saved.batch);
+    setAnswers(Array.isArray(saved.answers) ? saved.answers : new Array(saved.batch.length).fill(""));
+    setAnswerImages(new Array(saved.batch.length).fill(null));
+    setMarks(Array.isArray(saved.marks) ? saved.marks : new Array(saved.batch.length).fill(null));
+    setIdx(Math.min(saved.idx || 0, saved.batch.length - 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save the working set so it survives navigation. (Answer images are skipped —
+  // they're large data URLs; everything else persists.)
+  useEffect(() => {
+    try {
+      if (batch.length === 0) localStorage.removeItem("sia_questions_state");
+      else localStorage.setItem("sia_questions_state", JSON.stringify({ subject, topic, difficulty, qType, batch, answers, marks, idx }));
+    } catch { /* ignore */ }
+  }, [subject, topic, difficulty, qType, batch, answers, marks, idx]);
 
   usePageTimeTracker({
     user_id: user?.id,
