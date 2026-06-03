@@ -135,13 +135,10 @@ function usedFor(state: PlanState, key: LimitKey, currentSubjectsCount?: number)
 }
 
 export function evaluateLimit(state: PlanState, key: LimitKey, currentSubjectsCount?: number): CheckResult {
-  const limit = LIMITS[state.plan][key];
+  // Pricing is disabled — every feature is unlimited for everyone. Always allow,
+  // never warn. (Logic kept below in comments-equivalent form for easy re-enable.)
   const used = usedFor(state, key, currentSubjectsCount);
-  const remaining = limit === Infinity ? Infinity : Math.max(0, limit - used);
-  const allowed = remaining > 0 || limit === Infinity;
-  // For pro-only features (limit 0), there is no "soft warn" — always hard block on free
-  const warnSoft = limit !== Infinity && limit > 0 && used / limit >= 0.8 && remaining > 0;
-  return { allowed, remaining: limit === Infinity ? Infinity : remaining, limit, used, plan: state.plan, warnSoft };
+  return { allowed: true, remaining: Infinity, limit: Infinity, used, plan: state.plan, warnSoft: false };
 }
 
 /** Atomic-ish increment of a counter on profiles after a successful action. */

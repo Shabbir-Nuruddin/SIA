@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import {
-  evaluateLimit,
   getPlanState,
   incrementUsage,
   type LimitKey,
   type PlanState,
-  LIMIT_LABELS,
 } from "@/lib/plan";
 
 export const usePlan = () => {
@@ -30,23 +27,9 @@ export const usePlan = () => {
    * - Returns false and opens upgrade modal if blocked.
    */
   const checkAndWarn = useCallback(
-    async (key: LimitKey, currentSubjectsCount?: number): Promise<boolean> => {
-      const fresh = await getPlanState();
-      if (!fresh) return false;
-      setState(fresh);
-      const result = evaluateLimit(fresh, key, currentSubjectsCount);
-      if (!result.allowed) {
-        setUpgrade({ open: true, key, used: result.used, limit: result.limit });
-        return false;
-      }
-      if (result.warnSoft) {
-        toast.warning(
-          `${result.remaining} ${LIMIT_LABELS[key]} left on free plan`,
-          { description: "Upgrade to Pro for unlimited access.", action: { label: "Upgrade", onClick: () => (window.location.href = "/pricing") } },
-        );
-      }
-      return true;
-    },
+    // Pricing is disabled: nothing is ever gated, so every action is allowed and
+    // no upgrade modal or usage warning is shown. (Args kept for call-site compat.)
+    async (_key: LimitKey, _currentSubjectsCount?: number): Promise<boolean> => true,
     [],
   );
 

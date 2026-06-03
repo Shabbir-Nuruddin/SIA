@@ -41,9 +41,14 @@ export default function LoadingGameOverlay({
   if (typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/60 p-3 backdrop-blur-sm animate-fade-in sm:p-6">
-      <div className="relative mt-4 w-full max-w-5xl rounded-2xl border border-border bg-white text-foreground shadow-2xl sm:mt-8">
-        <div className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border bg-white px-5 py-3">
+    <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/60 p-3 sm:p-6">
+      {/* Solid opaque surface (explicit inline colours so no theme token or global
+          .glass-card rule can make it translucent — the cause of the grey wash). */}
+      <div
+        className="relative mt-4 w-full max-w-5xl rounded-2xl border border-border shadow-2xl sm:mt-8"
+        style={{ backgroundColor: "#ffffff", color: "#101828", opacity: 1 }}
+      >
+        <div className="flex items-center justify-between gap-2 rounded-t-2xl border-b border-border px-5 py-3" style={{ backgroundColor: "#ffffff" }}>
           <div className="flex items-center gap-2 text-sm font-bold">
             <Gamepad2 className="h-4 w-4 text-primary" /> SIA Break Arcade
           </div>
@@ -55,7 +60,7 @@ export default function LoadingGameOverlay({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-h-[82vh] overflow-y-auto rounded-b-2xl bg-white p-4 sm:p-5">
+        <div className="max-h-[82vh] overflow-y-auto rounded-b-2xl p-4 sm:p-5" style={{ backgroundColor: "#ffffff" }}>
           <div className="mb-4 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-center">
             <div className="text-sm font-extrabold text-foreground">⏳ Hang tight — this is loading in the background.</div>
             <div className="mt-1 text-xs text-muted-foreground">

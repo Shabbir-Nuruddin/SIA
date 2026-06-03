@@ -117,25 +117,23 @@ const SidebarBody = ({ onNavigate, onClose }: { onNavigate?: () => void; onClose
               to={it.to}
               onClick={onNavigate}
               {...(tutorialKey ? { "data-tutorial": tutorialKey } : {})}
-              className={`pill-nav ${active ? "pill-nav-active font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/60"} ${locked ? "opacity-70" : ""}`}
-              title={locked ? "Pro feature — start your 3-day free trial to unlock." : undefined}
+              // Clean, flat nav row (Save My Exams style): plain icon + label, a
+              // subtle highlight + left accent bar on the active item. No coloured
+              // circles. Pricing is off, so there are no Pro locks here.
+              className={`group relative flex items-center gap-3 rounded-lg py-2 pl-3 pr-2.5 text-[13.5px] transition-colors ${
+                active
+                  ? "bg-primary/10 font-semibold text-primary"
+                  : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-foreground"
+              }`}
             >
-              <span
-                className="h-7 w-7 rounded-full flex items-center justify-center shrink-0"
-                style={
-                  active
-                    ? { background: "rgba(255,255,255,0.22)" }
-                    : { background: `hsl(${it.color} / 0.18)`, color: `hsl(${it.color})` }
-                }
-              >
-                <it.icon className="h-3.5 w-3.5" />
-              </span>
-              <span className="flex-1 text-[13px]">{it.label}</span>
-              {locked && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/15 text-primary">
-                  <Lock className="h-2.5 w-2.5" /> Pro
-                </span>
+              {active && (
+                <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-primary" aria-hidden />
               )}
+              <it.icon
+                className={`h-[18px] w-[18px] shrink-0 ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                strokeWidth={active ? 2.4 : 1.9}
+              />
+              <span className="flex-1">{it.label}</span>
             </NavLink>
           );
         })}

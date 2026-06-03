@@ -25,36 +25,12 @@ export const useSubscription = (): SubscriptionState => {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!user) {
-      setPlan("free"); setInTrial(false); setTrialDaysLeft(0); setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("is_pro,trial_start_date,is_admin")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    let isPro = false;
-    let trialing = false;
-    let daysLeft = 0;
-    if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const d: any = data;
-      if (d.is_pro || d.is_admin) isPro = true;
-      if (d.trial_start_date) {
-        const started = new Date(d.trial_start_date).getTime();
-        const elapsedDays = (Date.now() - started) / 86400000;
-        if (elapsedDays < TRIAL_DAYS) {
-          trialing = true;
-          daysLeft = Math.max(0, Math.ceil(TRIAL_DAYS - elapsedDays));
-        }
-      }
-    }
-    setPlan(isPro || trialing ? "pro" : "free");
-    setInTrial(trialing);
-    setTrialDaysLeft(daysLeft);
+    // Pricing is disabled: every feature is free for everyone. We always report
+    // "pro" so no upgrade gates or paywalls ever show. The Pro/checkout code is
+    // intentionally left in place so billing can be switched back on later.
+    setPlan("pro");
+    setInTrial(false);
+    setTrialDaysLeft(0);
     setLoading(false);
   }, [user]);
 
