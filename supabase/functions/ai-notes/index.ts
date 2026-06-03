@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { callAITool, deepStripLatex, callGeminiGroundedResearch } from "../_shared/ai.ts";
+import { callAITool, callGeminiGroundedResearch } from "../_shared/ai.ts";
 import { getAuthoredBrief } from "../_shared/authoredNotes.ts";
 import { requireUser } from "../_shared/auth.ts";
 import { CIE_ALEVEL_SYLLABUS } from "../_shared/cieial.ts";
@@ -79,7 +79,11 @@ const normalizeMarks = (value: unknown): number => {
 };
 
 const normaliseNotes = (args: any, subject: string) => {
-  const stripped: any = deepStripLatex(args || {});
+  // NOTE: we intentionally do NOT strip LaTeX here. The frontend renders math with
+  // KaTeX (formatText.ts), so preserving "$...$" / \frac / \sqrt / \ge etc. gives
+  // proper fractions, roots and symbols. Stripping previously produced "(1)/(x)",
+  // "√{x}" and a literal "ge" instead of ≥.
+  const stripped: any = args || {};
   const overview = cleanOverview(stripped.overview || "");
 
   return {
@@ -478,7 +482,7 @@ OUTPUT STYLE RULES (non-negotiable — apply to every field):
 - Core content "wrong_approach": MANDATORY — NEVER leave empty. Name the exact misconception and correct it concisely.
 - Definitions "mark_scheme": write as an examiner's mark scheme (credit-worthy phrases, not a textbook sentence).
 - Examiner tips: each tip must map to ONE command word or one specific mark-scheme expectation — not generic study advice.
-- For equations: use plain LaTeX inside $...$ delimiters only where needed. Do not escape backslashes incorrectly.
+- MATH FORMATTING (CRITICAL): wrap EVERY mathematical expression, fraction, power, root, subscript and inequality in $...$ LaTeX. Examples: $x + \\frac{1}{x} \\ge 2$, $\\sqrt{x}$, $x^2 - 2x + 1$, $\\frac{dy}{dx}$, $H_2O$, $\\Delta H$. Use $\\ge$ $\\le$ $\\ne$ $\\times$ $\\rightarrow$ — NEVER write the bare words "ge"/"le" or bare backslash commands outside $...$. Every $ must be paired.
 - Do not output HTML, SVG, Mermaid, markdown tables, or visual summaries.
 ${referenceTableInstructions}`;
 

@@ -109,7 +109,7 @@ const wrapBalancedMacro = (text: string, macro: "frac" | "sqrt"): string => {
 };
 
 // Known LaTeX command names we'll auto-wrap if found bare (without $ delimiters).
-const LATEX_CMDS = "alpha|beta|gamma|delta|Delta|epsilon|varepsilon|zeta|eta|theta|Theta|iota|kappa|lambda|Lambda|mu|nu|xi|Xi|pi|Pi|rho|sigma|Sigma|tau|upsilon|phi|Phi|chi|psi|Psi|omega|Omega|infty|partial|nabla|hbar|ell|aleph|forall|exists|in|notin|subset|supset|cup|cap|emptyset|pm|mp|times|div|cdot|ast|approx|equiv|neq|leq|geq|ll|gg|sim|propto|to|rightarrow|leftarrow|Rightarrow|Leftarrow|Leftrightarrow|mapsto|degree|circ|prime|ominus|oplus|otimes|odot|sum|prod|int|oint|lim|log|ln|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|sinh|cosh|tanh|exp|min|max|sqrt|frac|binom|text|mathrm|mathbf|mathit|left|right|cdots|ldots|dots|vec|hat|bar|tilde|dot|ddot|overline|underline|begin|end";
+const LATEX_CMDS = "alpha|beta|gamma|delta|Delta|epsilon|varepsilon|zeta|eta|theta|Theta|iota|kappa|lambda|Lambda|mu|nu|xi|Xi|pi|Pi|rho|sigma|Sigma|tau|upsilon|phi|Phi|chi|psi|Psi|omega|Omega|infty|partial|nabla|hbar|ell|aleph|forall|exists|in|notin|subset|supset|cup|cap|emptyset|pm|mp|times|div|cdot|ast|approx|equiv|neq|leq|geq|ne|ge|le|ll|gg|sim|propto|to|rightarrow|leftarrow|Rightarrow|Leftarrow|Leftrightarrow|mapsto|degree|circ|prime|ominus|oplus|otimes|odot|sum|prod|int|oint|lim|log|ln|sin|cos|tan|sec|csc|cot|arcsin|arccos|arctan|sinh|cosh|tanh|exp|min|max|sqrt|frac|binom|text|mathrm|mathbf|mathit|left|right|cdots|ldots|dots|vec|hat|bar|tilde|dot|ddot|overline|underline|begin|end";
 const LATEX_CMD_RE = new RegExp(`\\\\(?:${LATEX_CMDS})\\b`);
 
 // Split a string into [outside, math, outside, math, ...] segments based on
@@ -141,7 +141,7 @@ const autoWrapMath = (text: string): string => {
 
   // 4. Bare greek/operator macros
   s = transformOutside(s, seg => seg.replace(
-    /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|nu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ|ominus|oplus|otimes|partial|nabla|hbar|prime|ell|sum|prod|int)\b/g,
+    /\\(alpha|beta|gamma|delta|Delta|theta|Theta|lambda|mu|nu|pi|sigma|Sigma|phi|omega|Omega|infty|pm|times|cdot|approx|neq|leq|geq|ne|ge|le|to|rightarrow|leftarrow|Rightarrow|Leftrightarrow|degree|circ|ominus|oplus|otimes|partial|nabla|hbar|prime|ell|sum|prod|int)\b/g,
     (m) => `$${m}$`,
   ));
 
