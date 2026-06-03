@@ -25,6 +25,7 @@ const TeacherDashboard = () => {
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [assignTarget, setAssignTarget] = useState<StudentMetrics[] | null>(null);
+  const [targetStudent, setTargetStudent] = useState<StudentMetrics | null>(null);
   // Sample students are always shown for now (real roster import comes later).
   const demo = true;
   const data = demo ? DEMO_STUDENTS : metrics;
@@ -194,7 +195,12 @@ const TeacherDashboard = () => {
                           <td className="px-4 py-3 text-right tabular-nums font-semibold" style={{ color: m.mockAvgPct != null && m.mockAvgPct < 50 ? RED : "#444" }}>{m.mockAvgPct != null ? `${m.mockAvgPct}%` : "—"}</td>
                           <td className="px-4 py-3 text-right tabular-nums">{m.questionsAttempted}</td>
                           <td className="px-4 py-3 text-right text-xs" style={{ color: "#999" }}>{relativeTime(m.lastActive)}</td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <button onClick={() => setTargetStudent(m)}
+                              className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50"
+                              style={{ color: RED }}>
+                              🎯 Target
+                            </button>
                             <button onClick={() => setAssignTarget([m])}
                               className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50"
                               style={{ color: RED }}>
@@ -220,9 +226,109 @@ const TeacherDashboard = () => {
           onClose={() => setAssignTarget(null)}
         />
       )}
+      {targetStudent && (
+        <TargetModal
+          teacherId={user?.id || null}
+          student={targetStudent}
+          onClose={() => setTargetStudent(null)}
+        />
+      )}
     </RoleShell>
   );
 };
+
+function TargetModal({ teacherId, student, onClose }: { teacherId: string | null; student: StudentMetrics; onClose: () => void }) {
+  const [period, setPeriod] = useState("This week");
+  const [content, setContent] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const isDemo = student.profile.id.startsWith("demo-");
+
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-student-target", {
+        body: {
+          studentName: fullName(student.profile),
+          period,
+          subjects: student.subjects,
+          metrics: {
+            weekMinutes: student.weekMinutes,
+            roadmapPct: student.roadmapPct,
+            avgScore: student.avgScore,
+            mockAvgPct: student.mockAvgPct,
+            questionsAttempted: student.questionsAttempted,
+            questionsCorrect: student.questionsCorrect,
+            weakTopics: student.weakTopics,
+            currentStreak: student.profile.current_streak ?? 0,
+          },
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setContent(data?.target || "");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not generate target.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const save = async () => {
+    if (!content.trim()) { toast.error("Generate or write a target first."); return; }
+    if (isDemo) { toast.success("Target sent to parent (preview)."); onClose(); return; }
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("student_targets").insert({
+        teacher_id: teacherId,
+        student_id: student.profile.id,
+        period,
+        content: content.trim(),
+        status: "sent",
+      } as any);
+      if (error) throw error;
+      toast.success("Target saved & shared with the parent.");
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save target.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "#f0e0e2" }}>
+          <h3 className="font-bold" style={{ color: RED_DARK }}>HPL target · {fullName(student.profile)}</h3>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-full hover:bg-gray-100"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Label className="shrink-0">Period</Label>
+            <select value={period} onChange={(e) => setPeriod(e.target.value)} className="h-10 rounded-md border px-3 text-sm" style={{ borderColor: "#e5e7eb" }}>
+              <option>This week</option>
+              <option>Next 2 weeks</option>
+            </select>
+            <Button onClick={generate} disabled={generating} className="ml-auto h-10 font-semibold text-white" style={{ background: RED }}>
+              {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : "✨ Generate"}
+            </Button>
+          </div>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Generate an AI target from this student's analytics, then edit it here before sending to the parent."
+            className="w-full min-h-[200px] rounded-md border px-3 py-2 text-sm leading-relaxed" style={{ borderColor: "#e5e7eb" }}
+          />
+          <p className="text-xs" style={{ color: "#999" }}>Grounded in this student's SIA analytics and framed in HPL (Meta-thinking, Linking, Analysing, Creating, Realising; Empathetic, Agile, Hard-working). Edit freely before sending.</p>
+          <Button onClick={save} disabled={saving || !content.trim()} className="h-11 w-full font-semibold text-white" style={{ background: RED }}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save & share with parent"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AssignTaskModal({
   teacherId, students, subjects, onClose,

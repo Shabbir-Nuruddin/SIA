@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SEO } from "@/components/SEO";
 import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
 import { Loader2, Plus, Flame, Clock, Target, BookOpen, UserPlus, FileText, ListChecks, Map, Eye, CalendarCheck } from "lucide-react";
 import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
@@ -110,6 +111,17 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 function ChildCard({ m }: { m: StudentMetrics }) {
   const p = m.profile;
+  const [targets, setTargets] = useState<{ id: string; period: string | null; content: string; created_at: string }[]>([]);
+  useEffect(() => {
+    let alive = true;
+    supabase.from("student_targets")
+      .select("id,period,content,created_at")
+      .eq("student_id", p.id)
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }) => { if (alive && data) setTargets(data as any); });
+    return () => { alive = false; };
+  }, [p.id]);
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: "#f0e0e2" }}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -162,6 +174,24 @@ function ChildCard({ m }: { m: StudentMetrics }) {
                 {subjectLabel(s.subject)}
                 <span className="text-[10px] font-mono" style={{ color: "#999" }}>{s.current_grade} → {s.target_grade}</span>
               </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {targets.length > 0 && (
+        <div className="mt-5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#999" }}>
+            <Target className="h-3.5 w-3.5" /> Targets from teacher
+          </div>
+          <div className="space-y-2">
+            {targets.map((t) => (
+              <div key={t.id} className="rounded-xl border p-3" style={{ borderColor: "#f0e0e2", background: "#fdf8f8" }}>
+                <div className="text-[10px] font-semibold uppercase tracking-wide mb-1" style={{ color: RED }}>
+                  {t.period || "Target"} · {format(parseISO(t.created_at), "d MMM")}
+                </div>
+                <div className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: "#444" }}>{t.content}</div>
+              </div>
             ))}
           </div>
         </div>
