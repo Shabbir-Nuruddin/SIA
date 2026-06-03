@@ -17,8 +17,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Trash2, Pencil } from "lucide-react";
-import { applyTheme } from "@/lib/theme";
+import { ChevronDown, Loader2, Save, User, Calendar, Timer, Lock, Trash2, Pencil, Sun, Moon, Monitor, Palette } from "lucide-react";
+import { applyTheme, applyMode, getStoredMode, type ThemeMode } from "@/lib/theme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cancelProSubscription } from "@/lib/dodo";
 
@@ -56,6 +56,7 @@ const SettingsPage = () => {
   const [units, setUnits] = useState<UnitRow[]>([]);
   const [savingProfile, setSavingProfile] = useState(false);
 
+  const [mode, setMode] = useState<ThemeMode>(() => getStoredMode());
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
@@ -322,6 +323,35 @@ const SettingsPage = () => {
           </div>
           <div className="mt-4">
             <Link to="/onboarding" className="text-sm text-primary hover:underline">Change my subjects →</Link>
+          </div>
+        </SettingsSection>
+
+        {/* Appearance — Light / Dark / Auto (SIA brand stays the same) */}
+        <SettingsSection icon={Palette} title="Appearance">
+          <Label>Theme</Label>
+          <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+            Choose light, dark, or match your device automatically. (SIA red branding stays the same.)
+          </p>
+          <div className="grid grid-cols-3 gap-2 max-w-md">
+            {([
+              { id: "light" as ThemeMode, label: "Light", Icon: Sun },
+              { id: "dark" as ThemeMode, label: "Dark", Icon: Moon },
+              { id: "auto" as ThemeMode, label: "Auto", Icon: Monitor },
+            ]).map(({ id, label, Icon }) => {
+              const active = mode === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => { setMode(id); applyMode(id); }}
+                  className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-semibold transition-all ${
+                    active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </SettingsSection>
 

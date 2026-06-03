@@ -140,6 +140,47 @@
   }
   html.theme-sia { color-scheme: light; }
 
+  /* SIA dark mode — same collegiate red, on a dark charcoal surface. Applied when
+     the mode is Dark (or Auto + OS is dark); more specific than html.theme-sia so
+     it overrides the light tokens above. */
+  html.theme-sia.dark {
+    --background: 222 24% 9%;
+    --background-elevated: 222 20% 12%;
+    --foreground: 0 0% 96%;
+    --card: 222 20% 12%;
+    --card-hover: 222 18% 16%;
+    --card-foreground: 0 0% 96%;
+    --popover: 222 20% 12%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 350 85% 56%;            /* slightly brighter red for contrast on dark */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 350 80% 62%;
+    --secondary: 222 16% 18%;
+    --secondary-foreground: 0 0% 94%;
+    --muted: 222 14% 18%;
+    --muted-foreground: 220 12% 65%;
+    --accent: 350 72% 52%;
+    --accent-foreground: 0 0% 100%;
+    --success: 142 55% 46%;
+    --warning: 32 90% 55%;
+    --urgent: 0 78% 60%;
+    --urgent-foreground: 0 0% 100%;
+    --destructive: 0 78% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 14% 22%;
+    --input: 222 14% 22%;
+    --ring: 350 85% 56%;
+    --sidebar-background: 222 24% 11%;
+    --sidebar-foreground: 0 0% 80%;
+    --sidebar-primary: 350 85% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 16% 18%;
+    --sidebar-accent-foreground: 0 0% 94%;
+    --sidebar-border: 222 14% 22%;
+    --sidebar-ring: 350 85% 56%;
+    color-scheme: dark;
+  }
+
   html.theme-ocean {
     --background: 196 45% 8%;
     --background-elevated: 196 38% 12%;
