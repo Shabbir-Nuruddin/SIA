@@ -282,7 +282,7 @@ const QuestionsPage = () => {
 
   return (
     <AppLayout>
-      <SEO title="Practice questions — MakeMeRevise" description="AI-marked A-Level topical questions across Edexcel IAL and Cambridge — examiner-grade feedback in seconds." path="/questions" />
+      <SEO title="Practice questions — SIA Smart Revision" description="AI-marked A-Level topical questions across Edexcel IAL and Cambridge — examiner-grade feedback in seconds." path="/questions" />
       <div className="p-6 md:p-10 max-w-5xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-sm text-primary font-mono uppercase tracking-widest mb-2 flex items-center gap-2">

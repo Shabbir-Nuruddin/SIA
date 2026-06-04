@@ -120,7 +120,7 @@ const Admin = () => {
         <header className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <div className="flex items-center gap-2 text-primary text-xs font-mono uppercase tracking-widest"><Shield className="h-3.5 w-3.5" /> Admin Panel</div>
-            <h1 className="text-3xl font-extrabold mt-1">Make Me Revise — Control Room</h1>
+            <h1 className="text-3xl font-extrabold mt-1">SIA Smart Revision — Control Room</h1>
             <p className="text-muted-foreground text-sm mt-1">Visible to: {ADMIN_EMAILS.join(", ")}.</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">

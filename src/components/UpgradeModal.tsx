@@ -115,7 +115,7 @@ export const UpgradeModal = ({ open, onClose, limitKey, plan, used, limit, title
 
           <div className="relative flex items-center gap-2 mb-4">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-primary backdrop-blur">
-              <Crown className="h-3 w-3" /> Make Me Revise Pro
+              <Crown className="h-3 w-3" /> SIA Smart Revision Pro
             </div>
             <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-400">
               <Flame className="h-3 w-3" /> Limited launch

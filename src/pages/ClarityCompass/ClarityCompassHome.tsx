@@ -111,7 +111,7 @@ export function ClarityCompassHome(): React.ReactElement {
 
           {/* Footer Text */}
           <p className="text-xs text-muted-foreground mt-8">
-            Free for all MakeMeRevise users. Retake anytime.
+            Free for all SIA Smart Revision users. Retake anytime.
           </p>
         </div>
       </div>

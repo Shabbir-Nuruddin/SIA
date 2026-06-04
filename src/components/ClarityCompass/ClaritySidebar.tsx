@@ -96,7 +96,7 @@ const SidebarBody = ({ onNavigate }: SidebarBodyProps): React.ReactElement => {
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-sidebar-accent px-3 py-2 rounded-md text-xs transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to MakeMeRevise</span>
+          <span>Back to SIA Smart Revision</span>
         </NavLink>
       </div>
     </div>

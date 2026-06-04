@@ -36,7 +36,7 @@ const TIERS: Tier[] = [
   {
     id: "free",
     name: "Starter",
-    tagline: "Get a real taste of Make Me Revise.",
+    tagline: "Get a real taste of SIA Smart Revision.",
     monthlyAED: 0,
     Icon: Sparkles,
     features: [
@@ -258,15 +258,15 @@ const Pricing = () => {
   return (
     <AppLayout>
       <SEO
-        title="Pricing — MakeMeRevise A-Level Pro Plan"
+        title="Pricing — SIA Smart Revision A-Level Pro Plan"
         description="Pro is AED 39.99/month with a 3-day free trial. Unlimited AI-marked questions, mock papers, notes, and a personalised revision roadmap."
         path="/pricing"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Product",
-          name: "MakeMeRevise Pro",
+          name: "SIA Smart Revision Pro",
           description: "Unlimited AI-marked A-Level practice questions, mock papers, topic notes, and a personalised revision roadmap for Edexcel IAL and Cambridge students.",
-          brand: { "@type": "Brand", name: "MakeMeRevise" },
+          brand: { "@type": "Brand", name: "SIA Smart Revision" },
           offers: {
             "@type": "Offer",
             price: "39.99",
@@ -287,7 +287,7 @@ const Pricing = () => {
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Pick the plan that matches your run-up.</h1>
             <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-              SaveMyExams gives you notes and questions. Make Me Revise gives you a complete daily plan, AI marking, and a roadmap that thinks for you.
+              SaveMyExams gives you notes and questions. SIA Smart Revision gives you a complete daily plan, AI marking, and a roadmap that thinks for you.
             </p>
             <div className="mt-5 md:hidden flex justify-center">
               <CurrencyToggle currency={currency} onChange={setCurrency} />

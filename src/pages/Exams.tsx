@@ -161,7 +161,7 @@ const Exams = () => {
   if (loading) {
     return (
       <AppLayout>
-      <SEO title="Exam dates — MakeMeRevise" description="Add and track your A-Level exam dates to keep your revision roadmap and urgency score accurate." path="/exams" />
+      <SEO title="Exam dates — SIA Smart Revision" description="Add and track your A-Level exam dates to keep your revision roadmap and urgency score accurate." path="/exams" />
         <div className="min-h-[60vh] flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>

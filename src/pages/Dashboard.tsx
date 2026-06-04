@@ -203,7 +203,7 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <SEO title="Dashboard — MakeMeRevise" description="Your daily A-Level study plan, urgency score, and focused practice sessions tailored to your exams." path="/dashboard" />
+      <SEO title="Dashboard — SIA Smart Revision" description="Your daily A-Level study plan, urgency score, and focused practice sessions tailored to your exams." path="/dashboard" />
       <div className="dashboard-shell p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="glass-card border border-border/80 bg-background-elevated p-6 md:p-8 mb-6 shadow-xl overflow-hidden">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto]">

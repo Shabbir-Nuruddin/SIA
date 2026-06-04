@@ -261,7 +261,7 @@ export default function Progress() {
   if (loading) {
     return (
       <AppLayout>
-      <SEO title="Progress — MakeMeRevise" description="Track your A-Level mastery by topic, see strengths and weak spots, and watch your grade trajectory." path="/progress" />
+      <SEO title="Progress — SIA Smart Revision" description="Track your A-Level mastery by topic, see strengths and weak spots, and watch your grade trajectory." path="/progress" />
         <div className="h-full flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>

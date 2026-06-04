@@ -148,7 +148,7 @@ const Feedback = () => {
 
   if (loading) return (
     <AppLayout>
-      <SEO title="Send feedback — MakeMeRevise" description="Tell us what works, what doesn't, and what to build next on MakeMeRevise." path="/feedback" />
+      <SEO title="Send feedback — SIA Smart Revision" description="Tell us what works, what doesn't, and what to build next on SIA Smart Revision." path="/feedback" />
       <div className="flex items-center justify-center h-[60vh]"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
     </AppLayout>
   );

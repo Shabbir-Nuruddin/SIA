@@ -110,7 +110,7 @@ const FAQPage = () => {
   return (
     <AppLayout>
       <SEO
-        title="A-Level Exam FAQs — MakeMeRevise"
+        title="A-Level Exam FAQs — SIA Smart Revision"
         description="Mark-scheme-accurate answers to the A-Level questions students get wrong most — Edexcel IAL and Cambridge across all subjects."
         path="/faq"
         jsonLd={faqJsonLd}

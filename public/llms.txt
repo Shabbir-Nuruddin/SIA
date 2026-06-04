@@ -1,8 +1,8 @@
-# MakeMeRevise
+# SIA Smart Revision
 
 > AI-powered A-Level revision platform for Edexcel IAL and Cambridge A-Level / IGCSE students. Personalised study roadmaps, AI-marked questions, mock papers, and notes.
 
-MakeMeRevise helps students prepare for their exams with a personalised roadmap, AI-generated and AI-marked practice questions, full mock papers with examiner-style mark schemes, AI-generated revision notes, and exam FAQs that match real mark-scheme phrasing.
+SIA Smart Revision helps students prepare for their exams with a personalised roadmap, AI-generated and AI-marked practice questions, full mock papers with examiner-style mark schemes, AI-generated revision notes, and exam FAQs that match real mark-scheme phrasing.
 
 ## Pages
 

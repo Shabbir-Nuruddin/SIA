@@ -211,7 +211,7 @@ const SettingsPage = () => {
 
   return (
     <AppLayout>
-      <SEO title="Settings — MakeMeRevise" description="Manage your MakeMeRevise account, subscription, exam board, and notification preferences." path="/settings" />
+      <SEO title="Settings — SIA Smart Revision" description="Manage your SIA Smart Revision account, subscription, exam board, and notification preferences." path="/settings" />
       <div className="p-6 md:p-10 max-w-3xl mx-auto animate-fade-in">
         <div className="mb-8">
           <div className="text-xs text-primary font-mono uppercase tracking-widest mb-2">Settings</div>

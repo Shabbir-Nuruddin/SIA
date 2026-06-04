@@ -173,7 +173,7 @@ function playChime() {
 function notify(text: string) {
   try {
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Make Me Revise", { body: text });
+      new Notification("SIA Smart Revision", { body: text });
     }
   } catch {}
 }
