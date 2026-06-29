@@ -5,6 +5,7 @@ import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { getSubjectsForBoard, SubjectCode } from "@/lib/subjects";
+import { igcseEdexcelMathsBlock } from "@/lib/notesAutogen";
 import { formattedHtmlProps, toPlainText, toFormattedHtml, renderMathInString } from "@/lib/formatText";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -351,6 +352,12 @@ const NotesPage = () => {
           const t = findChemistryTopic(topic);
           if (t) syllabus_context = t.statements.map(s => `${s.ref} ${s.text}`).join("\n");
         }
+        // IGCSE Edexcel maths is keyed by named syllabus block (number/algebra/
+        // geometry/statistics), not the unit code T1..T6 — send the block name so
+        // the edge function resolves the syllabus instead of erroring.
+        const unitCodeToSend = (board === "edexcel-igcse" && subject === "mathematics")
+          ? igcseEdexcelMathsBlock(unit)
+          : (unitMeta?.unitCode || "");
         // When the user clicks Regenerate (forceRefresh), tell the edge function
         // to bypass + overwrite its shared cache so we get a brand-new generation.
         const { data, error } = await supabase.functions.invoke("ai-notes", {
@@ -358,7 +365,7 @@ const NotesPage = () => {
             subject,
             unit_number: unit,
             unit_name: unitMeta?.name || `Unit ${unit}`,
-            unit_code: unitMeta?.unitCode || "",
+            unit_code: unitCodeToSend,
             topic,
             syllabus_context,
             board,

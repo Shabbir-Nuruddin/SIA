@@ -111,11 +111,17 @@ export function buildNotesRequest(job: NotesJob) {
     const t = findChemistryTopic(job.topic);
     if (t) syllabus_context = t.statements.map((s: any) => `${s.ref} ${s.text}`).join("\n");
   }
+  // IGCSE Edexcel maths needs the named syllabus block sent as unit_code (see
+  // igcseEdexcelMathsBlock). Every other board/subject uses its real unit code.
+  const unit_code = (job.board === "edexcel-igcse" && job.subject === "mathematics")
+    ? igcseEdexcelMathsBlock(job.unit_number)
+    : job.unit_code;
+
   return {
     subject: job.subject,
     unit_number: job.unit_number,
     unit_name: job.unit_name,
-    unit_code: job.unit_code,
+    unit_code,
     topic: job.topic,
     syllabus_context,
     board: job.board,
@@ -156,3 +162,21 @@ export async function generateOne(
 }
 
 export const boardLabel = (b: string) => BOARD_LABEL[b as keyof typeof BOARD_LABEL] ?? b;
+
+/**
+ * IGCSE Edexcel maths is stored in the edge syllabus as four named blocks
+ * (number / algebra / geometry / statistics) rather than per-unit topic keys.
+ * The app's 6 top-level maths topics map onto those blocks like this (Mensuration
+ * and Trigonometry both live inside the geometry "Shape, Space & Measures" block).
+ * Sending the block name as `unit_code` makes the deployed `ai-notes` function
+ * resolve the right syllabus — without it, every maths topic 500s with
+ * "No syllabus data found for maths > tN". The per-topic prompt still scopes
+ * generation to the exact subtopic, so notes stay specific.
+ */
+export function igcseEdexcelMathsBlock(unit_number: number): string {
+  const map: Record<string, string> = {
+    "1": "number", "2": "algebra", "3": "geometry",
+    "4": "geometry", "5": "geometry", "6": "statistics",
+  };
+  return map[String(unit_number)] || "number";
+}
