@@ -14,10 +14,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSubjectsForBoard, SubjectCode, BOARD_LABEL } from "@/lib/subjects";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 
-// Boards the auto-generator sweeps. User asked for "Edexcel board for IGCSE and
-// A levels": edexcel-igcse (IGCSE) + edexcel-ial (International A Level).
+// Every board/subject the auto-generator CAN sweep. The admin picks a subset of
+// these in the panel; the chosen set is saved to notes_autogen_control so both the
+// panel and the headless script sweep exactly what was selected.
+export const AUTOGEN_ALL_BOARDS = ["edexcel-igcse", "edexcel-ial", "cie-igcse", "cie"] as const;
+export const AUTOGEN_SUBJECTS = ["mathematics", "biology", "chemistry", "physics"] as const;
+
+// Default selection when nothing is saved yet — keeps the original behaviour
+// (Edexcel IGCSE + IAL, all subjects).
 export const AUTOGEN_BOARDS = ["edexcel-igcse", "edexcel-ial"] as const;
-export type AutogenBoard = (typeof AUTOGEN_BOARDS)[number];
+export type AutogenBoard = (typeof AUTOGEN_ALL_BOARDS)[number];
+
+export const SUBJECT_LABEL: Record<string, string> = {
+  mathematics: "Mathematics", biology: "Biology", chemistry: "Chemistry", physics: "Physics",
+};
+export const subjectLabel = (s: string) => SUBJECT_LABEL[s] ?? s;
 
 export interface NotesJob {
   board: AutogenBoard;
@@ -32,12 +43,20 @@ export interface NotesJob {
 export const jobKey = (j: { board: string; subject: string; unit_number: number; topic: string }) =>
   `${j.board}::${j.subject}::${j.unit_number}::${j.topic}`;
 
-/** Enumerate every (board, subject, unit, topic) on the Edexcel IGCSE + IAL specs. */
-export function buildAllJobs(boards: readonly string[] = AUTOGEN_BOARDS): NotesJob[] {
+/**
+ * Enumerate every (board, subject, unit, topic) for the selected boards/subjects.
+ * `subjects` (optional) restricts to those subject codes; omit it to sweep all.
+ */
+export function buildAllJobs(
+  boards: readonly string[] = AUTOGEN_BOARDS,
+  subjects?: readonly string[],
+): NotesJob[] {
+  const subjectFilter = subjects && subjects.length ? new Set(subjects) : null;
   const jobs: NotesJob[] = [];
   for (const board of boards) {
-    const subjects = getSubjectsForBoard(board);
-    for (const [code, meta] of Object.entries(subjects)) {
+    const boardSubjects = getSubjectsForBoard(board);
+    for (const [code, meta] of Object.entries(boardSubjects)) {
+      if (subjectFilter && !subjectFilter.has(code)) continue;
       for (const unit of meta.units ?? []) {
         for (const topic of unit.topics ?? []) {
           jobs.push({
@@ -77,31 +96,51 @@ export async function fetchDoneKeys(boards: readonly string[] = AUTOGEN_BOARDS):
 export interface AutogenControl {
   enabled: boolean;
   boards: string[];
+  subjects: string[];
   last_topic: string | null;
   updated_at: string | null;
 }
 
 export async function getControl(): Promise<AutogenControl> {
   // notes_autogen_control is a new table not yet in the generated types — cast.
-  const { data } = await (supabase as any)
+  // The `subjects` column is added by a later migration; if the backend hasn't
+  // applied it yet (frontend deploys before DB migrations), fall back gracefully.
+  const sb = supabase as any;
+  let res = await sb
     .from("notes_autogen_control")
-    .select("enabled,boards,last_topic,updated_at")
+    .select("enabled,boards,subjects,last_topic,updated_at")
     .eq("id", 1)
     .maybeSingle();
+  if (res.error) {
+    res = await sb
+      .from("notes_autogen_control")
+      .select("enabled,boards,last_topic,updated_at")
+      .eq("id", 1)
+      .maybeSingle();
+  }
+  const data = res.data;
   return {
     enabled: !!data?.enabled,
     boards: (data?.boards as string[]) ?? [...AUTOGEN_BOARDS],
+    subjects: (data?.subjects as string[]) ?? [...AUTOGEN_SUBJECTS],
     last_topic: (data?.last_topic as string) ?? null,
     updated_at: (data?.updated_at as string) ?? null,
   };
 }
 
-export async function setControl(patch: { enabled?: boolean; last_topic?: string | null }): Promise<void> {
+export async function setControl(
+  patch: { enabled?: boolean; last_topic?: string | null; boards?: string[]; subjects?: string[] },
+): Promise<void> {
   const userId = (await supabase.auth.getUser()).data.user?.id ?? null;
-  await (supabase as any)
-    .from("notes_autogen_control")
-    .update({ ...patch, updated_by: userId, updated_at: new Date().toISOString() })
-    .eq("id", 1);
+  const sb = supabase as any;
+  const row = { ...patch, updated_by: userId, updated_at: new Date().toISOString() };
+  const { error } = await sb.from("notes_autogen_control").update(row).eq("id", 1);
+  // If the `subjects` column isn't there yet, retry without it so the switch and
+  // board selection still save on a not-yet-migrated backend.
+  if (error && "subjects" in row) {
+    const { subjects, ...rest } = row;
+    await sb.from("notes_autogen_control").update(rest).eq("id", 1);
+  }
 }
 
 /** Build the body `ai-notes` expects for one topic (mirrors Notes.tsx). */

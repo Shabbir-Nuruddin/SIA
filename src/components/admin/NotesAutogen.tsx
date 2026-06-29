@@ -18,8 +18,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Loader2, Sparkles, RefreshCw, KeyRound, Pause, CheckCircle2, AlertTriangle, Power } from "lucide-react";
 import {
-  AUTOGEN_BOARDS, buildAllJobs, fetchDoneKeys, getControl, setControl,
-  generateOne, jobKey, boardLabel, NotesJob,
+  AUTOGEN_ALL_BOARDS, AUTOGEN_BOARDS, AUTOGEN_SUBJECTS, buildAllJobs, fetchDoneKeys,
+  getControl, setControl, generateOne, jobKey, boardLabel, subjectLabel, NotesJob,
 } from "@/lib/notesAutogen";
 
 interface KeyStatus {
@@ -40,7 +40,15 @@ const QUOTA_COOLDOWN_MS = 90_000;
 const BETWEEN_TOPICS_MS = 1_200;
 
 export default function NotesAutogen() {
-  const jobs = useMemo(() => buildAllJobs(AUTOGEN_BOARDS), []);
+  // Which boards/subjects to sweep — chosen by the admin, persisted to the
+  // control row so the headless script matches. Defaults until the row loads.
+  const [selectedBoards, setSelectedBoards] = useState<string[]>([...AUTOGEN_BOARDS]);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([...AUTOGEN_SUBJECTS]);
+
+  const jobs = useMemo(
+    () => buildAllJobs(selectedBoards, selectedSubjects),
+    [selectedBoards, selectedSubjects],
+  );
   const total = jobs.length;
 
   const doneRef = useRef<Set<string>>(new Set());
@@ -59,7 +67,13 @@ export default function NotesAutogen() {
   const [keyStatus, setKeyStatus] = useState<KeyStatus | null>(null);
   const [keyError, setKeyError] = useState<string | null>(null);
 
-  const doneCount = doneRef.current.size;
+  // Count only the selected jobs that are cached (doneRef may hold other subjects
+  // for the same board). Recomputes on every progress bump via `version`.
+  const doneCount = useMemo(
+    () => jobs.reduce((n, j) => n + (doneRef.current.has(jobKey(j)) ? 1 : 0), 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [jobs, version],
+  );
   const remaining = Math.max(0, total - doneCount);
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
@@ -84,8 +98,8 @@ export default function NotesAutogen() {
     }
   }, []);
 
-  const refreshDone = useCallback(async () => {
-    doneRef.current = await fetchDoneKeys(AUTOGEN_BOARDS);
+  const refreshDone = useCallback(async (boards: string[]) => {
+    doneRef.current = await fetchDoneKeys(boards.length ? boards : AUTOGEN_ALL_BOARDS);
     bump();
   }, []);
 
@@ -94,9 +108,15 @@ export default function NotesAutogen() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [control] = await Promise.all([getControl(), refreshDone(), loadKeyStatus()]);
+      const control = await getControl();
       if (cancelled) return;
+      const boards = control.boards.length ? control.boards : [...AUTOGEN_BOARDS];
+      const subjects = control.subjects.length ? control.subjects : [...AUTOGEN_SUBJECTS];
+      setSelectedBoards(boards);
+      setSelectedSubjects(subjects);
       setEnabled(control.enabled);
+      await Promise.all([refreshDone(boards), loadKeyStatus()]);
+      if (cancelled) return;
       setLoading(false);
       if (control.enabled) startLoop();
     })();
@@ -106,6 +126,27 @@ export default function NotesAutogen() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Toggle a board/subject in the selection (only allowed while the switch is OFF).
+  // Persist the new selection and refresh "what's done" for the chosen boards.
+  const toggleBoard = (board: string) => {
+    const next = selectedBoards.includes(board)
+      ? selectedBoards.filter((b) => b !== board)
+      : [...selectedBoards, board];
+    if (next.length === 0) return; // never let the selection go empty
+    setSelectedBoards(next);
+    setControl({ boards: next }).catch(() => toast.error("Couldn't save board selection."));
+    refreshDone(next);
+  };
+
+  const toggleSubject = (subject: string) => {
+    const next = selectedSubjects.includes(subject)
+      ? selectedSubjects.filter((s) => s !== subject)
+      : [...selectedSubjects, subject];
+    if (next.length === 0) return;
+    setSelectedSubjects(next);
+    setControl({ subjects: next }).catch(() => toast.error("Couldn't save subject selection."));
+  };
 
   const sleep = (ms: number) =>
     new Promise<void>((resolve) => {
@@ -141,7 +182,7 @@ export default function NotesAutogen() {
           setCurrent(null);
           activeRef.current = false;
           setRunning(false);
-          toast.success("All Edexcel IGCSE + IAL topics are generated. 🎉");
+          toast.success("All selected topics are generated. 🎉");
           break;
         }
         setCurrent(job);
@@ -219,10 +260,55 @@ export default function NotesAutogen() {
         </div>
       </div>
       <p className="text-xs text-muted-foreground mb-4">
-        Flip this ON to pre-generate revision notes for <strong>every topic on Edexcel IGCSE + Edexcel International A-Level</strong>, one at a time,
-        into the shared cache so students open them instantly. It uses your Gemini keys with automatic rotation and resumes where it left off.
-        Keep this tab open while it runs (or use the headless script for unattended multi-day runs).
+        Pick the <strong>boards and subjects</strong> below, then flip this ON to pre-generate revision notes for every topic in that selection,
+        one at a time, into the shared cache so students open them instantly. It uses your Gemini keys with automatic rotation and resumes where it
+        left off. Keep this tab open while it runs (or use the headless script for unattended multi-day runs).
       </p>
+
+      {/* Board + subject selection. Locked while the switch is ON — turn it off to change. */}
+      <div className="rounded-xl border border-border/70 bg-card p-3 mb-4 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Boards</span>
+          {enabled && <span className="text-[10px] text-muted-foreground">Turn OFF to change</span>}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {AUTOGEN_ALL_BOARDS.map((b) => {
+            const on = selectedBoards.includes(b);
+            return (
+              <button
+                key={b}
+                type="button"
+                disabled={enabled}
+                onClick={() => toggleBoard(b)}
+                className={`px-2.5 py-1 rounded-full text-xs border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  on ? "bg-primary/15 border-primary text-primary font-medium" : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                {boardLabel(b)}
+              </button>
+            );
+          })}
+        </div>
+        <div className="text-[10px] uppercase tracking-wider font-mono text-muted-foreground">Subjects</div>
+        <div className="flex flex-wrap gap-1.5">
+          {AUTOGEN_SUBJECTS.map((s) => {
+            const on = selectedSubjects.includes(s);
+            return (
+              <button
+                key={s}
+                type="button"
+                disabled={enabled}
+                onClick={() => toggleSubject(s)}
+                className={`px-2.5 py-1 rounded-full text-xs border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  on ? "bg-primary/15 border-primary text-primary font-medium" : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                {subjectLabel(s)}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {loading ? (
         <div className="py-6 flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="h-4 w-4 animate-spin" /> Loading progress…</div>

@@ -28,11 +28,17 @@ CREATE TABLE IF NOT EXISTS public.notes_autogen_control (
   id smallint PRIMARY KEY DEFAULT 1,
   enabled boolean NOT NULL DEFAULT false,
   boards text[] NOT NULL DEFAULT ARRAY['edexcel-igcse', 'edexcel-ial'],
+  subjects text[] NOT NULL DEFAULT ARRAY['mathematics', 'biology', 'chemistry', 'physics'],
   last_topic text,
   updated_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   updated_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT notes_autogen_control_singleton CHECK (id = 1)
 );
+
+-- Add the subjects column if the table already existed before this feature.
+ALTER TABLE public.notes_autogen_control
+  ADD COLUMN IF NOT EXISTS subjects text[] NOT NULL
+  DEFAULT ARRAY['mathematics', 'biology', 'chemistry', 'physics'];
 
 INSERT INTO public.notes_autogen_control (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 

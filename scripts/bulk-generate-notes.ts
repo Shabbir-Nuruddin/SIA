@@ -51,7 +51,8 @@ const SUPABASE_KEY = env("VITE_SUPABASE_PUBLISHABLE_KEY") || env("SUPABASE_ANON_
 const ADMIN_EMAIL = env("SIA_ADMIN_EMAIL");
 const ADMIN_PASSWORD = env("SIA_ADMIN_PASSWORD");
 
-const BOARDS = ["edexcel-igcse", "edexcel-ial"] as const;
+const DEFAULT_BOARDS = ["edexcel-igcse", "edexcel-ial"];
+const DEFAULT_SUBJECTS = ["mathematics", "biology", "chemistry", "physics"];
 const QUOTA_COOLDOWN_MS = 90_000;
 const BETWEEN_TOPICS_MS = 1_200;
 
@@ -63,11 +64,13 @@ interface Job {
   unit_number: number; unit_name: string; unit_code: string; topic: string;
 }
 
-function buildAllJobs(): Job[] {
+function buildAllJobs(boards: string[], subjects: string[]): Job[] {
+  const subjectFilter = subjects.length ? new Set(subjects) : null;
   const jobs: Job[] = [];
-  for (const board of BOARDS) {
-    const subjects = getSubjectsForBoard(board) as Record<string, any>;
-    for (const [code, meta] of Object.entries(subjects)) {
+  for (const board of boards) {
+    const boardSubjects = getSubjectsForBoard(board) as Record<string, any>;
+    for (const [code, meta] of Object.entries(boardSubjects)) {
+      if (subjectFilter && !subjectFilter.has(code)) continue;
       for (const unit of meta.units ?? []) {
         for (const topic of unit.topics ?? []) {
           jobs.push({
@@ -103,8 +106,24 @@ async function main() {
   }
   console.log(`Signed in as ${ADMIN_EMAIL}.`);
 
-  const jobs = buildAllJobs();
-  console.log(`Enumerated ${jobs.length} topics across Edexcel IGCSE + IAL.`);
+  // Read the board/subject selection chosen in the admin panel (falls back to the
+  // defaults, and to no-subjects-column on a not-yet-migrated backend).
+  let boards = DEFAULT_BOARDS;
+  let subjects = DEFAULT_SUBJECTS;
+  {
+    let sel = await supabase
+      .from("notes_autogen_control").select("boards,subjects").eq("id", 1).maybeSingle();
+    if (sel.error) {
+      sel = await supabase
+        .from("notes_autogen_control").select("boards").eq("id", 1).maybeSingle();
+    }
+    const row = sel.data as any;
+    if (row?.boards?.length) boards = row.boards;
+    if (row?.subjects?.length) subjects = row.subjects;
+  }
+
+  const jobs = buildAllJobs(boards, subjects);
+  console.log(`Enumerated ${jobs.length} topics across ${boards.join(", ")} (${subjects.join(", ")}).`);
 
   // Which topics are already cached?
   const done = new Set<string>();
@@ -112,7 +131,7 @@ async function main() {
     const { data, error } = await supabase
       .from("cached_topic_notes")
       .select("board,subject,unit_number,topic")
-      .in("board", BOARDS as unknown as string[])
+      .in("board", boards)
       .range(from, from + 999);
     if (error || !data || data.length === 0) break;
     for (const r of data as any[]) done.add(key(r));
