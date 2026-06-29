@@ -279,10 +279,13 @@ const Onboarding = () => {
             <p className="text-muted-foreground mb-10">We tailor every question, mark scheme and tip to your board.</p>
             <div className="grid sm:grid-cols-2 gap-4 mb-10">
               {([
-                { id: "edexcel-ial" as const, name: "Edexcel IAL", sub: "International A-Level · Pearson", spec: "Units 1–6 (e.g. WCH11, WBI11)" },
-                { id: "cie" as const, name: "Cambridge (CIE) A Level", sub: "A Level · Cambridge International", spec: "9701, 9700, 9702, 9709" },
+                // Only the two Edexcel boards are offered for now. The Cambridge
+                // (CIE) boards are kept dormant — code stays in the app, just not
+                // selectable here — so they can be re-enabled later without rework.
                 { id: "edexcel-igcse" as const, name: "Edexcel IGCSE", sub: "International GCSE · Pearson", spec: "4CH1, 4BI1, 4PH1, 4MA1" },
-                { id: "cie-igcse" as const, name: "Cambridge IGCSE", sub: "IGCSE · Cambridge International", spec: "0620, 0610, 0625, 0580" },
+                { id: "edexcel-ial" as const, name: "Edexcel IAL", sub: "International A-Level · Pearson", spec: "Units 1–6 (e.g. WCH11, WBI11)" },
+                // { id: "cie" as const, name: "Cambridge (CIE) A Level", sub: "A Level · Cambridge International", spec: "9701, 9700, 9702, 9709" },
+                // { id: "cie-igcse" as const, name: "Cambridge IGCSE", sub: "IGCSE · Cambridge International", spec: "0620, 0610, 0625, 0580" },
               ]).map(b => {
                 const sel = board === b.id;
                 return (
