@@ -426,7 +426,20 @@ serve(async (req) => {
       // Wrap validator to use normalised subject
       validator = (notes: string, _s: string, key: string) => validateEdexcelIAL(notes, ns, key);
     } else if (board === "edexcel-igcse") {
-      promptKey = isMaths ? deriveMathsKey() : `topic${unit_number}`;
+      // IGCSE Edexcel maths is stored as 4 broad named blocks (number, algebra,
+      // geometry, statistics) rather than topic1..N. The app sends 6 numbered
+      // top-level topics (Number, Algebra, Geometry, Mensuration, Trigonometry,
+      // Statistics) — Mensuration + Trigonometry both live inside the geometry
+      // (Shape, Space & Measures) block. Map the unit number onto the right block;
+      // the per-topic user prompt still narrows generation to the exact subtopic.
+      const igcseMathsKey = (): string => {
+        const map: Record<string, string> = {
+          "1": "number", "2": "algebra", "3": "geometry",
+          "4": "geometry", "5": "geometry", "6": "statistics",
+        };
+        return map[String(unit_number)] || "number";
+      };
+      promptKey = isMaths ? igcseMathsKey() : `topic${unit_number}`;
       systemPrompt = buildEdexcelIGCSE(ns, promptKey);
       validator = (notes: string, _s: string, key: string) => validateEdexcelIGCSE(notes, ns, key);
     } else if (board === "cie-igcse") {
