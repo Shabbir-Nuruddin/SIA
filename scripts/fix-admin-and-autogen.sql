@@ -1,8 +1,8 @@
 -- ============================================================================
 -- SIA — one-paste fix for the admin panel + Notes Auto-Generator.
 --
--- Run this ONCE in your live backend's SQL editor
--- (Lovable Cloud → Database/SQL, or the Supabase project's SQL Editor).
+-- Run this ONCE in the Supabase SQL Editor for the live project
+-- (Supabase dashboard → project mjyqaioaasuyxsqtulfr → SQL Editor).
 --
 -- It does two things:
 --   1. Grants your account admin (user_roles row + profiles.is_admin) so the

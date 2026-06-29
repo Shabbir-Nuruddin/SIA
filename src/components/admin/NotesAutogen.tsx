@@ -265,7 +265,7 @@ export default function NotesAutogen() {
             {keyError ? (
               <p className="text-xs text-urgent break-all">Couldn't read key status: {keyError}. If this says "forbidden"/403, run the admin-grant SQL (scripts/fix-admin-and-autogen.sql) and redeploy the edge functions.</p>
             ) : !keyStatus || keyStatus.totalKeys === 0 ? (
-              <p className="text-xs text-urgent">No Gemini keys detected on this backend. Add GEMINI_API_KEY (and _1, _2, …) in your Lovable Cloud / Supabase → Edge Functions → Secrets.</p>
+              <p className="text-xs text-urgent">No Gemini keys detected on this backend. Add GEMINI_API_KEY (and _1, _2, …) in Supabase → Edge Functions → Secrets.</p>
             ) : (
               <div className="space-y-2">
                 <div className="text-sm">Active: <span className="font-mono font-bold text-primary">{keyStatus.currentKeyName}</span> <span className="text-muted-foreground">({keyStatus.currentIndex + 1}/{keyStatus.totalKeys})</span></div>

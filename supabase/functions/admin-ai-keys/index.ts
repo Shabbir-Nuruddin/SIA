@@ -12,8 +12,8 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 // Admin allow-list by email. This works even on a backend where the admin-role
-// trigger/migration was never applied (e.g. a fresh Lovable Cloud DB), so the
-// owner can always reach the panel. The user_roles table is kept as a fallback.
+// trigger/migration was never applied (e.g. a fresh Supabase DB), so the owner
+// can always reach the panel. The user_roles table is kept as a fallback.
 const ADMIN_EMAILS = ["nuruddinshabbir3@gmail.com", "alvyu.official@gmail.com"];
 
 function listKeyNames(): string[] {

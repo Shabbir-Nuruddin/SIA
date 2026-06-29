@@ -23,8 +23,8 @@ ON CONFLICT (id) DO NOTHING;
 ALTER TABLE public.notes_autogen_control ENABLE ROW LEVEL SECURITY;
 
 -- Admin check that works even if the admin-role trigger/migration never ran on
--- this backend (e.g. a fresh Lovable Cloud DB): allow the owner email from the
--- JWT, OR a user_roles admin row. Keeps the panel switch usable out of the box.
+-- this backend (e.g. a fresh Supabase DB): allow the owner email from the JWT,
+-- OR a user_roles admin row. Keeps the panel switch usable out of the box.
 CREATE OR REPLACE FUNCTION public.is_sia_admin()
 RETURNS boolean
 LANGUAGE sql STABLE
