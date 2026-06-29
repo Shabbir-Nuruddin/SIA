@@ -22,15 +22,27 @@ ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE public.notes_autogen_control ENABLE ROW LEVEL SECURITY;
 
+-- Admin check that works even if the admin-role trigger/migration never ran on
+-- this backend (e.g. a fresh Lovable Cloud DB): allow the owner email from the
+-- JWT, OR a user_roles admin row. Keeps the panel switch usable out of the box.
+CREATE OR REPLACE FUNCTION public.is_sia_admin()
+RETURNS boolean
+LANGUAGE sql STABLE
+AS $$
+  SELECT
+    lower(coalesce(auth.jwt() ->> 'email', '')) IN ('nuruddinshabbir3@gmail.com', 'alvyu.official@gmail.com')
+    OR public.has_role(auth.uid(), 'admin');
+$$;
+
 DROP POLICY IF EXISTS "autogen control admin read" ON public.notes_autogen_control;
 CREATE POLICY "autogen control admin read"
 ON public.notes_autogen_control FOR SELECT
 TO authenticated
-USING (public.has_role(auth.uid(), 'admin'));
+USING (public.is_sia_admin());
 
 DROP POLICY IF EXISTS "autogen control admin update" ON public.notes_autogen_control;
 CREATE POLICY "autogen control admin update"
 ON public.notes_autogen_control FOR UPDATE
 TO authenticated
-USING (public.has_role(auth.uid(), 'admin'))
-WITH CHECK (public.has_role(auth.uid(), 'admin'));
+USING (public.is_sia_admin())
+WITH CHECK (public.is_sia_admin());

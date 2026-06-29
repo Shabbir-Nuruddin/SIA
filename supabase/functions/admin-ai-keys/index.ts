@@ -11,6 +11,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Admin allow-list by email. This works even on a backend where the admin-role
+// trigger/migration was never applied (e.g. a fresh Lovable Cloud DB), so the
+// owner can always reach the panel. The user_roles table is kept as a fallback.
+const ADMIN_EMAILS = ["nuruddinshabbir3@gmail.com", "alvyu.official@gmail.com"];
+
 function listKeyNames(): string[] {
   const out: string[] = [];
   if (Deno.env.get("GEMINI_API_KEY")) out.push("GEMINI_API_KEY");
@@ -44,9 +49,13 @@ serve(async (req) => {
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
-    const { data: role } = await admin
-      .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-    if (!role) {
+    let isAdmin = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+    if (!isAdmin) {
+      const { data: role } = await admin
+        .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+      isAdmin = !!role;
+    }
+    if (!isAdmin) {
       return new Response(JSON.stringify({ error: "forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

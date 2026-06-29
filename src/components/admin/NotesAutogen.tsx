@@ -57,6 +57,7 @@ export default function NotesAutogen() {
   const [current, setCurrent] = useState<NotesJob | null>(null);
   const [errors, setErrors] = useState<RunError[]>([]);
   const [keyStatus, setKeyStatus] = useState<KeyStatus | null>(null);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   const doneCount = doneRef.current.size;
   const remaining = Math.max(0, total - doneCount);
@@ -65,8 +66,22 @@ export default function NotesAutogen() {
   const loadKeyStatus = useCallback(async () => {
     try {
       const { data, error } = await supabase.functions.invoke("admin-ai-keys");
-      if (!error && data) setKeyStatus(data);
-    } catch { /* non-fatal */ }
+      if (error) {
+        // Surface the real reason instead of failing silently. A 403 here means
+        // the admin check rejected this account; "non-2xx" usually means that.
+        let detail = error.message || "Edge Function error";
+        const ctx = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          try { const b = await ctx.json(); detail = b?.error || detail; } catch { /* keep */ }
+        }
+        setKeyError(detail);
+        return;
+      }
+      setKeyError(null);
+      if (data) setKeyStatus(data);
+    } catch (e: any) {
+      setKeyError(e?.message || "Could not reach admin-ai-keys");
+    }
   }, []);
 
   const refreshDone = useCallback(async () => {
@@ -247,8 +262,10 @@ export default function NotesAutogen() {
               <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> Gemini key in use</div>
               <Button size="sm" variant="ghost" className="h-7 px-2" onClick={loadKeyStatus}><RefreshCw className="h-3.5 w-3.5" /></Button>
             </div>
-            {!keyStatus || keyStatus.totalKeys === 0 ? (
-              <p className="text-xs text-urgent">No Gemini keys detected. Add GEMINI_API_KEY (and _1, _2, …) in Supabase → Edge Functions → Secrets.</p>
+            {keyError ? (
+              <p className="text-xs text-urgent break-all">Couldn't read key status: {keyError}. If this says "forbidden"/403, run the admin-grant SQL (scripts/fix-admin-and-autogen.sql) and redeploy the edge functions.</p>
+            ) : !keyStatus || keyStatus.totalKeys === 0 ? (
+              <p className="text-xs text-urgent">No Gemini keys detected on this backend. Add GEMINI_API_KEY (and _1, _2, …) in your Lovable Cloud / Supabase → Edge Functions → Secrets.</p>
             ) : (
               <div className="space-y-2">
                 <div className="text-sm">Active: <span className="font-mono font-bold text-primary">{keyStatus.currentKeyName}</span> <span className="text-muted-foreground">({keyStatus.currentIndex + 1}/{keyStatus.totalKeys})</span></div>
