@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Trash2, Loader2, Shield, Eye, MessageSquare, KeyRound, RefreshCw, Rocket, Users, BarChart3, Search, UserX } from "lucide-react";
 import { ADMIN_EMAILS, isAdminEmail, useTestMode } from "@/lib/admin";
+import NotesAutogen from "@/components/admin/NotesAutogen";
 
 interface Modifier { id: string; feature: string; board: string; instruction: string; created_at: string; is_active: boolean; }
 interface FeedbackRow { id: string; created_at: string; user_id: string | null; message: string; rating: number | null; user_email?: string | null; }
@@ -139,6 +140,9 @@ const Admin = () => {
             </Button>
           </div>
         </header>
+
+        {/* Notes Auto-Generator — bulk pre-generate all Edexcel notes */}
+        <NotesAutogen />
 
         {/* Section A — Cache controls */}
         <section className="surface p-6">

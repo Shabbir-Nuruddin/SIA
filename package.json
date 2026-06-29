@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "notes:autogen": "npx -y tsx scripts/bulk-generate-notes.ts",
     "supabase:version": "cmd /c supabase --version",
     "supabase:start": "cmd /c supabase start",
     "supabase:stop": "cmd /c supabase stop",
