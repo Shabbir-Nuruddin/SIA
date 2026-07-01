@@ -13,6 +13,7 @@ import {
   YEAR_GROUPS, SECTIONS, type ChildProfile, type StudentMetrics,
 } from "@/lib/studentMetrics";
 import { DEMO_STUDENTS } from "@/lib/demoStudents";
+import { DEMO_STUDENT_ID } from "@/lib/demoAccounts";
 
 const STUDENT_FIELDS = "id, first_name, last_name, student_id, grade, section, current_streak, exam_board, last_session_date";
 
@@ -28,7 +29,16 @@ const TeacherDashboard = () => {
   const [targetStudent, setTargetStudent] = useState<StudentMetrics | null>(null);
   // Sample students are always shown for now (real roster import comes later).
   const demo = true;
-  const data = demo ? DEMO_STUDENTS : metrics;
+  // The real demo student (profiles.student_id === "SIA-DEMO") is pinned into
+  // the preview list — the fake demo-N cards can't take a real target/task
+  // (their id doesn't exist in the DB), but this one does, so the "Demo
+  // Teacher" account can actually generate + save an HPL target that shows
+  // up live for the "Demo Parent" account.
+  const data = useMemo(() => {
+    if (!demo) return metrics;
+    const realDemoStudent = metrics.find((m) => m.profile.student_id === DEMO_STUDENT_ID);
+    return realDemoStudent ? [realDemoStudent, ...DEMO_STUDENTS] : DEMO_STUDENTS;
+  }, [demo, metrics]);
 
   useEffect(() => {
     let alive = true;
@@ -351,15 +361,19 @@ function AssignTaskModal({
   const submit = async () => {
     const finalTitle = taskType === "custom" ? title.trim() : autoTitle;
     if (!finalTitle) { toast.error("Enter a task title."); return; }
-    // Demo students aren't real accounts — simulate the assignment for the preview.
-    if (students.every((m) => m.profile.id.startsWith("demo-"))) {
+    // Fake preview cards (id "demo-N") aren't real accounts — they can't take a
+    // real row, so split them out and only insert for the real student(s) (e.g.
+    // the pinned real Demo Student). Simulate the rest for the preview.
+    const realStudents = students.filter((m) => !m.profile.id.startsWith("demo-"));
+    const previewCount = students.length - realStudents.length;
+    if (realStudents.length === 0) {
       toast.success(`Task assigned to ${students.length} student${students.length === 1 ? "" : "s"} (preview).`);
       onClose();
       return;
     }
     setSaving(true);
     try {
-      const rows = students.map((m) => ({
+      const rows = realStudents.map((m) => ({
         teacher_id: teacherId,
         student_id: m.profile.id,
         title: finalTitle,
@@ -369,7 +383,10 @@ function AssignTaskModal({
       }));
       const { error } = await supabase.from("student_tasks").insert(rows as any);
       if (error) throw error;
-      toast.success(`Task assigned to ${students.length} student${students.length === 1 ? "" : "s"}.`);
+      toast.success(
+        `Task assigned to ${realStudents.length} student${realStudents.length === 1 ? "" : "s"}` +
+        (previewCount > 0 ? ` (+ ${previewCount} preview).` : "."),
+      );
       onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not assign task.");

@@ -11,6 +11,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2, GraduationCap, BookOpen, Users } from 
 import { trackEvent } from "@/lib/analytics";
 import { scheduleOnboardingEmails } from "@/lib/onboardingEmails";
 import { SEO } from "@/components/SEO";
+import { DEMO_EMAILS } from "@/lib/demoAccounts";
 
 const SIA_LOGO = "/sia-logo.png";
 const HERO_IMAGE = "https://sia.ae/wp-content/uploads/2022/03/BEN_6032.jpg";
@@ -28,9 +29,9 @@ const ROLES: { key: Role; label: string; icon: any }[] = [
 
 // Pre-created demo accounts — run the SQL below in Supabase SQL Editor to create them.
 const DEMO_CREDENTIALS: Record<Role, { email: string; password: string }> = {
-  student: { email: "demo.student@sia-revision.com", password: "Demo@Student1" },
-  teacher: { email: "demo.teacher@sia-revision.com", password: "Demo@Teacher1" },
-  parent:  { email: "demo.parent@sia-revision.com",  password: "Demo@Parent1"  },
+  student: { email: DEMO_EMAILS.student, password: "Demo@Student1" },
+  teacher: { email: DEMO_EMAILS.teacher, password: "Demo@Teacher1" },
+  parent:  { email: DEMO_EMAILS.parent,  password: "Demo@Parent1"  },
 };
 
 const DEMO_META: Record<Role, { label: string; desc: string; icon: any; color: string }> = {

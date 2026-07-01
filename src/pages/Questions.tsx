@@ -17,6 +17,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { incrementUsage } from "@/lib/plan";
 import { recordTopicResult, findUnitForTopic, usePageTimeTracker } from "@/lib/progressTracker";
+import { DEMO_EMAILS } from "@/lib/demoAccounts";
 
 type Difficulty = "Foundation" | "Standard" | "Challenge";
 type QType = "Multiple Choice" | "Short Answer" | "Extended Response" | "Calculation";
@@ -36,6 +37,19 @@ interface MarkResult {
 }
 
 const BATCH_SIZE = 10;
+
+// Pre-baked question + draft answer for the "Demo Student" account, so a live
+// demo can jump straight to "Submit answer" (real AI marking) without waiting
+// on a generated batch or typing an answer from scratch. The answer is left
+// deliberately one step short of finished so the marking sim shows genuine
+// partial credit + feedback, not a scripted full-marks result.
+const DEMO_TOPICAL_QUESTION: Generated = {
+  question_text: "Simplify fully: (x² − 9) / (x² + x − 6). Show each step of your working, including any factorisation.",
+  marks: 4,
+  mark_scheme: "M1 for factorising the numerator as (x − 3)(x + 3). M1 for factorising the denominator as (x + 3)(x − 2). M1 for cancelling the common factor (x + 3). A1 for the fully simplified answer (x − 3)/(x − 2).",
+};
+const DEMO_TOPICAL_ANSWER =
+  "Numerator: x² − 9 = (x − 3)(x + 3)\nDenominator: x² + x − 6 = (x + 3)(x − 2)\n\nSo the fraction is (x − 3)(x + 3) over (x + 3)(x − 2).";
 
 const QuestionsPage = () => {
   const { user } = useAuth();
@@ -89,19 +103,36 @@ const QuestionsPage = () => {
     if (params.get("subject") || params.get("topic")) return;
     let saved: any = null;
     try { saved = JSON.parse(localStorage.getItem("sia_questions_state") || "null"); } catch { /* ignore */ }
-    if (!saved || !Array.isArray(saved.batch) || saved.batch.length === 0) return;
-    skipTopicReset.current = true;
-    if (saved.subject) setSubject(saved.subject);
-    if (saved.topic) setTopic(saved.topic);
-    if (saved.difficulty) setDifficulty(saved.difficulty);
-    if (saved.qType) setQType(saved.qType);
-    setBatch(saved.batch);
-    setAnswers(Array.isArray(saved.answers) ? saved.answers : new Array(saved.batch.length).fill(""));
-    setAnswerImages(new Array(saved.batch.length).fill(null));
-    setMarks(Array.isArray(saved.marks) ? saved.marks : new Array(saved.batch.length).fill(null));
-    setIdx(Math.min(saved.idx || 0, saved.batch.length - 1));
+    if (saved && Array.isArray(saved.batch) && saved.batch.length > 0) {
+      skipTopicReset.current = true;
+      if (saved.subject) setSubject(saved.subject);
+      if (saved.topic) setTopic(saved.topic);
+      if (saved.difficulty) setDifficulty(saved.difficulty);
+      if (saved.qType) setQType(saved.qType);
+      setBatch(saved.batch);
+      setAnswers(Array.isArray(saved.answers) ? saved.answers : new Array(saved.batch.length).fill(""));
+      setAnswerImages(new Array(saved.batch.length).fill(null));
+      setMarks(Array.isArray(saved.marks) ? saved.marks : new Array(saved.batch.length).fill(null));
+      setIdx(Math.min(saved.idx || 0, saved.batch.length - 1));
+      return;
+    }
+    // First-ever visit for the Demo Student account: seed a ready question +
+    // draft answer so a live demo can click straight to "Submit answer".
+    if (user?.email === DEMO_EMAILS.student) {
+      skipTopicReset.current = true;
+      const demoTopic = SUBJECTS.mathematics.units[0].topics[0];
+      setSubject("mathematics");
+      setTopic(demoTopic);
+      setDifficulty("Standard");
+      setQType("Short Answer");
+      setBatch([DEMO_TOPICAL_QUESTION]);
+      setAnswers([DEMO_TOPICAL_ANSWER]);
+      setAnswerImages([null]);
+      setMarks([null]);
+      setIdx(0);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   // Save the working set so it survives navigation. (Answer images are skipped —
   // they're large data URLs; everything else persists.)
