@@ -109,14 +109,14 @@ const isQuotaError = (status: number, body: string) => {
 const REQUEST_TIMEOUT_MS = 60_000;
 
 async function callGeminiOnce({
-  apiKey, model, messages, tools, toolName, temperature, maxTokens, deadline,
+  apiKey, model, messages, tools, toolName, temperature, maxTokens, deadline, requestTimeoutMs,
 }: {
   apiKey: string; model: string; messages: any[]; tools: any[]; toolName: string;
-  temperature: number; maxTokens: number; deadline: number;
+  temperature: number; maxTokens: number; deadline: number; requestTimeoutMs?: number;
 }): Promise<{ ok: true; parsed: any } | { ok: false; status: number; body: string }> {
   const remaining = deadline - Date.now();
   if (remaining <= 1500) return { ok: false, status: 504, body: "no time budget remaining" };
-  const timeoutMs = Math.min(REQUEST_TIMEOUT_MS, remaining);
+  const timeoutMs = Math.min(requestTimeoutMs ?? REQUEST_TIMEOUT_MS, remaining);
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -158,7 +158,7 @@ async function callGeminiOnce({
 
 async function callGeminiWithRotation(opts: {
   messages: any[]; tools: any[]; toolName: string;
-  temperature: number; maxTokens: number; deadline: number;
+  temperature: number; maxTokens: number; deadline: number; requestTimeoutMs?: number;
 }) {
   const keys = getGeminiKeys();
   if (keys.length === 0) throw new Error("no gemini keys configured");
@@ -209,6 +209,10 @@ export async function callAITool(opts: {
   /** Total wall-clock budget for this whole call (all keys + fallback).
    *  Kept under Supabase's 150s function ceiling by the caller. */
   budgetMs?: number;
+  /** Per-attempt abort timeout. Defaults to 60s; pass a smaller value for
+   *  short/cheap completions so a hung or slow key fails over quickly
+   *  instead of blocking the whole rotation for up to a minute each. */
+  requestTimeoutMs?: number;
 }) {
   const temperature = opts.temperature ?? 0.3;
   const maxTokens = opts.maxTokens ?? 8000;
