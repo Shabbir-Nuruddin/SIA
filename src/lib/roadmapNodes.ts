@@ -570,7 +570,16 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
     .eq("user_id", userId)
     .in("status", ["locked", "unlocked", "in_progress", "skipped"]);
 
+  // Assign each node's id client-side so unlocks_after/source refs can be resolved
+  // in memory before insert — a plan can easily run to hundreds of nodes, and
+  // resolving these refs with one UPDATE per node after insert (the previous
+  // approach) turned every regeneration into hundreds of sequential network
+  // round-trips, which is what made the "Build roadmap" button hang for minutes.
+  const orderToId = new Map<number, string>();
+  for (const p of plan) orderToId.set(p.node_order, crypto.randomUUID());
+
   const insertRows = plan.map(p => ({
+    id: orderToId.get(p.node_order),
     user_id: p.user_id,
     subject: p.subject,
     unit_code: p.unit_code,
@@ -583,38 +592,19 @@ export async function persistNodePlan(userId: string, plan: PlanNode[]): Promise
     status: p.status,
     science_method: p.science_method,
     why_now_text: p.why_now_text,
+    unlocks_after_node_id: p.unlocks_after_order != null ? (orderToId.get(p.unlocks_after_order) ?? null) : null,
+    source_node_id: p.source_node_order != null ? (orderToId.get(p.source_node_order) ?? null) : null,
   }));
 
-  const inserted: { id: string; node_order: number }[] = [];
+  let inserted = 0;
   for (let i = 0; i < insertRows.length; i += 200) {
     const chunk = insertRows.slice(i, i + 200);
-    const { data, error } = await supabase.from("roadmap_nodes").insert(chunk).select("id, node_order");
+    const { error } = await supabase.from("roadmap_nodes").insert(chunk);
     if (error) throw error;
-    if (data) inserted.push(...data);
+    inserted += chunk.length;
   }
 
-  // Resolve unlocks_after / source_node refs
-  const orderToId = new Map<number, string>();
-  inserted.forEach(r => orderToId.set(r.node_order, r.id));
-
-  for (const p of plan) {
-    const id = orderToId.get(p.node_order);
-    if (!id) continue;
-    const patch: any = {};
-    if (p.unlocks_after_order != null) {
-      const refId = orderToId.get(p.unlocks_after_order);
-      if (refId) patch.unlocks_after_node_id = refId;
-    }
-    if (p.source_node_order != null) {
-      const refId = orderToId.get(p.source_node_order);
-      if (refId) patch.source_node_id = refId;
-    }
-    if (Object.keys(patch).length > 0) {
-      await supabase.from("roadmap_nodes").update(patch).eq("id", id);
-    }
-  }
-
-  return { inserted: inserted.length };
+  return { inserted };
 }
 
 /**
