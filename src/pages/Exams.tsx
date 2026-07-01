@@ -62,7 +62,16 @@ const Exams = () => {
       supabase.from("exams").select("*").eq("user_id", user.id).order("exam_date"),
       supabase.from("profiles").select("exam_board").eq("id", user.id).single(),
     ]);
-    if (exRes.data) setExams(exRes.data as any);
+    if (exRes.data) {
+      const finished = (exRes.data as any[]).filter(e => daysFromTodayLocal(e.exam_date) < 0);
+      const current = (exRes.data as any[]).filter(e => daysFromTodayLocal(e.exam_date) >= 0);
+      setExams(current as any);
+      if (finished.length > 0) {
+        supabase.from("exams").delete().in("id", finished.map(e => e.id)).then(({ error }) => {
+          if (error) console.error("Failed to clean up finished exams", error);
+        });
+      }
+    }
     if (profRes.data?.exam_board === "cie") setBoard("cie"); else setBoard("edexcel-ial");
     setLoading(false);
   };
@@ -104,41 +113,45 @@ const Exams = () => {
     };
 
     if (editing.id) {
-      const { error } = await supabase.from("exams").update(payload).eq("id", editing.id);
+      const { data, error } = await supabase.from("exams").update(payload).eq("id", editing.id).select().single();
       if (error) { toast.error(error.message); return; }
       toast.success("Exam updated");
+      setExams(prev => prev.map(e => e.id === editing.id ? (data as any) : e).sort((a, b) => a.exam_date.localeCompare(b.exam_date)));
     } else {
-      const { error } = await supabase.from("exams").insert(payload);
+      const { data, error } = await supabase.from("exams").insert(payload).select().single();
       if (error) { toast.error(error.message); return; }
       toast.success("Exam added");
+      setExams(prev => [...prev, data as any].sort((a, b) => a.exam_date.localeCompare(b.exam_date)));
     }
     setOpen(false);
     setEditing(null);
 
     // Re-sequence BOTH roadmap systems (dashboard "Today's plan" sessions AND the
     // Roadmap page nodes) against the new/changed exam date so every surface
-    // immediately prioritises the unit whose exam is next.
-    try {
-      const { regenerateRoadmaps } = await import("@/lib/persistRoadmap");
-      await regenerateRoadmaps(user.id);
-      toast.success("Roadmap re-sequenced for your exam dates");
-    } catch (e) {
-      console.error("Roadmap regen after exam save failed", e);
-    }
-
-    load();
+    // immediately prioritises the unit whose exam is next. Runs in the background
+    // so the exam list itself updates instantly rather than waiting on this.
+    (async () => {
+      try {
+        const { regenerateRoadmaps } = await import("@/lib/persistRoadmap");
+        await regenerateRoadmaps(user.id);
+        toast.success("Roadmap re-sequenced for your exam dates");
+      } catch (e) {
+        console.error("Roadmap regen after exam save failed", e);
+      }
+    })();
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("exams").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Exam deleted");
-    load();
+    setExams(prev => prev.filter(e => e.id !== id));
   };
 
   const toggleActive = async (e: Exam) => {
-    await supabase.from("exams").update({ is_active: !e.is_active }).eq("id", e.id);
-    load();
+    const { error } = await supabase.from("exams").update({ is_active: !e.is_active }).eq("id", e.id);
+    if (error) { toast.error(error.message); return; }
+    setExams(prev => prev.map(x => x.id === e.id ? { ...x, is_active: !x.is_active } : x));
   };
 
   const buildRoadmap = async (e: Exam) => {
