@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ApexLogo } from "@/components/ApexLogo";
-import LoadingGameOverlay from "@/components/game/LoadingGameOverlay";
 import { SubjectCode, GRADES, Grade, getSubjectsForBoard, formatDuration } from "@/lib/subjects";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
@@ -243,7 +242,6 @@ const Onboarding = () => {
           </div>
           <div className="text-xs text-muted-foreground mt-3 font-mono">{progress}%</div>
         </div>
-        <LoadingGameOverlay open={step === 4} delayMs={1200} note="Setting up your roadmap — this closes itself when it's ready." />
       </div>
     );
   }

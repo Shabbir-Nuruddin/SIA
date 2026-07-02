@@ -86,3 +86,24 @@ function makeStudent(i: number): StudentMetrics {
 }
 
 export const DEMO_STUDENTS: StudentMetrics[] = Array.from({ length: 34 }, (_, i) => makeStudent(i));
+
+// The featured demo student — always the first card in the teacher roster and
+// the single child on the demo parent dashboard.
+export const DEMO_FEATURED_STUDENT: StudentMetrics = DEMO_STUDENTS[0];
+
+// A ready-made, AI-style HPL target for the featured demo student. This is
+// shown PRE-FILLED in the teacher's Target modal (so a demo needs no live AI
+// call) and rendered on the demo parent dashboard under "Targets from
+// teacher" — entirely client-side, so no SQL seeding is required.
+export const DEMO_TARGET = {
+  id: "demo-target-featured",
+  period: "This week",
+  created_at: new Date().toISOString(),
+  content: `**Push your Mathematics from a B toward your A target this week.**
+
+1. Complete two topical-question sets on your weakest topic and review every worked solution, not just the score — builds **Meta-thinking** and **Hard-working: perseverance**.
+2. Sit one timed mock paper and act on the examiner feedback before your next attempt — builds **Analysing**.
+3. Finish the remaining roadmap sessions this week to protect your streak and keep momentum — builds **Realising**.
+
+You're already putting in consistent hours — channel that into your flagged weak topics and the grade gap will close. Keep it up!`,
+};

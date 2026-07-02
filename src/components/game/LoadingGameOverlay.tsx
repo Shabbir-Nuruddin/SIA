@@ -16,7 +16,7 @@ import StudyTycoon from "./StudyTycoon";
  */
 export default function LoadingGameOverlay({
   open,
-  delayMs = 1500,
+  delayMs = 5500,
   note = "This is loading in the background — keep tapping. It'll close itself the moment it's ready.",
 }: {
   open: boolean;

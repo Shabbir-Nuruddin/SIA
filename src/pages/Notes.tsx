@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import NotesVisualRenderer from "@/components/NotesVisualRenderer";
 import { findChemistryTopic } from "@/lib/chemistrySyllabus";
 import { buildCieSyllabusContext } from "@/lib/cieSyllabus";
-import LoadingGameOverlay from "@/components/game/LoadingGameOverlay";
 import YouTubeLessonEmbed from "@/components/YouTubeLessonEmbed";
 import { usePlan } from "@/hooks/usePlan";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -501,7 +500,6 @@ const NotesPage = () => {
   return (
     <AppLayout>
       <SEO title="Notes — SIA Smart Revision" description="Instant exam-focused A-Level notes generated for every topic on your syllabus." path="/notes" />
-      <LoadingGameOverlay open={loadingNotes} note="Your notes are generating — this overlay closes itself the moment they're ready." />
       <div className="p-5 md:p-8 max-w-7xl mx-auto animate-fade-in">
         <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
           <aside className="glass-card rounded-3xl border border-border/80 bg-background-elevated p-6 lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">

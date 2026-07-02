@@ -12,8 +12,7 @@ import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
   YEAR_GROUPS, SECTIONS, type ChildProfile, type StudentMetrics,
 } from "@/lib/studentMetrics";
-import { DEMO_STUDENTS } from "@/lib/demoStudents";
-import { DEMO_STUDENT_ID } from "@/lib/demoAccounts";
+import { DEMO_STUDENTS, DEMO_FEATURED_STUDENT, DEMO_TARGET } from "@/lib/demoStudents";
 
 const STUDENT_FIELDS = "id, first_name, last_name, student_id, grade, section, current_streak, exam_board, last_session_date";
 
@@ -28,17 +27,10 @@ const TeacherDashboard = () => {
   const [assignTarget, setAssignTarget] = useState<StudentMetrics[] | null>(null);
   const [targetStudent, setTargetStudent] = useState<StudentMetrics | null>(null);
   // Sample students are always shown for now (real roster import comes later).
+  // The featured demo student (DEMO_FEATURED_STUDENT) is DEMO_STUDENTS[0], so
+  // it's already the first card — and it opens with a ready-made HPL target.
   const demo = true;
-  // The real demo student (profiles.student_id === "SIA-DEMO") is pinned into
-  // the preview list — the fake demo-N cards can't take a real target/task
-  // (their id doesn't exist in the DB), but this one does, so the "Demo
-  // Teacher" account can actually generate + save an HPL target that shows
-  // up live for the "Demo Parent" account.
-  const data = useMemo(() => {
-    if (!demo) return metrics;
-    const realDemoStudent = metrics.find((m) => m.profile.student_id === DEMO_STUDENT_ID);
-    return realDemoStudent ? [realDemoStudent, ...DEMO_STUDENTS] : DEMO_STUDENTS;
-  }, [demo, metrics]);
+  const data = demo ? DEMO_STUDENTS : metrics;
 
   useEffect(() => {
     let alive = true;
@@ -209,7 +201,7 @@ const TeacherDashboard = () => {
                             <button onClick={() => setTargetStudent(m)}
                               className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50"
                               style={{ color: RED }}>
-                              🎯 Target
+                              {m.profile.id === DEMO_FEATURED_STUDENT.profile.id ? "🎯 View target" : "🎯 Target"}
                             </button>
                             <button onClick={() => setAssignTarget([m])}
                               className="text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-50"
@@ -240,6 +232,7 @@ const TeacherDashboard = () => {
         <TargetModal
           teacherId={user?.id || null}
           student={targetStudent}
+          presetContent={targetStudent.profile.id === DEMO_FEATURED_STUDENT.profile.id ? DEMO_TARGET.content : ""}
           onClose={() => setTargetStudent(null)}
         />
       )}
@@ -247,9 +240,11 @@ const TeacherDashboard = () => {
   );
 };
 
-function TargetModal({ teacherId, student, onClose }: { teacherId: string | null; student: StudentMetrics; onClose: () => void }) {
+function TargetModal({ teacherId, student, presetContent = "", onClose }: { teacherId: string | null; student: StudentMetrics; presetContent?: string; onClose: () => void }) {
   const [period, setPeriod] = useState("This week");
-  const [content, setContent] = useState("");
+  // Pre-fill with the ready-made HPL target for the featured demo student, so
+  // it's "already generated" for a live demo — no waiting on the AI call.
+  const [content, setContent] = useState(presetContent);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const isDemo = student.profile.id.startsWith("demo-");

@@ -12,6 +12,10 @@ import {
   fetchMetricsFor, fmtMinutes, relativeTime, fullName, subjectLabel,
   type ChildProfile, type StudentMetrics,
 } from "@/lib/studentMetrics";
+import { DEMO_EMAILS } from "@/lib/demoAccounts";
+import { DEMO_FEATURED_STUDENT, DEMO_TARGET } from "@/lib/demoStudents";
+
+type TargetRow = { id: string; period: string | null; content: string; created_at: string };
 
 const CHILD_FIELDS = "id, first_name, last_name, student_id, grade, section, current_streak, exam_board, last_session_date";
 
@@ -22,10 +26,18 @@ const ParentDashboard = () => {
   const [linkId, setLinkId] = useState("");
   const [linking, setLinking] = useState(false);
 
+  const isDemoParent = user?.email === DEMO_EMAILS.parent;
+
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
+      // Demo parent: show the featured demo child (with its teacher target)
+      // entirely client-side — no linking or SQL seeding required.
+      if (user.email === DEMO_EMAILS.parent) {
+        setMetrics([DEMO_FEATURED_STUDENT]);
+        return;
+      }
       const { data: links } = await supabase.from("sia_parent_child").select("child_id").eq("parent_id", user.id);
       const childIds = ((links as any[]) || []).map((l) => l.child_id);
       if (childIds.length === 0) { setMetrics([]); return; }
@@ -91,7 +103,9 @@ const ParentDashboard = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {metrics.map((m) => <ChildCard key={m.profile.id} m={m} />)}
+          {metrics.map((m) => (
+            <ChildCard key={m.profile.id} m={m} presetTargets={isDemoParent ? [DEMO_TARGET] : undefined} />
+          ))}
         </div>
       )}
     </RoleShell>
@@ -109,10 +123,12 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function ChildCard({ m }: { m: StudentMetrics }) {
+function ChildCard({ m, presetTargets }: { m: StudentMetrics; presetTargets?: TargetRow[] }) {
   const p = m.profile;
-  const [targets, setTargets] = useState<{ id: string; period: string | null; content: string; created_at: string }[]>([]);
+  const [targets, setTargets] = useState<TargetRow[]>(presetTargets ?? []);
   useEffect(() => {
+    // Demo parent passes targets in directly — skip the DB read.
+    if (presetTargets) { setTargets(presetTargets); return; }
     let alive = true;
     supabase.from("student_targets")
       .select("id,period,content,created_at")
@@ -121,7 +137,7 @@ function ChildCard({ m }: { m: StudentMetrics }) {
       .limit(3)
       .then(({ data }) => { if (alive && data) setTargets(data as any); });
     return () => { alive = false; };
-  }, [p.id]);
+  }, [p.id, presetTargets]);
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm" style={{ borderColor: "#f0e0e2" }}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">

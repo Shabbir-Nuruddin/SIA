@@ -561,14 +561,14 @@ const QuestionsPage = () => {
                 <div>
                   <div className="text-xs uppercase tracking-widest text-accent font-mono mb-2">Examiner feedback</div>
                   <div
-                    className="prose prose-invert max-w-none text-sm"
+                    className="max-w-none text-sm leading-relaxed text-foreground"
                     {...formattedHtmlProps(currentMark.feedback)}
                   />
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-success font-mono mb-2">Model answer</div>
                   <div
-                    className="prose prose-invert max-w-none text-sm p-4 rounded-lg bg-success/5 border border-success/20"
+                    className="max-w-none text-sm leading-relaxed text-foreground p-4 rounded-lg bg-success/5 border border-success/20"
                     {...formattedHtmlProps(currentMark.model_answer)}
                   />
                 </div>
