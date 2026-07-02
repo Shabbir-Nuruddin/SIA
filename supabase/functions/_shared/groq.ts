@@ -53,6 +53,7 @@ export async function callGroqTool({
   maxTokens = 4096,
   vision = false,
   deadline,
+  requestTimeoutMs,
 }: {
   apiKey: string;
   messages: any[];
@@ -63,6 +64,8 @@ export async function callGroqTool({
   vision?: boolean;
   /** Absolute wall-clock deadline (ms epoch). Stops trying models once spent. */
   deadline?: number;
+  /** Per-attempt abort timeout. Defaults to 60s. */
+  requestTimeoutMs?: number;
 }) {
   let lastStatus = 500;
   let lastBody = "";
@@ -75,7 +78,7 @@ export async function callGroqTool({
       const remaining = hardDeadline - Date.now();
       if (remaining <= 1500) break;
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), Math.min(REQUEST_TIMEOUT_MS, remaining));
+      const timer = setTimeout(() => ctrl.abort(), Math.min(requestTimeoutMs ?? REQUEST_TIMEOUT_MS, remaining));
       try {
         const res = await fetch(GATEWAY, {
           method: "POST",
@@ -116,7 +119,7 @@ export async function callGroqTool({
         const aborted = err instanceof DOMException && err.name === "AbortError";
         console.error("groq fetch error", { model, attempt, error: aborted ? "timeout" : (err instanceof Error ? err.message : err) });
         lastStatus = aborted ? 504 : 500;
-        lastBody = aborted ? `request timed out after ${REQUEST_TIMEOUT_MS}ms` : (err instanceof Error ? err.message : String(err));
+        lastBody = aborted ? `request timed out after ${Math.min(requestTimeoutMs ?? REQUEST_TIMEOUT_MS, remaining)}ms` : (err instanceof Error ? err.message : String(err));
         continue;
       } finally {
         clearTimeout(timer);

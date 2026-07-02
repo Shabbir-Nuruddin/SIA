@@ -78,6 +78,13 @@ Focus the targets where the data shows the biggest opportunity (e.g. weak topics
       toolName: "write_student_target",
       temperature: 0.5,
       maxTokens: 800,
+      // This is a short ~120-word completion — a healthy key answers in a few
+      // seconds. Fail fast per attempt and cap the whole call well under the
+      // shared 110s/60s-per-attempt defaults (meant for long-form generation
+      // like notes/mock papers) so a rate-limited or hung key doesn't leave
+      // the teacher staring at the Generate spinner for the better part of a minute.
+      requestTimeoutMs: 8_000,
+      budgetMs: 45_000,
     });
 
     return new Response(JSON.stringify({ target: args?.target || "" }), {
