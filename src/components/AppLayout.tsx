@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/AppSidebar";
 import { CountdownOverlay } from "@/components/CountdownOverlay";
+import { TodayProgressBar } from "@/components/TodayProgressBar";
 import { PomodoroPill } from "@/components/PomodoroPill";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { MusicPlayer } from "@/components/MusicPlayer";
@@ -20,6 +21,8 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
   // Whether the exam countdown bar is currently showing — drives the top inset so
   // we only reserve the 44px strip when there's actually an upcoming exam.
   const [countdownVisible, setCountdownVisible] = useState(false);
+  // Same idea for the slim "today's completion" strip that sits directly under it.
+  const [progressBarVisible, setProgressBarVisible] = useState(false);
   const toggleDock = (open: boolean) => {
     setDockOpen(open);
     try { localStorage.setItem("sia_dock_open", open ? "1" : "0"); } catch { /* ignore */ }
@@ -40,12 +43,28 @@ export const AppLayout = ({ children, hideChrome }: { children: ReactNode; hideC
   return (
     <div className="h-dvh min-h-screen overflow-hidden flex bg-background study-shell">
       {!chromeHidden && <CountdownOverlay onVisibilityChange={setCountdownVisible} />}
+      {!chromeHidden && <TodayProgressBar topInset={countdownVisible} onVisibilityChange={setProgressBarVisible} />}
       {!chromeHidden && <AppSidebar visible={sidebarVisible} topInset={countdownVisible} onClose={() => setSidebarVisible(false)} onOpen={() => setSidebarVisible(true)} />}
       {/* Top inset rules:
-          - mobile: always reserve 44px for the fixed hamburger button.
-          - desktop: reserve 44px ONLY when the exam countdown bar is showing,
-            otherwise flush to the top (no dead white strip). */}
-      <main className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${chromeHidden ? "" : `pt-11 ${countdownVisible ? "lg:pt-11" : "lg:pt-0"}`}`}>{children}</main>
+          - mobile: always reserve 44px for the fixed hamburger button, plus an
+            extra 8px whenever the today-progress strip is showing under it.
+          - desktop: reserve 44px ONLY when the exam countdown bar is showing
+            (otherwise flush to the top), plus the same +8px for the progress
+            strip whenever it's visible — it always sits directly after
+            whatever's already reserved, so it never overlaps content. */}
+      <main
+        className={`flex-1 min-w-0 h-dvh overflow-y-auto overscroll-contain ${
+          chromeHidden
+            ? ""
+            : `${progressBarVisible ? "pt-[52px]" : "pt-11"} ${
+                countdownVisible
+                  ? progressBarVisible ? "lg:pt-[52px]" : "lg:pt-11"
+                  : progressBarVisible ? "lg:pt-2" : "lg:pt-0"
+              }`
+        }`}
+      >
+        {children}
+      </main>
 
       {/* Floating tools cluster. In exam mode (chromeHidden) it stays as-is. On
           normal pages it can be minimised to a single small button. */}

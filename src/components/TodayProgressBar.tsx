@@ -3,9 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Thin 8px progress bar showing % of today's roadmap sessions completed.
-// Sits directly under the countdown bar.
+// Sits directly under the countdown bar — topInset controls whether it sits
+// at top:44 (countdown bar showing) or top:0 (nothing above it), mirroring
+// the same prop pattern AppSidebar already uses for the same purpose.
 
-export const TodayProgressBar = () => {
+export const TodayProgressBar = ({
+  topInset = false,
+  onVisibilityChange,
+}: { topInset?: boolean; onVisibilityChange?: (visible: boolean) => void } = {}) => {
   const { user } = useAuth();
   const [done, setDone] = useState(0);
   const [total, setTotal] = useState(0);
@@ -32,13 +37,16 @@ export const TodayProgressBar = () => {
     return () => { clearInterval(id); window.removeEventListener("apex-roadmap-change", handler); };
   }, [user]);
 
-  if (!user || total === 0) return null;
+  const visible = !!user && total > 0;
+  useEffect(() => { onVisibilityChange?.(visible); }, [visible, onVisibilityChange]);
+
+  if (!visible) return null;
   const pct = Math.round((done / total) * 100);
 
   return (
     <div
       className="fixed left-0 right-0 z-40 group"
-      style={{ top: 44, height: 8, background: "hsl(var(--background-elevated))" }}
+      style={{ top: topInset ? 44 : 0, height: 8, background: "hsl(var(--background-elevated))" }}
       title={`${done} of ${total} tasks complete today`}
     >
       <div
